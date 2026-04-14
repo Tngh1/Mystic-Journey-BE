@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36811.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mystic-Journey-API", "Mystic-Journey-API\Mystic-Journey-API.csproj", "{87666C55-670B-4468-9977-148EA79F1593}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL", "Repositories\DAL.csproj", "{42D29575-7555-469B-AA57-C2974BCCCDF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BLL", "Services\BLL.csproj", "{4E687CEA-B9E6-4DB0-914B-D410BAF110D9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87666C55-670B-4468-9977-148EA79F1593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87666C55-670B-4468-9977-148EA79F1593}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87666C55-670B-4468-9977-148EA79F1593}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87666C55-670B-4468-9977-148EA79F1593}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42D29575-7555-469B-AA57-C2974BCCCDF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42D29575-7555-469B-AA57-C2974BCCCDF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42D29575-7555-469B-AA57-C2974BCCCDF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42D29575-7555-469B-AA57-C2974BCCCDF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E687CEA-B9E6-4DB0-914B-D410BAF110D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E687CEA-B9E6-4DB0-914B-D410BAF110D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E687CEA-B9E6-4DB0-914B-D410BAF110D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E687CEA-B9E6-4DB0-914B-D410BAF110D9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6FE366CB-C2AB-4FB3-A81B-70288DE657CF}
+	EndGlobalSection
+EndGlobal
