@@ -1,0 +1,33 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DAL.Models
+{
+    public class GachaBanner
+    {
+        public Guid Id { get; set; }
+
+        [Required, MaxLength(150)]
+        public string Name { get; set; } = string.Empty;
+
+        public BannerType Type { get; set; } = BannerType.Weapon;
+
+        public int PullCost { get; set; } = 100;
+        public int PityLimit { get; set; } = 90;
+
+        public bool IsActive { get; set; } = true;
+
+        public DateTime StartAt { get; set; }
+        public DateTime EndAt { get; set; }
+
+        public ICollection<GachaBannerItem> BannerItems { get; set; } = new List<GachaBannerItem>();
+        public ICollection<GachaPullHistory> PullHistories { get; set; } = new List<GachaPullHistory>();
+
+        public enum BannerType
+        {
+            Weapon = 0,
+            Character = 1,
+            Standard = 2,
+            Limited = 3
+        }
+    }
+}
