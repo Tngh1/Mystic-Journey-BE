@@ -1,15 +1,17 @@
-using DAL.Data;
-using DAL.Repositories;
-using DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using BLL.Mappings;
 using BLL.Services;
 using BLL.Services.Interfaces;
+using DAL.Data;
+using DAL.Repositories;
+using DAL.Repositories.Interfaces;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
+Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -35,7 +37,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-            )
+            ),
+            ClockSkew = TimeSpan.Zero
         };
     });
 
@@ -71,7 +74,6 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
