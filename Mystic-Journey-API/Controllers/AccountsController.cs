@@ -2,6 +2,9 @@
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -19,12 +22,22 @@ namespace Mystic_Journey_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto request)
+        public async Task<IActionResult> LoginAsync(LoginRequestDto request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    Success = false,
+                    Message = GetError()
+                });
+            }
+
             var result = await _accountService.LoginAsync(request);
+
             if (!result.Success)
             {
-                return BadRequest(result);
+                return Unauthorized(result);
             }
 
             return Ok(result);
@@ -32,9 +45,19 @@ namespace Mystic_Journey_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto request)
+        public async Task<IActionResult> RegisterAsync(RegisterRequestDto request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    Success = false,
+                    Message = GetError()
+                });
+            }
+
             var result = await _accountService.RegisterAsync(request);
+
             if (!result.Success)
             {
                 return BadRequest(result);
@@ -45,28 +68,66 @@ namespace Mystic_Journey_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequestDto request)
+        public async Task<IActionResult> ForgotPasswordAsync(ForgotPasswordRequestDto request)
         {
-            var success = await _accountService.ForgotPasswordAsync(request);
-            if (!success)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Unable to process forgot password request." });
+                return BadRequest(new AuthResponseDto
+                {
+                    Success = false,
+                    Message = GetError()
+                });
             }
 
-            return Ok(new { message = "Password reset token has been generated." });
+            var result = await _accountService.ForgotPasswordAsync(request);
+
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [AllowAnonymous]
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequestDto request)
+        public async Task<IActionResult> ResetPasswordAsync(ResetPasswordRequestDto request)
         {
-            var success = await _accountService.ResetPasswordAsync(request);
-            if (!success)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Unable to reset password." });
+                return BadRequest(new AuthResponseDto
+                {
+                    Success = false,
+                    Message = GetError()
+                });
             }
 
-            return Ok(new { message = "Password reset successful." });
+            var result = await _accountService.ResetPasswordAsync(request);
+
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePasswordAsync(ChangePasswordRequestDto request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    Success = false,
+                    Message = GetError()
+                });
+            }
+
+            var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _accountService.ChangePasswordAsync(accountId, request);
+
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        private string GetError()
+        {
+            return ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault() ?? "Invalid request.";
         }
     }
 }

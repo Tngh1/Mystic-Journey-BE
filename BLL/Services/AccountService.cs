@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -20,7 +22,10 @@ namespace BLL.Services
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
-        public AccountService(IAccountRepository repository, IMapper mapper, IConfiguration configuration)
+        public AccountService(
+            IAccountRepository repository,
+            IMapper mapper,
+            IConfiguration configuration)
         {
             _repository = repository;
             _mapper = mapper;
@@ -29,54 +34,64 @@ namespace BLL.Services
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.EmailOrUsername) || string.IsNullOrWhiteSpace(request.Password))
+            if (request == null)
             {
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Email/username and password must not be empty."
+                    Message = "Something went wrong. Please try logging in again."
                 };
             }
 
-            var account = await _repository.GetByUsernameOrEmailAsync(request.EmailOrUsername.Trim());
-            if (account == null)
+            var emailOrUsername = request.EmailOrUsername?.Trim();
+            if (string.IsNullOrWhiteSpace(emailOrUsername) || string.IsNullOrWhiteSpace(request.Password))
             {
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Account does not exist or has been deactivated."
+                    Message = "Please enter both your email/username and password."
                 };
             }
 
-            var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword);
-            if (!isPasswordValid)
+            var account = await _repository.GetByUsernameOrEmailAsync(emailOrUsername);
+            if (account == null || !account.IsActive)
             {
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Incorrect password."
+                    Message = "We couldn’t find your account or it has been deactivated."
+                };
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword))
+            {
+                return new AuthResponseDto
+                {
+                    Success = false,
+                    Message = "The password you entered is incorrect."
                 };
             }
 
             var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
-            var loginRefreshToken = GenerateToken();
-            var loginRefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            var refreshToken = GenerateToken();
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
-            account.RefreshToken = loginRefreshToken;
-            account.RefreshTokenExpiryTime = loginRefreshTokenExpiry;
+            account.RefreshToken = refreshToken;
+            account.RefreshTokenExpiryTime = refreshTokenExpiry;
             account.LastLogin = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
+
             await _repository.UpdateAccountAsync(account);
 
-            var loginResponse = _mapper.Map<AuthResponseDto>(account);
-            loginResponse.Success = true;
-            loginResponse.Message = "Login successful.";
-            loginResponse.AccessToken = accessToken;
-            loginResponse.AccessTokenExpiresAt = accessTokenExpiry;
-            loginResponse.RefreshToken = loginRefreshToken;
-            loginResponse.RefreshTokenExpiresAt = loginRefreshTokenExpiry;
+            var response = _mapper.Map<AuthResponseDto>(account);
+            response.Success = true;
+            response.Message = "Login successful! Welcome back.";
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessTokenExpiry;
+            response.RefreshToken = refreshToken;
+            response.RefreshTokenExpiresAt = refreshTokenExpiry;
 
-            return loginResponse;
+            return response;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
@@ -86,7 +101,7 @@ namespace BLL.Services
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Invalid registration data."
+                    Message = "Something went wrong. Please check your information and try again."
                 };
             }
 
@@ -98,7 +113,7 @@ namespace BLL.Services
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Registration information must not be empty."
+                    Message = "Please fill in all required information."
                 };
             }
 
@@ -107,7 +122,7 @@ namespace BLL.Services
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Password confirmation does not match."
+                    Message = "Passwords do not match. Please check again."
                 };
             }
 
@@ -119,7 +134,7 @@ namespace BLL.Services
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Email already exists."
+                    Message = "This email is already registered. Please use another email or log in."
                 };
             }
 
@@ -128,12 +143,12 @@ namespace BLL.Services
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Username already exists."
+                    Message = "This username is already taken. Please choose another one."
                 };
             }
 
-            var registerRefreshToken = GenerateToken();
-            var registerRefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            var refreshToken = GenerateToken();
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
             var account = _mapper.Map<Account>(request);
             account.Id = Guid.NewGuid();
@@ -145,80 +160,171 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.UtcNow;
             account.IsActive = true;
             account.EmailConfirmed = false;
-            account.RefreshToken = registerRefreshToken;
-            account.RefreshTokenExpiryTime = registerRefreshTokenExpiry;
+            account.RefreshToken = refreshToken;
+            account.RefreshTokenExpiryTime = refreshTokenExpiry;
             account.EmailVerificationToken = GenerateToken();
             account.EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
 
             await _repository.CreateAccountAsync(account);
 
+            var emailSent = await SendEmailAsync(
+                normalizedEmail,
+                "Mystic Journey - Welcome",
+                $"Welcome {account.FullName}! Your account has been created successfully.");
+
             var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
 
-            var registerResponse = _mapper.Map<AuthResponseDto>(account);
-            registerResponse.Success = true;
-            registerResponse.Message = "Registration successful.";
-            registerResponse.AccessToken = accessToken;
-            registerResponse.AccessTokenExpiresAt = accessTokenExpiry;
-            registerResponse.RefreshToken = registerRefreshToken;
-            registerResponse.RefreshTokenExpiresAt = registerRefreshTokenExpiry;
+            var response = _mapper.Map<AuthResponseDto>(account);
+            response.Success = true;
+            response.Message = emailSent
+                ? "Your account has been created successfully."
+                : "Your account has been created, but we couldn’t send the email right now.";
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessTokenExpiry;
+            response.RefreshToken = refreshToken;
+            response.RefreshTokenExpiresAt = refreshTokenExpiry;
 
-            return registerResponse;
+            return response;
         }
 
-        public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        public async Task<ApiResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Email))
             {
-                return false;
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "Please enter your email address."
+                };
             }
 
-            var account = await _repository.GetByEmailAsync(request.Email.Trim());
-            if (account == null)
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            var account = await _repository.GetByEmailAsync(normalizedEmail);
+
+            if (account == null || !account.IsActive)
             {
-                return false;
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "We couldn’t find an account with this email."
+                };
             }
 
-            account.PasswordResetToken = GenerateToken();
-            account.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(30);
+            var code = GenerateVerificationCode();
+
+            account.PasswordResetToken = code;
+            account.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
             account.UpdatedAt = DateTime.UtcNow;
 
             await _repository.UpdateAccountAsync(account);
-            return true;
+
+            var emailSent = await SendEmailAsync(
+                normalizedEmail,
+                "Reset Password Code",
+                $"Your verification code is: {code}. This code will expire in 15 minutes.");
+
+            if (!emailSent)
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "We couldn’t send the verification email. Please try again later."
+                };
+            }
+
+            return new ApiResponseDto
+            {
+                Success = true,
+                Message = "A verification code has been sent to your email."
+            };
         }
 
-        public async Task<bool> ResetPasswordAsync(ResetPasswordRequestDto request)
+        public async Task<ApiResponseDto> ResetPasswordAsync(ResetPasswordRequestDto request)
         {
-            if (request == null ||
-                string.IsNullOrWhiteSpace(request.PasswordResetToken) ||
-                string.IsNullOrWhiteSpace(request.NewPassword) ||
-                string.IsNullOrWhiteSpace(request.ConfirmPassword))
+            if (request == null)
             {
-                return false;
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "Something went wrong. Please try again."
+                };
             }
 
             if (!string.Equals(request.NewPassword, request.ConfirmPassword, StringComparison.Ordinal))
             {
-                return false;
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "Passwords do not match. Please re-enter them."
+                };
             }
 
-            var account = await _repository.GetByPasswordResetTokenAsync(request.PasswordResetToken.Trim());
+            var account = await _repository.GetByEmailAndPasswordResetCodeAsync(
+                request.Email.Trim().ToLower(),
+                request.VerificationCode.Trim());
+
             if (account == null)
             {
-                return false;
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "The verification code is invalid."
+                };
             }
 
-            if (!account.PasswordResetTokenExpiry.HasValue || account.PasswordResetTokenExpiry.Value < DateTime.UtcNow)
+            if (account.PasswordResetTokenExpiry < DateTime.UtcNow)
             {
-                return false;
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "This verification code has expired. Please request a new one."
+                };
             }
 
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             account.PasswordResetToken = null;
             account.PasswordResetTokenExpiry = null;
-            account.UpdatedAt = DateTime.UtcNow;
 
             await _repository.UpdateAccountAsync(account);
-            return true;
+
+            return new ApiResponseDto
+            {
+                Success = true,
+                Message = "Your password has been reset successfully. You can now log in."
+            };
+        }
+
+        public async Task<ApiResponseDto> ChangePasswordAsync(Guid accountId, ChangePasswordRequestDto request)
+        {
+            var account = await _repository.GetByIdAsync(accountId);
+
+            if (account == null)
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "We couldn’t find your account."
+                };
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, account.HashPassword))
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "The current password you entered is incorrect."
+                };
+            }
+
+            account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+            await _repository.UpdateAccountAsync(account);
+
+            return new ApiResponseDto
+            {
+                Success = true,
+                Message = "Your password has been changed successfully."
+            };
         }
 
         private static string GenerateToken()
@@ -226,42 +332,59 @@ namespace BLL.Services
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         }
 
-        private (string Token, DateTime ExpiresAt) GenerateAccessToken(Account account)
+        private static string GenerateVerificationCode()
         {
-            var jwtSection = _configuration.GetSection("Jwt");
-            var key = jwtSection["Key"] ?? throw new InvalidOperationException("Jwt:Key is missing.");
-            var issuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is missing.");
-            var audience = jwtSection["Audience"] ?? throw new InvalidOperationException("Jwt:Audience is missing.");
+            return RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+        }
 
-            var expireMinutesText = jwtSection["ExpireMinutes"];
-            var expireMinutes = int.TryParse(expireMinutesText, out var parsedExpireMinutes) ? parsedExpireMinutes : 60;
+        private (string, DateTime) GenerateAccessToken(Account account)
+        {
+            var jwt = _configuration.GetSection("Jwt");
 
-            var expiresAt = DateTime.UtcNow.AddMinutes(expireMinutes);
-            var signingCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-                SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var expires = DateTime.UtcNow.AddMinutes(int.Parse(jwt["ExpireMinutes"]));
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, account.UserName),
-                new Claim(ClaimTypes.Name, string.IsNullOrWhiteSpace(account.FullName) ? account.UserName : account.FullName),
-                new Claim(JwtRegisteredClaimNames.Email, account.EmailAddress),
+                new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.EmailAddress),
-                new Claim(ClaimTypes.Role, account.Role.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.Role, account.Role.ToString())
             };
 
-            var tokenDescriptor = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
-                claims: claims,
-                expires: expiresAt,
-                signingCredentials: signingCredentials);
+            var token = new JwtSecurityToken(
+                jwt["Issuer"],
+                jwt["Audience"],
+                claims,
+                expires: expires,
+                signingCredentials: creds);
 
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
-            return (accessToken, expiresAt);
+            return (new JwtSecurityTokenHandler().WriteToken(token), expires);
+        }
+
+        private async Task<bool> SendEmailAsync(string to, string subject, string body)
+        {
+            try
+            {
+                var smtp = _configuration.GetSection("Smtp");
+
+                using var client = new SmtpClient(smtp["Host"], int.Parse(smtp["Port"]))
+                {
+                    Credentials = new NetworkCredential(smtp["Username"], smtp["Password"]),
+                    EnableSsl = bool.Parse(smtp["UseSSL"])
+                };
+
+                var mail = new MailMessage(smtp["FromEmail"], to, subject, body);
+
+                await client.SendMailAsync(mail);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
