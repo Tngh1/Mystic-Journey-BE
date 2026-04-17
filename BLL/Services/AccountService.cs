@@ -32,11 +32,11 @@ namespace BLL.Services
             _configuration = configuration;
         }
 
-        public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
+        public async Task<ApiResponseDto> LoginAsync(LoginRequestDto request)
         {
             if (request == null)
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "Something went wrong. Please try logging in again."
@@ -46,7 +46,7 @@ namespace BLL.Services
             var emailOrUsername = request.EmailOrUsername?.Trim();
             if (string.IsNullOrWhiteSpace(emailOrUsername) || string.IsNullOrWhiteSpace(request.Password))
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "Please enter both your email/username and password."
@@ -56,7 +56,7 @@ namespace BLL.Services
             var account = await _repository.GetByUsernameOrEmailAsync(emailOrUsername);
             if (account == null || !account.IsActive)
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "We couldn’t find your account or it has been deactivated."
@@ -65,7 +65,7 @@ namespace BLL.Services
 
             if (!BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword))
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "The password you entered is incorrect."
@@ -83,7 +83,7 @@ namespace BLL.Services
 
             await _repository.UpdateAccountAsync(account);
 
-            var response = _mapper.Map<AuthResponseDto>(account);
+            var response = _mapper.Map<ApiResponseDto>(account);
             response.Success = true;
             response.Message = "Login successful! Welcome back.";
             response.AccessToken = accessToken;
@@ -94,11 +94,11 @@ namespace BLL.Services
             return response;
         }
 
-        public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
+        public async Task<ApiResponseDto> RegisterAsync(RegisterRequestDto request)
         {
             if (request == null)
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "Something went wrong. Please check your information and try again."
@@ -110,7 +110,7 @@ namespace BLL.Services
                 string.IsNullOrWhiteSpace(request.EmailAddress) ||
                 string.IsNullOrWhiteSpace(request.Password))
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "Please fill in all required information."
@@ -119,7 +119,7 @@ namespace BLL.Services
 
             if (!string.Equals(request.Password, request.ConfirmPassword, StringComparison.Ordinal))
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "Passwords do not match. Please check again."
@@ -131,7 +131,7 @@ namespace BLL.Services
 
             if (await _repository.IsEmailExistAsync(normalizedEmail))
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "This email is already registered. Please use another email or log in."
@@ -140,7 +140,7 @@ namespace BLL.Services
 
             if (await _repository.IsUsernameExistAsync(normalizedUsername))
             {
-                return new AuthResponseDto
+                return new ApiResponseDto
                 {
                     Success = false,
                     Message = "This username is already taken. Please choose another one."
@@ -174,7 +174,7 @@ namespace BLL.Services
 
             var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
 
-            var response = _mapper.Map<AuthResponseDto>(account);
+            var response = _mapper.Map<ApiResponseDto>(account);
             response.Success = true;
             response.Message = emailSent
                 ? "Your account has been created successfully."

@@ -26,7 +26,7 @@ namespace Mystic_Journey_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new AuthResponseDto
+                return BadRequest(new ApiResponseDto
                 {
                     Success = false,
                     Message = GetError()
@@ -49,7 +49,7 @@ namespace Mystic_Journey_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new AuthResponseDto
+                return BadRequest(new ApiResponseDto
                 {
                     Success = false,
                     Message = GetError()
@@ -72,7 +72,7 @@ namespace Mystic_Journey_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new AuthResponseDto
+                return BadRequest(new ApiResponseDto
                 {
                     Success = false,
                     Message = GetError()
@@ -90,7 +90,7 @@ namespace Mystic_Journey_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new AuthResponseDto
+                return BadRequest(new ApiResponseDto
                 {
                     Success = false,
                     Message = GetError()
@@ -108,7 +108,7 @@ namespace Mystic_Journey_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new AuthResponseDto
+                return BadRequest(new ApiResponseDto
                 {
                     Success = false,
                     Message = GetError()

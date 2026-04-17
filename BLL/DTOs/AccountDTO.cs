@@ -94,10 +94,6 @@ namespace BLL.DTOs
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
-    }
-
-    public class AuthResponseDto : ApiResponseDto
-    {
         public Guid? AccountId { get; set; }
         public string? UserName { get; set; }
         public string? FullName { get; set; }

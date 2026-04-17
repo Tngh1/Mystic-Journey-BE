@@ -22,7 +22,7 @@ namespace BLL.Mappings
                         ? (Account.GenderType)src.Gender
                         : Account.GenderType.Male));
 
-            CreateMap<Account, AuthResponseDto>()
+            CreateMap<Account, ApiResponseDto>()
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
         }
