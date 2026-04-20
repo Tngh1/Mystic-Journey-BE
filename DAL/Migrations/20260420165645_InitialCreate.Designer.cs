@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260415044041_InitialCreate")]
+    [Migration("20260420165645_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -31,8 +31,8 @@ namespace DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("Birthday")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("Birthday")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

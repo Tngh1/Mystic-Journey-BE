@@ -1,7 +1,9 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using BLL.Validations;
+﻿using BLL.Validations;
 using DAL.Models;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using static DAL.Models.Account;
 
 namespace BLL.DTOs
 {
@@ -45,7 +47,7 @@ namespace BLL.DTOs
         public string? PhoneNumber { get; set; }
 
         [MinimumAge(13, ErrorMessage = "You must be at least 13 years old.")]
-        public DateTime? Birthday { get; set; }
+        public DateOnly? Birthday { get; set; }
     }
 
     public class ForgotPasswordRequestDto
@@ -90,18 +92,38 @@ namespace BLL.DTOs
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public class ApiResponseDto
+    public class VerifyEmailRequestDto
     {
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public Guid? AccountId { get; set; }
-        public string? UserName { get; set; }
-        public string? FullName { get; set; }
-        public string? EmailAddress { get; set; }
-        public string? Role { get; set; }
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Email format is invalid.")]
+        [StringLength(255, ErrorMessage = "Email must not exceed 255 characters.")]
+        public string Email { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Verification code is required.")]
+        [RegularExpression(@"^\d{6}$", ErrorMessage = "Verification code must be 6 digits.")]
+        public string VerificationCode { get; set; } = string.Empty;
+    }
+
+    public class AccountResponseDto
+    {
+        public Guid AccountId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string EmailAddress { get; set; } = string.Empty;
+        public GenderType Gender { get; set; } = GenderType.Male;
+        public string? PhoneNumber { get; set; }
+        public DateOnly? Birthday { get; set; }
+        public string Role { get; set; } = string.Empty;
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiresAt { get; set; }
+    }
+
+    public class ApiResponseDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public AccountResponseDto? Account {  get; set; }
     }
 }

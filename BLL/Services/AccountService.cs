@@ -86,10 +86,11 @@ namespace BLL.Services
             var response = _mapper.Map<ApiResponseDto>(account);
             response.Success = true;
             response.Message = "Login successful! Welcome back.";
-            response.AccessToken = accessToken;
-            response.AccessTokenExpiresAt = accessTokenExpiry;
-            response.RefreshToken = refreshToken;
-            response.RefreshTokenExpiresAt = refreshTokenExpiry;
+            response.Account ??= _mapper.Map<AccountResponseDto>(account);
+            response.Account.AccessToken = accessToken;
+            response.Account.AccessTokenExpiresAt = accessTokenExpiry;
+            response.Account.RefreshToken = refreshToken;
+            response.Account.RefreshTokenExpiresAt = refreshTokenExpiry;
 
             return response;
         }
@@ -162,27 +163,25 @@ namespace BLL.Services
             account.EmailConfirmed = false;
             account.RefreshToken = refreshToken;
             account.RefreshTokenExpiryTime = refreshTokenExpiry;
-            account.EmailVerificationToken = GenerateToken();
-            account.EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
+            account.EmailVerificationToken = null;
+            account.EmailVerificationTokenExpiry = null;
 
             await _repository.CreateAccountAsync(account);
 
-            var emailSent = await SendEmailAsync(
-                normalizedEmail,
-                "Mystic Journey - Welcome",
-                $"Welcome {account.FullName}! Your account has been created successfully.");
+            var verificationCodeSent = await SendVerificationCodeAsync(normalizedEmail);
 
             var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
 
             var response = _mapper.Map<ApiResponseDto>(account);
             response.Success = true;
-            response.Message = emailSent
-                ? "Your account has been created successfully."
-                : "Your account has been created, but we couldn’t send the email right now.";
-            response.AccessToken = accessToken;
-            response.AccessTokenExpiresAt = accessTokenExpiry;
-            response.RefreshToken = refreshToken;
-            response.RefreshTokenExpiresAt = refreshTokenExpiry;
+            response.Message = verificationCodeSent
+                ? "Your account has been created. A verification code has been sent to your email."
+                : "Your account has been created, but we couldn’t send the verification code right now.";
+            response.Account ??= _mapper.Map<AccountResponseDto>(account);
+            response.Account.AccessToken = accessToken;
+            response.Account.AccessTokenExpiresAt = accessTokenExpiry;
+            response.Account.RefreshToken = refreshToken;
+            response.Account.RefreshTokenExpiresAt = refreshTokenExpiry;
 
             return response;
         }
@@ -207,6 +206,15 @@ namespace BLL.Services
                 {
                     Success = false,
                     Message = "We couldn’t find an account with this email."
+                };
+            }
+
+            if (!account.EmailConfirmed)
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "Please verify your email before using forgot password."
                 };
             }
 
@@ -324,6 +332,96 @@ namespace BLL.Services
             {
                 Success = true,
                 Message = "Your password has been changed successfully."
+            };
+        }
+
+        public async Task<bool> SendVerificationCodeAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return false;
+            }
+
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+            var account = await _repository.GetByEmailAsync(normalizedEmail);
+
+            if (account == null || !account.IsActive)
+            {
+                return false;
+            }
+
+            var code = GenerateVerificationCode();
+            account.EmailVerificationToken = code;
+            account.EmailVerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+            account.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.UpdateAccountAsync(account);
+
+            return await SendEmailAsync(
+                normalizedEmail,
+                "Mystic Journey - Verify Your Email",
+                $"Your verification code is: {code}. This code will expire in 15 minutes.");
+        }
+
+        
+
+        public async Task<ApiResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request)
+        {
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.VerificationCode))
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "Please provide your email and verification code."
+                };
+            }
+
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            var verificationCode = request.VerificationCode.Trim();
+
+            var account = await _repository.GetByEmailAndVerificationCodeAsync(normalizedEmail, verificationCode);
+
+            if (account == null)
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "The verification code is invalid."
+                };
+            }
+
+            if (account.EmailConfirmed)
+            {
+                return new ApiResponseDto
+                {
+                    Success = true,
+                    Message = "Your email has already been verified."
+                };
+            }
+
+            if (!account.EmailVerificationTokenExpiry.HasValue ||
+                account.EmailVerificationTokenExpiry.Value < DateTime.UtcNow)
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "This verification code has expired. Please request a new one."
+                };
+            }
+
+            account.EmailConfirmed = true;
+            account.EmailVerificationToken = null;
+            account.EmailVerificationTokenExpiry = null;
+            account.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.UpdateAccountAsync(account);
+
+            return new ApiResponseDto
+            {
+                Success = true,
+                Message = "Your email has been verified successfully."
             };
         }
 

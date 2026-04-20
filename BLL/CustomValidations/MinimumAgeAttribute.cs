@@ -21,13 +21,27 @@ namespace BLL.Validations
 
         public override bool IsValid(object? value)
         {
-            if (value is not DateTime birthday)
+            if (value is null)
             {
-                return value is null;
+                return true;
             }
 
-            var birthDate = birthday.Date;
-            var today = DateTime.UtcNow.Date;
+            DateOnly birthDate;
+
+            if (value is DateOnly dateOnly)
+            {
+                birthDate = dateOnly;
+            }
+            else if (value is DateTime dateTime)
+            {
+                birthDate = DateOnly.FromDateTime(dateTime.Date);
+            }
+            else
+            {
+                return false;
+            }
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
             if (birthDate > today)
             {
                 return false;

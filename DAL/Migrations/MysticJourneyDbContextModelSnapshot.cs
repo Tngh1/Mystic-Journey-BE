@@ -28,8 +28,8 @@ namespace DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("Birthday")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("Birthday")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

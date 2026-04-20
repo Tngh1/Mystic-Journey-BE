@@ -22,9 +22,18 @@ namespace BLL.Mappings
                         ? (Account.GenderType)src.Gender
                         : Account.GenderType.Male));
 
-            CreateMap<Account, ApiResponseDto>()
+            CreateMap<Account, AccountResponseDto>()
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
+                .ForMember(dest => dest.EmailAddress, opt => opt.MapFrom(src => src.EmailAddress))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.Birthday, opt => opt.MapFrom(src => src.Birthday))
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
+
+            CreateMap<Account, ApiResponseDto>()
+                .ForMember(dest => dest.Account, opt => opt.MapFrom(src => src));
         }
     }
 }

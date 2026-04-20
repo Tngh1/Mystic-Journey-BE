@@ -22,7 +22,7 @@ namespace DAL.Migrations
                     HashPassword = table.Column<string>(type: "text", nullable: false),
                     Gender = table.Column<int>(type: "integer", nullable: false),
                     PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    Birthday = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Birthday = table.Column<DateOnly>(type: "date", nullable: true),
                     Role = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),

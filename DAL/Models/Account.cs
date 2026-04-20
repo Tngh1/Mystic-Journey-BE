@@ -23,7 +23,7 @@ namespace DAL.Models
         [MaxLength(20)]
         public string? PhoneNumber { get; set; }
 
-        public DateTime? Birthday { get; set; }
+        public DateOnly? Birthday { get; set; }
 
         public AccountRole Role { get; set; } = AccountRole.Player;
 

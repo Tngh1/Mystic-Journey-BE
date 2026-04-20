@@ -11,5 +11,7 @@ namespace BLL.Services.Interfaces
         Task<ApiResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto request);
         Task<ApiResponseDto> ResetPasswordAsync(ResetPasswordRequestDto request);
         Task<ApiResponseDto> ChangePasswordAsync(Guid accountId, ChangePasswordRequestDto request);
+        Task<bool> SendVerificationCodeAsync(string email);
+        Task<ApiResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request);
     }
 }
