@@ -20,8 +20,49 @@ builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
 
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
+// Account Services
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+
+// PlayerProfile Services
+builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
+builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
+
+// Item Services
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IItemService, ItemService>();
+
+// Inventory Services
+builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+
+// Skill Services
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<IPlayerSkillRepository, PlayerSkillRepository>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+
+// Quest Services
+builder.Services.AddScoped<IQuestRepository, QuestRepository>();
+builder.Services.AddScoped<IPlayerQuestRepository, PlayerQuestRepository>();
+builder.Services.AddScoped<IQuestService, QuestService>();
+
+// Shop Services
+builder.Services.AddScoped<IShopItemRepository, ShopItemRepository>();
+builder.Services.AddScoped<IPurchaseHistoryRepository, PurchaseHistoryRepository>();
+builder.Services.AddScoped<IShopService, ShopService>();
+
+// Gacha Services
+builder.Services.AddScoped<IGachaBannerRepository, GachaBannerRepository>();
+builder.Services.AddScoped<IGachaPullHistoryRepository, GachaPullHistoryRepository>();
+builder.Services.AddScoped<IGachaService, GachaService>();
+
+// Friend Services
+builder.Services.AddScoped<IFriendRepository, FriendRepository>();
+builder.Services.AddScoped<IFriendService, FriendService>();
+
+// Mail Services
+builder.Services.AddScoped<IMailRepository, MailRepository>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -47,7 +88,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Mystic Journey API", Version = "v1" });
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -78,7 +119,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000") // URL frontend
+            .WithOrigins("http://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
