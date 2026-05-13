@@ -1,4 +1,4 @@
-﻿using BLL.Validations;
+using BLL.Validations;
 using DAL.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -40,8 +40,7 @@ namespace BLL.DTOs
         [Compare(nameof(Password), ErrorMessage = "Confirm password does not match password.")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        [Range((int)Account.GenderType.Male, (int)Account.GenderType.Other, ErrorMessage = "Gender is invalid.")]
-        public int Gender { get; set; } = (int)Account.GenderType.Male;
+        public string Gender { get; set; } = "Other";
 
         [Phone(ErrorMessage = "Phone number format is invalid.")]
         public string? PhoneNumber { get; set; }
@@ -109,10 +108,10 @@ namespace BLL.DTOs
         public string FullName { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public string EmailAddress { get; set; } = string.Empty;
-        public GenderType Gender { get; set; } = GenderType.Male;
+        public string Gender { get; set; } = "Other";
         public string? PhoneNumber { get; set; }
         public DateOnly? Birthday { get; set; }
-        public string Role { get; set; } = string.Empty;
+        public string Role { get; set; } = "Player";
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
         public string? RefreshToken { get; set; }

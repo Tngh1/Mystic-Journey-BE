@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
@@ -156,7 +156,7 @@ namespace BLL.Services
             account.UserName = normalizedUsername;
             account.EmailAddress = normalizedEmail;
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            account.Role = Account.AccountRole.Player;
+            account.Role = "Player";
             account.CreatedAt = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
             account.IsActive = true;
@@ -442,14 +442,14 @@ namespace BLL.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expires = DateTime.UtcNow.AddMinutes(int.Parse(jwt["ExpireMinutes"]));
+            var expires = DateTime.UtcNow.AddDays(int.Parse(jwt["ExpireDays"]));
 
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
                 new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.EmailAddress),
-                new Claim(ClaimTypes.Role, account.Role.ToString())
+                new Claim(ClaimTypes.Role, account.Role)
             };
 
             var token = new JwtSecurityToken(

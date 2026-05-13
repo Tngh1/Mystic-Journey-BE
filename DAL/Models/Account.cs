@@ -6,26 +6,21 @@ namespace DAL.Models
     {
         public Guid Id { get; set; }
 
-        [Required, MaxLength(200)]
         public string FullName { get; set; } = string.Empty;
 
-        [Required, MaxLength(100)]
         public string UserName { get; set; } = string.Empty;
 
-        [Required, MaxLength(255)]
         public string EmailAddress { get; set; } = string.Empty;
 
-        [Required]
         public string HashPassword { get; set; } = string.Empty;
 
-        public GenderType Gender { get; set; } = GenderType.Male;
+        public string Gender { get; set; } = "Other";
 
-        [MaxLength(20)]
         public string? PhoneNumber { get; set; }
 
         public DateOnly? Birthday { get; set; }
 
-        public AccountRole Role { get; set; } = AccountRole.Player;
+        public string Role { get; set; } = "Player";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
@@ -44,18 +39,5 @@ namespace DAL.Models
         public DateTime? PasswordResetTokenExpiry { get; set; }
 
         public PlayerProfile? PlayerProfile { get; set; }
-
-        public enum GenderType
-        {
-            Male = 0,
-            Female = 1,
-            Other = 2
-        }
-
-        public enum AccountRole
-        {
-            Player = 0,
-            Admin = 1
-        }
     }
 }
