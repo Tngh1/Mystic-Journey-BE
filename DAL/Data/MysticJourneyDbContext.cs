@@ -30,160 +30,35 @@ namespace DAL.Data
         public DbSet<GachaBanner> GachaBanners => Set<GachaBanner>();
         public DbSet<GachaBannerItem> GachaBannerItems => Set<GachaBannerItem>();
         public DbSet<GachaPullHistory> GachaPullHistories => Set<GachaPullHistory>();
+        public DbSet<DungeonRun> DungeonRuns => Set<DungeonRun>();
+        public DbSet<DungeonRunMember> DungeonRunMembers => Set<DungeonRunMember>();
+        public DbSet<Party> Parties => Set<Party>();
+        public DbSet<PartyMember> PartyMembers => Set<PartyMember>();
+        public DbSet<PartyInvitation> PartyInvitations => Set<PartyInvitation>();
+        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+        public DbSet<Achievement> Achievements => Set<Achievement>();
+        public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
+        public DbSet<Guild> Guilds => Set<Guild>();
+        public DbSet<GuildMember> GuildMembers => Set<GuildMember>();
+        public DbSet<GuildInvitation> GuildInvitations => Set<GuildInvitation>();
+        public DbSet<GameMap> GameMaps => Set<GameMap>();
+        public DbSet<MapMonster> MapMonsters => Set<MapMonster>();
+        public DbSet<PlayerMapProgress> PlayerMapProgresses => Set<PlayerMapProgress>();
+        public DbSet<NPC> NPCs => Set<NPC>();
+        public DbSet<NPCDialogue> NPCDialogues => Set<NPCDialogue>();
+        public DbSet<Skin> Skins => Set<Skin>();
+        public DbSet<PlayerSkin> PlayerSkins => Set<PlayerSkin>();
+        public DbSet<Chest> Chests => Set<Chest>();
+        public DbSet<ChestItem> ChestItems => Set<ChestItem>();
+        public DbSet<PlayerChest> PlayerChests => Set<PlayerChest>();
+        public DbSet<GameSetting> GameSettings => Set<GameSetting>();
+        public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
+        public DbSet<PlayerDailyLogin> PlayerDailyLogins => Set<PlayerDailyLogin>();
+        public DbSet<GameAnnouncement> GameAnnouncements => Set<GameAnnouncement>();
+        public DbSet<PlayerAnnouncement> PlayerAnnouncements => Set<PlayerAnnouncement>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.PlayerProfile)
-                .WithOne(p => p.Account)
-                .HasForeignKey<PlayerProfile>(p => p.AccountId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PlayerProfile>()
-                .HasIndex(p => p.AccountId)
-                .IsUnique();
-
-            modelBuilder.Entity<PlayerProfile>()
-                .HasOne<PlayerStat>(p => p.PlayerStats)
-                .WithOne(s => s.PlayerProfile)
-                .HasForeignKey<PlayerStat>(s => s.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PlayerStat>()
-                .HasIndex(s => s.PlayerProfileId)
-                .IsUnique();
-
-            modelBuilder.Entity<InventoryItem>()
-                .HasOne(i => i.PlayerProfile)
-                .WithMany(p => p.InventoryItems)
-                .HasForeignKey(i => i.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<InventoryItem>()
-                .HasOne(i => i.Item)
-                .WithMany(item => item.InventoryItems)
-                .HasForeignKey(i => i.ItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<EquipmentStats>()
-                .HasOne(e => e.Item)
-                .WithOne(item => item.EquipmentStats)
-                .HasForeignKey<EquipmentStats>(e => e.ItemId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<EquipmentStats>()
-                .HasIndex(e => e.ItemId)
-                .IsUnique();
-
-            modelBuilder.Entity<PlayerSkill>()
-                .HasOne(ps => ps.PlayerProfile)
-                .WithMany(p => p.PlayerSkills)
-                .HasForeignKey(ps => ps.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PlayerSkill>()
-                .HasOne(ps => ps.Skill)
-                .WithMany(s => s.PlayerSkills)
-                .HasForeignKey(ps => ps.SkillId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<PlayerQuest>()
-                .HasOne(pq => pq.PlayerProfile)
-                .WithMany(p => p.PlayerQuests)
-                .HasForeignKey(pq => pq.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PlayerQuest>()
-                .HasOne(pq => pq.Quest)
-                .WithMany(q => q.PlayerQuests)
-                .HasForeignKey(pq => pq.QuestId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Quest>()
-                .HasOne(q => q.RewardItem)
-                .WithMany()
-                .HasForeignKey(q => q.RewardItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<PlayerCurrencyLog>()
-                .HasOne(l => l.PlayerProfile)
-                .WithMany()
-                .HasForeignKey(l => l.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Mail>()
-                .HasOne(m => m.PlayerProfile)
-                .WithMany(p => p.Mails)
-                .HasForeignKey(m => m.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Mail>()
-                .HasOne(m => m.AttachedItem)
-                .WithMany()
-                .HasForeignKey(m => m.AttachedItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<PurchaseHistory>()
-                .HasOne(ph => ph.PlayerProfile)
-                .WithMany()
-                .HasForeignKey(ph => ph.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PurchaseHistory>()
-                .HasOne(ph => ph.ShopItem)
-                .WithMany(si => si.PurchaseHistories)
-                .HasForeignKey(ph => ph.ShopItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ShopItem>()
-                .HasOne(si => si.Item)
-                .WithMany(item => item.ShopItems)
-                .HasForeignKey(si => si.ItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<GachaBannerItem>()
-                .HasOne(gbi => gbi.GachaBanner)
-                .WithMany(gb => gb.BannerItems)
-                .HasForeignKey(gbi => gbi.GachaBannerId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<GachaBannerItem>()
-                .HasOne(gbi => gbi.Item)
-                .WithMany()
-                .HasForeignKey(gbi => gbi.ItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<GachaPullHistory>()
-                .HasOne(gph => gph.PlayerProfile)
-                .WithMany()
-                .HasForeignKey(gph => gph.PlayerProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<GachaPullHistory>()
-                .HasOne(gph => gph.GachaBanner)
-                .WithMany(gb => gb.PullHistories)
-                .HasForeignKey(gph => gph.GachaBannerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<GachaPullHistory>()
-                .HasOne(gph => gph.RewardItem)
-                .WithMany()
-                .HasForeignKey(gph => gph.RewardItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Friend>()
-                .HasOne(f => f.Requester)
-                .WithMany()
-                .HasForeignKey(f => f.RequesterId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Friend>()
-                .HasOne(f => f.Addressee)
-                .WithMany()
-                .HasForeignKey(f => f.AddresseeId)
-                .OnDelete(DeleteBehavior.Restrict);
+        {       
         }
     }
 }

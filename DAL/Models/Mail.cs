@@ -14,7 +14,8 @@ namespace DAL.Models
 
         public string Content { get; set; } = string.Empty;
 
-        public MailType Type { get; set; } = MailType.System;
+        // Types: System, Reward, Event, Compensation
+        public string Type { get; set; } = "System";
 
         public decimal AttachedGold { get; set; } = 0;
         public decimal AttachedGems { get; set; } = 0;
@@ -27,13 +28,5 @@ namespace DAL.Models
 
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
         public DateTime? ExpiredAt { get; set; }
-
-        public enum MailType
-        {
-            System = 0,
-            Reward = 1,
-            Event = 2,
-            Compensation = 3
-        }
     }
 }

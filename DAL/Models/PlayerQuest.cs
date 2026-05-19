@@ -10,7 +10,8 @@
         public Guid QuestId { get; set; }
         public Quest? Quest { get; set; }
 
-        public Quest.QuestStatus Status { get; set; } = Quest.QuestStatus.NotStarted;
+        // Statuses: NotStarted, InProgress, Completed, Claimed, Failed
+        public string Status { get; set; } = "NotStarted";
         public int Progress { get; set; } = 0;
         public int TargetValue { get; set; } = 1;
 
