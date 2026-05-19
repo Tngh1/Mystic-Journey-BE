@@ -10,17 +10,10 @@
         public Guid AddresseeId { get; set; }
         public PlayerProfile? Addressee { get; set; }
 
-        public FriendStatus Status { get; set; } = FriendStatus.Pending;
+        // Statuses: Pending, Accepted, Rejected, Blocked
+        public string Status { get; set; } = "Pending";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? RespondedAt { get; set; }
-
-        public enum FriendStatus
-        {
-            Pending = 0,
-            Accepted = 1,
-            Rejected = 2,
-            Blocked = 3
-        }
     }
 }

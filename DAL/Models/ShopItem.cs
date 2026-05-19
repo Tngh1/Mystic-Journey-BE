@@ -7,7 +7,8 @@
         public Guid ItemId { get; set; }
         public Item? Item { get; set; }
 
-        public CurrencyType Currency { get; set; } = CurrencyType.Gold;
+        // Currencies: Gold, Gems
+        public string Currency { get; set; } = "Gold";
         public decimal Price { get; set; } = 0;
 
         public int Stock { get; set; } = -1;
@@ -19,11 +20,5 @@
         public DateTime? AvailableTo { get; set; }
 
         public ICollection<PurchaseHistory> PurchaseHistories { get; set; } = new List<PurchaseHistory>();
-
-        public enum CurrencyType
-        {
-            Gold = 0,
-            Gems = 1
-        }
     }
 }

@@ -11,8 +11,10 @@ namespace DAL.Models
 
         public string? Description { get; set; }
 
-        public QuestType Type { get; set; } = QuestType.Main;
-        public QuestStatus DefaultStatus { get; set; } = QuestStatus.NotStarted;
+        // Types: Main, Side, Daily, Event
+        public string Type { get; set; } = "Main";
+        // DefaultStatuses: NotStarted, InProgress, Completed, Claimed, Failed
+        public string DefaultStatus { get; set; } = "NotStarted";
 
         public int RequiredLevel { get; set; } = 1;
         public int RewardExperience { get; set; } = 0;
@@ -25,22 +27,5 @@ namespace DAL.Models
         public bool IsActive { get; set; } = true;
 
         public ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();
-
-        public enum QuestType
-        {
-            Main = 0,
-            Side = 1,
-            Daily = 2,
-            Event = 3
-        }
-
-        public enum QuestStatus
-        {
-            NotStarted = 0,
-            InProgress = 1,
-            Completed = 2,
-            Claimed = 3,
-            Failed = 4
-        }
     }
 }

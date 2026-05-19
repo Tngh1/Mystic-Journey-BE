@@ -12,9 +12,12 @@ namespace DAL.Models
         [MaxLength(1000)]
         public string? Description { get; set; }
 
-        public ItemType Type { get; set; }
-        public ItemRarity Rarity { get; set; }
-        public EquipmentSlot Slot { get; set; } = EquipmentSlot.None;
+        // Types: Weapon, Armor, Consumable, Material, Accessory, QuestItem
+        public string Type { get; set; } = "Weapon";
+        // Rarities: Common, Uncommon, Rare, Epic, Legendary, Mythic
+        public string Rarity { get; set; } = "Common";
+        // Slots: None, Weapon, Helmet, Armor, Gloves, Boots, Ring, Necklace
+        public string Slot { get; set; } = "None";
 
         public decimal BaseValue { get; set; } = 0;
         public int MaxStack { get; set; } = 1;
@@ -30,37 +33,5 @@ namespace DAL.Models
         public ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
         public ICollection<GachaBannerItem> GachaBannerItems { get; set; } = new List<GachaBannerItem>();
         public ICollection<ShopItem> ShopItems { get; set; } = new List<ShopItem>();
-
-        public enum ItemType
-        {
-            Weapon = 0,
-            Armor = 1,
-            Consumable = 2,
-            Material = 3,
-            Accessory = 4,
-            QuestItem = 5
-        }
-
-        public enum ItemRarity
-        {
-            Common = 0,
-            Uncommon = 1,
-            Rare = 2,
-            Epic = 3,
-            Legendary = 4,
-            Mythic = 5
-        }
-
-        public enum EquipmentSlot
-        {
-            None = 0,
-            Weapon = 1,
-            Helmet = 2,
-            Armor = 3,
-            Gloves = 4,
-            Boots = 5,
-            Ring = 6,
-            Necklace = 7
-        }
     }
 }
