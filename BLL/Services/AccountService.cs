@@ -168,12 +168,7 @@ namespace BLL.Services
 
             await _repository.CreateAccountAsync(account);
 
-            // Reload account with Role navigation property
-            var createdAccount = await _repository.GetByIdAsync(account.Id);
-            if (createdAccount != null)
-            {
-                account = createdAccount;
-            }
+
 
             var verificationCodeSent = await SendVerificationCodeAsync(normalizedEmail);
 
