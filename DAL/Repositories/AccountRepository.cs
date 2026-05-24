@@ -1,4 +1,4 @@
-﻿using DAL.Data;
+using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -19,12 +19,14 @@ namespace DAL.Repositories
         public async Task<Account?> GetByIdAsync(Guid accountId)
         {
             return await _context.Accounts
+                .Include(a => a.Role)
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
         }
 
         public async Task<Account?> GetByUsernameOrEmailAsync(string emailOrUsername)
         {
             return await _context.Accounts
+                .Include(a => a.Role)
                 .FirstOrDefaultAsync(a =>
                     (a.UserName.ToLower() == emailOrUsername.ToLower() || a.EmailAddress.ToLower() == emailOrUsername.ToLower())
                     && a.IsActive);
@@ -57,12 +59,14 @@ namespace DAL.Repositories
         public async Task<Account?> GetByEmailAsync(string email)
         {
             return await _context.Accounts
+                .Include(a => a.Role)
                 .FirstOrDefaultAsync(a => a.EmailAddress.ToLower() == email.ToLower() && a.IsActive);
         }
 
         public async Task<Account?> GetByEmailAndVerificationCodeAsync(string email, string code)
         {
             return await _context.Accounts
+                .Include(a => a.Role)
                 .FirstOrDefaultAsync(a =>
                     a.EmailAddress.ToLower() == email.ToLower() &&
                     a.EmailVerificationToken == code &&
@@ -72,6 +76,7 @@ namespace DAL.Repositories
         public async Task<Account?> GetByEmailAndPasswordResetCodeAsync(string email, string code)
         {
             return await _context.Accounts
+                .Include(a => a.Role)
                 .FirstOrDefaultAsync(a =>
                     a.EmailAddress.ToLower() == email.ToLower() &&
                     a.PasswordResetToken == code &&
@@ -81,6 +86,7 @@ namespace DAL.Repositories
         public async Task<Account?> GetByPasswordResetTokenAsync(string token)
         {
             return await _context.Accounts
+                .Include(a => a.Role)
                 .FirstOrDefaultAsync(a => a.PasswordResetToken == token && a.IsActive);
         }
     }

@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class GameSetting
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;
@@ -21,7 +21,7 @@ namespace DAL.Models
 
     public class GameAnnouncement
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required, MaxLength(200)]
         public string Title { get; set; } = string.Empty;

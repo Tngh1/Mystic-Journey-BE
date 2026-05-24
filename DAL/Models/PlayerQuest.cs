@@ -1,13 +1,13 @@
-﻿namespace DAL.Models
+namespace DAL.Models
 {
     public class PlayerQuest
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
-        public Guid QuestId { get; set; }
+        public int QuestId { get; set; }
         public Quest? Quest { get; set; }
 
         // Statuses: NotStarted, InProgress, Completed, Claimed, Failed

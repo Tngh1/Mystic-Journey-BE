@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class PlayerChest
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
-        public Guid ChestId { get; set; }
+        public int ChestId { get; set; }
         public Chest? Chest { get; set; }
 
         public bool IsOpened { get; set; } = false;

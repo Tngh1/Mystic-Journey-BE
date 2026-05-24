@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace DAL.Models
 {
     public class Quest
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required, MaxLength(200)]
         public string Title { get; set; } = string.Empty;
@@ -21,7 +21,7 @@ namespace DAL.Models
         public decimal RewardGold { get; set; } = 0;
         public decimal RewardGems { get; set; } = 0;
 
-        public Guid? RewardItemId { get; set; }
+        public int? RewardItemId { get; set; }
         public Item? RewardItem { get; set; }
 
         public bool IsActive { get; set; } = true;

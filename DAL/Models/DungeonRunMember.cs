@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class DungeonRunMember
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid DungeonRunId { get; set; }
+        public int DungeonRunId { get; set; }
         public DungeonRun? DungeonRun { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
         public bool IsLeader { get; set; } = false;

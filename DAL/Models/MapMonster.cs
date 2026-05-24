@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class MapMonster
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid GameMapId { get; set; }
+        public int GameMapId { get; set; }
         public GameMap? GameMap { get; set; }
 
-        public Guid MonsterId { get; set; }
+        public int MonsterId { get; set; }
         public Monster? Monster { get; set; }
 
         public int SpawnWeight { get; set; } = 1;

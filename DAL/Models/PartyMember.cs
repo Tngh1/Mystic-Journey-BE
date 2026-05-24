@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class PartyMember
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PartyId { get; set; }
+        public int PartyId { get; set; }
         public Party? Party { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
         public bool IsLeader { get; set; } = false;

@@ -2,15 +2,15 @@ namespace DAL.Models
 {
     public class GuildInvitation
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid GuildId { get; set; }
+        public int GuildId { get; set; }
         public Guild? Guild { get; set; }
 
-        public Guid InviterId { get; set; }
+        public int InviterId { get; set; }
         public PlayerProfile? Inviter { get; set; }
 
-        public Guid InviteeId { get; set; }
+        public int InviteeId { get; set; }
         public PlayerProfile? Invitee { get; set; }
 
         // Statuses: Pending, Accepted, Rejected, Expired

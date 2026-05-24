@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class PlayerSkin
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
-        public Guid SkinId { get; set; }
+        public int SkinId { get; set; }
         public Skin? Skin { get; set; }
 
         public bool IsEquipped { get; set; } = false;

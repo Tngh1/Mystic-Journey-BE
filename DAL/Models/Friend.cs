@@ -1,13 +1,13 @@
-﻿namespace DAL.Models
+namespace DAL.Models
 {
     public class Friend
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid RequesterId { get; set; }
+        public int RequesterId { get; set; }
         public PlayerProfile? Requester { get; set; }
 
-        public Guid AddresseeId { get; set; }
+        public int AddresseeId { get; set; }
         public PlayerProfile? Addressee { get; set; }
 
         // Statuses: Pending, Accepted, Rejected, Blocked

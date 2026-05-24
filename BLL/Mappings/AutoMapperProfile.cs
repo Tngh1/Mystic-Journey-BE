@@ -11,7 +11,8 @@ namespace BLL.Mappings
         {
             // Account mappings
             CreateMap<RegisterRequestDto, Account>();
-            CreateMap<Account, AccountResponseDto>();
+            CreateMap<Account, AccountResponseDto>()
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.Id));
             CreateMap<Account, ApiResponseDto>();
         }
     }

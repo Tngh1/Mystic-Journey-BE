@@ -1,9 +1,7 @@
 using BLL.Validations;
-using DAL.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using static DAL.Models.Account;
 
 namespace BLL.DTOs
 {
@@ -102,6 +100,20 @@ namespace BLL.DTOs
         public string VerificationCode { get; set; } = string.Empty;
     }
 
+    public class UpdateProfileRequestDto
+    {
+        [Required(ErrorMessage = "Full name is required.")]
+        [StringLength(200, ErrorMessage = "Full name must not exceed 200 characters.")]
+        public string FullName { get; set; } = string.Empty;
+
+        public string Gender { get; set; } = "Other";
+
+        [Phone(ErrorMessage = "Phone number format is invalid.")]
+        public string? PhoneNumber { get; set; }
+
+        public DateOnly? Birthday { get; set; }
+    }
+
     public class AccountResponseDto
     {
         public Guid AccountId { get; set; }
@@ -111,7 +123,7 @@ namespace BLL.DTOs
         public string Gender { get; set; } = "Other";
         public string? PhoneNumber { get; set; }
         public DateOnly? Birthday { get; set; }
-        public string Role { get; set; } = "Player";
+        public int RoleId { get; set; } = 1;
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
         public string? RefreshToken { get; set; }

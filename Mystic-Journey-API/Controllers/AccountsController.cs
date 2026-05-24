@@ -1,4 +1,4 @@
-﻿using BLL.DTOs;
+using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -163,6 +163,26 @@ namespace Mystic_Journey_API.Controllers
             var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var result = await _accountService.ChangePasswordAsync(accountId, request);
+
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPut("update-profile")]
+        public async Task<IActionResult> UpdateProfileAsync(UpdateProfileRequestDto request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ApiResponseDto
+                {
+                    Success = false,
+                    Message = GetError()
+                });
+            }
+
+            var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _accountService.UpdateProfileAsync(accountId, request);
 
             return result.Success ? Ok(result) : BadRequest(result);
         }

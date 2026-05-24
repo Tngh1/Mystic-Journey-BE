@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class GuildMember
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid GuildId { get; set; }
+        public int GuildId { get; set; }
         public Guild? Guild { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
         // Roles: Leader, Officer, Member
