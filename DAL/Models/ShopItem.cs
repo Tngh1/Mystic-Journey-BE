@@ -1,10 +1,10 @@
-﻿namespace DAL.Models
+namespace DAL.Models
 {
     public class ShopItem
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid ItemId { get; set; }
+        public int ItemId { get; set; }
         public Item? Item { get; set; }
 
         // Currencies: Gold, Gems

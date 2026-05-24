@@ -2,15 +2,15 @@ namespace DAL.Models
 {
     public class PartyInvitation
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PartyId { get; set; }
+        public int PartyId { get; set; }
         public Party? Party { get; set; }
 
-        public Guid InviterId { get; set; }
+        public int InviterId { get; set; }
         public PlayerProfile? Inviter { get; set; }
 
-        public Guid InviteeId { get; set; }
+        public int InviteeId { get; set; }
         public PlayerProfile? Invitee { get; set; }
 
         // Statuses: Pending, Accepted, Rejected, Expired

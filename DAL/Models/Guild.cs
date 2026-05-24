@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Guild
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;
@@ -12,7 +12,7 @@ namespace DAL.Models
         public string? Description { get; set; }
         public string? IconUrl { get; set; }
 
-        public Guid LeaderId { get; set; }
+        public int LeaderId { get; set; }
         public PlayerProfile? Leader { get; set; }
 
         public int MaxMembers { get; set; } = 50;

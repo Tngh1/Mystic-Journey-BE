@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class PlayerAchievement
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
-        public Guid AchievementId { get; set; }
+        public int AchievementId { get; set; }
         public Achievement? Achievement { get; set; }
 
         public int Progress { get; set; } = 0;

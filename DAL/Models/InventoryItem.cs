@@ -2,12 +2,12 @@ namespace DAL.Models
 {
     public class InventoryItem
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
-        public Guid ItemId { get; set; }
+        public int ItemId { get; set; }
         public Item? Item { get; set; }
 
         public int Quantity { get; set; } = 1;

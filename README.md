@@ -94,7 +94,7 @@ Xử lý các chức năng liên quan đến tài khoản người dùng như đ
   "EmailAddress": "string",
   "Password": "string",
   "ConfirmPassword": "string",
-  "Gender": "int (0=Male, 1=Female, 2=Other)",
+  "Gender": "string (Male, Female, Other)",
   "PhoneNumber": "string?",
   "Birthday": "date?"
 }
@@ -272,7 +272,7 @@ Quản lý hồ sơ người chơi trong game, bao gồm tạo nhân vật, qu�
 {
   "DisplayName": "string",
   "AvatarUrl": "string",
-  "Class": "int (0=Knight, 1=Mage, 2=Archer, ...)"
+  "Class": "string (Knight, Mage, Archer, ...)"
 }
 ```
 
@@ -350,7 +350,7 @@ Quản lý hồ sơ người chơi trong game, bao gồm tạo nhân vật, qu�
 {
   "DisplayName": "string?",
   "AvatarUrl": "string?",
-  "Class": "int?"
+  "Class": "string?"
 }
 ```
 
@@ -1574,9 +1574,9 @@ Tất cả API đều trả về response theo cấu trúc chuẩn:
 ### Các Enum quan trọng
 
 **CharacterClass:**
-- 0: Knight
-- 1: Mage
-- 2: Archer
+- "Knight"
+- "Mage"
+- "Archer"
 
 **ItemType:**
 - 0: Weapon
@@ -1607,6 +1607,44 @@ Tất cả API đều trả về response theo cấu trúc chuẩn:
 - 1: Accepted
 - 2: Rejected
 - 3: Blocked
+
+---
+
+## Hướng dẫn Cài đặt & Khởi chạy (Getting Started)
+
+### Yêu cầu hệ thống
+- .NET 8.0 SDK
+- SQL Server (hoặc cấu hình CSDL tương ứng)
+- Visual Studio 2022 / VS Code
+
+### Các bước cài đặt
+1. **Clone repository:**
+   ```bash
+   git clone <repo-url>
+   cd Mystic-Journey-BE
+   ```
+
+2. **Cấu hình chuỗi kết nối (Connection String):**
+   Mở file `appsettings.json` trong project `Mystic-Journey-API` và cập nhật chuỗi kết nối cho phù hợp với SQL Server của bạn:
+   ```json
+   "ConnectionStrings": {
+     "DefaultConnection": "Server=YOUR_SERVER;Database=MysticJourneyDB;User Id=YOUR_USER;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+   }
+   ```
+   *Lưu ý: Cấu hình thêm SMTP và JWT secret key nếu cần thiết trong `appsettings.json`.*
+
+3. **Cập nhật Database (Migration):**
+   Mở terminal, điều hướng vào thư mục chứa dự án API (hoặc chạy từ Package Manager Console trong VS):
+   ```bash
+   dotnet ef database update --project Mystic-Journey-API
+   ```
+
+4. **Khởi chạy ứng dụng:**
+   ```bash
+   cd Mystic-Journey-API
+   dotnet run
+   ```
+   API sẽ chạy ở địa chỉ mặc định `https://localhost:5001` hoặc `http://localhost:5000`. Bạn có thể truy cập `/swagger` để xem tài liệu API qua Swagger UI.
 
 ---
 

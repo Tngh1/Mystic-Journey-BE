@@ -1,4 +1,4 @@
-﻿using BLL.DTOs;
+using BLL.DTOs;
 using System;
 using System.Threading.Tasks;
 
@@ -13,5 +13,6 @@ namespace BLL.Services.Interfaces
         Task<ApiResponseDto> ChangePasswordAsync(Guid accountId, ChangePasswordRequestDto request);
         Task<bool> SendVerificationCodeAsync(string email);
         Task<ApiResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request);
+        Task<ApiResponseDto> UpdateProfileAsync(Guid accountId, UpdateProfileRequestDto request);
     }
 }

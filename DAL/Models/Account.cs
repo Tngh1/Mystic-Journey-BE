@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace DAL.Models
 {
@@ -20,7 +20,8 @@ namespace DAL.Models
 
         public DateOnly? Birthday { get; set; }
 
-        public string Role { get; set; } = "Player";
+        public int RoleId { get; set; }
+        public Role? Role { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

@@ -1,10 +1,10 @@
-﻿namespace DAL.Models
+namespace DAL.Models
 {
     public class PlayerCurrencyLog
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
         // Currencies: Gold, Gems

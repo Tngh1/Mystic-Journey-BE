@@ -156,7 +156,7 @@ namespace BLL.Services
             account.UserName = normalizedUsername;
             account.EmailAddress = normalizedEmail;
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            account.Role = "Player";
+            account.RoleId = 1;
             account.CreatedAt = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
             account.IsActive = true;
@@ -167,6 +167,13 @@ namespace BLL.Services
             account.EmailVerificationTokenExpiry = null;
 
             await _repository.CreateAccountAsync(account);
+
+            // Reload account with Role navigation property
+            var createdAccount = await _repository.GetByIdAsync(account.Id);
+            if (createdAccount != null)
+            {
+                account = createdAccount;
+            }
 
             var verificationCodeSent = await SendVerificationCodeAsync(normalizedEmail);
 
@@ -363,7 +370,36 @@ namespace BLL.Services
                 $"Your verification code is: {code}. This code will expire in 15 minutes.");
         }
 
-        
+        public async Task<ApiResponseDto> UpdateProfileAsync(Guid accountId, UpdateProfileRequestDto request)
+        {
+            var account = await _repository.GetByIdAsync(accountId);
+
+            if (account == null || !account.IsActive)
+            {
+                return new ApiResponseDto
+                {
+                    Success = false,
+                    Message = "We couldn’t find your account."
+                };
+            }
+
+            account.FullName = request.FullName;
+            account.Gender = request.Gender;
+            account.PhoneNumber = request.PhoneNumber;
+            account.Birthday = request.Birthday;
+            account.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.UpdateAccountAsync(account);
+
+            var response = new ApiResponseDto
+            {
+                Success = true,
+                Message = "Your profile has been updated successfully.",
+                Account = _mapper.Map<AccountResponseDto>(account)
+            };
+
+            return response;
+        }
 
         public async Task<ApiResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request)
         {
@@ -449,7 +485,7 @@ namespace BLL.Services
                 new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
                 new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.EmailAddress),
-                new Claim(ClaimTypes.Role, account.Role)
+                new Claim(ClaimTypes.Role, account.Role != null ? account.Role.Name : "Player")
             };
 
             var token = new JwtSecurityToken(

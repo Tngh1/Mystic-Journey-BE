@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace DAL.Models
 {
     public class Mail
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid PlayerProfileId { get; set; }
+        public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
         [Required, MaxLength(200)]
@@ -19,7 +19,7 @@ namespace DAL.Models
 
         public decimal AttachedGold { get; set; } = 0;
         public decimal AttachedGems { get; set; } = 0;
-        public Guid? AttachedItemId { get; set; }
+        public int? AttachedItemId { get; set; }
         public Item? AttachedItem { get; set; }
         public int AttachedItemQuantity { get; set; } = 0;
 

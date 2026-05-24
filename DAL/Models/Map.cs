@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class GameMap
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required, MaxLength(150)]
         public string Name { get; set; } = string.Empty;

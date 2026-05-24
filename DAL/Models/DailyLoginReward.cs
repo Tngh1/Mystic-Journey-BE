@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class DailyLoginReward
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         public int DayNumber { get; set; } = 1;
 
@@ -10,7 +10,7 @@ namespace DAL.Models
         public string RewardType { get; set; } = "Gold";
         public decimal RewardValue { get; set; } = 0;
 
-        public Guid? RewardItemId { get; set; }
+        public int? RewardItemId { get; set; }
         public Item? RewardItem { get; set; }
         public int RewardItemQuantity { get; set; } = 0;
 

@@ -9,8 +9,8 @@ namespace DAL.Data
             : base(options)
         {
         }
-
         public DbSet<Account> Accounts => Set<Account>();
+        public DbSet<Role> Roles => Set<Role>();
         public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
         public DbSet<PlayerStat> PlayerStats => Set<PlayerStat>();
         public DbSet<Item> Items => Set<Item>();
@@ -59,6 +59,26 @@ namespace DAL.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {       
+            base.OnModelCreating(modelBuilder);
+
+            // 1-1 relationship between Account and PlayerProfile
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.PlayerProfile)
+                .WithOne(p => p.Account)
+                .HasForeignKey<PlayerProfile>(p => p.AccountId);
+
+            // 1-N relationship between Role and Account
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Role)
+                .WithMany(r => r.Accounts)
+                .HasForeignKey(a => a.RoleId);
+
+            // Seed Data for Role
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = "Player" },
+                new Role { Id = 2, Name = "Admin" },
+                new Role { Id = 3, Name = "SuperAdmin" }
+            );
         }
     }
 }
