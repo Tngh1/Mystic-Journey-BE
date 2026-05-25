@@ -20,24 +20,10 @@ builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
 
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
-// Account Services
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<IAccountService, AccountService>();
-
-// Item Services
-builder.Services.AddScoped<IItemRepository, ItemRepository>();
-builder.Services.AddScoped<IItemService, ItemService>();
-
-// Inventory Services
-builder.Services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
-builder.Services.AddScoped<IInventoryItemService, InventoryItemService>();
-
-// PlayerProfile Services
-builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
-builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
-
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -55,6 +41,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
+
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

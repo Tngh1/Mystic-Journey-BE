@@ -22,7 +22,7 @@ namespace Mystic_Journey_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync(LoginRequestDto request)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -45,7 +45,7 @@ namespace Mystic_Journey_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync(RegisterRequestDto request)
+        public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -68,7 +68,7 @@ namespace Mystic_Journey_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequestDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -84,10 +84,9 @@ namespace Mystic_Journey_API.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-
         [AllowAnonymous]
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPasswordAsync(ResetPasswordRequestDto request)
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequestDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -103,53 +102,9 @@ namespace Mystic_Journey_API.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [AllowAnonymous]
-        [HttpPost("send-verification-code")]
-        public async Task<IActionResult> SendVerificationCodeAsync(ForgotPasswordRequestDto request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
-            }
-
-            var sent = await _accountService.SendVerificationCodeAsync(request.Email);
-
-            var response = new ApiResponseDto
-            {
-                Success = sent,
-                Message = sent
-                    ? "A verification code has been sent to your email."
-                    : "We couldn’t send the verification code. Please try again later."
-            };
-
-            return sent ? Ok(response) : BadRequest(response);
-        }
-
-        [AllowAnonymous]
-        [HttpPost("verify-email")]
-        public async Task<IActionResult> VerifyEmailAsync(VerifyEmailRequestDto request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
-            }
-
-            var result = await _accountService.VerifyEmailAsync(request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-
         [Authorize]
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePasswordAsync(ChangePasswordRequestDto request)
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequestDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -160,7 +115,7 @@ namespace Mystic_Journey_API.Controllers
                 });
             }
 
-            var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var accountId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var result = await _accountService.ChangePasswordAsync(accountId, request);
 
@@ -169,7 +124,7 @@ namespace Mystic_Journey_API.Controllers
 
         [Authorize]
         [HttpPut("update-profile")]
-        public async Task<IActionResult> UpdateProfileAsync(UpdateProfileRequestDto request)
+        public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfileRequestDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -180,7 +135,7 @@ namespace Mystic_Journey_API.Controllers
                 });
             }
 
-            var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var accountId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var result = await _accountService.UpdateProfileAsync(accountId, request);
 
