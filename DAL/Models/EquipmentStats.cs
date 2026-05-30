@@ -7,18 +7,20 @@ namespace DAL.Models
         public int ItemId { get; set; }
         public Item? Item { get; set; }
 
-        public int HealthBonus { get; set; } = 0;
-        public int ManaBonus { get; set; } = 0;
-        public int StrengthBonus { get; set; } = 0;
-        public int DefenseBonus { get; set; } = 0;
-        public int AgilityBonus { get; set; } = 0;
-        public int IntelligenceBonus { get; set; } = 0;
-        public int EnduranceBonus { get; set; } = 0;
-        public int LuckBonus { get; set; } = 0;
+        public int BaseHp { get; set; }
+        public int BaseAtk { get; set; }
+        public int BaseDef { get; set; }
 
-        public int AttackBonus { get; set; } = 0;
-        public int CriticalRateBonus { get; set; } = 0;
-        public int CriticalDamageBonus { get; set; } = 0;
-        public int ArmorPenetrationBonus { get; set; } = 0;
+        public int BonusHp { get; set; }
+        public int BonusAtk { get; set; }
+        public int BonusDef { get; set; }
+
+        public int BonusMoveSpeed { get; set; }
+        public int BonusAttackSpeed { get; set; }
+
+        public int BonusCritRate { get; set; }
+        public int BonusCritDamage { get; set; }
+
+        public int BonusDamageBonus { get; set; }
     }
 }

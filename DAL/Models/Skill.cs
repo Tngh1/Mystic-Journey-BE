@@ -21,7 +21,6 @@ namespace DAL.Models
         // ClassRequirements: Knight, Archer, Mage
         public string ClassRequirement { get; set; } = "Knight";
 
-        public int ManaCost { get; set; } = 0;
         public int CooldownSeconds { get; set; } = 0;
         public int BaseDamage { get; set; } = 0;
         public int UnlockLevel { get; set; } = 1;

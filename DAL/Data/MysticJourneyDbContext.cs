@@ -26,7 +26,7 @@ namespace DAL.Data
         public DbSet<ShopItem> ShopItems => Set<ShopItem>();
         public DbSet<Mail> Mails => Set<Mail>();
         public DbSet<Friend> Friends => Set<Friend>();
-        public DbSet<Boss> Bosses => Set<Boss>();
+        public DbSet<MonsterDrop> MonsterDrops => Set<MonsterDrop>();
         public DbSet<GachaBanner> GachaBanners => Set<GachaBanner>();
         public DbSet<GachaBannerItem> GachaBannerItems => Set<GachaBannerItem>();
         public DbSet<GachaPullHistory> GachaPullHistories => Set<GachaPullHistory>();
@@ -58,7 +58,7 @@ namespace DAL.Data
         public DbSet<PlayerAnnouncement> PlayerAnnouncements => Set<PlayerAnnouncement>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {       
+        {
             base.OnModelCreating(modelBuilder);
 
             // 1-1 relationship between Account and PlayerProfile
@@ -79,6 +79,17 @@ namespace DAL.Data
                 new Role { Id = 2, Name = "Admin" },
                 new Role { Id = 3, Name = "SuperAdmin" }
             );
+            modelBuilder.Entity<MonsterDrop>()
+                .HasOne(md => md.Monster)
+                .WithMany(m => m.MonsterDrops)
+                .HasForeignKey(md => md.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MonsterDrop>()
+                .HasOne(md => md.Item)
+                .WithMany(i => i.MonsterDrops)
+                .HasForeignKey(md => md.ItemId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
