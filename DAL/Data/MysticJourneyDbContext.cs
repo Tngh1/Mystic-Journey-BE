@@ -47,40 +47,13 @@ namespace DAL.Data
         public DbSet<PlayerDailyLogin> PlayerDailyLogins => Set<PlayerDailyLogin>();
         public DbSet<GameAnnouncement> GameAnnouncements => Set<GameAnnouncement>();
         public DbSet<PlayerAnnouncement> PlayerAnnouncements => Set<PlayerAnnouncement>();
+        public DbSet<CategoryContent> CategoryContents => Set<CategoryContent>();
+        public DbSet<Content> Contents => Set<Content>();
+        public DbSet<BlockContent> BlockContents => Set<BlockContent>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-            // 1-1 relationship between Account and PlayerProfile
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.PlayerProfile)
-                .WithOne(p => p.Account)
-                .HasForeignKey<PlayerProfile>(p => p.AccountId);
-
-            // 1-N relationship between Role and Account
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.Role)
-                .WithMany(r => r.Accounts)
-                .HasForeignKey(a => a.RoleId);
-
-            // Seed Data for Role
-            modelBuilder.Entity<Role>().HasData(
-                new Role { Id = 1, Name = "Player" },
-                new Role { Id = 2, Name = "Admin" },
-                new Role { Id = 3, Name = "SuperAdmin" }
-            );
-            modelBuilder.Entity<MonsterDrop>()
-                .HasOne(md => md.Monster)
-                .WithMany(m => m.MonsterDrops)
-                .HasForeignKey(md => md.MonsterId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<MonsterDrop>()
-                .HasOne(md => md.Item)
-                .WithMany(i => i.MonsterDrops)
-                .HasForeignKey(md => md.ItemId)
-                .OnDelete(DeleteBehavior.Restrict);
+     
         }
     }
 }
