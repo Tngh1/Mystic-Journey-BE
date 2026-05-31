@@ -12,9 +12,11 @@ namespace DAL.Models
 
         public string? ThumbnailUrl { get; set; }
 
-        // Category reference
         public int? CategoryContentId { get; set; }
         public CategoryContent? CategoryContent { get; set; }
+
+        public int? SubCategoryContentId { get; set; }
+        public SubCategoryContent? SubCategoryContent { get; set; }
 
         public bool IsPublished { get; set; } = false;
 
