@@ -33,5 +33,6 @@ namespace DAL.Models
         public ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
         public ICollection<GachaBannerItem> GachaBannerItems { get; set; } = new List<GachaBannerItem>();
         public ICollection<ShopItem> ShopItems { get; set; } = new List<ShopItem>();
+        public ICollection<MonsterDrop> MonsterDrops { get; set; } = new List<MonsterDrop>();
     }
 }
