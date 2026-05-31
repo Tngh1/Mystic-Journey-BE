@@ -9,14 +9,11 @@ namespace DAL.Models
         public int SenderId { get; set; }
         public PlayerProfile? Sender { get; set; }
 
-        // ChatTypes: Private, Party, Guild, Global, System
+        // ChatTypes: Private, Guild, Global, System
         public string ChatType { get; set; } = "Global";
 
         public int? RecipientId { get; set; }
         public PlayerProfile? Recipient { get; set; }
-
-        public int? PartyId { get; set; }
-        public Party? Party { get; set; }
 
         public int? GuildId { get; set; }
         public Guild? Guild { get; set; }

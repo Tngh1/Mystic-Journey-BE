@@ -14,12 +14,6 @@ namespace DAL.Models
         // Types: Shopkeeper, QuestGiver, Trainer, Blacksmith, Healer, Merchant, Information
         public string Type { get; set; } = "Information";
 
-        public int? GameMapId { get; set; }
-        public GameMap? GameMap { get; set; }
-
-        public int PositionX { get; set; } = 0;
-        public int PositionY { get; set; } = 0;
-
         public string? IconUrl { get; set; }
         public bool IsActive { get; set; } = true;
 

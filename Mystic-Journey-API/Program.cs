@@ -24,18 +24,6 @@ builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfi
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
-// Item Services
-builder.Services.AddScoped<IItemRepository, ItemRepository>();
-builder.Services.AddScoped<IItemService, ItemService>();
-
-// Inventory Services
-builder.Services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
-builder.Services.AddScoped<IInventoryItemService, InventoryItemService>();
-
-// PlayerProfile Services
-builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
-builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
-
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

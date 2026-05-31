@@ -89,17 +89,6 @@ namespace BLL.DTOs
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public class VerifyEmailRequestDto
-    {
-        [Required(ErrorMessage = "Email is required.")]
-        [EmailAddress(ErrorMessage = "Email format is invalid.")]
-        [StringLength(255, ErrorMessage = "Email must not exceed 255 characters.")]
-        public string Email { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Verification code is required.")]
-        [RegularExpression(@"^\d{6}$", ErrorMessage = "Verification code must be 6 digits.")]
-        public string VerificationCode { get; set; } = string.Empty;
-    }
-
     public class UpdateProfileRequestDto
     {
         [Required(ErrorMessage = "Full name is required.")]
@@ -126,8 +115,6 @@ namespace BLL.DTOs
         public int RoleId { get; set; } = 1;
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
-        public string? RefreshToken { get; set; }
-        public DateTime? RefreshTokenExpiresAt { get; set; }
     }
 
     public class ApiResponseDto

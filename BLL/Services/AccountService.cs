@@ -59,7 +59,7 @@ namespace BLL.Services
                 return new ApiResponseDto
                 {
                     Success = false,
-                    Message = "We couldn’t find your account or it has been deactivated."
+                    Message = "We couldn't find your account or it has been deactivated."
                 };
             }
 
@@ -73,11 +73,6 @@ namespace BLL.Services
             }
 
             var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
-            var refreshToken = GenerateToken();
-            var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-
-            account.RefreshToken = refreshToken;
-            account.RefreshTokenExpiryTime = refreshTokenExpiry;
             account.LastLogin = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
 
@@ -89,8 +84,6 @@ namespace BLL.Services
             response.Account ??= _mapper.Map<AccountResponseDto>(account);
             response.Account.AccessToken = accessToken;
             response.Account.AccessTokenExpiresAt = accessTokenExpiry;
-            response.Account.RefreshToken = refreshToken;
-            response.Account.RefreshTokenExpiresAt = refreshTokenExpiry;
 
             return response;
         }
@@ -148,9 +141,6 @@ namespace BLL.Services
                 };
             }
 
-            var refreshToken = GenerateToken();
-            var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-
             var account = _mapper.Map<Account>(request);
             account.Id = Guid.NewGuid();
             account.UserName = normalizedUsername;
@@ -160,30 +150,17 @@ namespace BLL.Services
             account.CreatedAt = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
             account.IsActive = true;
-            account.EmailConfirmed = false;
-            account.RefreshToken = refreshToken;
-            account.RefreshTokenExpiryTime = refreshTokenExpiry;
-            account.EmailVerificationToken = null;
-            account.EmailVerificationTokenExpiry = null;
 
             await _repository.CreateAccountAsync(account);
-
-
-
-            var verificationCodeSent = await SendVerificationCodeAsync(normalizedEmail);
 
             var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
 
             var response = _mapper.Map<ApiResponseDto>(account);
             response.Success = true;
-            response.Message = verificationCodeSent
-                ? "Your account has been created. A verification code has been sent to your email."
-                : "Your account has been created, but we couldn’t send the verification code right now.";
+            response.Message = "Your account has been created successfully.";
             response.Account ??= _mapper.Map<AccountResponseDto>(account);
             response.Account.AccessToken = accessToken;
             response.Account.AccessTokenExpiresAt = accessTokenExpiry;
-            response.Account.RefreshToken = refreshToken;
-            response.Account.RefreshTokenExpiresAt = refreshTokenExpiry;
 
             return response;
         }
@@ -207,16 +184,7 @@ namespace BLL.Services
                 return new ApiResponseDto
                 {
                     Success = false,
-                    Message = "We couldn’t find an account with this email."
-                };
-            }
-
-            if (!account.EmailConfirmed)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Please verify your email before using forgot password."
+                    Message = "We couldn't find an account with this email."
                 };
             }
 
@@ -238,7 +206,7 @@ namespace BLL.Services
                 return new ApiResponseDto
                 {
                     Success = false,
-                    Message = "We couldn’t send the verification email. Please try again later."
+                    Message = "We couldn't send the verification email. Please try again later."
                 };
             }
 
@@ -313,7 +281,7 @@ namespace BLL.Services
                 return new ApiResponseDto
                 {
                     Success = false,
-                    Message = "We couldn’t find your account."
+                    Message = "We couldn't find your account."
                 };
             }
 
@@ -337,34 +305,6 @@ namespace BLL.Services
             };
         }
 
-        public async Task<bool> SendVerificationCodeAsync(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return false;
-            }
-
-            var normalizedEmail = email.Trim().ToLowerInvariant();
-            var account = await _repository.GetByEmailAsync(normalizedEmail);
-
-            if (account == null || !account.IsActive)
-            {
-                return false;
-            }
-
-            var code = GenerateVerificationCode();
-            account.EmailVerificationToken = code;
-            account.EmailVerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15);
-            account.UpdatedAt = DateTime.UtcNow;
-
-            await _repository.UpdateAccountAsync(account);
-
-            return await SendEmailAsync(
-                normalizedEmail,
-                "Mystic Journey - Verify Your Email",
-                $"Your verification code is: {code}. This code will expire in 15 minutes.");
-        }
-
         public async Task<ApiResponseDto> UpdateProfileAsync(Guid accountId, UpdateProfileRequestDto request)
         {
             var account = await _repository.GetByIdAsync(accountId);
@@ -374,7 +314,7 @@ namespace BLL.Services
                 return new ApiResponseDto
                 {
                     Success = false,
-                    Message = "We couldn’t find your account."
+                    Message = "We couldn't find your account."
                 };
             }
 
@@ -394,71 +334,6 @@ namespace BLL.Services
             };
 
             return response;
-        }
-
-        public async Task<ApiResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request)
-        {
-            if (request == null ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.VerificationCode))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Please provide your email and verification code."
-                };
-            }
-
-            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-            var verificationCode = request.VerificationCode.Trim();
-
-            var account = await _repository.GetByEmailAndVerificationCodeAsync(normalizedEmail, verificationCode);
-
-            if (account == null)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "The verification code is invalid."
-                };
-            }
-
-            if (account.EmailConfirmed)
-            {
-                return new ApiResponseDto
-                {
-                    Success = true,
-                    Message = "Your email has already been verified."
-                };
-            }
-
-            if (!account.EmailVerificationTokenExpiry.HasValue ||
-                account.EmailVerificationTokenExpiry.Value < DateTime.UtcNow)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "This verification code has expired. Please request a new one."
-                };
-            }
-
-            account.EmailConfirmed = true;
-            account.EmailVerificationToken = null;
-            account.EmailVerificationTokenExpiry = null;
-            account.UpdatedAt = DateTime.UtcNow;
-
-            await _repository.UpdateAccountAsync(account);
-
-            return new ApiResponseDto
-            {
-                Success = true,
-                Message = "Your email has been verified successfully."
-            };
-        }
-
-        private static string GenerateToken()
-        {
-            return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         }
 
         private static string GenerateVerificationCode()

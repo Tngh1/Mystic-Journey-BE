@@ -63,16 +63,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(a => a.EmailAddress.ToLower() == email.ToLower() && a.IsActive);
         }
 
-        public async Task<Account?> GetByEmailAndVerificationCodeAsync(string email, string code)
-        {
-            return await _context.Accounts
-                .Include(a => a.Role)
-                .FirstOrDefaultAsync(a =>
-                    a.EmailAddress.ToLower() == email.ToLower() &&
-                    a.EmailVerificationToken == code &&
-                    a.IsActive);
-        }
-
         public async Task<Account?> GetByEmailAndPasswordResetCodeAsync(string email, string code)
         {
             return await _context.Accounts

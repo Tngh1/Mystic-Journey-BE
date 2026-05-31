@@ -27,12 +27,8 @@ namespace DAL.Models
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
 
-        public string? RefreshToken { get; set; }
-        public DateTime? RefreshTokenExpiryTime { get; set; }
-
         public bool IsActive { get; set; } = true;
 
-        public bool EmailConfirmed { get; set; } = false;
         public string? EmailVerificationToken { get; set; }
         public DateTime? EmailVerificationTokenExpiry { get; set; }
 
