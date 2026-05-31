@@ -1,24 +1,13 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace DAL.Models
 {
     public class DungeonRun
     {
         public int Id { get; set; }
 
-        [Required, MaxLength(150)]
-        public string Name { get; set; } = string.Empty;
+        // DungeonConfig reference
+        public int DungeonConfigId { get; set; }
+        public DungeonConfig? DungeonConfig { get; set; }
 
-        public string? Description { get; set; }
-
-        // Types: Normal, Elite, Boss
-        public string Type { get; set; } = "Normal";
-
-        public int LevelRequirement { get; set; } = 1;
-        public int MaxMembers { get; set; } = 4;
-        public int Difficulty { get; set; } = 1;
-
-        public int TotalStages { get; set; } = 5;
         public int CurrentStage { get; set; } = 1;
 
         public bool IsCompleted { get; set; } = false;

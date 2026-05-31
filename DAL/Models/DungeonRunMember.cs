@@ -17,6 +17,11 @@ namespace DAL.Models
         public bool IsCompleted { get; set; } = false;
         public bool IsDefeated { get; set; } = false;
 
+        // Reward tracking
+        public int RewardExperience { get; set; } = 0;
+        public decimal RewardGold { get; set; } = 0;
+        public bool IsRewardClaimed { get; set; } = false;
+
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
         public DateTime? DefeatedAt { get; set; }

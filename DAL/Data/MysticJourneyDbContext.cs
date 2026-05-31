@@ -32,6 +32,7 @@ namespace DAL.Data
         public DbSet<GachaPullHistory> GachaPullHistories => Set<GachaPullHistory>();
         public DbSet<DungeonRun> DungeonRuns => Set<DungeonRun>();
         public DbSet<DungeonRunMember> DungeonRunMembers => Set<DungeonRunMember>();
+        public DbSet<DungeonConfig> DungeonConfigs => Set<DungeonConfig>();
         public DbSet<Achievement> Achievements => Set<Achievement>();
         public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
         public DbSet<Guild> Guilds => Set<Guild>();
@@ -53,7 +54,6 @@ namespace DAL.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-     
         }
     }
 }
