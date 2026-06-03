@@ -25,6 +25,5 @@ namespace DAL.Models
 
         public ICollection<GuildMember> Members { get; set; } = new List<GuildMember>();
         public ICollection<GuildInvitation> Invitations { get; set; } = new List<GuildInvitation>();
-        public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
     }
 }

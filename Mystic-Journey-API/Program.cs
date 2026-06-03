@@ -18,6 +18,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
 // Account Services

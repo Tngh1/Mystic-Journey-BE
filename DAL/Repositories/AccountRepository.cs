@@ -2,7 +2,6 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Threading.Tasks;
 
 namespace DAL.Repositories
@@ -16,7 +15,7 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public async Task<Account?> GetByIdAsync(Guid accountId)
+        public async Task<Account?> GetByIdAsync(int accountId)
         {
             return await _context.Accounts
                 .Include(a => a.Role)
@@ -28,14 +27,14 @@ namespace DAL.Repositories
             return await _context.Accounts
                 .Include(a => a.Role)
                 .FirstOrDefaultAsync(a =>
-                    (a.UserName.ToLower() == emailOrUsername.ToLower() || a.EmailAddress.ToLower() == emailOrUsername.ToLower())
+                    (a.UserName.ToLower() == emailOrUsername.ToLower() || a.Email.ToLower() == emailOrUsername.ToLower())
                     && a.IsActive);
         }
 
         public async Task<bool> IsEmailExistAsync(string email)
         {
             return await _context.Accounts
-                .AnyAsync(a => a.EmailAddress.ToLower() == email.ToLower());
+                .AnyAsync(a => a.Email.ToLower() == email.ToLower());
         }
 
         public async Task<bool> IsUsernameExistAsync(string username)
@@ -60,24 +59,14 @@ namespace DAL.Repositories
         {
             return await _context.Accounts
                 .Include(a => a.Role)
-                .FirstOrDefaultAsync(a => a.EmailAddress.ToLower() == email.ToLower() && a.IsActive);
+                .FirstOrDefaultAsync(a => a.Email.ToLower() == email.ToLower() && a.IsActive);
         }
 
-        public async Task<Account?> GetByEmailAndPasswordResetCodeAsync(string email, string code)
+        public async Task<Account?> GetByRefreshTokenAsync(string refreshToken)
         {
             return await _context.Accounts
                 .Include(a => a.Role)
-                .FirstOrDefaultAsync(a =>
-                    a.EmailAddress.ToLower() == email.ToLower() &&
-                    a.PasswordResetToken == code &&
-                    a.IsActive);
-        }
-
-        public async Task<Account?> GetByPasswordResetTokenAsync(string token)
-        {
-            return await _context.Accounts
-                .Include(a => a.Role)
-                .FirstOrDefaultAsync(a => a.PasswordResetToken == token && a.IsActive);
+                .FirstOrDefaultAsync(a => a.RefreshToken == refreshToken && a.IsActive);
         }
     }
 }

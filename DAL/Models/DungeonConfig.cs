@@ -23,17 +23,11 @@ namespace DAL.Models
 
         public int Difficulty { get; set; } = 1;
 
-        public int TotalStages { get; set; } = 5;
-
         public int RecommendedPower { get; set; } = 0;
 
-        public int RewardExperience { get; set; } = 0;
-
-        public decimal RewardGold { get; set; } = 0;
+        public int? ChestId { get; set; }
+        public Chest? Chest { get; set; }
 
         public bool IsActive { get; set; } = true;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
     }
 }

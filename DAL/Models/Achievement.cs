@@ -22,6 +22,14 @@ namespace DAL.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public int? RewardItemId { get; set; }
+        public Item? RewardItem { get; set; }
+
+        public int RewardQuantity { get; set; } = 1;
+
+        public decimal RewardGold { get; set; } = 0;
+        public int RewardGem { get; set; } = 0;
+
         public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
     }
 }

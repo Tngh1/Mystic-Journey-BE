@@ -26,12 +26,11 @@ namespace DAL.Data
         public DbSet<ShopItem> ShopItems => Set<ShopItem>();
         public DbSet<Mail> Mails => Set<Mail>();
         public DbSet<Friend> Friends => Set<Friend>();
+        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
         public DbSet<MonsterDrop> MonsterDrops => Set<MonsterDrop>();
         public DbSet<GachaBanner> GachaBanners => Set<GachaBanner>();
         public DbSet<GachaBannerItem> GachaBannerItems => Set<GachaBannerItem>();
         public DbSet<GachaPullHistory> GachaPullHistories => Set<GachaPullHistory>();
-        public DbSet<DungeonRun> DungeonRuns => Set<DungeonRun>();
-        public DbSet<DungeonRunMember> DungeonRunMembers => Set<DungeonRunMember>();
         public DbSet<DungeonConfig> DungeonConfigs => Set<DungeonConfig>();
         public DbSet<Achievement> Achievements => Set<Achievement>();
         public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
