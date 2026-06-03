@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class DungeonConfig
     {
-        public int Id { get; set; }
+        public int DungeonConfigId { get; set; }
 
         [Required, MaxLength(150)]
         public string Name { get; set; } = string.Empty;

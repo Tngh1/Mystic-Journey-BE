@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class MonsterDrop
     {
-        public int Id { get; set; }
+        public int MonsterDropId { get; set; }
 
         public int MonsterId { get; set; }
         public Monster? Monster { get; set; }

@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Chest
     {
-        public int Id { get; set; }
+        public int ChestId { get; set; }
 
         [Required, MaxLength(150)]
         public string Name { get; set; } = string.Empty;

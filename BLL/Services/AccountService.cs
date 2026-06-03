@@ -142,7 +142,7 @@ namespace BLL.Services
             }
 
             var account = _mapper.Map<Account>(request);
-            account.Id = Guid.NewGuid();
+            account.AccountId = Guid.NewGuid();
             account.UserName = normalizedUsername;
             account.EmailAddress = normalizedEmail;
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -352,7 +352,7 @@ namespace BLL.Services
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
                 new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.EmailAddress),
                 new Claim(ClaimTypes.Role, account.Role != null ? account.Role.Name : "Player")

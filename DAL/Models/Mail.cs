@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Mail
     {
-        public int Id { get; set; }
+        public int MailId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }

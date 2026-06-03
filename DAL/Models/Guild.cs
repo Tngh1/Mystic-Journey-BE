@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Guild
     {
-        public int Id { get; set; }
+        public int GuildId { get; set; }
 
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;

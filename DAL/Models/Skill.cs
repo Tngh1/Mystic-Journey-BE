@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Skill
     {
-        public int Id { get; set; }
+        public int SkillId { get; set; }
 
         [Required, MaxLength(150)]
         public string Name { get; set; } = string.Empty;

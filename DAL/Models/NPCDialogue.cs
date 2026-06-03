@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class NPCDialogue
     {
-        public int Id { get; set; }
+        public int NPCDialogueId { get; set; }
 
         public int NPCId { get; set; }
         public NPC? NPC { get; set; }

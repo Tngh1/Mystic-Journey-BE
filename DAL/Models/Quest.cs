@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Quest
     {
-        public int Id { get; set; }
+        public int QuestId { get; set; }
 
         [Required, MaxLength(200)]
         public string Title { get; set; } = string.Empty;

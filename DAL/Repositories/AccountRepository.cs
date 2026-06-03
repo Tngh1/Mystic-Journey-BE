@@ -20,7 +20,7 @@ namespace DAL.Repositories
         {
             return await _context.Accounts
                 .Include(a => a.Role)
-                .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
+                .FirstOrDefaultAsync(a => a.AccountId == accountId && a.IsActive);
         }
 
         public async Task<Account?> GetByUsernameOrEmailAsync(string emailOrUsername)

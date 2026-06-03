@@ -12,7 +12,7 @@ namespace BLL.Mappings
             // Account mappings
             CreateMap<RegisterRequestDto, Account>();
             CreateMap<Account, AccountResponseDto>()
-                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.Id));
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId));
             CreateMap<Account, ApiResponseDto>();
         }
     }

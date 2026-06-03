@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class PlayerProfile
     {
-        public int Id { get; set; }
+        public int PlayerProfileId { get; set; }
 
         public Guid AccountId { get; set; }
         public Account? Account { get; set; }

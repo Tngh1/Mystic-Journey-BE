@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Account
     {
-        public Guid Id { get; set; }
+        public Guid AccountId { get; set; }
 
         public string FullName { get; set; } = string.Empty;
 

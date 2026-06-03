@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class ChatMessage
     {
-        public int Id { get; set; }
+        public int ChatMessageId { get; set; }
 
         public int SenderId { get; set; }
         public PlayerProfile? Sender { get; set; }

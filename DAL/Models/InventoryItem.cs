@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class InventoryItem
     {
-        public int Id { get; set; }
+        public int InventoryItemId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }

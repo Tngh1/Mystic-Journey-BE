@@ -2,9 +2,8 @@ namespace DAL.Models
 {
     public class DungeonRun
     {
-        public int Id { get; set; }
+        public int DungeonRunId { get; set; }
 
-        // DungeonConfig reference
         public int DungeonConfigId { get; set; }
         public DungeonConfig? DungeonConfig { get; set; }
 

@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class DungeonRunMember
     {
-        public int Id { get; set; }
+        public int DungeonRunMemberId { get; set; }
 
         public int DungeonRunId { get; set; }
         public DungeonRun? DungeonRun { get; set; }
@@ -17,7 +17,6 @@ namespace DAL.Models
         public bool IsCompleted { get; set; } = false;
         public bool IsDefeated { get; set; } = false;
 
-        // Reward tracking
         public int RewardExperience { get; set; } = 0;
         public decimal RewardGold { get; set; } = 0;
         public bool IsRewardClaimed { get; set; } = false;
