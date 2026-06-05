@@ -36,5 +36,7 @@ namespace DAL.Models
         public bool IsActive { get; set; } = true;
 
         public ICollection<MonsterDrop> MonsterDrops { get; set; } = new List<MonsterDrop>();
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

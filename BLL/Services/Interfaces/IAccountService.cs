@@ -5,13 +5,13 @@ namespace BLL.Services.Interfaces
 {
     public interface IAccountService
     {
-        Task<AccountResponseDto> LoginAsync(LoginRequestDto request);
-        Task<AccountResponseDto> RegisterAsync(RegisterRequestDto request);
-        Task<AccountResponseDto> ChangePasswordAsync(int accountId, ChangePasswordRequestDto request);
-        Task SendVerificationCodeAsync(string email);
-        Task VerifyEmailAsync(VerifyEmailRequestDto request);
-        Task<AccountResponseDto> RefreshTokenAsync(string refreshToken);
-        Task ForgotPasswordAsync(string email);
-        Task ResetPasswordAsync(string email, string verificationCode, string newPassword, string confirmPassword);
+        Task<AccountResponseDto> LoginAccount(LoginRequestDto request);
+        Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request);
+        Task<AccountResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request);
+        Task SendVerificationCode(string email);
+        Task VerifyEmail(VerifyEmailRequestDto request);
+        Task<AccountResponseDto> RefreshToken(string refreshToken);
+        Task ForgotPassword(string email);
+        Task ResetPassword(string email, string verificationCode, string newPassword, string confirmPassword);
     }
 }

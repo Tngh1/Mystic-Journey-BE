@@ -1,0 +1,131 @@
+using BLL.DTOs;
+using BLL.Services.Interfaces;
+using DAL.Models;
+using DAL.Repositories.Interfaces;
+
+namespace BLL.Services
+{
+    public class AccountAdminService : IAccountAdminService
+    {
+        private readonly IAccountRepository _accountRepository;
+
+        public AccountAdminService(IAccountRepository accountRepository)
+        {
+            _accountRepository = accountRepository;
+        }
+
+        public async Task<AccountAdminResponseDto?> GetAccountById(int id)
+        {
+            var account = await _accountRepository.GetAccountByIdWithRole(id);
+            if (account == null)
+                return null;
+
+            return MapToResponseDto(account);
+        }
+
+        public async Task<AccountAdminResponseDto> CreateAccount(CreateAccountAdminRequestDto request)
+        {
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            var normalizedUsername = request.UserName.Trim();
+
+            if (await _accountRepository.IsEmailExist(normalizedEmail))
+                throw new InvalidOperationException("Email already exists.");
+
+            if (await _accountRepository.IsUsernameExist(normalizedUsername))
+                throw new InvalidOperationException("Username already exists.");
+
+            var account = new Account
+            {
+                UserName = normalizedUsername,
+                Email = normalizedEmail,
+                HashPassword = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                RoleId = request.RoleId,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            if (request.RoleId == 1)
+            {
+                account.PlayerProfile = new PlayerProfile
+                {
+                    DisplayName = request.DisplayName ?? normalizedUsername,
+                    Class = request.PlayerClass,
+                    Level = 1,
+                    ExperiencePoints = 0,
+                    Gold = 0,
+                    Gems = 0,
+                    Energy = 100,
+                    CreatedAt = DateTime.UtcNow
+                };
+            }
+
+            await _accountRepository.CreateAccount(account);
+
+            var created = await _accountRepository.GetAccountByIdWithRole(account.AccountId);
+            return MapToResponseDto(created!);
+        }
+
+        public async Task<AccountAdminResponseDto> UpdateAccount(int id, UpdateAccountAdminRequestDto request)
+        {
+            var account = await _accountRepository.GetAccountByIdWithRole(id)
+                ?? throw new KeyNotFoundException($"Account with id {id} not found.");
+
+            if (request.FullName != null)
+            {
+                account.UserName = request.FullName;
+            }
+
+            if (request.Email != null)
+            {
+                var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+                if (normalizedEmail != account.Email && await _accountRepository.IsEmailExist(normalizedEmail))
+                    throw new InvalidOperationException("Email already exists.");
+
+                account.Email = normalizedEmail;
+            }
+
+            if (request.RoleId.HasValue)
+            {
+                account.RoleId = request.RoleId.Value;
+            }
+
+            if (request.IsActive.HasValue)
+            {
+                account.IsActive = request.IsActive.Value;
+            }
+
+            if (!string.IsNullOrEmpty(request.NewPassword))
+            {
+                account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            }
+
+            account.UpdatedAt = DateTime.UtcNow;
+            await _accountRepository.UpdateAccount(account);
+
+            return MapToResponseDto(account);
+        }
+
+        public IQueryable<AccountAdminResponseDto> GetAccountsQueryable()
+        {
+            return _accountRepository.GetAccountsQueryable()
+                .Select(MapToResponseDto)
+                .AsQueryable();
+        }
+
+        private static AccountAdminResponseDto MapToResponseDto(Account account)
+        {
+            return new AccountAdminResponseDto
+            {
+                AccountId = account.AccountId,
+                UserName = account.UserName,
+                Email = account.Email,
+                RoleName = account.Role?.Name ?? "Unknown",
+                IsActive = account.IsActive,
+                CreatedAt = account.CreatedAt,
+                LastLogin = account.LastLogin,
+                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
+                PlayerDisplayName = account.PlayerProfile?.DisplayName
+            };
+        }
+    }
+}

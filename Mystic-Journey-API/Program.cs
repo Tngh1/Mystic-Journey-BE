@@ -6,9 +6,11 @@ using DAL.Repositories;
 using DAL.Repositories.Interfaces;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Mystic_Journey_API.OData;
 using System.Text;
 
 Env.Load();
@@ -25,6 +27,62 @@ builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfi
 // Account Services
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+
+// Item Services
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IItemService, ItemService>();
+
+// Monster Services
+builder.Services.AddScoped<IMonsterRepository, MonsterRepository>();
+builder.Services.AddScoped<IMonsterService, MonsterService>();
+
+// Dungeon Services
+builder.Services.AddScoped<IDungeonConfigRepository, DungeonConfigRepository>();
+builder.Services.AddScoped<IDungeonConfigService, DungeonConfigService>();
+
+// Shop Services
+builder.Services.AddScoped<IShopItemRepository, ShopItemRepository>();
+builder.Services.AddScoped<IShopItemService, ShopItemService>();
+
+// Gacha Services
+builder.Services.AddScoped<IGachaBannerRepository, GachaBannerRepository>();
+builder.Services.AddScoped<IGachaBannerService, GachaBannerService>();
+
+// Quest Services
+builder.Services.AddScoped<IQuestRepository, QuestRepository>();
+builder.Services.AddScoped<IQuestService, QuestService>();
+
+// Achievement Services
+builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
+builder.Services.AddScoped<IAchievementService, AchievementService>();
+
+// GameSetting Services
+builder.Services.AddScoped<IGameSettingRepository, GameSettingRepository>();
+builder.Services.AddScoped<IGameSettingService, GameSettingService>();
+
+// Content Services
+builder.Services.AddScoped<IContentRepository, ContentRepository>();
+builder.Services.AddScoped<IContentService, ContentService>();
+
+// Mail Services
+builder.Services.AddScoped<IMailRepository, MailRepository>();
+builder.Services.AddScoped<IMailService, MailService>();
+
+// PlayerProfile Services
+builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
+builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
+
+// Account Admin Services
+builder.Services.AddScoped<IAccountAdminService, AccountAdminService>();
+
+// Purchase History Services
+builder.Services.AddScoped<IPurchaseHistoryService, PurchaseHistoryService>();
+
+// Dashboard Services
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+// Daily Login Reward Services
+builder.Services.AddScoped<IDailyLoginRewardService, DailyLoginRewardService>();
 
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -45,8 +103,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
-
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddOData(options => options
+        .AddRouteComponents("odata", EdmModelBuilder.GetEdmModel())
+        .SetMaxTop(100)
+        .Count()
+        .Filter()
+        .OrderBy()
+        .Expand()
+        .Select());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -81,9 +146,15 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "https://localhost:3000",
+                "https://localhost:3001"
+            )
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 

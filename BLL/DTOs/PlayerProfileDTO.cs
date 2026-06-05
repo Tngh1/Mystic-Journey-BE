@@ -4,13 +4,15 @@ using System.Text.Json.Serialization;
 
 namespace BLL.DTOs
 {
+    // ============ PlayerProfile ============
     public class PlayerProfileResponseDto
     {
         public int Id { get; set; }
-        public Guid AccountId { get; set; }
+        public int AccountId { get; set; }
+        public string? AccountEmail { get; set; }
         public string DisplayName { get; set; } = string.Empty;
-        public string AvatarUrl { get; set; } = string.Empty;
-        public string Class { get; set; } = string.Empty;
+        public string? AvatarUrl { get; set; }
+        public string PlayerClass { get; set; } = string.Empty;
         public int Level { get; set; }
         public int ExperiencePoints { get; set; }
         public decimal Gold { get; set; }
@@ -18,49 +20,51 @@ namespace BLL.DTOs
         public int Energy { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public bool IsBanned { get; set; }
     }
 
-    public class CreatePlayerProfileRequestDto
+    public class PlayerProfileDetailResponseDto : PlayerProfileResponseDto
     {
-        [Required(ErrorMessage = "AccountId is required.")]
-        public Guid AccountId { get; set; }
+        public PlayerStatsResponseDto? Stats { get; set; }
+    }
 
-        [Required(ErrorMessage = "DisplayName is required.")]
-        [StringLength(100, ErrorMessage = "DisplayName must not exceed 100 characters.")]
-        public string DisplayName { get; set; } = string.Empty;
-
-        public string AvatarUrl { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Class is required.")]
-        public string Class { get; set; } = "Knight"; // Knight, Archer, Mage
+    public class PlayerStatsResponseDto
+    {
+        public int CurrentHp { get; set; }
+        public int MaxHp { get; set; }
+        public int Atk { get; set; }
+        public int Def { get; set; }
+        public int MoveSpeed { get; set; }
+        public int AttackSpeed { get; set; }
+        public int CritRate { get; set; }
+        public int CritDamage { get; set; }
+        public int DamageBonus { get; set; }
+        public int SkillPoints { get; set; }
+        public int TotalWins { get; set; }
+        public int TotalLosses { get; set; }
+        public int TotalKills { get; set; }
+        public int TotalDeaths { get; set; }
     }
 
     public class UpdatePlayerProfileRequestDto
     {
+        public string? DisplayName { get; set; }
         public string? AvatarUrl { get; set; }
-        public string? Class { get; set; }
-        
-        [Range(1, int.MaxValue, ErrorMessage = "Level must be at least 1.")]
+        public string? PlayerClass { get; set; }
         public int Level { get; set; }
-        
-        [Range(0, int.MaxValue, ErrorMessage = "ExperiencePoints cannot be negative.")]
         public int ExperiencePoints { get; set; }
-        
-        [Range(0, double.MaxValue, ErrorMessage = "Gold cannot be negative.")]
         public decimal Gold { get; set; }
-        
-        [Range(0, double.MaxValue, ErrorMessage = "Gems cannot be negative.")]
         public decimal Gems { get; set; }
-        
-        [Range(0, int.MaxValue, ErrorMessage = "Energy cannot be negative.")]
         public int Energy { get; set; }
+        public bool? IsBanned { get; set; }
     }
 
+    // ============ PlayerProfile API Response ============
     public class PlayerProfileApiResponseDto
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
-        
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Data { get; set; }
     }

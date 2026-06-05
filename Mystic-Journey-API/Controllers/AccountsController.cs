@@ -26,7 +26,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var result = await _accountService.LoginAsync(request);
+                var result = await _accountService.LoginAccount(request);
                 return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
@@ -41,7 +41,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var result = await _accountService.RegisterAsync(request);
+                var result = await _accountService.RegisterAccount(request);
                 return Ok(result);
             }
             catch (System.ArgumentException ex)
@@ -57,7 +57,7 @@ namespace Mystic_Journey_API.Controllers
             try
             {
                 var accountId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var result = await _accountService.ChangePasswordAsync(accountId, request);
+                var result = await _accountService.ChangePassword(accountId, request);
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)
@@ -76,7 +76,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.SendVerificationCodeAsync(request.Email);
+                await _accountService.SendVerificationCode(request.Email);
                 return Ok(new { message = $"Verification code sent to {request.Email}." });
             }
             catch (System.ArgumentException ex)
@@ -95,7 +95,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.VerifyEmailAsync(request);
+                await _accountService.VerifyEmail(request);
                 return Ok(new { message = "Email verified successfully." });
             }
             catch (System.ArgumentException ex)
@@ -110,7 +110,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var result = await _accountService.RefreshTokenAsync(request.RefreshToken);
+                var result = await _accountService.RefreshToken(request.RefreshToken);
                 return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
@@ -125,7 +125,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.ForgotPasswordAsync(request.Email);
+                await _accountService.ForgotPassword(request.Email);
                 return Ok(new { message = $"Reset code sent to {request.Email}." });
             }
             catch (System.ArgumentException ex)
@@ -148,7 +148,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.ResetPasswordAsync(
+                await _accountService.ResetPassword(
                     request.Email,
                     request.VerificationCode,
                     request.NewPassword,

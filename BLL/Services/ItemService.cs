@@ -1,0 +1,135 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using BLL.DTOs;
+using BLL.Services.Interfaces;
+using DAL.Models;
+using DAL.Repositories.Interfaces;
+using System.Linq;
+
+namespace BLL.Services
+{
+    public class ItemService : IItemService
+    {
+        private readonly IItemRepository _repository;
+        private readonly IMapper _mapper;
+
+        public ItemService(IItemRepository repository, IMapper mapper)
+        {
+            _repository = repository;
+            _mapper = mapper;
+        }
+
+        public async Task<ItemResponseDto?> GetItemById(int id)
+        {
+            var item = await _repository.GetItemByIdWithStats(id);
+            if (item == null)
+                return null;
+
+            var dto = _mapper.Map<ItemResponseDto>(item);
+
+            if (item.EquipmentStats != null)
+            {
+                dto.BaseHp = item.EquipmentStats.BaseHp;
+                dto.BaseAtk = item.EquipmentStats.BaseAtk;
+                dto.BaseDef = item.EquipmentStats.BaseDef;
+                dto.BonusHp = item.EquipmentStats.BonusHp;
+                dto.BonusAtk = item.EquipmentStats.BonusAtk;
+                dto.BonusDef = item.EquipmentStats.BonusDef;
+                dto.BonusCritRate = item.EquipmentStats.BonusCritRate;
+                dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage;
+            }
+
+            return dto;
+        }
+
+        public async Task<ItemResponseDto> CreateItem(CreateItemRequestDto request)
+        {
+            var item = new Item
+            {
+                Name = request.Name,
+                Description = request.Description,
+                Type = request.Type,
+                Rarity = request.Rarity,
+                Slot = request.Slot,
+                BaseValue = request.BaseValue,
+                MaxStack = request.MaxStack,
+                IsTradable = request.IsTradable,
+                IsActive = request.IsActive,
+                IconUrl = request.IconUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            if (IsEquipmentType(request.Type))
+            {
+                item.EquipmentStats = new EquipmentStats
+                {
+                    BaseHp = request.BaseHp ?? 0,
+                    BaseAtk = request.BaseAtk ?? 0,
+                    BaseDef = request.BaseDef ?? 0,
+                    BonusHp = request.BonusHp ?? 0,
+                    BonusAtk = request.BonusAtk ?? 0,
+                    BonusDef = request.BonusDef ?? 0,
+                    BonusCritRate = request.BonusCritRate ?? 0,
+                    BonusCritDamage = request.BonusCritDamage ?? 0,
+                    BonusMoveSpeed = 0,
+                    BonusAttackSpeed = 0,
+                    BonusDamageBonus = 0
+                };
+            }
+
+            var created = await _repository.CreateItem(item);
+            return await GetItemById(created.ItemId) ?? _mapper.Map<ItemResponseDto>(created);
+        }
+
+        public async Task<ItemResponseDto> UpdateItem(int id, UpdateItemRequestDto request)
+        {
+            var item = await _repository.GetItemByIdWithStats(id)
+                ?? throw new KeyNotFoundException($"Item with id {id} not found.");
+
+            item.Name = request.Name;
+            item.Description = request.Description;
+            item.Type = request.Type;
+            item.Rarity = request.Rarity;
+            item.Slot = request.Slot;
+            item.BaseValue = request.BaseValue;
+            item.MaxStack = request.MaxStack;
+            item.IsTradable = request.IsTradable;
+            item.IsActive = request.IsActive;
+            item.IconUrl = request.IconUrl;
+
+            if (IsEquipmentType(request.Type))
+            {
+                if (item.EquipmentStats == null)
+                {
+                    item.EquipmentStats = new EquipmentStats
+                    {
+                        ItemId = item.ItemId
+                    };
+                }
+
+                item.EquipmentStats.BaseHp = request.BaseHp ?? 0;
+                item.EquipmentStats.BaseAtk = request.BaseAtk ?? 0;
+                item.EquipmentStats.BaseDef = request.BaseDef ?? 0;
+                item.EquipmentStats.BonusHp = request.BonusHp ?? 0;
+                item.EquipmentStats.BonusAtk = request.BonusAtk ?? 0;
+                item.EquipmentStats.BonusDef = request.BonusDef ?? 0;
+                item.EquipmentStats.BonusCritRate = request.BonusCritRate ?? 0;
+                item.EquipmentStats.BonusCritDamage = request.BonusCritDamage ?? 0;
+            }
+
+            var updated = await _repository.UpdateItem(item);
+            return await GetItemById(updated.ItemId) ?? _mapper.Map<ItemResponseDto>(updated);
+        }
+
+        public IQueryable<ItemResponseDto> GetItemsQueryable()
+        {
+            return _repository.GetItemsQueryable()
+                .ProjectTo<ItemResponseDto>(_mapper.ConfigurationProvider);
+        }
+
+        private static bool IsEquipmentType(string type)
+        {
+            return type is "Weapon" or "Armor" or "Accessory";
+        }
+    }
+}

@@ -44,9 +44,9 @@ namespace BLL.Services
             _cache = cache;
         }
 
-        public async Task<AccountResponseDto> LoginAsync(LoginRequestDto request)
+        public async Task<AccountResponseDto> LoginAccount(LoginRequestDto request)
         {
-            var account = await _repository.GetByUsernameOrEmailAsync(request.EmailOrUsername.Trim())
+            var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
                 ?? throw new UnauthorizedAccessException("Invalid email/username or password.");
 
             if (!account.IsActive)
@@ -62,7 +62,7 @@ namespace BLL.Services
             account.RefreshTokenExpiresAt = refreshExpiry;
             account.LastLogin = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
-            await _repository.UpdateAccountAsync(account);
+            await _repository.UpdateAccount(account);
 
             var response = _mapper.Map<AccountResponseDto>(account);
             response.AccessToken = accessToken;
@@ -72,7 +72,7 @@ namespace BLL.Services
             return response;
         }
 
-        public async Task<AccountResponseDto> RegisterAsync(RegisterRequestDto request)
+        public async Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request)
         {
             var normalizedEmail = request.EmailAddress.Trim().ToLowerInvariant();
             var normalizedUsername = request.UserName.Trim();
@@ -81,10 +81,10 @@ namespace BLL.Services
             if (!_cache.TryGetValue(verifiedKey, out bool isVerified) || !isVerified)
                 throw new BadRequestException("Email not verified. Please verify your email first.");
 
-            if (await _repository.IsEmailExistAsync(normalizedEmail))
+            if (await _repository.IsEmailExist(normalizedEmail))
                 throw new BadRequestException("Email already registered.");
 
-            if (await _repository.IsUsernameExistAsync(normalizedUsername))
+            if (await _repository.IsUsernameExist(normalizedUsername))
                 throw new BadRequestException("Username already taken.");
 
             var account = _mapper.Map<Account>(request);
@@ -101,7 +101,7 @@ namespace BLL.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repository.CreateAccountAsync(account);
+            await _repository.CreateAccount(account);
             _cache.Remove(verifiedKey);
 
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
@@ -109,7 +109,7 @@ namespace BLL.Services
 
             account.RefreshToken = refreshToken;
             account.RefreshTokenExpiresAt = refreshExpiry;
-            await _repository.UpdateAccountAsync(account);
+            await _repository.UpdateAccount(account);
 
             var response = _mapper.Map<AccountResponseDto>(account);
             response.AccessToken = accessToken;
@@ -119,9 +119,9 @@ namespace BLL.Services
             return response;
         }
 
-        public async Task<AccountResponseDto> ChangePasswordAsync(int accountId, ChangePasswordRequestDto request)
+        public async Task<AccountResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request)
         {
-            var account = await _repository.GetByIdAsync(accountId)
+            var account = await _repository.GetAccountById(accountId)
                 ?? throw new KeyNotFoundException("Account not found.");
 
             if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, account.HashPassword))
@@ -129,14 +129,14 @@ namespace BLL.Services
 
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             account.UpdatedAt = DateTime.UtcNow;
-            await _repository.UpdateAccountAsync(account);
+            await _repository.UpdateAccount(account);
 
             return _mapper.Map<AccountResponseDto>(account);
         }
 
-        public async Task<AccountResponseDto> RefreshTokenAsync(string refreshToken)
+        public async Task<AccountResponseDto> RefreshToken(string refreshToken)
         {
-            var account = await _repository.GetByRefreshTokenAsync(refreshToken)
+            var account = await _repository.GetAccountByRefreshToken(refreshToken)
                 ?? throw new UnauthorizedAccessException("Invalid refresh token.");
 
             if (!account.IsActive)
@@ -151,7 +151,7 @@ namespace BLL.Services
             account.RefreshToken = newRefreshToken;
             account.RefreshTokenExpiresAt = newRefreshExpiry;
             account.UpdatedAt = DateTime.UtcNow;
-            await _repository.UpdateAccountAsync(account);
+            await _repository.UpdateAccount(account);
 
             var response = _mapper.Map<AccountResponseDto>(account);
             response.AccessToken = accessToken;
@@ -161,11 +161,11 @@ namespace BLL.Services
             return response;
         }
 
-        public async Task SendVerificationCodeAsync(string email)
+        public async Task SendVerificationCode(string email)
         {
             var normalizedEmail = email.Trim().ToLowerInvariant();
 
-            if (await _repository.IsEmailExistAsync(normalizedEmail))
+            if (await _repository.IsEmailExist(normalizedEmail))
                 throw new BadRequestException("Email already registered.");
 
             var otp = GenerateVerificationCode();
@@ -182,7 +182,7 @@ namespace BLL.Services
                 throw new InvalidOperationException("Failed to send verification email.");
         }
 
-        public async Task VerifyEmailAsync(VerifyEmailRequestDto request)
+        public async Task VerifyEmail(VerifyEmailRequestDto request)
         {
             var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
@@ -252,11 +252,11 @@ namespace BLL.Services
             catch { return false; }
         }
 
-        public async Task ForgotPasswordAsync(string email)
+        public async Task ForgotPassword(string email)
         {
             var normalizedEmail = email.Trim().ToLowerInvariant();
 
-            if (!await _repository.IsEmailExistAsync(normalizedEmail))
+            if (!await _repository.IsEmailExist(normalizedEmail))
                 throw new BadRequestException("Email not registered.");
 
             var otp = GenerateVerificationCode();
@@ -273,7 +273,7 @@ namespace BLL.Services
                 throw new InvalidOperationException("Failed to send reset email.");
         }
 
-        public async Task ResetPasswordAsync(string email, string verificationCode, string newPassword, string confirmPassword)
+        public async Task ResetPassword(string email, string verificationCode, string newPassword, string confirmPassword)
         {
             var normalizedEmail = email.Trim().ToLowerInvariant();
 
@@ -284,12 +284,12 @@ namespace BLL.Services
             if (!_cache.TryGetValue(cacheKey, out string? cachedOtp) || cachedOtp != verificationCode)
                 throw new BadRequestException("Invalid or expired verification code.");
 
-            var account = await _repository.GetByEmailAsync(normalizedEmail)
+            var account = await _repository.GetAccountByEmail(normalizedEmail)
                 ?? throw new KeyNotFoundException("Account not found.");
 
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
             account.UpdatedAt = DateTime.UtcNow;
-            await _repository.UpdateAccountAsync(account);
+            await _repository.UpdateAccount(account);
 
             _cache.Remove(cacheKey);
         }
