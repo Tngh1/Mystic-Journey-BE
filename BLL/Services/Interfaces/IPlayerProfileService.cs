@@ -9,6 +9,6 @@ namespace BLL.Services.Interfaces
         Task<List<PlayerProfileResponseDto>> GetAllProfiles();
         Task<PlayerProfileDetailResponseDto?> GetProfileById(int id);
         Task<PlayerProfileResponseDto> UpdateProfile(int id, UpdatePlayerProfileRequestDto request);
-        IQueryable<PlayerProfileResponseDto> GetProfilesQueryable();
+        Task<PagedResultDto<PlayerProfileResponseDto>> GetProfilesPaged(int page, int pageSize, string? search, int? level);
     }
 }

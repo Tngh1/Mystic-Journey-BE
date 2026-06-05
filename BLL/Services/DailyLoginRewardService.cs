@@ -3,6 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Models;
+using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -13,29 +14,27 @@ namespace BLL.Services
 {
     public class DailyLoginRewardService : IDailyLoginRewardService
     {
-        private readonly MysticJourneyDbContext _context;
+        private readonly IDailyLoginRewardRepository _repository;
+        private readonly IItemRepository _itemRepository;
         private readonly IMapper _mapper;
 
-        public DailyLoginRewardService(MysticJourneyDbContext context, IMapper mapper)
+        public DailyLoginRewardService(IDailyLoginRewardRepository repository, IItemRepository itemRepository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
+            _itemRepository = itemRepository;
             _mapper = mapper;
         }
 
         public async Task<List<DailyLoginRewardResponseDto>> GetAllDailyLoginRewards()
         {
-            var rewards = await _context.DailyLoginRewards
-                .Include(r => r.RewardItem)
-                .OrderBy(r => r.DayNumber)
-                .ToListAsync();
+            var rewards = await _repository.GetAllDailyLoginRewards();
 
             return rewards.Select(MapToResponseDto).ToList();
         }
 
         public async Task<DailyLoginRewardResponseDto> CreateDailyLoginReward(CreateDailyLoginRewardRequestDto request)
         {
-            var existingReward = await _context.DailyLoginRewards
-                .FirstOrDefaultAsync(r => r.DayNumber == request.DayNumber);
+            var existingReward = await _repository.GetDailyLoginRewardByDayNumber(request.DayNumber);
 
             if (existingReward != null)
                 throw new InvalidOperationException($"A reward for day {request.DayNumber} already exists.");
@@ -51,12 +50,11 @@ namespace BLL.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.DailyLoginRewards.Add(reward);
-            await _context.SaveChangesAsync();
+            await _repository.CreateDailyLoginReward(reward);
 
             if (reward.RewardItemId.HasValue)
             {
-                var item = await _context.Items.FindAsync(reward.RewardItemId.Value);
+                var item = await _itemRepository.GetItemById(reward.RewardItemId.Value);
                 reward.RewardItem = item;
             }
 
@@ -78,13 +76,12 @@ namespace BLL.Services
             };
         }
 
-        public IQueryable<DailyLoginRewardResponseDto> GetDailyLoginRewardsQueryable()
+        public async Task<PagedResultDto<DailyLoginRewardResponseDto>> GetDailyLoginRewardsPaged(int page, int pageSize)
         {
-            return _context.DailyLoginRewards
-                .Include(r => r.RewardItem)
-                .AsNoTracking()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetDailyLoginRewardsPaged(page, pageSize);
+
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<DailyLoginRewardResponseDto>(totalCount, dtos);
         }
     }
 }

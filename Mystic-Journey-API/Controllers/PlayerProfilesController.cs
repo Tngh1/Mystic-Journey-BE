@@ -2,8 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -65,11 +65,11 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("/odata/PlayerProfiles")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] int? level = null)
         {
-            return Ok(_playerProfileService.GetProfilesQueryable());
+            var result = await _playerProfileService.GetProfilesPaged(page, pageSize, search, level);
+            return Ok(result);
         }
     }
 }

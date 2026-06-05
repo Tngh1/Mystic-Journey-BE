@@ -15,6 +15,6 @@ namespace DAL.Repositories.Interfaces
         Task<PlayerProfile> UpdatePlayerProfile(PlayerProfile profile);
         Task<List<PlayerProfile>> Search(string? keyword = null, string? playerClass = null, bool? isBanned = null);
         Task<int> GetTotalPlayerProfilesCount();
-        IQueryable<PlayerProfile> GetPlayerProfilesQueryable();
+        Task<(int TotalCount, List<PlayerProfile> Items)> GetProfilesPaged(int page, int pageSize, string? search, int? level);
     }
 }

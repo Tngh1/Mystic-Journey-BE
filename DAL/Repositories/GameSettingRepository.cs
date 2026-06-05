@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -47,21 +48,22 @@ _context.GameSettings.Update(setting);
             return setting;
         }
 
-        public async Task DeleteGameSetting(int id)
-        {
-            var setting = await GetGameSettingById(id);
-            if (setting != null)
-            {
-                _context.GameSettings.Remove(setting);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        public IQueryable<GameSetting> GetGameSettingsQueryable()
+        public async Task<(int TotalCount, List<GameSetting> Items)> GetSettingsPaged(int page, int pageSize, string? search)
         {
-            return _context.GameSettings
+            var query = _context.GameSettings
                 .Include(g => g.UpdatedByAccount)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Name.Contains(search) || (x.Value != null && x.Value.Contains(search)) || (x.Description != null && x.Description.Contains(search)));
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

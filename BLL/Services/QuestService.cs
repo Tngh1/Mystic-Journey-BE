@@ -69,11 +69,11 @@ namespace BLL.Services
             return MapToResponseDto(updated);
         }
 
-        public IQueryable<QuestResponseDto> GetQuestsQueryable()
+        public async Task<PagedResultDto<QuestResponseDto>> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _repository.GetQuestsQueryable()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetQuestsPaged(page, pageSize, search, type, isActive);
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<QuestResponseDto>(totalCount, dtos);
         }
 
         private static QuestResponseDto MapToResponseDto(Quest quest)

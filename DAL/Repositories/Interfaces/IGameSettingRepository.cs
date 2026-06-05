@@ -11,7 +11,6 @@ namespace DAL.Repositories.Interfaces
         Task<List<GameSetting>> GetAllGameSettings();
         Task<GameSetting> CreateGameSetting(GameSetting setting);
         Task<GameSetting> UpdateGameSetting(GameSetting setting);
-        Task DeleteGameSetting(int id);
-        IQueryable<GameSetting> GetGameSettingsQueryable();
+        Task<(int TotalCount, List<GameSetting> Items)> GetSettingsPaged(int page, int pageSize, string? search);
     }
 }

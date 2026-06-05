@@ -11,7 +11,6 @@ namespace DAL.Repositories.Interfaces
         Task<List<DungeonConfig>> GetActiveDungeonConfigs();
         Task<DungeonConfig> CreateDungeonConfig(DungeonConfig dungeon);
         Task<DungeonConfig> UpdateDungeonConfig(DungeonConfig dungeon);
-        Task DeleteDungeonConfig(int id);
-        IQueryable<DungeonConfig> GetDungeonConfigsQueryable();
+        Task<(int TotalCount, List<DungeonConfig> Items)> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
     }
 }

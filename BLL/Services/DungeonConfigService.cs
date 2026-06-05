@@ -4,6 +4,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 
@@ -57,10 +58,12 @@ namespace BLL.Services
             return _mapper.Map<DungeonConfigResponseDto>(updated);
         }
 
-        public IQueryable<DungeonConfigResponseDto> GetDungeonsQueryable()
+        public async Task<PagedResultDto<DungeonConfigResponseDto>> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _repository.GetDungeonConfigsQueryable()
-                .ProjectTo<DungeonConfigResponseDto>(_mapper.ConfigurationProvider);
+            var (totalCount, items) = await _repository.GetDungeonsPaged(page, pageSize, search, type, isActive);
+
+            var dtos = _mapper.Map<List<DungeonConfigResponseDto>>(items);
+            return new PagedResultDto<DungeonConfigResponseDto>(totalCount, dtos);
         }
     }
 }

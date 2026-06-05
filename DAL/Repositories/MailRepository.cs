@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -71,22 +72,31 @@ _context.Mails.Update(mail);
             return mail;
         }
 
-        public async Task DeleteMail(int id)
-        {
-            var mail = await _context.Mails.FindAsync(id);
-            if (mail != null)
-            {
-                _context.Mails.Remove(mail);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        public IQueryable<Mail> GetMailsQueryable()
+        public async Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed)
         {
-            return _context.Mails
+            var query = _context.Mails
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItem)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Title.Contains(search));
+            }
+            if (isRead.HasValue)
+            {
+                query = query.Where(x => x.IsRead == isRead.Value);
+            }
+            if (isClaimed.HasValue)
+            {
+                query = query.Where(x => x.IsClaimed == isClaimed.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

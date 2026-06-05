@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -48,19 +49,28 @@ _context.DungeonConfigs.Update(dungeon);
             return dungeon;
         }
 
-        public async Task DeleteDungeonConfig(int id)
-        {
-            var dungeon = await GetDungeonConfigById(id);
-            if (dungeon != null)
-            {
-                _context.DungeonConfigs.Remove(dungeon);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        public IQueryable<DungeonConfig> GetDungeonConfigsQueryable()
+        public async Task<(int TotalCount, List<DungeonConfig> Items)> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _context.DungeonConfigs.AsNoTracking();
+            var query = _context.DungeonConfigs.AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(d => d.Name.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(d => d.Type == type);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(d => d.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

@@ -12,7 +12,6 @@ namespace DAL.Repositories.Interfaces
         Task<Mail> CreateMail(Mail mail);
         Task<List<Mail>> CreateBulkMails(List<Mail> mails);
         Task<Mail> UpdateMail(Mail mail);
-        Task DeleteMail(int id);
-        IQueryable<Mail> GetMailsQueryable();
+        Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed);
     }
 }

@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -64,15 +65,6 @@ _context.Contents.Update(content);
             return content;
         }
 
-        public async Task DeleteContent(int id)
-        {
-            var content = await GetContentById(id);
-            if (content != null)
-            {
-                _context.Contents.Remove(content);
-                await _context.SaveChangesAsync();
-            }
-        }
 
         public async Task<CategoryContent?> GetCategoryById(int id)
         {
@@ -120,21 +112,45 @@ _context.Contents.Update(content);
             return block;
         }
 
-        public IQueryable<Content> GetContentsQueryable()
+        public async Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, bool? isActive)
         {
-            return _context.Contents
+            var query = _context.Contents
                 .Include(c => c.CategoryContent)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Title.Contains(search) || x.Slug.Contains(search));
+            }
+            if (isPublished.HasValue)
+            {
+                query = query.Where(x => x.IsPublished == isPublished.Value);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
 
-        public IQueryable<CategoryContent> GetCategoriesQueryable()
+        public async Task<(int TotalCount, List<CategoryContent> Items)> GetCategoriesPaged(int page, int pageSize)
         {
-            return _context.CategoryContents.AsNoTracking();
+            var query = _context.CategoryContents.AsNoTracking();
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (totalCount, items);
         }
 
-        public IQueryable<BlockContent> GetBlocksQueryable()
+        public async Task<(int TotalCount, List<BlockContent> Items)> GetBlocksPaged(int page, int pageSize)
         {
-            return _context.BlockContents.AsNoTracking();
+            var query = _context.BlockContents.AsNoTracking();
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (totalCount, items);
         }
     }
 }

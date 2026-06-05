@@ -8,6 +8,6 @@ namespace BLL.Services.Interfaces
     {
         Task<List<DailyLoginRewardResponseDto>> GetAllDailyLoginRewards();
         Task<DailyLoginRewardResponseDto> CreateDailyLoginReward(CreateDailyLoginRewardRequestDto request);
-        IQueryable<DailyLoginRewardResponseDto> GetDailyLoginRewardsQueryable();
+        Task<PagedResultDto<DailyLoginRewardResponseDto>> GetDailyLoginRewardsPaged(int page, int pageSize);
     }
 }

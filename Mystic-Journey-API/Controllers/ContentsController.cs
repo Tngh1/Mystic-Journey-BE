@@ -2,8 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -207,25 +207,25 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [HttpGet("/odata/Contents")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null, [FromQuery] bool? isActive = null)
         {
-            return Ok(_contentService.GetContentsQueryable());
+            var result = await _contentService.GetContentsPaged(page, pageSize, search, isPublished, isActive);
+            return Ok(result);
         }
 
-        [HttpGet("/odata/BlockContents")]
-        [EnableQuery]
-        public IActionResult GetBlocksOData()
+        [HttpGet("blocks-paged")]
+        public async Task<IActionResult> GetBlocksPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return Ok(_contentService.GetBlocksQueryable());
+            var result = await _contentService.GetBlocksPaged(page, pageSize);
+            return Ok(result);
         }
 
-        [HttpGet("/odata/CategoryContents")]
-        [EnableQuery]
-        public IActionResult GetCategoriesOData()
+        [HttpGet("categories-paged")]
+        public async Task<IActionResult> GetCategoriesPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return Ok(_contentService.GetCategoriesQueryable());
+            var result = await _contentService.GetCategoriesPaged(page, pageSize);
+            return Ok(result);
         }
     }
 }

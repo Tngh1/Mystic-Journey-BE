@@ -12,11 +12,9 @@ namespace DAL.Repositories.Interfaces
         Task<List<GachaBanner>> GetActiveGachaBanners();
         Task<GachaBanner> CreateGachaBanner(GachaBanner banner);
         Task<GachaBanner> UpdateGachaBanner(GachaBanner banner);
-        Task DeleteGachaBanner(int id);
         Task<GachaBannerItem> CreateBannerItem(GachaBannerItem item);
         Task<List<GachaBannerItem>> GetBannerItems(int bannerId);
-        Task DeleteBannerItems(int bannerId);
-        IQueryable<GachaBanner> GetGachaBannersQueryable();
-        IQueryable<GachaBannerItem> GetBannerItemsQueryable();
+        Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<(int TotalCount, List<GachaBannerItem> Items)> GetBannerItemsPaged(int page, int pageSize);
     }
 }

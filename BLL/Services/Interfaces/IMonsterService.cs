@@ -10,7 +10,7 @@ namespace BLL.Services.Interfaces
         Task<MonsterResponseDto> CreateMonster(CreateMonsterRequestDto request);
         Task<MonsterResponseDto> UpdateMonster(int id, UpdateMonsterRequestDto request);
         Task<MonsterDropResponseDto> AddMonsterDrop(int monsterId, CreateMonsterDropRequestDto request);
-        IQueryable<MonsterResponseDto> GetMonstersQueryable();
-        IQueryable<MonsterDropResponseDto> GetMonsterDropsQueryable();
+        Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<PagedResultDto<MonsterDropResponseDto>> GetMonsterDropsPaged(int page, int pageSize);
     }
 }

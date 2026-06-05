@@ -12,9 +12,8 @@ namespace DAL.Repositories.Interfaces
         Task<List<Monster>> GetActiveMonsters();
         Task<Monster> CreateMonster(Monster monster);
         Task<Monster> UpdateMonster(Monster monster);
-        Task DeleteMonster(int id);
         Task<MonsterDrop> CreateDrop(MonsterDrop drop);
-        Task<List<MonsterDrop>> GetDropsByMonsterId(int monsterId);
-        IQueryable<Monster> GetMonstersQueryable();
+        Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<(int TotalCount, List<MonsterDrop> Items)> GetMonsterDropsPaged(int page, int pageSize);
     }
 }

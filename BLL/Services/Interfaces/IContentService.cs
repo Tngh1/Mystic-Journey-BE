@@ -16,8 +16,8 @@ namespace BLL.Services.Interfaces
         Task<CategoryContentResponseDto> CreateCategory(CreateCategoryContentRequestDto request);
         Task<BlockContentResponseDto> CreateBlock(CreateBlockContentRequestDto request);
         Task<BlockContentResponseDto> UpdateBlock(int id, UpdateBlockContentRequestDto request);
-        IQueryable<ContentResponseDto> GetContentsQueryable();
-        IQueryable<CategoryContentResponseDto> GetCategoriesQueryable();
-        IQueryable<BlockContentResponseDto> GetBlocksQueryable();
+        Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, bool? isActive);
+        Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize);
+        Task<PagedResultDto<BlockContentResponseDto>> GetBlocksPaged(int page, int pageSize);
     }
 }

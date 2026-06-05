@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -56,21 +57,30 @@ _context.Achievements.Update(achievement);
             return achievement;
         }
 
-        public async Task DeleteAchievement(int id)
-        {
-            var achievement = await GetAchievementById(id);
-            if (achievement != null)
-            {
-                _context.Achievements.Remove(achievement);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        public IQueryable<Achievement> GetAchievementsQueryable()
+        public async Task<(int TotalCount, List<Achievement> Items)> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _context.Achievements
+            var query = _context.Achievements
                 .Include(a => a.RewardItem)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(a => a.Name.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(a => a.Type == type);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(a => a.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

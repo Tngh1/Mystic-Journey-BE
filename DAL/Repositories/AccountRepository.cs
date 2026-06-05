@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -110,13 +111,30 @@ namespace DAL.Repositories
                 .CountAsync(a => a.IsActive);
         }
 
-        public IQueryable<Account> GetAccountsQueryable()
+        public async Task<(int TotalCount, List<Account> Items)> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName)
         {
-            return _context.Accounts
+            var query = _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.PlayerProfile)
-                .Where(a => a.IsActive)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(a => a.UserName.Contains(search) || a.Email.Contains(search));
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(a => a.IsActive == isActive.Value);
+            }
+            if (!string.IsNullOrEmpty(roleName))
+            {
+                query = query.Where(a => a.Role != null && a.Role.Name == roleName);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

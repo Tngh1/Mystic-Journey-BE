@@ -6,11 +6,9 @@ using DAL.Repositories;
 using DAL.Repositories.Interfaces;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Mystic_Journey_API.OData;
 using System.Text;
 
 Env.Load();
@@ -82,6 +80,7 @@ builder.Services.AddScoped<IPurchaseHistoryService, PurchaseHistoryService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Daily Login Reward Services
+builder.Services.AddScoped<IDailyLoginRewardRepository, DailyLoginRewardRepository>();
 builder.Services.AddScoped<IDailyLoginRewardService, DailyLoginRewardService>();
 
 
@@ -103,15 +102,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
-builder.Services.AddControllers()
-    .AddOData(options => options
-        .AddRouteComponents("odata", EdmModelBuilder.GetEdmModel())
-        .SetMaxTop(100)
-        .Count()
-        .Filter()
-        .OrderBy()
-        .Expand()
-        .Select());
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

@@ -9,6 +9,6 @@ namespace BLL.Services.Interfaces
         Task<ShopItemResponseDto?> GetShopItemById(int id);
         Task<ShopItemResponseDto> CreateShopItem(CreateShopItemRequestDto request);
         Task<ShopItemResponseDto> UpdateShopItem(int id, UpdateShopItemRequestDto request);
-        IQueryable<ShopItemResponseDto> GetShopItemsQueryable();
+        Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive);
     }
 }

@@ -12,6 +12,6 @@ namespace BLL.Services.Interfaces
         Task SendBulkMail(BulkSendMailRequestDto request);
         Task<MailResponseDto> MarkMailAsRead(int mailId);
         Task<MailResponseDto> ClaimMailReward(int mailId);
-        IQueryable<MailResponseDto> GetMailsQueryable();
+        Task<PagedResultDto<MailResponseDto>> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed);
     }
 }

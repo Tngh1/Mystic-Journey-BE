@@ -2,8 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -44,11 +44,13 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("/odata/PurchaseHistories")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public IActionResult GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return Ok(_purchaseHistoryService.GetPurchaseHistoriesQueryable());
+            var query = _purchaseHistoryService.GetPurchaseHistoriesQueryable();
+            int totalCount = query.Count();
+            var items = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            return Ok(new { totalCount, items });
         }
     }
 }

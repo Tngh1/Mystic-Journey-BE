@@ -3,6 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -202,47 +203,50 @@ namespace BLL.Services
             };
         }
 
-        public IQueryable<ContentResponseDto> GetContentsQueryable()
+        public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, bool? isActive)
         {
-            return _repository.GetContentsQueryable()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished, isActive);
+
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<ContentResponseDto>(totalCount, dtos);
         }
 
-        public IQueryable<CategoryContentResponseDto> GetCategoriesQueryable()
+        public async Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize)
         {
-            return _repository.GetCategoriesQueryable()
-                .Select(c => new CategoryContentResponseDto
-                {
-                    Id = c.CategoryContentId,
-                    Name = c.Name,
-                    Slug = c.Slug,
-                    Description = c.Description,
-                    IconUrl = c.IconUrl,
-                    IsActive = c.IsActive,
-                    CreatedAt = c.CreatedAt
-                })
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetCategoriesPaged(page, pageSize);
+
+            var dtos = items.Select(c => new CategoryContentResponseDto
+            {
+                Id = c.CategoryContentId,
+                Name = c.Name,
+                Slug = c.Slug,
+                Description = c.Description,
+                IconUrl = c.IconUrl,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt
+            }).ToList();
+            return new PagedResultDto<CategoryContentResponseDto>(totalCount, dtos);
         }
 
-        public IQueryable<BlockContentResponseDto> GetBlocksQueryable()
+        public async Task<PagedResultDto<BlockContentResponseDto>> GetBlocksPaged(int page, int pageSize)
         {
-            return _repository.GetBlocksQueryable()
-                .Select(b => new BlockContentResponseDto
-                {
-                    Id = b.BlockContentId,
-                    Title = b.Title,
-                    ContentId = b.ContentId,
-                    ContentData = b.ContentData,
-                    MediaUrl = b.MediaUrl,
-                    Caption = b.Caption,
-                    BlockType = b.BlockType,
-                    SortOrder = b.SortOrder,
-                    IsActive = b.IsActive,
-                    CreatedAt = b.CreatedAt,
-                    UpdatedAt = b.UpdatedAt
-                })
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetBlocksPaged(page, pageSize);
+
+            var dtos = items.Select(b => new BlockContentResponseDto
+            {
+                Id = b.BlockContentId,
+                Title = b.Title,
+                ContentId = b.ContentId,
+                ContentData = b.ContentData,
+                MediaUrl = b.MediaUrl,
+                Caption = b.Caption,
+                BlockType = b.BlockType,
+                SortOrder = b.SortOrder,
+                IsActive = b.IsActive,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt
+            }).ToList();
+            return new PagedResultDto<BlockContentResponseDto>(totalCount, dtos);
         }
 
         private static ContentResponseDto MapToResponseDto(Content content)

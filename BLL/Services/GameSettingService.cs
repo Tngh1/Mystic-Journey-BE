@@ -3,6 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace BLL.Services
@@ -77,11 +78,12 @@ namespace BLL.Services
             return MapToResponseDto(updated);
         }
 
-        public IQueryable<GameSettingResponseDto> GetSettingsQueryable()
+        public async Task<PagedResultDto<GameSettingResponseDto>> GetSettingsPaged(int page, int pageSize, string? search)
         {
-            return _repository.GetGameSettingsQueryable()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetSettingsPaged(page, pageSize, search);
+
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<GameSettingResponseDto>(totalCount, dtos);
         }
 
         private static GameSettingResponseDto MapToResponseDto(GameSetting setting)

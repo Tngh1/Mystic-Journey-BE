@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -103,11 +104,25 @@ _context.PlayerProfiles.Update(profile);
             return await _context.PlayerProfiles.CountAsync();
         }
 
-        public IQueryable<PlayerProfile> GetPlayerProfilesQueryable()
+        public async Task<(int TotalCount, List<PlayerProfile> Items)> GetProfilesPaged(int page, int pageSize, string? search, int? level)
         {
-            return _context.PlayerProfiles
+            var query = _context.PlayerProfiles
                 .Include(p => p.Account)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.DisplayName.Contains(search));
+            }
+            if (level.HasValue)
+            {
+                query = query.Where(x => x.Level == level.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

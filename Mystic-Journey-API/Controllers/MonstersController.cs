@@ -2,7 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -110,18 +110,18 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [HttpGet("/odata/Monsters")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
         {
-            return Ok(_monsterService.GetMonstersQueryable());
+            var result = await _monsterService.GetMonstersPaged(page, pageSize, search, type, isActive);
+            return Ok(result);
         }
 
-        [HttpGet("/odata/MonsterDrops")]
-        [EnableQuery]
-        public IActionResult GetDropsOData()
+        [HttpGet("drops")]
+        public async Task<IActionResult> GetAllDrops([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return Ok(_monsterService.GetMonsterDropsQueryable());
+            var result = await _monsterService.GetMonsterDropsPaged(page, pageSize);
+            return Ok(result);
         }
     }
 }

@@ -12,7 +12,6 @@ namespace DAL.Repositories.Interfaces
         Task<List<Achievement>> GetActiveAchievements();
         Task<Achievement> CreateAchievement(Achievement achievement);
         Task<Achievement> UpdateAchievement(Achievement achievement);
-        Task DeleteAchievement(int id);
-        IQueryable<Achievement> GetAchievementsQueryable();
+        Task<(int TotalCount, List<Achievement> Items)> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
     }
 }

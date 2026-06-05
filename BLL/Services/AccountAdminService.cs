@@ -2,6 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -105,11 +106,12 @@ namespace BLL.Services
             return MapToResponseDto(account);
         }
 
-        public IQueryable<AccountAdminResponseDto> GetAccountsQueryable()
+        public async Task<PagedResultDto<AccountAdminResponseDto>> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName)
         {
-            return _accountRepository.GetAccountsQueryable()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _accountRepository.GetAccountsPaged(page, pageSize, search, isActive, roleName);
+
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<AccountAdminResponseDto>(totalCount, dtos);
         }
 
         private static AccountAdminResponseDto MapToResponseDto(Account account)

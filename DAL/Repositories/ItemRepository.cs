@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -55,21 +56,34 @@ _context.Items.Update(item);
             return item;
         }
 
-        public async Task DeleteItem(int id)
-        {
-            var item = await GetItemById(id);
-            if (item != null)
-            {
-                _context.Items.Remove(item);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        public IQueryable<Item> GetItemsQueryable()
+        public async Task<(int TotalCount, List<Item> Items)> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive)
         {
-            return _context.Items
+            var query = _context.Items
                 .Include(i => i.EquipmentStats)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Name.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(x => x.Type == type);
+            }
+            if (!string.IsNullOrEmpty(rarity))
+            {
+                query = query.Where(x => x.Rarity == rarity);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

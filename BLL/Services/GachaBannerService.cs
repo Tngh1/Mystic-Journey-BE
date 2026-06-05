@@ -3,6 +3,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BLL.Services
@@ -92,37 +94,41 @@ namespace BLL.Services
             };
         }
 
-        public IQueryable<GachaBannerResponseDto> GetBannersQueryable()
+        public async Task<PagedResultDto<GachaBannerResponseDto>> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _repository.GetGachaBannersQueryable()
-                .Select(b => new GachaBannerResponseDto
-                {
-                    Id = b.GachaBannerId,
-                    Name = b.Name,
-                    Type = b.Type,
-                    PullCost = b.PullCost,
-                    PityLimit = b.PityLimit,
-                    IsActive = b.IsActive,
-                    StartAt = b.StartAt,
-                    EndAt = b.EndAt
-                })
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetBannersPaged(page, pageSize, search, type, isActive);
+
+            var dtos = items.Select(b => new GachaBannerResponseDto
+            {
+                Id = b.GachaBannerId,
+                Name = b.Name,
+                Type = b.Type,
+                PullCost = b.PullCost,
+                PityLimit = b.PityLimit,
+                IsActive = b.IsActive,
+                StartAt = b.StartAt,
+                EndAt = b.EndAt
+            }).ToList();
+
+            return new PagedResultDto<GachaBannerResponseDto>(totalCount, dtos);
         }
 
-        public IQueryable<GachaBannerItemResponseDto> GetBannerItemsQueryable()
+        public async Task<PagedResultDto<GachaBannerItemResponseDto>> GetBannerItemsPaged(int page, int pageSize)
         {
-            return _repository.GetBannerItemsQueryable()
-                .Select(bi => new GachaBannerItemResponseDto
-                {
-                    Id = bi.GachaBannerItemId,
-                    ItemId = bi.ItemId,
-                    ItemName = bi.Item == null ? null : bi.Item.Name,
-                    ItemIconUrl = bi.Item == null ? null : bi.Item.IconUrl,
-                    ItemRarity = bi.Item == null ? null : bi.Item.Rarity,
-                    DropRate = bi.DropRate,
-                    IsFeatured = bi.IsFeatured
-                })
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetBannerItemsPaged(page, pageSize);
+
+            var dtos = items.Select(bi => new GachaBannerItemResponseDto
+            {
+                Id = bi.GachaBannerItemId,
+                ItemId = bi.ItemId,
+                ItemName = bi.Item?.Name,
+                ItemIconUrl = bi.Item?.IconUrl,
+                ItemRarity = bi.Item?.Rarity,
+                DropRate = bi.DropRate,
+                IsFeatured = bi.IsFeatured
+            }).ToList();
+
+            return new PagedResultDto<GachaBannerItemResponseDto>(totalCount, dtos);
         }
     }
 }

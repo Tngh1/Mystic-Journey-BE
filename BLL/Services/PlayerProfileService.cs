@@ -86,11 +86,11 @@ namespace BLL.Services
             return MapToResponseDto(updated);
         }
 
-        public IQueryable<PlayerProfileResponseDto> GetProfilesQueryable()
+        public async Task<PagedResultDto<PlayerProfileResponseDto>> GetProfilesPaged(int page, int pageSize, string? search, int? level)
         {
-            return _repository.GetPlayerProfilesQueryable()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetProfilesPaged(page, pageSize, search, level);
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<PlayerProfileResponseDto>(totalCount, dtos);
         }
 
         private static PlayerProfileResponseDto MapToResponseDto(PlayerProfile profile)

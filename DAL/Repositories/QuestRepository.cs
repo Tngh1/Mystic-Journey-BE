@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -56,21 +57,30 @@ _context.Quests.Update(quest);
             return quest;
         }
 
-        public async Task DeleteQuest(int id)
-        {
-            var quest = await GetQuestById(id);
-            if (quest != null)
-            {
-                _context.Quests.Remove(quest);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        public IQueryable<Quest> GetQuestsQueryable()
+        public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _context.Quests
+            var query = _context.Quests
                 .Include(q => q.RewardItem)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Title.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(x => x.Type == type);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

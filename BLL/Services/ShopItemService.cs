@@ -75,11 +75,11 @@ namespace BLL.Services
             return MapToResponseDto(updated);
         }
 
-        public IQueryable<ShopItemResponseDto> GetShopItemsQueryable()
+        public async Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive)
         {
-            return _repository.GetShopItemsQueryable()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetShopItemsPaged(page, pageSize, search, currency, isActive);
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<ShopItemResponseDto>(totalCount, dtos);
         }
 
         private static ShopItemResponseDto MapToResponseDto(ShopItem shopItem)

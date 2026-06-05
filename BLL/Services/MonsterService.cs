@@ -114,30 +114,31 @@ namespace BLL.Services
             };
         }
 
-        public IQueryable<MonsterResponseDto> GetMonstersQueryable()
+        public async Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _repository.GetMonstersQueryable()
-                .ProjectTo<MonsterResponseDto>(_mapper.ConfigurationProvider);
+            var (totalCount, items) = await _repository.GetMonstersPaged(page, pageSize, search, type, isActive);
+            var dtos = items.Select(m => _mapper.Map<MonsterResponseDto>(m)).ToList();
+            return new PagedResultDto<MonsterResponseDto>(totalCount, dtos);
         }
 
-        public IQueryable<MonsterDropResponseDto> GetMonsterDropsQueryable()
+        public async Task<PagedResultDto<MonsterDropResponseDto>> GetMonsterDropsPaged(int page, int pageSize)
         {
-            return _repository.GetMonstersQueryable()
-                .SelectMany(m => m.MonsterDrops)
-                .Where(d => d.IsActive)
-                .Select(d => new MonsterDropResponseDto
-                {
-                    Id = d.MonsterDropId,
-                    MonsterId = d.MonsterId,
-                    ItemId = d.ItemId,
-                    ItemName = d.Item == null ? null : d.Item.Name,
-                    DropRate = d.DropRate,
-                    MinQuantity = d.MinQuantity,
-                    MaxQuantity = d.MaxQuantity,
-                    IsGuaranteed = d.IsGuaranteed,
-                    IsActive = d.IsActive
-                })
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetMonsterDropsPaged(page, pageSize);
+
+            var dtos = items.Select(d => new MonsterDropResponseDto
+            {
+                Id = d.MonsterDropId,
+                MonsterId = d.MonsterId,
+                ItemId = d.ItemId,
+                ItemName = d.Item?.Name,
+                DropRate = d.DropRate,
+                MinQuantity = d.MinQuantity,
+                MaxQuantity = d.MaxQuantity,
+                IsGuaranteed = d.IsGuaranteed,
+                IsActive = d.IsActive
+            }).ToList();
+
+            return new PagedResultDto<MonsterDropResponseDto>(totalCount, dtos);
         }
     }
 }

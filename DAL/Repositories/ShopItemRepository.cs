@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -56,21 +57,30 @@ _context.ShopItems.Update(shopItem);
             return shopItem;
         }
 
-        public async Task DeleteShopItem(int id)
-        {
-            var shopItem = await GetShopItemById(id);
-            if (shopItem != null)
-            {
-                _context.ShopItems.Remove(shopItem);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        public IQueryable<ShopItem> GetShopItemsQueryable()
+        public async Task<(int TotalCount, List<ShopItem> Items)> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive)
         {
-            return _context.ShopItems
+            var query = _context.ShopItems
                 .Include(s => s.Item)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Item != null && x.Item.Name.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(currency))
+            {
+                query = query.Where(x => x.Currency == currency);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

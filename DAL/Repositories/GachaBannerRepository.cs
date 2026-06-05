@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -57,15 +58,6 @@ _context.GachaBanners.Update(banner);
             return banner;
         }
 
-        public async Task DeleteGachaBanner(int id)
-        {
-            var banner = await GetGachaBannerById(id);
-            if (banner != null)
-            {
-                _context.GachaBanners.Remove(banner);
-                await _context.SaveChangesAsync();
-            }
-        }
 
         public async Task<GachaBannerItem> CreateBannerItem(GachaBannerItem item)
         {
@@ -82,29 +74,43 @@ _context.GachaBanners.Update(banner);
                 .ToListAsync();
         }
 
-        public async Task DeleteBannerItems(int bannerId)
-        {
-            var items = await _context.GachaBannerItems
-                .Where(i => i.GachaBannerId == bannerId)
-                .ToListAsync();
 
-            _context.GachaBannerItems.RemoveRange(items);
-            await _context.SaveChangesAsync();
-        }
-
-        public IQueryable<GachaBanner> GetGachaBannersQueryable()
+        public async Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _context.GachaBanners
+            var query = _context.GachaBanners
                 .Include(b => b.BannerItems)
                     .ThenInclude(bi => bi.Item)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Name.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(x => x.Type == type);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
 
-        public IQueryable<GachaBannerItem> GetBannerItemsQueryable()
+        public async Task<(int TotalCount, List<GachaBannerItem> Items)> GetBannerItemsPaged(int page, int pageSize)
         {
-            return _context.GachaBannerItems
+            var query = _context.GachaBannerItems
                 .Include(bi => bi.Item)
                 .AsNoTracking();
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

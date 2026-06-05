@@ -2,8 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -38,11 +38,11 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [HttpGet("/odata/DailyLoginRewards")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return Ok(_dailyLoginRewardService.GetDailyLoginRewardsQueryable());
+            var result = await _dailyLoginRewardService.GetDailyLoginRewardsPaged(page, pageSize);
+            return Ok(result);
         }
     }
 }

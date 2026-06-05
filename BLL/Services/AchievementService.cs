@@ -3,6 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace BLL.Services
@@ -57,11 +58,12 @@ namespace BLL.Services
             return MapToResponseDto(updated);
         }
 
-        public IQueryable<AchievementResponseDto> GetAchievementsQueryable()
+        public async Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _repository.GetAchievementsQueryable()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetAchievementsPaged(page, pageSize, search, type, isActive);
+
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<AchievementResponseDto>(totalCount, dtos);
         }
 
         private static AchievementResponseDto MapToResponseDto(Achievement achievement)

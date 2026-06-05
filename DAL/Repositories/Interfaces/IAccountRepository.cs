@@ -19,6 +19,6 @@ namespace DAL.Repositories.Interfaces
         Task<List<Account>> GetAllAccountsWithRoles();
         Task<List<Account>> GetAdmins();
         Task<int> GetTotalAccountsCount();
-        IQueryable<Account> GetAccountsQueryable();
+        Task<(int TotalCount, List<Account> Items)> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName);
     }
 }

@@ -121,10 +121,27 @@ namespace BLL.Services
             return await GetItemById(updated.ItemId) ?? _mapper.Map<ItemResponseDto>(updated);
         }
 
-        public IQueryable<ItemResponseDto> GetItemsQueryable()
+        public async Task<PagedResultDto<ItemResponseDto>> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive)
         {
-            return _repository.GetItemsQueryable()
-                .ProjectTo<ItemResponseDto>(_mapper.ConfigurationProvider);
+            var (totalCount, items) = await _repository.GetItemsPaged(page, pageSize, search, type, rarity, isActive);
+
+            var dtos = items.Select(item => {
+                var dto = _mapper.Map<ItemResponseDto>(item);
+                if (item.EquipmentStats != null)
+                {
+                    dto.BaseHp = item.EquipmentStats.BaseHp;
+                    dto.BaseAtk = item.EquipmentStats.BaseAtk;
+                    dto.BaseDef = item.EquipmentStats.BaseDef;
+                    dto.BonusHp = item.EquipmentStats.BonusHp;
+                    dto.BonusAtk = item.EquipmentStats.BonusAtk;
+                    dto.BonusDef = item.EquipmentStats.BonusDef;
+                    dto.BonusCritRate = item.EquipmentStats.BonusCritRate;
+                    dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage;
+                }
+                return dto;
+            }).ToList();
+
+            return new PagedResultDto<ItemResponseDto>(totalCount, dtos);
         }
 
         private static bool IsEquipmentType(string type)

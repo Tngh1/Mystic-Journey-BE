@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -56,15 +57,6 @@ _context.Monsters.Update(monster);
             return monster;
         }
 
-        public async Task DeleteMonster(int id)
-        {
-            var monster = await GetMonsterById(id);
-            if (monster != null)
-            {
-                _context.Monsters.Remove(monster);
-                await _context.SaveChangesAsync();
-            }
-        }
 
         public async Task<MonsterDrop> CreateDrop(MonsterDrop drop)
         {
@@ -81,12 +73,43 @@ _context.Monsters.Update(monster);
                 .ToListAsync();
         }
 
-        public IQueryable<Monster> GetMonstersQueryable()
+        public async Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
-            return _context.Monsters
+            var query = _context.Monsters
                 .Include(m => m.MonsterDrops)
                     .ThenInclude(d => d.Item)
                 .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.Name.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(x => x.Type == type);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
+        }
+
+        public async Task<(int TotalCount, List<MonsterDrop> Items)> GetMonsterDropsPaged(int page, int pageSize)
+        {
+            var query = _context.MonsterDrops
+                .Include(d => d.Item)
+                .Where(d => d.IsActive)
+                .AsNoTracking();
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

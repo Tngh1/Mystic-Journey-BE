@@ -2,8 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -83,11 +83,11 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("/odata/Accounts")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isActive = null, [FromQuery] string? roleName = null)
         {
-            return Ok(_accountAdminService.GetAccountsQueryable());
+            var result = await _accountAdminService.GetAccountsPaged(page, pageSize, search, isActive, roleName);
+            return Ok(result);
         }
     }
 }

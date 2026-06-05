@@ -12,7 +12,6 @@ namespace DAL.Repositories.Interfaces
         Task<List<ShopItem>> GetActiveShopItems();
         Task<ShopItem> CreateShopItem(ShopItem shopItem);
         Task<ShopItem> UpdateShopItem(ShopItem shopItem);
-        Task DeleteShopItem(int id);
-        IQueryable<ShopItem> GetShopItemsQueryable();
+        Task<(int TotalCount, List<ShopItem> Items)> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive);
     }
 }

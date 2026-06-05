@@ -2,7 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -99,11 +99,11 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [HttpGet("/odata/GameSettings")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
         {
-            return Ok(_gameSettingService.GetSettingsQueryable());
+            var result = await _gameSettingService.GetSettingsPaged(page, pageSize, search);
+            return Ok(result);
         }
     }
 }

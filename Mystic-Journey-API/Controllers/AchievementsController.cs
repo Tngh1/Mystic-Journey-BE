@@ -2,7 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -84,11 +84,11 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [HttpGet("/odata/Achievements")]
-        [EnableQuery]
-        public IActionResult GetOData()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
         {
-            return Ok(_achievementService.GetAchievementsQueryable());
+            var result = await _achievementService.GetAchievementsPaged(page, pageSize, search, type, isActive);
+            return Ok(result);
         }
     }
 }

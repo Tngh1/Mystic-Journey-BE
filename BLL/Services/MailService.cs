@@ -154,28 +154,30 @@ namespace BLL.Services
             };
         }
 
-        public IQueryable<MailResponseDto> GetMailsQueryable()
+        public async Task<PagedResultDto<MailResponseDto>> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed)
         {
-            return _repository.GetMailsQueryable()
-                .Select(m => new MailResponseDto
-                {
-                    Id = m.MailId,
-                    PlayerProfileId = m.PlayerProfileId,
-                    PlayerName = m.PlayerProfile == null ? null : m.PlayerProfile.DisplayName,
-                    Title = m.Title,
-                    Content = m.Content,
-                    Type = m.Type,
-                    AttachedGold = m.AttachedGold,
-                    AttachedGems = m.AttachedGems,
-                    AttachedItemId = m.AttachedItemId,
-                    AttachedItemName = m.AttachedItem == null ? null : m.AttachedItem.Name,
-                    AttachedItemQuantity = m.AttachedItemQuantity,
-                    IsRead = m.IsRead,
-                    IsClaimed = m.IsClaimed,
-                    SentAt = m.SentAt,
-                    ExpiredAt = m.ExpiredAt
-                })
-                .AsQueryable();
+            var (totalCount, items) = await _repository.GetMailsPaged(page, pageSize, search, isRead, isClaimed);
+
+            var dtos = items.Select(m => new MailResponseDto
+            {
+                Id = m.MailId,
+                PlayerProfileId = m.PlayerProfileId,
+                PlayerName = m.PlayerProfile?.DisplayName,
+                Title = m.Title,
+                Content = m.Content,
+                Type = m.Type,
+                AttachedGold = m.AttachedGold,
+                AttachedGems = m.AttachedGems,
+                AttachedItemId = m.AttachedItemId,
+                AttachedItemName = m.AttachedItem?.Name,
+                AttachedItemQuantity = m.AttachedItemQuantity,
+                IsRead = m.IsRead,
+                IsClaimed = m.IsClaimed,
+                SentAt = m.SentAt,
+                ExpiredAt = m.ExpiredAt
+            }).ToList();
+
+            return new PagedResultDto<MailResponseDto>(totalCount, dtos);
         }
     }
 }

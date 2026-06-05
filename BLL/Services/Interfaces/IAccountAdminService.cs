@@ -9,6 +9,6 @@ namespace BLL.Services.Interfaces
         Task<AccountAdminResponseDto?> GetAccountById(int id);
         Task<AccountAdminResponseDto> CreateAccount(CreateAccountAdminRequestDto request);
         Task<AccountAdminResponseDto> UpdateAccount(int id, UpdateAccountAdminRequestDto request);
-        IQueryable<AccountAdminResponseDto> GetAccountsQueryable();
+        Task<PagedResultDto<AccountAdminResponseDto>> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName);
     }
 }

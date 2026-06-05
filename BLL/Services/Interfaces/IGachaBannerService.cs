@@ -10,7 +10,7 @@ namespace BLL.Services.Interfaces
         Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request);
         Task<GachaBannerResponseDto> UpdateBanner(int id, UpdateGachaBannerRequestDto request);
         Task<GachaBannerItemResponseDto> AddBannerItem(int bannerId, CreateGachaBannerItemRequestDto request);
-        IQueryable<GachaBannerResponseDto> GetBannersQueryable();
-        IQueryable<GachaBannerItemResponseDto> GetBannerItemsQueryable();
+        Task<PagedResultDto<GachaBannerResponseDto>> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<PagedResultDto<GachaBannerItemResponseDto>> GetBannerItemsPaged(int page, int pageSize);
     }
 }

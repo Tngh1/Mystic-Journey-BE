@@ -9,6 +9,6 @@ namespace BLL.Services.Interfaces
         Task<DungeonConfigResponseDto?> GetDungeonById(int id);
         Task<DungeonConfigResponseDto> CreateDungeon(CreateDungeonConfigRequestDto request);
         Task<DungeonConfigResponseDto> UpdateDungeon(int id, UpdateDungeonConfigRequestDto request);
-        IQueryable<DungeonConfigResponseDto> GetDungeonsQueryable();
+        Task<PagedResultDto<DungeonConfigResponseDto>> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
     }
 }

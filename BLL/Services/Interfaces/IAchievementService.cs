@@ -9,6 +9,6 @@ namespace BLL.Services.Interfaces
         Task<AchievementResponseDto?> GetAchievementById(int id);
         Task<AchievementResponseDto> CreateAchievement(CreateAchievementRequestDto request);
         Task<AchievementResponseDto> UpdateAchievement(int id, UpdateAchievementRequestDto request);
-        IQueryable<AchievementResponseDto> GetAchievementsQueryable();
+        Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
     }
 }
