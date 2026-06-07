@@ -20,6 +20,43 @@ namespace Mystic_Journey_API.Controllers
             _accountService = accountService;
         }
 
+        private int GetCurrentAccountId()
+        {
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(claim, out var accountId))
+                throw new UnauthorizedAccessException("Invalid authentication token.");
+            return accountId;
+        }
+
+        private CookieOptions BuildCookieOptions(DateTime expiry) => new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = Request.IsHttps,
+            SameSite = SameSiteMode.Strict,
+            Path = "/",
+            Expires = expiry
+        };
+
+        private void SetTokenCookies(string accessToken, DateTime accessExpiry, string refreshToken, DateTime refreshExpiry)
+        {
+            Response.Cookies.Append("access_token", accessToken, BuildCookieOptions(accessExpiry));
+            Response.Cookies.Append("refresh_token", refreshToken, BuildCookieOptions(refreshExpiry));
+        }
+
+        private void ClearTokenCookies()
+        {
+            Response.Cookies.Delete("access_token", new CookieOptions { Path = "/" });
+            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/" });
+        }
+
+        private MeResponseDto MeResponse(AccountResponseDto dto) => new MeResponseDto
+        {
+            AccountId = dto.AccountId,
+            UserName = dto.UserName,
+            Email = dto.EmailAddress,
+            Role = dto.Role
+        };
+
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
@@ -27,7 +64,8 @@ namespace Mystic_Journey_API.Controllers
             try
             {
                 var result = await _accountService.LoginAccount(request);
-                return Ok(result);
+                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value.ToUniversalTime(), result.RefreshToken!, result.RefreshTokenExpiresAt!.Value.ToUniversalTime());
+                return Ok(MeResponse(result));
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -60,12 +98,26 @@ namespace Mystic_Journey_API.Controllers
             try
             {
                 var result = await _accountService.RegisterAccount(request);
-                return Ok(result);
+                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value.ToUniversalTime(), result.RefreshToken!, result.RefreshTokenExpiresAt!.Value.ToUniversalTime());
+                return Ok(MeResponse(result));
             }
-            catch (System.ArgumentException ex)
+            catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (BadRequestException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            var accountId = GetCurrentAccountId();
+            var result = await _accountService.GetMe(accountId);
+            return Ok(result);
         }
 
         [Authorize]
@@ -74,9 +126,9 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var accountId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var result = await _accountService.ChangePassword(accountId, request);
-                return Ok(result);
+                var accountId = GetCurrentAccountId();
+                await _accountService.ChangePassword(accountId, request);
+                return Ok(new { message = "Password changed successfully." });
             }
             catch (KeyNotFoundException ex)
             {
@@ -86,6 +138,16 @@ namespace Mystic_Journey_API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var accountId = GetCurrentAccountId();
+            await _accountService.RevokeRefreshToken(accountId);
+            ClearTokenCookies();
+            return Ok(new { message = "Logged out successfully." });
         }
 
         [AllowAnonymous]
@@ -98,6 +160,10 @@ namespace Mystic_Journey_API.Controllers
                 return Ok(new { message = $"Verification code sent to {request.Email}." });
             }
             catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (BadRequestException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
@@ -120,19 +186,30 @@ namespace Mystic_Journey_API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (BadRequestException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [AllowAnonymous]
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
+        public async Task<IActionResult> RefreshToken()
         {
+            var refreshToken = Request.Cookies["refresh_token"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized(new { message = "No refresh token found." });
+
             try
             {
-                var result = await _accountService.RefreshToken(request.RefreshToken);
-                return Ok(result);
+                var result = await _accountService.RefreshToken(refreshToken);
+                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value.ToUniversalTime(), result.RefreshToken!, result.RefreshTokenExpiresAt!.Value.ToUniversalTime());
+                return Ok(MeResponse(result));
             }
             catch (UnauthorizedAccessException ex)
             {
+                await _accountService.RevokeRefreshTokenByToken(refreshToken);
+                ClearTokenCookies();
                 return Unauthorized(new { message = ex.Message });
             }
         }

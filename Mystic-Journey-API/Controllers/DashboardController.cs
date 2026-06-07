@@ -17,7 +17,7 @@ namespace Mystic_Journey_API.Controllers
             _dashboardService = dashboardService;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {

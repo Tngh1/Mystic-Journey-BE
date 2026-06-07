@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260605060704_InitialCreate")]
+    [Migration("20260607054400_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -973,10 +973,16 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("ExpiredAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsClaimed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsRead")
@@ -1595,6 +1601,23 @@ namespace DAL.Migrations
                     b.HasKey("RoleId");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            Name = "Player"
+                        },
+                        new
+                        {
+                            RoleId = 2,
+                            Name = "Admin"
+                        },
+                        new
+                        {
+                            RoleId = 3,
+                            Name = "Super Admin"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.ShopItem", b =>

@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace DAL.Migrations
 {
     /// <inheritdoc />
@@ -769,7 +771,9 @@ namespace DAL.Migrations
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     IsClaimed = table.Column<bool>(type: "boolean", nullable: false),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1141,6 +1145,16 @@ namespace DAL.Migrations
                         principalTable: "PlayerProfiles",
                         principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "RoleId", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Player" },
+                    { 2, "Admin" },
+                    { 3, "Super Admin" }
                 });
 
             migrationBuilder.CreateIndex(
