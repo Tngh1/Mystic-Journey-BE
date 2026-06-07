@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class GuildInvitation
     {
-        public int Id { get; set; }
+        public int GuildInvitationId { get; set; }
 
         public int GuildId { get; set; }
         public Guild? Guild { get; set; }

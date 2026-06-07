@@ -3,6 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -21,499 +22,316 @@ namespace BLL.Services
         private readonly IAccountRepository _repository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IMemoryCache _cache;
+
+        private const string OTP_CACHE_PREFIX = "otp:";
+        private const string VERIFIED_CACHE_PREFIX = "verified:";
+
+        private int OtpExpiryMinutes => int.Parse(_configuration["TokenSettings:OtpExpiryMinutes"] ?? "5");
+        private int VerifiedExpiryMinutes => int.Parse(_configuration["TokenSettings:VerifiedExpiryMinutes"] ?? "30");
+        private int AccessTokenExpiryMinutes => int.Parse(_configuration["TokenSettings:AccessTokenExpiryMinutes"] ?? _configuration["Jwt:AccessTokenExpiryMinutes"] ?? "30");
+        private int RefreshTokenExpiryDays => int.Parse(_configuration["TokenSettings:RefreshTokenExpiryDays"] ?? _configuration["Jwt:RefreshTokenExpireDays"] ?? "7");
 
         public AccountService(
             IAccountRepository repository,
             IMapper mapper,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IMemoryCache cache)
         {
             _repository = repository;
             _mapper = mapper;
             _configuration = configuration;
+            _cache = cache;
         }
 
-        public async Task<ApiResponseDto> LoginAsync(LoginRequestDto request)
+        public async Task<AccountResponseDto> LoginAccount(LoginRequestDto request)
         {
-            if (request == null)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Something went wrong. Please try logging in again."
-                };
-            }
+            var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
+                ?? throw new UnauthorizedAccessException("Invalid email/username or password.");
 
-            var emailOrUsername = request.EmailOrUsername?.Trim();
-            if (string.IsNullOrWhiteSpace(emailOrUsername) || string.IsNullOrWhiteSpace(request.Password))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Please enter both your email/username and password."
-                };
-            }
-
-            var account = await _repository.GetByUsernameOrEmailAsync(emailOrUsername);
-            if (account == null || !account.IsActive)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "We couldn’t find your account or it has been deactivated."
-                };
-            }
+            if (!account.IsActive)
+                throw new UnauthorizedAccessException("Account has been deactivated.");
 
             if (!BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "The password you entered is incorrect."
-                };
-            }
+                throw new UnauthorizedAccessException("Invalid email/username or password.");
 
-            var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
-            var refreshToken = GenerateToken();
-            var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
             account.RefreshToken = refreshToken;
-            account.RefreshTokenExpiryTime = refreshTokenExpiry;
+            account.RefreshTokenExpiresAt = refreshExpiry;
             account.LastLogin = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAccount(account);
 
-            await _repository.UpdateAccountAsync(account);
-
-            var response = _mapper.Map<ApiResponseDto>(account);
-            response.Success = true;
-            response.Message = "Login successful! Welcome back.";
-            response.Account ??= _mapper.Map<AccountResponseDto>(account);
-            response.Account.AccessToken = accessToken;
-            response.Account.AccessTokenExpiresAt = accessTokenExpiry;
-            response.Account.RefreshToken = refreshToken;
-            response.Account.RefreshTokenExpiresAt = refreshTokenExpiry;
-
+            var response = _mapper.Map<AccountResponseDto>(account);
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessExpiry;
+            response.RefreshToken = refreshToken;
+            response.RefreshTokenExpiresAt = refreshExpiry;
             return response;
         }
 
-        public async Task<ApiResponseDto> RegisterAsync(RegisterRequestDto request)
+        public async Task<LoginGameResponseDto> LoginGame(LoginGameRequestDto request)
         {
-            if (request == null)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Something went wrong. Please check your information and try again."
-                };
-            }
+            var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
+                ?? throw new UnauthorizedAccessException("Invalid email/username or password.");
 
-            if (string.IsNullOrWhiteSpace(request.UserName) ||
-                string.IsNullOrWhiteSpace(request.FullName) ||
-                string.IsNullOrWhiteSpace(request.EmailAddress) ||
-                string.IsNullOrWhiteSpace(request.Password))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Please fill in all required information."
-                };
-            }
+            if (!account.IsActive)
+                throw new UnauthorizedAccessException("Account has been deactivated.");
 
-            if (!string.Equals(request.Password, request.ConfirmPassword, StringComparison.Ordinal))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Passwords do not match. Please check again."
-                };
-            }
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword))
+                throw new UnauthorizedAccessException("Invalid email/username or password.");
 
+            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
+
+            account.RefreshToken = refreshToken;
+            account.RefreshTokenExpiresAt = refreshExpiry;
+            account.LastLogin = DateTime.UtcNow;
+            account.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAccount(account);
+
+            return new LoginGameResponseDto
+            {
+                AccountId = account.AccountId,
+                UserName = account.UserName,
+                EmailAddress = account.Email,
+                RoleId = account.RoleId,
+                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
+                PlayerDisplayName = account.PlayerProfile?.DisplayName,
+                AccessToken = accessToken,
+                AccessTokenExpiresAt = accessExpiry,
+                RefreshToken = refreshToken,
+                RefreshTokenExpiresAt = refreshExpiry
+            };
+        }
+
+        public async Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request)
+        {
             var normalizedEmail = request.EmailAddress.Trim().ToLowerInvariant();
             var normalizedUsername = request.UserName.Trim();
 
-            if (await _repository.IsEmailExistAsync(normalizedEmail))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "This email is already registered. Please use another email or log in."
-                };
-            }
+            var verifiedKey = $"{VERIFIED_CACHE_PREFIX}{normalizedEmail}";
+            if (!_cache.TryGetValue(verifiedKey, out bool isVerified) || !isVerified)
+                throw new BadRequestException("Email not verified. Please verify your email first.");
 
-            if (await _repository.IsUsernameExistAsync(normalizedUsername))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "This username is already taken. Please choose another one."
-                };
-            }
+            if (await _repository.IsEmailExist(normalizedEmail))
+                throw new BadRequestException("Email already registered.");
 
-            var refreshToken = GenerateToken();
-            var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            if (await _repository.IsUsernameExist(normalizedUsername))
+                throw new BadRequestException("Username already taken.");
 
             var account = _mapper.Map<Account>(request);
-            account.Id = Guid.NewGuid();
             account.UserName = normalizedUsername;
-            account.EmailAddress = normalizedEmail;
+            account.Email = normalizedEmail;
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
             account.RoleId = 1;
             account.CreatedAt = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
             account.IsActive = true;
-            account.EmailConfirmed = false;
+            account.PlayerProfile = new PlayerProfile
+            {
+                DisplayName = normalizedUsername,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _repository.CreateAccount(account);
+            _cache.Remove(verifiedKey);
+
+            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
+
             account.RefreshToken = refreshToken;
-            account.RefreshTokenExpiryTime = refreshTokenExpiry;
-            account.EmailVerificationToken = null;
-            account.EmailVerificationTokenExpiry = null;
+            account.RefreshTokenExpiresAt = refreshExpiry;
+            await _repository.UpdateAccount(account);
 
-            await _repository.CreateAccountAsync(account);
-
-
-
-            var verificationCodeSent = await SendVerificationCodeAsync(normalizedEmail);
-
-            var (accessToken, accessTokenExpiry) = GenerateAccessToken(account);
-
-            var response = _mapper.Map<ApiResponseDto>(account);
-            response.Success = true;
-            response.Message = verificationCodeSent
-                ? "Your account has been created. A verification code has been sent to your email."
-                : "Your account has been created, but we couldn’t send the verification code right now.";
-            response.Account ??= _mapper.Map<AccountResponseDto>(account);
-            response.Account.AccessToken = accessToken;
-            response.Account.AccessTokenExpiresAt = accessTokenExpiry;
-            response.Account.RefreshToken = refreshToken;
-            response.Account.RefreshTokenExpiresAt = refreshTokenExpiry;
-
+            var response = _mapper.Map<AccountResponseDto>(account);
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessExpiry;
+            response.RefreshToken = refreshToken;
+            response.RefreshTokenExpiresAt = refreshExpiry;
             return response;
         }
 
-        public async Task<ApiResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        public async Task<AccountResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request)
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.Email))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Please enter your email address."
-                };
-            }
-
-            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-            var account = await _repository.GetByEmailAsync(normalizedEmail);
-
-            if (account == null || !account.IsActive)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "We couldn’t find an account with this email."
-                };
-            }
-
-            if (!account.EmailConfirmed)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Please verify your email before using forgot password."
-                };
-            }
-
-            var code = GenerateVerificationCode();
-
-            account.PasswordResetToken = code;
-            account.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
-            account.UpdatedAt = DateTime.UtcNow;
-
-            await _repository.UpdateAccountAsync(account);
-
-            var emailSent = await SendEmailAsync(
-                normalizedEmail,
-                "Reset Password Code",
-                $"Your verification code is: {code}. This code will expire in 15 minutes.");
-
-            if (!emailSent)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "We couldn’t send the verification email. Please try again later."
-                };
-            }
-
-            return new ApiResponseDto
-            {
-                Success = true,
-                Message = "A verification code has been sent to your email."
-            };
-        }
-
-        public async Task<ApiResponseDto> ResetPasswordAsync(ResetPasswordRequestDto request)
-        {
-            if (request == null)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Something went wrong. Please try again."
-                };
-            }
-
-            if (!string.Equals(request.NewPassword, request.ConfirmPassword, StringComparison.Ordinal))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Passwords do not match. Please re-enter them."
-                };
-            }
-
-            var account = await _repository.GetByEmailAndPasswordResetCodeAsync(
-                request.Email.Trim().ToLower(),
-                request.VerificationCode.Trim());
-
-            if (account == null)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "The verification code is invalid."
-                };
-            }
-
-            if (account.PasswordResetTokenExpiry < DateTime.UtcNow)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "This verification code has expired. Please request a new one."
-                };
-            }
-
-            account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            account.PasswordResetToken = null;
-            account.PasswordResetTokenExpiry = null;
-
-            await _repository.UpdateAccountAsync(account);
-
-            return new ApiResponseDto
-            {
-                Success = true,
-                Message = "Your password has been reset successfully. You can now log in."
-            };
-        }
-
-        public async Task<ApiResponseDto> ChangePasswordAsync(Guid accountId, ChangePasswordRequestDto request)
-        {
-            var account = await _repository.GetByIdAsync(accountId);
-
-            if (account == null)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "We couldn’t find your account."
-                };
-            }
+            var account = await _repository.GetAccountById(accountId)
+                ?? throw new KeyNotFoundException("Account not found.");
 
             if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, account.HashPassword))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "The current password you entered is incorrect."
-                };
-            }
+                throw new UnauthorizedAccessException("Current password is incorrect.");
 
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            account.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAccount(account);
 
-            await _repository.UpdateAccountAsync(account);
-
-            return new ApiResponseDto
-            {
-                Success = true,
-                Message = "Your password has been changed successfully."
-            };
+            return _mapper.Map<AccountResponseDto>(account);
         }
 
-        public async Task<bool> SendVerificationCodeAsync(string email)
+        public async Task<AccountResponseDto> RefreshToken(string refreshToken)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return false;
-            }
+            var account = await _repository.GetAccountByRefreshToken(refreshToken)
+                ?? throw new UnauthorizedAccessException("Invalid refresh token.");
 
-            var normalizedEmail = email.Trim().ToLowerInvariant();
-            var account = await _repository.GetByEmailAsync(normalizedEmail);
+            if (!account.IsActive)
+                throw new UnauthorizedAccessException("Account has been deactivated.");
 
-            if (account == null || !account.IsActive)
-            {
-                return false;
-            }
+            if (account.RefreshTokenExpiresAt == null || account.RefreshTokenExpiresAt < DateTime.UtcNow)
+                throw new UnauthorizedAccessException("Refresh token expired. Please login again.");
 
-            var code = GenerateVerificationCode();
-            account.EmailVerificationToken = code;
-            account.EmailVerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            var (newRefreshToken, newRefreshExpiry) = GenerateRefreshToken();
+
+            account.RefreshToken = newRefreshToken;
+            account.RefreshTokenExpiresAt = newRefreshExpiry;
             account.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAccount(account);
 
-            await _repository.UpdateAccountAsync(account);
-
-            return await SendEmailAsync(
-                normalizedEmail,
-                "Mystic Journey - Verify Your Email",
-                $"Your verification code is: {code}. This code will expire in 15 minutes.");
-        }
-
-        public async Task<ApiResponseDto> UpdateProfileAsync(Guid accountId, UpdateProfileRequestDto request)
-        {
-            var account = await _repository.GetByIdAsync(accountId);
-
-            if (account == null || !account.IsActive)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "We couldn’t find your account."
-                };
-            }
-
-            account.FullName = request.FullName;
-            account.Gender = request.Gender;
-            account.PhoneNumber = request.PhoneNumber;
-            account.Birthday = request.Birthday;
-            account.UpdatedAt = DateTime.UtcNow;
-
-            await _repository.UpdateAccountAsync(account);
-
-            var response = new ApiResponseDto
-            {
-                Success = true,
-                Message = "Your profile has been updated successfully.",
-                Account = _mapper.Map<AccountResponseDto>(account)
-            };
-
+            var response = _mapper.Map<AccountResponseDto>(account);
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessExpiry;
+            response.RefreshToken = newRefreshToken;
+            response.RefreshTokenExpiresAt = newRefreshExpiry;
             return response;
         }
 
-        public async Task<ApiResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request)
+        public async Task SendVerificationCode(string email)
         {
-            if (request == null ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.VerificationCode))
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "Please provide your email and verification code."
-                };
-            }
+            var normalizedEmail = email.Trim().ToLowerInvariant();
 
-            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-            var verificationCode = request.VerificationCode.Trim();
+            if (await _repository.IsEmailExist(normalizedEmail))
+                throw new BadRequestException("Email already registered.");
 
-            var account = await _repository.GetByEmailAndVerificationCodeAsync(normalizedEmail, verificationCode);
+            var otp = GenerateVerificationCode();
+            var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
 
-            if (account == null)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "The verification code is invalid."
-                };
-            }
+            _cache.Set(cacheKey, otp, TimeSpan.FromMinutes(OtpExpiryMinutes));
 
-            if (account.EmailConfirmed)
-            {
-                return new ApiResponseDto
-                {
-                    Success = true,
-                    Message = "Your email has already been verified."
-                };
-            }
+            var sent = await SendEmailAsync(
+                normalizedEmail,
+                "Mystic Journey - Email Verification",
+                $"Your verification code is: {otp}\n\nThis code will expire in {OtpExpiryMinutes} minutes.\n\nIf you did not request this code, please ignore this email.");
 
-            if (!account.EmailVerificationTokenExpiry.HasValue ||
-                account.EmailVerificationTokenExpiry.Value < DateTime.UtcNow)
-            {
-                return new ApiResponseDto
-                {
-                    Success = false,
-                    Message = "This verification code has expired. Please request a new one."
-                };
-            }
-
-            account.EmailConfirmed = true;
-            account.EmailVerificationToken = null;
-            account.EmailVerificationTokenExpiry = null;
-            account.UpdatedAt = DateTime.UtcNow;
-
-            await _repository.UpdateAccountAsync(account);
-
-            return new ApiResponseDto
-            {
-                Success = true,
-                Message = "Your email has been verified successfully."
-            };
+            if (!sent)
+                throw new InvalidOperationException("Failed to send verification email.");
         }
 
-        private static string GenerateToken()
+        public async Task VerifyEmail(VerifyEmailRequestDto request)
         {
-            return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
+
+            if (!_cache.TryGetValue(cacheKey, out string? cachedOtp))
+                throw new BadRequestException("No verification code found. Please request a new one.");
+
+            if (cachedOtp != request.VerificationCode)
+                throw new BadRequestException("Invalid verification code.");
+
+            _cache.Remove(cacheKey);
+
+            var verifiedKey = $"{VERIFIED_CACHE_PREFIX}{normalizedEmail}";
+            _cache.Set(verifiedKey, true, TimeSpan.FromMinutes(VerifiedExpiryMinutes));
         }
 
         private static string GenerateVerificationCode()
+            => RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+
+        private static string GenerateRandomToken(int byteLength = 64)
         {
-            return RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+            var bytes = new byte[byteLength];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
+            return Convert.ToBase64String(bytes);
         }
 
-        private (string, DateTime) GenerateAccessToken(Account account)
+        private (string token, DateTime expires) GenerateAccessToken(Account account)
         {
             var jwt = _configuration.GetSection("Jwt");
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var expires = DateTime.UtcNow.AddDays(int.Parse(jwt["ExpireDays"]));
+            var expires = DateTime.UtcNow.AddMinutes(AccessTokenExpiryMinutes);
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
                 new Claim(ClaimTypes.Name, account.UserName),
-                new Claim(ClaimTypes.Email, account.EmailAddress),
-                new Claim(ClaimTypes.Role, account.Role != null ? account.Role.Name : "Player")
+                new Claim(ClaimTypes.Email, account.Email),
+                new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player")
             };
 
             var token = new JwtSecurityToken(
-                jwt["Issuer"],
-                jwt["Audience"],
-                claims,
-                expires: expires,
-                signingCredentials: creds);
+                jwt["Issuer"], jwt["Audience"], claims,
+                expires: expires, signingCredentials: creds);
 
             return (new JwtSecurityTokenHandler().WriteToken(token), expires);
         }
+
+        private (string token, DateTime expires) GenerateRefreshToken()
+            => (GenerateRandomToken(64), DateTime.UtcNow.AddDays(RefreshTokenExpiryDays));
 
         private async Task<bool> SendEmailAsync(string to, string subject, string body)
         {
             try
             {
                 var smtp = _configuration.GetSection("Smtp");
-
                 using var client = new SmtpClient(smtp["Host"], int.Parse(smtp["Port"]))
                 {
                     Credentials = new NetworkCredential(smtp["Username"], smtp["Password"]),
                     EnableSsl = bool.Parse(smtp["UseSSL"])
                 };
-
                 var mail = new MailMessage(smtp["FromEmail"], to, subject, body);
-
                 await client.SendMailAsync(mail);
                 return true;
             }
-            catch
-            {
-                return false;
-            }
+            catch { return false; }
         }
+
+        public async Task ForgotPassword(string email)
+        {
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+
+            if (!await _repository.IsEmailExist(normalizedEmail))
+                throw new BadRequestException("Email not registered.");
+
+            var otp = GenerateVerificationCode();
+            var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
+
+            _cache.Set(cacheKey, otp, TimeSpan.FromMinutes(OtpExpiryMinutes));
+
+            var sent = await SendEmailAsync(
+                normalizedEmail,
+                "Mystic Journey - Password Reset",
+                $"Your password reset code is: {otp}\n\nThis code will expire in {OtpExpiryMinutes} minutes.\n\nIf you did not request this, please ignore this email.");
+
+            if (!sent)
+                throw new InvalidOperationException("Failed to send reset email.");
+        }
+
+        public async Task ResetPassword(string email, string verificationCode, string newPassword, string confirmPassword)
+        {
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+
+            if (!string.Equals(newPassword, confirmPassword, StringComparison.Ordinal))
+                throw new BadRequestException("Passwords do not match.");
+
+            var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
+            if (!_cache.TryGetValue(cacheKey, out string? cachedOtp) || cachedOtp != verificationCode)
+                throw new BadRequestException("Invalid or expired verification code.");
+
+            var account = await _repository.GetAccountByEmail(normalizedEmail)
+                ?? throw new KeyNotFoundException("Account not found.");
+
+            account.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            account.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAccount(account);
+
+            _cache.Remove(cacheKey);
+        }
+    }
+
+    public class BadRequestException : Exception
+    {
+        public BadRequestException(string message) : base(message) { }
     }
 }

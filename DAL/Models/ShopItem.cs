@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class ShopItem
     {
-        public int Id { get; set; }
+        public int ShopItemId { get; set; }
 
         public int ItemId { get; set; }
         public Item? Item { get; set; }

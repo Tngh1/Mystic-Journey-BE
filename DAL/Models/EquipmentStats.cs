@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class EquipmentStats
     {
-        public int Id { get; set; }
+        public int EquipmentStatsId { get; set; }
 
         public int ItemId { get; set; }
         public Item? Item { get; set; }

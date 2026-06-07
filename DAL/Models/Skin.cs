@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Skin
     {
-        public int Id { get; set; }
+        public int SkinId { get; set; }
 
         [Required, MaxLength(150)]
         public string Name { get; set; } = string.Empty;

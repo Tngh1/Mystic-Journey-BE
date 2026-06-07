@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class GachaPullHistory
     {
-        public int Id { get; set; }
+        public int GachaPullHistoryId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }

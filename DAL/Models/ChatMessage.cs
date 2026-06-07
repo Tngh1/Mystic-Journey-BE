@@ -4,22 +4,13 @@ namespace DAL.Models
 {
     public class ChatMessage
     {
-        public int Id { get; set; }
+        public int ChatMessageId { get; set; }
 
         public int SenderId { get; set; }
         public PlayerProfile? Sender { get; set; }
 
-        // ChatTypes: Private, Party, Guild, Global, System
-        public string ChatType { get; set; } = "Global";
-
-        public int? RecipientId { get; set; }
+        public int RecipientId { get; set; }
         public PlayerProfile? Recipient { get; set; }
-
-        public int? PartyId { get; set; }
-        public Party? Party { get; set; }
-
-        public int? GuildId { get; set; }
-        public Guild? Guild { get; set; }
 
         [Required, MaxLength(500)]
         public string Content { get; set; } = string.Empty;

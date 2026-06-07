@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Monster
     {
-        public int Id { get; set; }
+        public int MonsterId { get; set; }
 
         [Required, MaxLength(150)]
         public string Name { get; set; } = string.Empty;
@@ -36,5 +36,7 @@ namespace DAL.Models
         public bool IsActive { get; set; } = true;
 
         public ICollection<MonsterDrop> MonsterDrops { get; set; } = new List<MonsterDrop>();
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

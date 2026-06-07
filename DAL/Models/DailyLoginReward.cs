@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class DailyLoginReward
     {
-        public int Id { get; set; }
+        public int DailyLoginRewardId { get; set; }
 
         public int DayNumber { get; set; } = 1;
 

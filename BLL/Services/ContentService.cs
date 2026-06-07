@@ -1,0 +1,318 @@
+using AutoMapper;
+using BLL.DTOs;
+using BLL.Services.Interfaces;
+using DAL.Models;
+using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace BLL.Services
+{
+    public class ContentService : IContentService
+    {
+        private readonly IContentRepository _repository;
+        private readonly IMapper _mapper;
+
+        public ContentService(IContentRepository repository, IMapper mapper)
+        {
+            _repository = repository;
+            _mapper = mapper;
+        }
+
+        public async Task<ContentDetailResponseDto?> GetContentById(int id)
+        {
+            var content = await _repository.GetContentByIdWithBlocks(id);
+            if (content == null)
+                return null;
+
+            return MapToDetailResponseDto(content);
+        }
+
+        public async Task<ContentDetailResponseDto?> GetContentBySlug(string slug)
+        {
+            var content = await _repository.GetContentBySlug(slug);
+            if (content == null)
+                return null;
+
+            return MapToDetailResponseDto(content);
+        }
+
+        public async Task<ContentResponseDto> CreateContent(CreateContentRequestDto request)
+        {
+            var content = new Content
+            {
+                Title = request.Title,
+                Slug = GenerateSlug(request.Title),
+                Summary = request.Summary,
+                ThumbnailUrl = request.ThumbnailUrl,
+                CategoryContentId = request.CategoryId,
+                IsPublished = request.IsPublished,
+                IsActive = request.IsActive,
+                CreatedAt = DateTime.UtcNow,
+                PublishedAt = request.IsPublished ? DateTime.UtcNow : null
+            };
+
+            var created = await _repository.CreateContent(content);
+            return MapToResponseDto(created);
+        }
+
+        public async Task<ContentResponseDto> UpdateContent(int id, UpdateContentRequestDto request)
+        {
+            var content = await _repository.GetContentById(id)
+                ?? throw new KeyNotFoundException($"Content with id {id} not found.");
+
+            content.Title = request.Title;
+            content.Slug = GenerateSlug(request.Title);
+            content.Summary = request.Summary;
+            content.ThumbnailUrl = request.ThumbnailUrl;
+            content.CategoryContentId = request.CategoryId;
+            content.IsPublished = request.IsPublished;
+            content.IsActive = request.IsActive;
+            content.UpdatedAt = DateTime.UtcNow;
+
+            if (request.IsPublished && content.PublishedAt == null)
+            {
+                content.PublishedAt = DateTime.UtcNow;
+            }
+
+            var updated = await _repository.UpdateContent(content);
+            return MapToResponseDto(updated);
+        }
+
+        public async Task<ContentResponseDto> PublishContent(int id)
+        {
+            var content = await _repository.GetContentById(id)
+                ?? throw new KeyNotFoundException($"Content with id {id} not found.");
+
+            content.IsPublished = true;
+            content.PublishedAt = DateTime.UtcNow;
+            content.UpdatedAt = DateTime.UtcNow;
+
+            var updated = await _repository.UpdateContent(content);
+            return MapToResponseDto(updated);
+        }
+
+        public async Task<List<CategoryContentResponseDto>> GetAllCategories()
+        {
+            var categories = await _repository.GetAllCategories();
+            return categories.Select(c => new CategoryContentResponseDto
+            {
+                Id = c.CategoryContentId,
+                Name = c.Name,
+                Slug = c.Slug,
+                Description = c.Description,
+                IconUrl = c.IconUrl,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt
+            }).ToList();
+        }
+
+        public async Task<CategoryContentResponseDto> CreateCategory(CreateCategoryContentRequestDto request)
+        {
+            var category = new CategoryContent
+            {
+                Name = request.Name,
+                Slug = string.IsNullOrWhiteSpace(request.Slug) ? GenerateSlug(request.Name) : request.Slug,
+                Description = request.Description,
+                IconUrl = request.IconUrl,
+                IsActive = request.IsActive,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var created = await _repository.CreateCategory(category);
+
+            return new CategoryContentResponseDto
+            {
+                Id = created.CategoryContentId,
+                Name = created.Name,
+                Slug = created.Slug,
+                Description = created.Description,
+                IconUrl = created.IconUrl,
+                IsActive = created.IsActive,
+                CreatedAt = created.CreatedAt
+            };
+        }
+
+        public async Task<BlockContentResponseDto> CreateBlock(CreateBlockContentRequestDto request)
+        {
+            var block = new BlockContent
+            {
+                Title = request.Title,
+                ContentId = request.ContentId,
+                ContentData = request.ContentData,
+                MediaUrl = request.MediaUrl,
+                Caption = request.Caption,
+                BlockType = request.BlockType,
+                SortOrder = request.SortOrder,
+                IsActive = request.IsActive,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var created = await _repository.CreateBlock(block);
+
+            return new BlockContentResponseDto
+            {
+                Id = created.BlockContentId,
+                Title = created.Title,
+                ContentId = created.ContentId,
+                ContentData = created.ContentData,
+                MediaUrl = created.MediaUrl,
+                Caption = created.Caption,
+                BlockType = created.BlockType,
+                SortOrder = created.SortOrder,
+                IsActive = created.IsActive,
+                CreatedAt = created.CreatedAt,
+                UpdatedAt = created.UpdatedAt
+            };
+        }
+
+        public async Task<BlockContentResponseDto> UpdateBlock(int id, UpdateBlockContentRequestDto request)
+        {
+            var block = await _repository.GetBlockById(id)
+                ?? throw new KeyNotFoundException($"Block with id {id} not found.");
+
+            block.Title = request.Title;
+            block.ContentData = request.ContentData;
+            block.MediaUrl = request.MediaUrl;
+            block.Caption = request.Caption;
+            block.BlockType = request.BlockType;
+            block.SortOrder = request.SortOrder;
+            block.IsActive = request.IsActive;
+            block.UpdatedAt = DateTime.UtcNow;
+
+            var updated = await _repository.UpdateBlock(block);
+
+            return new BlockContentResponseDto
+            {
+                Id = updated.BlockContentId,
+                Title = updated.Title,
+                ContentId = updated.ContentId,
+                ContentData = updated.ContentData,
+                MediaUrl = updated.MediaUrl,
+                Caption = updated.Caption,
+                BlockType = updated.BlockType,
+                SortOrder = updated.SortOrder,
+                IsActive = updated.IsActive,
+                CreatedAt = updated.CreatedAt,
+                UpdatedAt = updated.UpdatedAt
+            };
+        }
+
+        public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, bool? isActive)
+        {
+            var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished, isActive);
+
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<ContentResponseDto>(totalCount, dtos);
+        }
+
+        public async Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize)
+        {
+            var (totalCount, items) = await _repository.GetCategoriesPaged(page, pageSize);
+
+            var dtos = items.Select(c => new CategoryContentResponseDto
+            {
+                Id = c.CategoryContentId,
+                Name = c.Name,
+                Slug = c.Slug,
+                Description = c.Description,
+                IconUrl = c.IconUrl,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt
+            }).ToList();
+            return new PagedResultDto<CategoryContentResponseDto>(totalCount, dtos);
+        }
+
+        public async Task<PagedResultDto<BlockContentResponseDto>> GetBlocksPaged(int page, int pageSize)
+        {
+            var (totalCount, items) = await _repository.GetBlocksPaged(page, pageSize);
+
+            var dtos = items.Select(b => new BlockContentResponseDto
+            {
+                Id = b.BlockContentId,
+                Title = b.Title,
+                ContentId = b.ContentId,
+                ContentData = b.ContentData,
+                MediaUrl = b.MediaUrl,
+                Caption = b.Caption,
+                BlockType = b.BlockType,
+                SortOrder = b.SortOrder,
+                IsActive = b.IsActive,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt
+            }).ToList();
+            return new PagedResultDto<BlockContentResponseDto>(totalCount, dtos);
+        }
+
+        private static ContentResponseDto MapToResponseDto(Content content)
+        {
+            return new ContentResponseDto
+            {
+                Id = content.ContentId,
+                Title = content.Title,
+                Slug = content.Slug,
+                Summary = content.Summary,
+                ThumbnailUrl = content.ThumbnailUrl,
+                CategoryId = content.CategoryContentId,
+                CategoryName = content.CategoryContent?.Name,
+                IsPublished = content.IsPublished,
+                IsActive = content.IsActive,
+                CreatedAt = content.CreatedAt,
+                UpdatedAt = content.UpdatedAt,
+                PublishedAt = content.PublishedAt
+            };
+        }
+
+        private static ContentDetailResponseDto MapToDetailResponseDto(Content content)
+        {
+            return new ContentDetailResponseDto
+            {
+                Id = content.ContentId,
+                Title = content.Title,
+                Slug = content.Slug,
+                Summary = content.Summary,
+                ThumbnailUrl = content.ThumbnailUrl,
+                CategoryId = content.CategoryContentId,
+                CategoryName = content.CategoryContent?.Name,
+                IsPublished = content.IsPublished,
+                IsActive = content.IsActive,
+                CreatedAt = content.CreatedAt,
+                UpdatedAt = content.UpdatedAt,
+                PublishedAt = content.PublishedAt,
+                Blocks = content.BlockContents?.Select(b => new BlockContentResponseDto
+                {
+                    Id = b.BlockContentId,
+                    Title = b.Title,
+                    ContentId = b.ContentId,
+                    ContentData = b.ContentData,
+                    MediaUrl = b.MediaUrl,
+                    Caption = b.Caption,
+                    BlockType = b.BlockType,
+                    SortOrder = b.SortOrder,
+                    IsActive = b.IsActive,
+                    CreatedAt = b.CreatedAt,
+                    UpdatedAt = b.UpdatedAt
+                }).ToList() ?? new List<BlockContentResponseDto>()
+            };
+        }
+
+        private static string GenerateSlug(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            var slug = text.ToLowerInvariant().Trim();
+            slug = slug.Replace(" ", "-");
+            slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+            slug = Regex.Replace(slug, @"-+", "-");
+            slug = slug.Trim('-');
+
+            return slug;
+        }
+    }
+}

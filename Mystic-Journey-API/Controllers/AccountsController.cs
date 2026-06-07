@@ -1,9 +1,9 @@
 using BLL.DTOs;
+using BLL.Services;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -22,177 +22,169 @@ namespace Mystic_Journey_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync(LoginRequestDto request)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                var result = await _accountService.LoginAccount(request);
+                return Ok(result);
             }
-
-            var result = await _accountService.LoginAsync(request);
-
-            if (!result.Success)
+            catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(result);
+                return Unauthorized(new { message = ex.Message });
             }
+        }
 
-            return Ok(result);
+        [AllowAnonymous]
+        [HttpPost("login-game")]
+        public async Task<IActionResult> LoginGame([FromBody] LoginGameRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var result = await _accountService.LoginGame(request);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
         }
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync(RegisterRequestDto request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                var result = await _accountService.RegisterAccount(request);
+                return Ok(result);
             }
-
-            var result = await _accountService.RegisterAsync(request);
-
-            if (!result.Success)
+            catch (System.ArgumentException ex)
             {
-                return BadRequest(result);
+                return BadRequest(new { message = ex.Message });
             }
-
-            return Ok(result);
-        }
-
-        [AllowAnonymous]
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPasswordAsync(ForgotPasswordRequestDto request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
-            }
-
-            var result = await _accountService.ForgotPasswordAsync(request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-
-
-        [AllowAnonymous]
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPasswordAsync(ResetPasswordRequestDto request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
-            }
-
-            var result = await _accountService.ResetPasswordAsync(request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-
-        [AllowAnonymous]
-        [HttpPost("send-verification-code")]
-        public async Task<IActionResult> SendVerificationCodeAsync(ForgotPasswordRequestDto request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
-            }
-
-            var sent = await _accountService.SendVerificationCodeAsync(request.Email);
-
-            var response = new ApiResponseDto
-            {
-                Success = sent,
-                Message = sent
-                    ? "A verification code has been sent to your email."
-                    : "We couldn’t send the verification code. Please try again later."
-            };
-
-            return sent ? Ok(response) : BadRequest(response);
-        }
-
-        [AllowAnonymous]
-        [HttpPost("verify-email")]
-        public async Task<IActionResult> VerifyEmailAsync(VerifyEmailRequestDto request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
-            }
-
-            var result = await _accountService.VerifyEmailAsync(request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [Authorize]
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePasswordAsync(ChangePasswordRequestDto request)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                var accountId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var result = await _accountService.ChangePassword(accountId, request);
+                return Ok(result);
             }
-
-            var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            var result = await _accountService.ChangePasswordAsync(accountId, request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        [Authorize]
-        [HttpPut("update-profile")]
-        public async Task<IActionResult> UpdateProfileAsync(UpdateProfileRequestDto request)
+        [AllowAnonymous]
+        [HttpPost("send-verification-code")]
+        public async Task<IActionResult> SendVerificationCode([FromBody] SendVerificationCodeRequestDto request)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new ApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                await _accountService.SendVerificationCode(request.Email);
+                return Ok(new { message = $"Verification code sent to {request.Email}." });
             }
-
-            var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            var result = await _accountService.UpdateProfileAsync(accountId, request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        private string GetError()
+        [AllowAnonymous]
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDto request)
         {
-            return ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .FirstOrDefault() ?? "Invalid request.";
+            try
+            {
+                await _accountService.VerifyEmail(request);
+                return Ok(new { message = "Email verified successfully." });
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
+        {
+            try
+            {
+                var result = await _accountService.RefreshToken(request.RefreshToken);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+        {
+            try
+            {
+                await _accountService.ForgotPassword(request.Email);
+                return Ok(new { message = $"Reset code sent to {request.Email}." });
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (BadRequestException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            try
+            {
+                await _accountService.ResetPassword(
+                    request.Email,
+                    request.VerificationCode,
+                    request.NewPassword,
+                    request.ConfirmPassword);
+                return Ok(new { message = "Password reset successfully." });
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (BadRequestException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
     }
 }

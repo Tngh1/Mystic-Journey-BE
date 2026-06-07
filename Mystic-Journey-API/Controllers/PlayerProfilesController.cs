@@ -10,7 +10,6 @@ namespace Mystic_Journey_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class PlayerProfilesController : ControllerBase
     {
         private readonly IPlayerProfileService _playerProfileService;
@@ -21,61 +20,56 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetProfileByIdAsync(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var result = await _playerProfileService.GetProfileByIdAsync(id);
-
-            return result.Success ? Ok(result) : NotFound(result);
-        }
-
-        [HttpGet("account/{accountId}")]
-        public async Task<IActionResult> GetProfileByAccountIdAsync(Guid accountId)
-        {
-            var result = await _playerProfileService.GetProfileByAccountIdAsync(accountId);
-
-            return result.Success ? Ok(result) : NotFound(result);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateProfileAsync([FromBody] CreatePlayerProfileRequestDto request)
-        {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new PlayerProfileApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                var result = await _playerProfileService.GetProfileById(id);
+                return Ok(result);
             }
-
-            var result = await _playerProfileService.CreateProfileAsync(request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProfileAsync(int id, [FromBody] UpdatePlayerProfileRequestDto request)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdatePlayerProfileRequestDto dto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new PlayerProfileApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                var result = await _playerProfileService.UpdateProfile(id, dto);
+                return Ok(result);
             }
-
-            var result = await _playerProfileService.UpdateProfileAsync(id, request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
-        private string GetError()
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] int? level = null)
         {
-            return ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .FirstOrDefault() ?? "Invalid request.";
+            var result = await _playerProfileService.GetProfilesPaged(page, pageSize, search, level);
+            return Ok(result);
         }
     }
 }

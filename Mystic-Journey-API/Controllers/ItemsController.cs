@@ -9,7 +9,6 @@ namespace Mystic_Journey_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ItemsController : ControllerBase
     {
         private readonly IItemService _itemService;
@@ -20,71 +19,76 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet]
-        public async Task<IActionResult> GetAllItemsAsync()
-        {
-            var result = await _itemService.GetAllItemsAsync();
-
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-
-        [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetItemByIdAsync(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var result = await _itemService.GetItemByIdAsync(id);
+            try
+            {
+                var item = await _itemService.GetItemById(id);
+                if (item == null)
+                    return NotFound(new { message = $"Item with id {id} not found." });
 
-            return result.Success ? Ok(result) : NotFound(result);
+                return Ok(item);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> CreateItemAsync([FromBody] CreateItemRequestDto request)
+        public async Task<IActionResult> Create([FromBody] CreateItemRequestDto request)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new ItemApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var item = await _itemService.CreateItem(request);
+                return Ok(item);
             }
-
-            var result = await _itemService.CreateItemAsync(request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItemAsync(int id, [FromBody] UpdateItemRequestDto request)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateItemRequestDto request)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new ItemApiResponseDto
-                {
-                    Success = false,
-                    Message = GetError()
-                });
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var item = await _itemService.UpdateItem(id, request);
+                return Ok(item);
             }
-
-            var result = await _itemService.UpdateItemAsync(id, request);
-
-            return result.Success ? Ok(result) : BadRequest(result);
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteItemAsync(int id)
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] string? rarity = null, [FromQuery] bool? isActive = null)
         {
-            var result = await _itemService.DeleteItemAsync(id);
-
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-
-        private string GetError()
-        {
-            return ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .FirstOrDefault() ?? "Invalid request.";
+            var result = await _itemService.GetItemsPaged(page, pageSize, search, type, rarity, isActive);
+            return Ok(result);
         }
     }
 }

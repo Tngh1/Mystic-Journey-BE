@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class GachaBannerItem
     {
-        public int Id { get; set; }
+        public int GachaBannerItemId { get; set; }
 
         public int GachaBannerId { get; set; }
         public GachaBanner? GachaBanner { get; set; }
