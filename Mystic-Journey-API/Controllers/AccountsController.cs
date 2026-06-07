@@ -31,8 +31,8 @@ namespace Mystic_Journey_API.Controllers
         private CookieOptions BuildCookieOptions(DateTime expiry) => new CookieOptions
         {
             HttpOnly = true,
-            Secure = Request.IsHttps,
-            SameSite = SameSiteMode.Strict,
+            Secure = true,
+            SameSite = SameSiteMode.None,
             Path = "/",
             Expires = expiry
         };
@@ -45,8 +45,15 @@ namespace Mystic_Journey_API.Controllers
 
         private void ClearTokenCookies()
         {
-            Response.Cookies.Delete("access_token", new CookieOptions { Path = "/" });
-            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/" });
+            var options = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            };
+            Response.Cookies.Delete("access_token", options);
+            Response.Cookies.Delete("refresh_token", options);
         }
 
         private MeResponseDto MeResponse(AccountResponseDto dto) => new MeResponseDto
