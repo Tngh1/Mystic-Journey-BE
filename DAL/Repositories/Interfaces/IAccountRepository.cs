@@ -14,6 +14,8 @@ namespace DAL.Repositories.Interfaces
         Task<Account> UpdateAccount(Account account);
         Task<Account?> GetAccountByEmail(string email);
         Task<Account?> GetAccountByRefreshToken(string refreshToken);
+        Task RevokeRefreshToken(int accountId);
+        Task RevokeRefreshTokenByToken(string refreshToken);
         Task<int> GetTotalAccountsCount();
         Task<(int TotalCount, List<Account> Items)> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName);
     }

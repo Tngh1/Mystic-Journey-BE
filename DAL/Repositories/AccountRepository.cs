@@ -77,6 +77,30 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(a => a.RefreshToken == refreshToken && a.IsActive);
         }
 
+        public async Task RevokeRefreshToken(int accountId)
+        {
+            var account = await _context.Accounts.FindAsync(accountId);
+            if (account != null)
+            {
+                account.RefreshToken = null;
+                account.RefreshTokenExpiresAt = null;
+                account.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task RevokeRefreshTokenByToken(string refreshToken)
+        {
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.RefreshToken == refreshToken);
+            if (account != null)
+            {
+                account.RefreshToken = null;
+                account.RefreshTokenExpiresAt = null;
+                account.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task<int> GetTotalAccountsCount()
         {
             return await _context.Accounts

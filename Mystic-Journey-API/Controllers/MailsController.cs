@@ -52,7 +52,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("by-ids")]
         public async Task<IActionResult> SendMailByListId([FromBody] SendMailByListIdDto request)
         {
@@ -74,7 +74,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("broadcast")]
         public async Task<IActionResult> SendMailToAll([FromBody] SendMailToAllDto request)
         {
@@ -96,7 +96,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("{id}/read")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
@@ -115,7 +115,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("{id}/claim")]
         public async Task<IActionResult> ClaimReward(int id)
         {
@@ -165,7 +165,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,

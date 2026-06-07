@@ -19,7 +19,7 @@ namespace Mystic_Journey_API.Controllers
             _dailyLoginRewardService = dailyLoginRewardService;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateDailyLoginRewardRequestDto dto)
         {

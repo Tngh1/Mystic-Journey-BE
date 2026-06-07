@@ -83,10 +83,22 @@ namespace BLL.DTOs
         public string UserName { get; set; } = string.Empty;
         public string EmailAddress { get; set; } = string.Empty;
         public int RoleId { get; set; } = 1;
+        public string Role { get; set; } = "Player";
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiresAt { get; set; }
+    }
+
+    public class MeResponseDto
+    {
+        public int AccountId { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string LastMapName { get; set; } = string.Empty;
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
     }
 
     public class SendVerificationCodeRequestDto
