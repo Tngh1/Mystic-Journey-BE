@@ -2,7 +2,8 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DAL.Repositories
@@ -16,28 +17,112 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public async Task<PlayerProfile?> GetByIdAsync(int id)
+        public async Task<PlayerProfile?> GetPlayerProfileById(int id)
         {
             return await _context.PlayerProfiles
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == id);
         }
 
-        public async Task<PlayerProfile?> GetByAccountIdAsync(Guid accountId)
+        public async Task<PlayerProfile?> GetPlayerProfileByIdWithStats(int id)
         {
             return await _context.PlayerProfiles
-                .FirstOrDefaultAsync(p => p.AccountId == accountId);
+                .Include(p => p.PlayerStats)
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == id);
         }
 
-        public async Task AddAsync(PlayerProfile profile)
+        public async Task<PlayerProfile?> GetByIdFull(int id)
         {
+            return await _context.PlayerProfiles
+                .Include(p => p.PlayerStats)
+                .Include(p => p.Account)
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == id);
+        }
+
+        public async Task<List<PlayerProfile>> GetAllPlayerProfiles()
+        {
+            return await _context.PlayerProfiles
+                .ToListAsync();
+        }
+
+        public async Task<List<PlayerProfile>> GetAllPlayerProfilesWithAccounts()
+        {
+            return await _context.PlayerProfiles
+                .Include(p => p.Account)
+                .ToListAsync();
+        }
+
+        public async Task<PlayerProfile> CreatePlayerProfile(PlayerProfile profile)
+        {
+            profile.CreatedAt = DateTime.UtcNow;
             await _context.PlayerProfiles.AddAsync(profile);
             await _context.SaveChangesAsync();
+            return profile;
         }
 
-        public async Task UpdateAsync(PlayerProfile profile)
+        public async Task<PlayerProfile> UpdatePlayerProfile(PlayerProfile profile)
         {
-            _context.PlayerProfiles.Update(profile);
+            profile.UpdatedAt = DateTime.UtcNow;
+_context.PlayerProfiles.Update(profile);
             await _context.SaveChangesAsync();
+            return profile;
+        }
+
+        public async Task<List<PlayerProfile>> Search(string? keyword = null, string? playerClass = null, bool? isBanned = null)
+        {
+            var query = _context.PlayerProfiles.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var lowerKeyword = keyword.ToLower();
+                query = query.Where(p =>
+                    p.DisplayName.ToLower().Contains(lowerKeyword) ||
+                    (p.Account != null && p.Account.UserName.ToLower().Contains(lowerKeyword)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(playerClass))
+            {
+                query = query.Where(p => p.Class == playerClass);
+            }
+
+            if (isBanned.HasValue)
+            {
+                if (isBanned.Value)
+                {
+                    query = query.Where(p => p.Account != null && !p.Account.IsActive);
+                }
+                else
+                {
+                    query = query.Where(p => p.Account != null && p.Account.IsActive);
+                }
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<int> GetTotalPlayerProfilesCount()
+        {
+            return await _context.PlayerProfiles.CountAsync();
+        }
+
+        public async Task<(int TotalCount, List<PlayerProfile> Items)> GetProfilesPaged(int page, int pageSize, string? search, int? level)
+        {
+            var query = _context.PlayerProfiles
+                .Include(p => p.Account)
+                .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(x => x.DisplayName.Contains(search));
+            }
+            if (level.HasValue)
+            {
+                query = query.Where(x => x.Level == level.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
         }
     }
 }

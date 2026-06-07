@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Monster
     {
-        public int Id { get; set; }
+        public int MonsterId { get; set; }
 
         [Required, MaxLength(150)]
         public string Name { get; set; } = string.Empty;
@@ -12,13 +12,31 @@ namespace DAL.Models
         // Types: Normal, Elite, Boss
         public string Type { get; set; } = "Normal";
 
+        public string Description { get; set; } = string.Empty;
+
         public int Level { get; set; } = 1;
-        public int Health { get; set; } = 100;
-        public int Attack { get; set; } = 10;
-        public int Defense { get; set; } = 5;
+
+        public int MaxHp { get; set; }
+
+        public int Atk { get; set; }
+
+        public int Def { get; set; }
+
+        public int MoveSpeed { get; set; }
+
+        public int AttackSpeed { get; set; }
+
+        public int CritRate { get; set; }
+
+        public int CritDamage { get; set; }
+
         public int ExperienceReward { get; set; } = 10;
         public decimal GoldReward { get; set; } = 5;
 
         public bool IsActive { get; set; } = true;
+
+        public ICollection<MonsterDrop> MonsterDrops { get; set; } = new List<MonsterDrop>();
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

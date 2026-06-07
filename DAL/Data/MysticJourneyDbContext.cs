@@ -26,26 +26,17 @@ namespace DAL.Data
         public DbSet<ShopItem> ShopItems => Set<ShopItem>();
         public DbSet<Mail> Mails => Set<Mail>();
         public DbSet<Friend> Friends => Set<Friend>();
-        public DbSet<Boss> Bosses => Set<Boss>();
+        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+        public DbSet<MonsterDrop> MonsterDrops => Set<MonsterDrop>();
         public DbSet<GachaBanner> GachaBanners => Set<GachaBanner>();
         public DbSet<GachaBannerItem> GachaBannerItems => Set<GachaBannerItem>();
         public DbSet<GachaPullHistory> GachaPullHistories => Set<GachaPullHistory>();
-        public DbSet<DungeonRun> DungeonRuns => Set<DungeonRun>();
-        public DbSet<DungeonRunMember> DungeonRunMembers => Set<DungeonRunMember>();
-        public DbSet<Party> Parties => Set<Party>();
-        public DbSet<PartyMember> PartyMembers => Set<PartyMember>();
-        public DbSet<PartyInvitation> PartyInvitations => Set<PartyInvitation>();
-        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+        public DbSet<DungeonConfig> DungeonConfigs => Set<DungeonConfig>();
         public DbSet<Achievement> Achievements => Set<Achievement>();
         public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
         public DbSet<Guild> Guilds => Set<Guild>();
         public DbSet<GuildMember> GuildMembers => Set<GuildMember>();
         public DbSet<GuildInvitation> GuildInvitations => Set<GuildInvitation>();
-        public DbSet<GameMap> GameMaps => Set<GameMap>();
-        public DbSet<MapMonster> MapMonsters => Set<MapMonster>();
-        public DbSet<PlayerMapProgress> PlayerMapProgresses => Set<PlayerMapProgress>();
-        public DbSet<NPC> NPCs => Set<NPC>();
-        public DbSet<NPCDialogue> NPCDialogues => Set<NPCDialogue>();
         public DbSet<Skin> Skins => Set<Skin>();
         public DbSet<PlayerSkin> PlayerSkins => Set<PlayerSkin>();
         public DbSet<Chest> Chests => Set<Chest>();
@@ -56,29 +47,12 @@ namespace DAL.Data
         public DbSet<PlayerDailyLogin> PlayerDailyLogins => Set<PlayerDailyLogin>();
         public DbSet<GameAnnouncement> GameAnnouncements => Set<GameAnnouncement>();
         public DbSet<PlayerAnnouncement> PlayerAnnouncements => Set<PlayerAnnouncement>();
+        public DbSet<CategoryContent> CategoryContents => Set<CategoryContent>();
+        public DbSet<Content> Contents => Set<Content>();
+        public DbSet<BlockContent> BlockContents => Set<BlockContent>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {       
-            base.OnModelCreating(modelBuilder);
-
-            // 1-1 relationship between Account and PlayerProfile
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.PlayerProfile)
-                .WithOne(p => p.Account)
-                .HasForeignKey<PlayerProfile>(p => p.AccountId);
-
-            // 1-N relationship between Role and Account
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.Role)
-                .WithMany(r => r.Accounts)
-                .HasForeignKey(a => a.RoleId);
-
-            // Seed Data for Role
-            modelBuilder.Entity<Role>().HasData(
-                new Role { Id = 1, Name = "Player" },
-                new Role { Id = 2, Name = "Admin" },
-                new Role { Id = 3, Name = "SuperAdmin" }
-            );
+        {
         }
     }
 }

@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Guild
     {
-        public int Id { get; set; }
+        public int GuildId { get; set; }
 
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;
@@ -25,6 +25,5 @@ namespace DAL.Models
 
         public ICollection<GuildMember> Members { get; set; } = new List<GuildMember>();
         public ICollection<GuildInvitation> Invitations { get; set; } = new List<GuildInvitation>();
-        public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
     }
 }

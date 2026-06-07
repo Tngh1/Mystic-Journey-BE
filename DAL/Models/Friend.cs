@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class Friend
     {
-        public int Id { get; set; }
+        public int FriendId { get; set; }
 
         public int RequesterId { get; set; }
         public PlayerProfile? Requester { get; set; }

@@ -1,89 +1,50 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace BLL.Services
 {
     public class ItemService : IItemService
     {
         private readonly IItemRepository _repository;
+        private readonly IMapper _mapper;
 
-        public ItemService(IItemRepository repository)
+        public ItemService(IItemRepository repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
 
-        public async Task<ItemApiResponseDto> GetAllItemsAsync()
+        public async Task<ItemResponseDto?> GetItemById(int id)
         {
-            var items = await _repository.GetAllAsync();
-            var dtoList = items.Select(i => new ItemResponseDto
-            {
-                Id = i.Id,
-                Name = i.Name,
-                Description = i.Description,
-                Type = i.Type,
-                Rarity = i.Rarity,
-                Slot = i.Slot,
-                BaseValue = i.BaseValue,
-                MaxStack = i.MaxStack,
-                IsTradable = i.IsTradable,
-                IsActive = i.IsActive,
-                IconUrl = i.IconUrl,
-                CreatedAt = i.CreatedAt
-            }).ToList();
-
-            return new ItemApiResponseDto
-            {
-                Success = true,
-                Message = "Items retrieved successfully.",
-                Data = dtoList
-            };
-        }
-
-        public async Task<ItemApiResponseDto> GetItemByIdAsync(int id)
-        {
-            var item = await _repository.GetByIdAsync(id);
-
+            var item = await _repository.GetItemByIdWithStats(id);
             if (item == null)
+                return null;
+
+            var dto = _mapper.Map<ItemResponseDto>(item);
+
+            if (item.EquipmentStats != null)
             {
-                return new ItemApiResponseDto
-                {
-                    Success = false,
-                    Message = "Item not found."
-                };
+                dto.BaseHp = item.EquipmentStats.BaseHp;
+                dto.BaseAtk = item.EquipmentStats.BaseAtk;
+                dto.BaseDef = item.EquipmentStats.BaseDef;
+                dto.BonusHp = item.EquipmentStats.BonusHp;
+                dto.BonusAtk = item.EquipmentStats.BonusAtk;
+                dto.BonusDef = item.EquipmentStats.BonusDef;
+                dto.BonusCritRate = item.EquipmentStats.BonusCritRate;
+                dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage;
             }
 
-            var dto = new ItemResponseDto
-            {
-                Id = item.Id,
-                Name = item.Name,
-                Description = item.Description,
-                Type = item.Type,
-                Rarity = item.Rarity,
-                Slot = item.Slot,
-                BaseValue = item.BaseValue,
-                MaxStack = item.MaxStack,
-                IsTradable = item.IsTradable,
-                IsActive = item.IsActive,
-                IconUrl = item.IconUrl,
-                CreatedAt = item.CreatedAt
-            };
-
-            return new ItemApiResponseDto
-            {
-                Success = true,
-                Message = "Item retrieved successfully.",
-                Data = dto
-            };
+            return dto;
         }
 
-        public async Task<ItemApiResponseDto> CreateItemAsync(CreateItemRequestDto request)
+        public async Task<ItemResponseDto> CreateItem(CreateItemRequestDto request)
         {
-            var newItem = new Item
+            var item = new Item
             {
                 Name = request.Name,
                 Description = request.Description,
@@ -98,27 +59,32 @@ namespace BLL.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repository.AddAsync(newItem);
-
-            return new ItemApiResponseDto
+            if (IsEquipmentType(request.Type))
             {
-                Success = true,
-                Message = "Item created successfully."
-            };
-        }
-
-        public async Task<ItemApiResponseDto> UpdateItemAsync(int id, UpdateItemRequestDto request)
-        {
-            var item = await _repository.GetByIdAsync(id);
-
-            if (item == null)
-            {
-                return new ItemApiResponseDto
+                item.EquipmentStats = new EquipmentStats
                 {
-                    Success = false,
-                    Message = "Item not found."
+                    BaseHp = request.BaseHp ?? 0,
+                    BaseAtk = request.BaseAtk ?? 0,
+                    BaseDef = request.BaseDef ?? 0,
+                    BonusHp = request.BonusHp ?? 0,
+                    BonusAtk = request.BonusAtk ?? 0,
+                    BonusDef = request.BonusDef ?? 0,
+                    BonusCritRate = request.BonusCritRate ?? 0,
+                    BonusCritDamage = request.BonusCritDamage ?? 0,
+                    BonusMoveSpeed = 0,
+                    BonusAttackSpeed = 0,
+                    BonusDamageBonus = 0
                 };
             }
+
+            var created = await _repository.CreateItem(item);
+            return await GetItemById(created.ItemId) ?? _mapper.Map<ItemResponseDto>(created);
+        }
+
+        public async Task<ItemResponseDto> UpdateItem(int id, UpdateItemRequestDto request)
+        {
+            var item = await _repository.GetItemByIdWithStats(id)
+                ?? throw new KeyNotFoundException($"Item with id {id} not found.");
 
             item.Name = request.Name;
             item.Description = request.Description;
@@ -131,35 +97,56 @@ namespace BLL.Services
             item.IsActive = request.IsActive;
             item.IconUrl = request.IconUrl;
 
-            await _repository.UpdateAsync(item);
-
-            return new ItemApiResponseDto
+            if (IsEquipmentType(request.Type))
             {
-                Success = true,
-                Message = "Item updated successfully."
-            };
-        }
-
-        public async Task<ItemApiResponseDto> DeleteItemAsync(int id)
-        {
-            var item = await _repository.GetByIdAsync(id);
-
-            if (item == null)
-            {
-                return new ItemApiResponseDto
+                if (item.EquipmentStats == null)
                 {
-                    Success = false,
-                    Message = "Item not found."
-                };
+                    item.EquipmentStats = new EquipmentStats
+                    {
+                        ItemId = item.ItemId
+                    };
+                }
+
+                item.EquipmentStats.BaseHp = request.BaseHp ?? 0;
+                item.EquipmentStats.BaseAtk = request.BaseAtk ?? 0;
+                item.EquipmentStats.BaseDef = request.BaseDef ?? 0;
+                item.EquipmentStats.BonusHp = request.BonusHp ?? 0;
+                item.EquipmentStats.BonusAtk = request.BonusAtk ?? 0;
+                item.EquipmentStats.BonusDef = request.BonusDef ?? 0;
+                item.EquipmentStats.BonusCritRate = request.BonusCritRate ?? 0;
+                item.EquipmentStats.BonusCritDamage = request.BonusCritDamage ?? 0;
             }
 
-            await _repository.DeleteAsync(item);
+            var updated = await _repository.UpdateItem(item);
+            return await GetItemById(updated.ItemId) ?? _mapper.Map<ItemResponseDto>(updated);
+        }
 
-            return new ItemApiResponseDto
-            {
-                Success = true,
-                Message = "Item deleted successfully."
-            };
+        public async Task<PagedResultDto<ItemResponseDto>> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive)
+        {
+            var (totalCount, items) = await _repository.GetItemsPaged(page, pageSize, search, type, rarity, isActive);
+
+            var dtos = items.Select(item => {
+                var dto = _mapper.Map<ItemResponseDto>(item);
+                if (item.EquipmentStats != null)
+                {
+                    dto.BaseHp = item.EquipmentStats.BaseHp;
+                    dto.BaseAtk = item.EquipmentStats.BaseAtk;
+                    dto.BaseDef = item.EquipmentStats.BaseDef;
+                    dto.BonusHp = item.EquipmentStats.BonusHp;
+                    dto.BonusAtk = item.EquipmentStats.BonusAtk;
+                    dto.BonusDef = item.EquipmentStats.BonusDef;
+                    dto.BonusCritRate = item.EquipmentStats.BonusCritRate;
+                    dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage;
+                }
+                return dto;
+            }).ToList();
+
+            return new PagedResultDto<ItemResponseDto>(totalCount, dtos);
+        }
+
+        private static bool IsEquipmentType(string type)
+        {
+            return type is "Weapon" or "Armor" or "Accessory";
         }
     }
 }

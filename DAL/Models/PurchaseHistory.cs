@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class PurchaseHistory
     {
-        public int Id { get; set; }
+        public int PurchaseHistoryId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }

@@ -2,7 +2,7 @@ namespace DAL.Models
 {
     public class PlayerCurrencyLog
     {
-        public int Id { get; set; }
+        public int PlayerCurrencyLogId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }

@@ -1,160 +1,154 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using System;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace BLL.Services
 {
     public class PlayerProfileService : IPlayerProfileService
     {
         private readonly IPlayerProfileRepository _repository;
-        private readonly IAccountRepository _accountRepository;
+        private readonly IMapper _mapper;
 
-        public PlayerProfileService(IPlayerProfileRepository repository, IAccountRepository accountRepository)
+        public PlayerProfileService(IPlayerProfileRepository repository, IMapper mapper)
         {
             _repository = repository;
-            _accountRepository = accountRepository;
+            _mapper = mapper;
         }
 
-        public async Task<PlayerProfileApiResponseDto> GetProfileByIdAsync(int id)
+        public async Task<List<PlayerProfileResponseDto>> GetAllProfiles()
         {
-            var profile = await _repository.GetByIdAsync(id);
+            var profiles = await _repository.GetAllPlayerProfilesWithAccounts();
+            return profiles.Select(MapToResponseDto).ToList();
+        }
 
+        public async Task<PlayerProfileDetailResponseDto?> GetProfileById(int id)
+        {
+            var profile = await _repository.GetPlayerProfileByIdWithStats(id);
             if (profile == null)
-            {
-                return new PlayerProfileApiResponseDto
-                {
-                    Success = false,
-                    Message = "Player profile not found."
-                };
-            }
+                return null;
 
-            return new PlayerProfileApiResponseDto
-            {
-                Success = true,
-                Message = "Profile retrieved successfully.",
-                Data = MapToDto(profile)
-            };
+            return MapToDetailResponseDto(profile);
         }
 
-        public async Task<PlayerProfileApiResponseDto> GetProfileByAccountIdAsync(Guid accountId)
+        public async Task<PlayerProfileResponseDto> UpdateProfile(int id, UpdatePlayerProfileRequestDto request)
         {
-            var profile = await _repository.GetByAccountIdAsync(accountId);
+            var profile = await _repository.GetPlayerProfileById(id)
+                ?? throw new KeyNotFoundException($"Player profile with id {id} not found.");
 
-            if (profile == null)
+            if (request.DisplayName != null)
+                profile.DisplayName = request.DisplayName;
+
+            if (request.AvatarUrl != null)
+                profile.AvatarUrl = request.AvatarUrl;
+
+            if (request.PlayerClass != null)
+                profile.Class = request.PlayerClass;
+
+            if (request.Level > 0)
+                profile.Level = request.Level;
+
+            if (request.ExperiencePoints >= 0)
+                profile.ExperiencePoints = request.ExperiencePoints;
+
+            if (request.Gold >= 0)
+                profile.Gold = request.Gold;
+
+            if (request.Gems >= 0)
+                profile.Gems = request.Gems;
+
+            if (request.Energy >= 0)
+                profile.Energy = request.Energy;
+
+            if (request.IsBanned.HasValue)
             {
-                return new PlayerProfileApiResponseDto
+                profile.PlayerStats ??= new PlayerStat
                 {
-                    Success = false,
-                    Message = "Player profile not found for this account."
+                    PlayerProfileId = profile.PlayerProfileId,
+                    CurrentHp = 100,
+                    MaxHp = 100,
+                    Atk = 10,
+                    Def = 5,
+                    MoveSpeed = 100,
+                    AttackSpeed = 100,
+                    CritRate = 5,
+                    CritDamage = 150,
+                    DamageBonus = 0,
+                    CreatedAt = DateTime.UtcNow
                 };
             }
 
-            return new PlayerProfileApiResponseDto
-            {
-                Success = true,
-                Message = "Profile retrieved successfully.",
-                Data = MapToDto(profile)
-            };
-        }
-
-        public async Task<PlayerProfileApiResponseDto> CreateProfileAsync(CreatePlayerProfileRequestDto request)
-        {
-            var account = await _accountRepository.GetByIdAsync(request.AccountId);
-            if (account == null)
-            {
-                return new PlayerProfileApiResponseDto
-                {
-                    Success = false,
-                    Message = "Account does not exist."
-                };
-            }
-
-            var existingProfile = await _repository.GetByAccountIdAsync(request.AccountId);
-            if (existingProfile != null)
-            {
-                return new PlayerProfileApiResponseDto
-                {
-                    Success = false,
-                    Message = "A profile already exists for this account."
-                };
-            }
-
-            var newProfile = new PlayerProfile
-            {
-                AccountId = request.AccountId,
-                DisplayName = request.DisplayName,
-                AvatarUrl = request.AvatarUrl,
-                Class = request.Class,
-                Level = 1,
-                ExperiencePoints = 0,
-                Gold = 0,
-                Gems = 0,
-                Energy = 100,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _repository.AddAsync(newProfile);
-
-            return new PlayerProfileApiResponseDto
-            {
-                Success = true,
-                Message = "Player profile created successfully.",
-                Data = MapToDto(newProfile)
-            };
-        }
-
-        public async Task<PlayerProfileApiResponseDto> UpdateProfileAsync(int id, UpdatePlayerProfileRequestDto request)
-        {
-            var profile = await _repository.GetByIdAsync(id);
-
-            if (profile == null)
-            {
-                return new PlayerProfileApiResponseDto
-                {
-                    Success = false,
-                    Message = "Player profile not found."
-                };
-            }
-
-            if (!string.IsNullOrEmpty(request.AvatarUrl)) profile.AvatarUrl = request.AvatarUrl;
-            if (!string.IsNullOrEmpty(request.Class)) profile.Class = request.Class;
-            
-            profile.Level = request.Level;
-            profile.ExperiencePoints = request.ExperiencePoints;
-            profile.Gold = request.Gold;
-            profile.Gems = request.Gems;
-            profile.Energy = request.Energy;
             profile.UpdatedAt = DateTime.UtcNow;
 
-            await _repository.UpdateAsync(profile);
-
-            return new PlayerProfileApiResponseDto
-            {
-                Success = true,
-                Message = "Player profile updated successfully.",
-                Data = MapToDto(profile)
-            };
+            var updated = await _repository.UpdatePlayerProfile(profile);
+            return MapToResponseDto(updated);
         }
 
-        private static PlayerProfileResponseDto MapToDto(PlayerProfile profile)
+        public async Task<PagedResultDto<PlayerProfileResponseDto>> GetProfilesPaged(int page, int pageSize, string? search, int? level)
+        {
+            var (totalCount, items) = await _repository.GetProfilesPaged(page, pageSize, search, level);
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<PlayerProfileResponseDto>(totalCount, dtos);
+        }
+
+        private static PlayerProfileResponseDto MapToResponseDto(PlayerProfile profile)
         {
             return new PlayerProfileResponseDto
             {
-                Id = profile.Id,
+                Id = profile.PlayerProfileId,
                 AccountId = profile.AccountId,
+                AccountEmail = profile.Account?.Email,
                 DisplayName = profile.DisplayName,
-                AvatarUrl = profile.AvatarUrl,
-                Class = profile.Class,
+                AvatarUrl = string.IsNullOrEmpty(profile.AvatarUrl) ? null : profile.AvatarUrl,
+                PlayerClass = profile.Class,
                 Level = profile.Level,
                 ExperiencePoints = profile.ExperiencePoints,
                 Gold = profile.Gold,
                 Gems = profile.Gems,
                 Energy = profile.Energy,
                 CreatedAt = profile.CreatedAt,
-                UpdatedAt = profile.UpdatedAt
+                UpdatedAt = profile.UpdatedAt,
+                IsBanned = profile.Account != null && !profile.Account.IsActive
+            };
+        }
+
+        private static PlayerProfileDetailResponseDto MapToDetailResponseDto(PlayerProfile profile)
+        {
+            return new PlayerProfileDetailResponseDto
+            {
+                Id = profile.PlayerProfileId,
+                AccountId = profile.AccountId,
+                AccountEmail = profile.Account?.Email,
+                DisplayName = profile.DisplayName,
+                AvatarUrl = string.IsNullOrEmpty(profile.AvatarUrl) ? null : profile.AvatarUrl,
+                PlayerClass = profile.Class,
+                Level = profile.Level,
+                ExperiencePoints = profile.ExperiencePoints,
+                Gold = profile.Gold,
+                Gems = profile.Gems,
+                Energy = profile.Energy,
+                CreatedAt = profile.CreatedAt,
+                UpdatedAt = profile.UpdatedAt,
+                IsBanned = profile.Account != null && !profile.Account.IsActive,
+                Stats = profile.PlayerStats != null ? new PlayerStatsResponseDto
+                {
+                    CurrentHp = profile.PlayerStats.CurrentHp,
+                    MaxHp = profile.PlayerStats.MaxHp,
+                    Atk = profile.PlayerStats.Atk,
+                    Def = profile.PlayerStats.Def,
+                    MoveSpeed = profile.PlayerStats.MoveSpeed,
+                    AttackSpeed = profile.PlayerStats.AttackSpeed,
+                    CritRate = profile.PlayerStats.CritRate,
+                    CritDamage = profile.PlayerStats.CritDamage,
+                    DamageBonus = profile.PlayerStats.DamageBonus,
+                    SkillPoints = profile.PlayerStats.SkillPoints,
+                    TotalWins = profile.PlayerStats.TotalWins,
+                    TotalLosses = profile.PlayerStats.TotalLosses,
+                    TotalKills = profile.PlayerStats.TotalKills,
+                    TotalDeaths = profile.PlayerStats.TotalDeaths
+                } : null
             };
         }
     }

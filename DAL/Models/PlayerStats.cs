@@ -2,23 +2,24 @@ namespace DAL.Models
 {
     public class PlayerStat
     {
-        public int Id { get; set; }
+        public int PlayerStatId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
-        public int Health { get; set; } = 100;
-        public int Mana { get; set; } = 50;
-        public int Strength { get; set; } = 10;
-        public int Defense { get; set; } = 10;
-        public int Agility { get; set; } = 10;
-        public int Intelligence { get; set; } = 10;
-        public int Endurance { get; set; } = 10;
-        public int Luck { get; set; } = 0;
+        public int CurrentHp { get; set; }
+        public int MaxHp { get; set; }
 
-        public int CriticalRate { get; set; } = 0;
-        public int CriticalDamage { get; set; } = 0;
-        public int ArmorPenetration { get; set; } = 0;
+        public int Atk { get; set; }
+        public int Def { get; set; }
+
+        public int MoveSpeed { get; set; }
+        public int AttackSpeed { get; set; }
+
+        public int CritRate { get; set; }
+        public int CritDamage { get; set; }
+
+        public int DamageBonus { get; set; }
 
         public int SkillPoints { get; set; } = 0;
         public int TotalWins { get; set; } = 0;

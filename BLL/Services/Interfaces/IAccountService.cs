@@ -1,18 +1,18 @@
 using BLL.DTOs;
-using System;
 using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
     public interface IAccountService
     {
-        Task<ApiResponseDto> LoginAsync(LoginRequestDto request);
-        Task<ApiResponseDto> RegisterAsync(RegisterRequestDto request);
-        Task<ApiResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto request);
-        Task<ApiResponseDto> ResetPasswordAsync(ResetPasswordRequestDto request);
-        Task<ApiResponseDto> ChangePasswordAsync(Guid accountId, ChangePasswordRequestDto request);
-        Task<bool> SendVerificationCodeAsync(string email);
-        Task<ApiResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request);
-        Task<ApiResponseDto> UpdateProfileAsync(Guid accountId, UpdateProfileRequestDto request);
+        Task<AccountResponseDto> LoginAccount(LoginRequestDto request);
+        Task<LoginGameResponseDto> LoginGame(LoginGameRequestDto request);
+        Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request);
+        Task<AccountResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request);
+        Task SendVerificationCode(string email);
+        Task VerifyEmail(VerifyEmailRequestDto request);
+        Task<AccountResponseDto> RefreshToken(string refreshToken);
+        Task ForgotPassword(string email);
+        Task ResetPassword(string email, string verificationCode, string newPassword, string confirmPassword);
     }
 }

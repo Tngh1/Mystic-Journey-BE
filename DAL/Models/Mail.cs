@@ -4,7 +4,7 @@ namespace DAL.Models
 {
     public class Mail
     {
-        public int Id { get; set; }
+        public int MailId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
@@ -28,5 +28,8 @@ namespace DAL.Models
 
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
         public DateTime? ExpiredAt { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

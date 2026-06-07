@@ -4,9 +4,9 @@ namespace DAL.Models
 {
     public class PlayerProfile
     {
-        public int Id { get; set; }
+        public int PlayerProfileId { get; set; }
 
-        public Guid AccountId { get; set; }
+        public int AccountId { get; set; }
         public Account? Account { get; set; }
 
         [Required, MaxLength(100)]
@@ -26,6 +26,8 @@ namespace DAL.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+
+        public int TotalDungeonClears { get; set; } = 0;
 
         public PlayerStat? PlayerStats { get; set; }
 
