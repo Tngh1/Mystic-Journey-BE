@@ -14,15 +14,18 @@ namespace BLL.Services
     {
         private readonly IMailRepository _repository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
+        private readonly IInventoryService _inventoryService;
         private readonly IMapper _mapper;
 
         public MailService(
             IMailRepository repository,
             IPlayerProfileRepository playerProfileRepository,
+            IInventoryService inventoryService,
             IMapper mapper)
         {
             _repository = repository;
             _playerProfileRepository = playerProfileRepository;
+            _inventoryService = inventoryService;
             _mapper = mapper;
         }
 
@@ -40,14 +43,21 @@ namespace BLL.Services
             return mails.ConvertAll(m => MapToResponseDto(m));
         }
 
-        public async Task<MailResponseDto> SendMail(SendMailRequestDto request)
+        public async Task<PagedResultDto<MailResponseDto>> GetMailsByPlayerIdPaged(int playerProfileId, int page, int pageSize)
         {
-            var playerProfile = await _playerProfileRepository.GetPlayerProfileById(request.PlayerProfileId)
-                ?? throw new KeyNotFoundException($"Player profile with id {request.PlayerProfileId} not found.");
+            var (totalCount, items) = await _repository.GetMailsByPlayerIdPaged(playerProfileId, page, pageSize);
+            var dtos = items.Select(m => MapToResponseDto(m)).ToList();
+            return new PagedResultDto<MailResponseDto>(totalCount, dtos);
+        }
 
-            var mail = new Mail
+        public async Task SendMailByListId(SendMailByListIdDto request)
+        {
+            if (request.PlayerProfileIds == null || request.PlayerProfileIds.Count == 0)
+                throw new ArgumentException("Player profile IDs cannot be empty.");
+
+            var mails = request.PlayerProfileIds.Select(id => new Mail
             {
-                PlayerProfileId = request.PlayerProfileId,
+                PlayerProfileId = id,
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
@@ -59,29 +69,31 @@ namespace BLL.Services
                 IsClaimed = false,
                 SentAt = DateTime.UtcNow,
                 ExpiredAt = request.ExpiredAt
-            };
+            }).ToList();
 
-            var created = await _repository.CreateMail(mail);
-            return MapToResponseDto(created, playerProfile.DisplayName);
+            await _repository.CreateBulkMails(mails);
         }
 
-        public async Task SendBulkMail(BulkSendMailRequestDto request)
+        public async Task SendMailToAll(SendMailToAllDto request)
         {
-            if (request.PlayerProfileIds == null || !request.PlayerProfileIds.Any())
-                throw new ArgumentException("Player profile IDs cannot be empty.");
+            var players = await _playerProfileRepository.GetAllPlayerProfiles();
+            if (!players.Any())
+                throw new ArgumentException("No players found to send mail.");
 
-            var mails = request.PlayerProfileIds.Select(playerProfileId => new Mail
+            var mails = players.Select(player => new Mail
             {
-                PlayerProfileId = playerProfileId,
+                PlayerProfileId = player.PlayerProfileId,
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
                 AttachedGold = request.AttachedGold,
                 AttachedGems = request.AttachedGems,
+                AttachedItemId = request.AttachedItemId,
+                AttachedItemQuantity = request.AttachedItemQuantity,
                 IsRead = false,
                 IsClaimed = false,
                 SentAt = DateTime.UtcNow,
-                ExpiredAt = null
+                ExpiredAt = request.ExpiredAt
             }).ToList();
 
             await _repository.CreateBulkMails(mails);
@@ -123,6 +135,14 @@ namespace BLL.Services
                 playerProfile.Gems += mail.AttachedGems;
             }
 
+            if (mail.AttachedItemId.HasValue && mail.AttachedItemQuantity > 0)
+            {
+                await _inventoryService.AddItemToInventory(
+                    mail.PlayerProfileId,
+                    mail.AttachedItemId.Value,
+                    mail.AttachedItemQuantity);
+            }
+
             playerProfile.UpdatedAt = DateTime.UtcNow;
             await _playerProfileRepository.UpdatePlayerProfile(playerProfile);
 
@@ -130,6 +150,21 @@ namespace BLL.Services
             var updated = await _repository.UpdateMail(mail);
 
             return MapToResponseDto(updated, playerProfile.DisplayName);
+        }
+
+        public async Task<MailResponseDto> DeleteMail(int mailId, int playerProfileId)
+        {
+            var mail = await _repository.GetMailById(mailId)
+                ?? throw new KeyNotFoundException($"Mail with id {mailId} not found.");
+
+            if (mail.PlayerProfileId != playerProfileId)
+                throw new UnauthorizedAccessException("You can only delete your own mail.");
+
+            if (mail.IsDeleted)
+                throw new InvalidOperationException("Mail has already been deleted.");
+
+            var deleted = await _repository.SoftDeleteMail(mailId);
+            return MapToResponseDto(deleted);
         }
 
         private static MailResponseDto MapToResponseDto(Mail mail, string? playerName = null)
@@ -149,6 +184,8 @@ namespace BLL.Services
                 AttachedItemQuantity = mail.AttachedItemQuantity,
                 IsRead = mail.IsRead,
                 IsClaimed = mail.IsClaimed,
+                IsDeleted = mail.IsDeleted,
+                DeletedAt = mail.DeletedAt,
                 SentAt = mail.SentAt,
                 ExpiredAt = mail.ExpiredAt
             };
@@ -173,6 +210,8 @@ namespace BLL.Services
                 AttachedItemQuantity = m.AttachedItemQuantity,
                 IsRead = m.IsRead,
                 IsClaimed = m.IsClaimed,
+                IsDeleted = m.IsDeleted,
+                DeletedAt = m.DeletedAt,
                 SentAt = m.SentAt,
                 ExpiredAt = m.ExpiredAt
             }).ToList();

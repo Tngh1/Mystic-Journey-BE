@@ -37,28 +37,6 @@ namespace BLL.Services
             return MapToResponseDto(setting);
         }
 
-        public async Task<GameSettingResponseDto> CreateSetting(CreateGameSettingRequestDto request, Guid? updatedByAccountId = null)
-        {
-            var existing = await _repository.GetByName(request.Key);
-            if (existing != null)
-                throw new InvalidOperationException($"Game setting with key '{request.Key}' already exists.");
-
-            var setting = new GameSetting
-            {
-                Name = request.Key,
-                Value = request.Value,
-                Description = request.Description,
-                IsActive = request.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = null,
-                CreatedByAccountId = updatedByAccountId,
-                UpdatedByAccountId = null
-            };
-
-            var created = await _repository.CreateGameSetting(setting);
-            return MapToResponseDto(created);
-        }
-
         public async Task<GameSettingResponseDto> UpdateSetting(string key, UpdateGameSettingRequestDto request, Guid? updatedByAccountId = null)
         {
             var setting = await _repository.GetByName(key)

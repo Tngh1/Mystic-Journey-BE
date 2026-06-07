@@ -67,17 +67,27 @@ namespace DAL.Repositories
 
         public async Task<Mail> UpdateMail(Mail mail)
         {
-_context.Mails.Update(mail);
+            _context.Mails.Update(mail);
             await _context.SaveChangesAsync();
             return mail;
         }
 
+        public async Task<Mail> SoftDeleteMail(int mailId)
+        {
+            var mail = await _context.Mails.FindAsync(mailId)
+                ?? throw new KeyNotFoundException($"Mail with id {mailId} not found.");
+            mail.IsDeleted = true;
+            mail.DeletedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return mail;
+        }
 
         public async Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed)
         {
             var query = _context.Mails
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItem)
+                .Where(m => !m.IsDeleted)
                 .AsNoTracking();
 
             if (!string.IsNullOrEmpty(search))
@@ -95,6 +105,24 @@ _context.Mails.Update(mail);
 
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
+        }
+
+        public async Task<(int TotalCount, List<Mail> Items)> GetMailsByPlayerIdPaged(int playerProfileId, int page, int pageSize)
+        {
+            var query = _context.Mails
+                .Include(m => m.PlayerProfile)
+                .Include(m => m.AttachedItem)
+                .Where(m => m.PlayerProfileId == playerProfileId && !m.IsDeleted)
+                .AsNoTracking();
+
+            int totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(m => m.SentAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             return (totalCount, items);
         }

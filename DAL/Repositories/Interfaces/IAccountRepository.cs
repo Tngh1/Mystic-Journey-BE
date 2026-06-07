@@ -6,8 +6,7 @@ namespace DAL.Repositories.Interfaces
 {
     public interface IAccountRepository
     {
-        Task<Account?> GetAccountById(int accountId);
-        Task<Account?> GetAccountByIdWithRole(int id);
+        Task<Account?> GetAccountById(int id);
         Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername);
         Task<bool> IsEmailExist(string email);
         Task<bool> IsUsernameExist(string username);
@@ -15,9 +14,6 @@ namespace DAL.Repositories.Interfaces
         Task<Account> UpdateAccount(Account account);
         Task<Account?> GetAccountByEmail(string email);
         Task<Account?> GetAccountByRefreshToken(string refreshToken);
-        Task<List<Account>> GetAllAccounts();
-        Task<List<Account>> GetAllAccountsWithRoles();
-        Task<List<Account>> GetAdmins();
         Task<int> GetTotalAccountsCount();
         Task<(int TotalCount, List<Account> Items)> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName);
     }

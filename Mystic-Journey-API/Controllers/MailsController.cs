@@ -2,8 +2,6 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -13,10 +11,12 @@ namespace Mystic_Journey_API.Controllers
     public class MailsController : ControllerBase
     {
         private readonly IMailService _mailService;
+        private readonly IPlayerProfileService _playerProfileService;
 
-        public MailsController(IMailService mailService)
+        public MailsController(IMailService mailService, IPlayerProfileService playerProfileService)
         {
             _mailService = mailService;
+            _playerProfileService = playerProfileService;
         }
 
         [AllowAnonymous]
@@ -53,20 +53,16 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public async Task<IActionResult> SendMail([FromBody] SendMailRequestDto request)
+        [HttpPost("by-ids")]
+        public async Task<IActionResult> SendMailByListId([FromBody] SendMailByListIdDto request)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var mail = await _mailService.SendMail(request);
-                return Ok(mail);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
+                await _mailService.SendMailByListId(request);
+                return Ok(new { message = "Mail sent successfully." });
             }
             catch (ArgumentException ex)
             {
@@ -79,16 +75,16 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("bulk")]
-        public async Task<IActionResult> SendBulkMail([FromBody] BulkSendMailRequestDto request)
+        [HttpPost("broadcast")]
+        public async Task<IActionResult> SendMailToAll([FromBody] SendMailToAllDto request)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                await _mailService.SendBulkMail(request);
-                return Ok(new { message = "Bulk mail sent successfully." });
+                await _mailService.SendMailToAll(request);
+                return Ok(new { message = "Mail sent to all players successfully." });
             }
             catch (ArgumentException ex)
             {
@@ -142,9 +138,41 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMail(int id, [FromQuery] int playerProfileId)
+        {
+            try
+            {
+                var mail = await _mailService.DeleteMail(id, playerProfileId);
+                return Ok(new { message = "Mail deleted successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isRead = null, [FromQuery] bool? isClaimed = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] bool? isRead = null,
+            [FromQuery] bool? isClaimed = null)
         {
             var result = await _mailService.GetMailsPaged(page, pageSize, search, isRead, isClaimed);
             return Ok(result);

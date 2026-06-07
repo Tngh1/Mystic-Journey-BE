@@ -36,6 +36,24 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [AllowAnonymous]
+        [HttpPost("login-game")]
+        public async Task<IActionResult> LoginGame([FromBody] LoginGameRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var result = await _accountService.LoginGame(request);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {

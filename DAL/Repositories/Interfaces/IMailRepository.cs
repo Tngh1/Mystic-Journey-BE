@@ -12,6 +12,8 @@ namespace DAL.Repositories.Interfaces
         Task<Mail> CreateMail(Mail mail);
         Task<List<Mail>> CreateBulkMails(List<Mail> mails);
         Task<Mail> UpdateMail(Mail mail);
+        Task<Mail> SoftDeleteMail(int mailId);
         Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed);
+        Task<(int TotalCount, List<Mail> Items)> GetMailsByPlayerIdPaged(int playerProfileId, int page, int pageSize);
     }
 }

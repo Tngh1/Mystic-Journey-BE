@@ -17,24 +17,19 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public async Task<Account?> GetAccountById(int accountId)
+        public async Task<Account?> GetAccountById(int id)
         {
             return await _context.Accounts
                 .Include(a => a.Role)
-                .FirstOrDefaultAsync(a => a.AccountId == accountId && a.IsActive);
-        }
-
-        public async Task<Account?> GetAccountByIdWithRole(int id)
-        {
-            return await _context.Accounts
-                .Include(a => a.Role)
-                .FirstOrDefaultAsync(a => a.AccountId == id && a.IsActive);
+                .Include(a => a.PlayerProfile)
+                .FirstOrDefaultAsync(a => a.AccountId == id);
         }
 
         public async Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername)
         {
             return await _context.Accounts
                 .Include(a => a.Role)
+                .Include(a => a.PlayerProfile)
                 .FirstOrDefaultAsync(a =>
                     (a.UserName.ToLower() == emailOrUsername.ToLower() || a.Email.ToLower() == emailOrUsername.ToLower())
                     && a.IsActive);
@@ -80,29 +75,6 @@ namespace DAL.Repositories
             return await _context.Accounts
                 .Include(a => a.Role)
                 .FirstOrDefaultAsync(a => a.RefreshToken == refreshToken && a.IsActive);
-        }
-
-        public async Task<List<Account>> GetAllAccounts()
-        {
-            return await _context.Accounts
-                .Where(a => a.IsActive)
-                .ToListAsync();
-        }
-
-        public async Task<List<Account>> GetAllAccountsWithRoles()
-        {
-            return await _context.Accounts
-                .Include(a => a.Role)
-                .Where(a => a.IsActive)
-                .ToListAsync();
-        }
-
-        public async Task<List<Account>> GetAdmins()
-        {
-            return await _context.Accounts
-                .Include(a => a.Role)
-                .Where(a => a.IsActive && a.RoleId != 1)
-                .ToListAsync();
         }
 
         public async Task<int> GetTotalAccountsCount()

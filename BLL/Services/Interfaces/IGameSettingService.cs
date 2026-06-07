@@ -8,7 +8,6 @@ namespace BLL.Services.Interfaces
     {
         Task<GameSettingResponseDto?> GetSettingById(int id);
         Task<GameSettingResponseDto?> GetSettingByKey(string key);
-        Task<GameSettingResponseDto> CreateSetting(CreateGameSettingRequestDto request, Guid? updatedByAccountId = null);
         Task<GameSettingResponseDto> UpdateSetting(string key, UpdateGameSettingRequestDto request, Guid? updatedByAccountId = null);
         Task<PagedResultDto<GameSettingResponseDto>> GetSettingsPaged(int page, int pageSize, string? search);
     }

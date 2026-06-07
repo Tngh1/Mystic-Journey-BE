@@ -72,6 +72,41 @@ namespace BLL.Services
             return response;
         }
 
+        public async Task<LoginGameResponseDto> LoginGame(LoginGameRequestDto request)
+        {
+            var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
+                ?? throw new UnauthorizedAccessException("Invalid email/username or password.");
+
+            if (!account.IsActive)
+                throw new UnauthorizedAccessException("Account has been deactivated.");
+
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword))
+                throw new UnauthorizedAccessException("Invalid email/username or password.");
+
+            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
+
+            account.RefreshToken = refreshToken;
+            account.RefreshTokenExpiresAt = refreshExpiry;
+            account.LastLogin = DateTime.UtcNow;
+            account.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAccount(account);
+
+            return new LoginGameResponseDto
+            {
+                AccountId = account.AccountId,
+                UserName = account.UserName,
+                EmailAddress = account.Email,
+                RoleId = account.RoleId,
+                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
+                PlayerDisplayName = account.PlayerProfile?.DisplayName,
+                AccessToken = accessToken,
+                AccessTokenExpiresAt = accessExpiry,
+                RefreshToken = refreshToken,
+                RefreshTokenExpiresAt = refreshExpiry
+            };
+        }
+
         public async Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request)
         {
             var normalizedEmail = request.EmailAddress.Trim().ToLowerInvariant();

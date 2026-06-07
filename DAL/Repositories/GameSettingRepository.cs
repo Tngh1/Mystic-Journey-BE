@@ -34,13 +34,6 @@ namespace DAL.Repositories
             return await _context.GameSettings.ToListAsync();
         }
 
-        public async Task<GameSetting> CreateGameSetting(GameSetting setting)
-        {
-            await _context.GameSettings.AddAsync(setting);
-            await _context.SaveChangesAsync();
-            return setting;
-        }
-
         public async Task<GameSetting> UpdateGameSetting(GameSetting setting)
         {
 _context.GameSettings.Update(setting);

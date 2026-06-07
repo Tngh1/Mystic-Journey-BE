@@ -44,7 +44,6 @@ namespace BLL.Mappings
             CreateMap<UpdateAchievementRequestDto, Achievement>();
 
             CreateMap<GameSetting, GameSettingResponseDto>();
-            CreateMap<CreateGameSettingRequestDto, GameSetting>();
             CreateMap<UpdateGameSettingRequestDto, GameSetting>();
 
             CreateMap<Content, ContentResponseDto>();
@@ -60,8 +59,6 @@ namespace BLL.Mappings
             CreateMap<CreateCategoryContentRequestDto, CategoryContent>();
 
             CreateMap<Mail, MailResponseDto>();
-            CreateMap<SendMailRequestDto, Mail>();
-            CreateMap<BulkSendMailRequestDto, Mail>();
 
             CreateMap<PlayerProfile, PlayerProfileResponseDto>();
             CreateMap<PlayerProfile, PlayerProfileDetailResponseDto>();

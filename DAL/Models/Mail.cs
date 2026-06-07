@@ -28,5 +28,8 @@ namespace DAL.Models
 
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
         public DateTime? ExpiredAt { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

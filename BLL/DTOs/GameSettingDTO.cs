@@ -15,17 +15,6 @@ namespace BLL.DTOs
         public string? UpdatedBy { get; set; }
     }
 
-    public class CreateGameSettingRequestDto
-    {
-        [Required]
-        [StringLength(100)]
-        public string Key { get; set; } = string.Empty;
-
-        public string? Value { get; set; }
-        public string? Description { get; set; }
-        public bool IsActive { get; set; } = true;
-    }
-
     public class UpdateGameSettingRequestDto
     {
         public string? Value { get; set; }

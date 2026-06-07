@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BLL.DTOs
 {
-    // ============ Mail ============
     public class MailResponseDto
     {
         public int Id { get; set; }
@@ -18,14 +17,16 @@ namespace BLL.DTOs
         public int AttachedItemQuantity { get; set; }
         public bool IsRead { get; set; }
         public bool IsClaimed { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public DateTime SentAt { get; set; }
         public DateTime? ExpiredAt { get; set; }
     }
 
-    public class SendMailRequestDto
+    public class SendMailByListIdDto
     {
         [Required]
-        public int PlayerProfileId { get; set; }
+        public List<int> PlayerProfileIds { get; set; } = new();
 
         [Required]
         [StringLength(200)]
@@ -42,11 +43,8 @@ namespace BLL.DTOs
         public DateTime? ExpiredAt { get; set; }
     }
 
-    public class BulkSendMailRequestDto
+    public class SendMailToAllDto
     {
-        [Required]
-        public List<int> PlayerProfileIds { get; set; } = new();
-
         [Required]
         [StringLength(200)]
         public string Title { get; set; } = string.Empty;
@@ -57,5 +55,8 @@ namespace BLL.DTOs
         public string Type { get; set; } = "System";
         public decimal AttachedGold { get; set; }
         public decimal AttachedGems { get; set; }
+        public int? AttachedItemId { get; set; }
+        public int AttachedItemQuantity { get; set; }
+        public DateTime? ExpiredAt { get; set; }
     }
 }

@@ -51,7 +51,7 @@ namespace DAL.Repositories
 
         public async Task<Item> UpdateItem(Item item)
         {
-_context.Items.Update(item);
+            _context.Items.Update(item);
             await _context.SaveChangesAsync();
             return item;
         }

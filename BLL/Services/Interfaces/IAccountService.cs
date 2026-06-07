@@ -6,6 +6,7 @@ namespace BLL.Services.Interfaces
     public interface IAccountService
     {
         Task<AccountResponseDto> LoginAccount(LoginRequestDto request);
+        Task<LoginGameResponseDto> LoginGame(LoginGameRequestDto request);
         Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request);
         Task<AccountResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request);
         Task SendVerificationCode(string email);

@@ -89,5 +89,43 @@ namespace Mystic_Journey_API.Controllers
             var result = await _accountAdminService.GetAccountsPaged(page, pageSize, search, isActive, roleName);
             return Ok(result);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/ban")]
+        public async Task<IActionResult> BanAccount(int id)
+        {
+            try
+            {
+                var account = await _accountAdminService.BanAccount(id);
+                return Ok(account);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/unban")]
+        public async Task<IActionResult> UnbanAccount(int id)
+        {
+            try
+            {
+                var account = await _accountAdminService.UnbanAccount(id);
+                return Ok(account);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

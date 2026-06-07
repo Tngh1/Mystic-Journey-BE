@@ -55,28 +55,6 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateGameSettingRequestDto request)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-
-                var setting = await _gameSettingService.CreateSetting(request);
-                return Ok(setting);
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [Authorize(Roles = "Admin")]
         [HttpPut("key/{key}")]
         public async Task<IActionResult> Update(string key, [FromBody] UpdateGameSettingRequestDto request)
         {
