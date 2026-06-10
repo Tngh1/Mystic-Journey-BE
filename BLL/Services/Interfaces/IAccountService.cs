@@ -12,6 +12,9 @@ namespace BLL.Services.Interfaces
         Task SendVerificationCode(string email);
         Task VerifyEmail(VerifyEmailRequestDto request);
         Task<AccountResponseDto> RefreshToken(string refreshToken);
+        Task RevokeRefreshToken(int accountId);
+        Task RevokeRefreshTokenByToken(string refreshToken);
+        Task<MeResponseDto> GetMe(int accountId);
         Task ForgotPassword(string email);
         Task ResetPassword(string email, string verificationCode, string newPassword, string confirmPassword);
     }

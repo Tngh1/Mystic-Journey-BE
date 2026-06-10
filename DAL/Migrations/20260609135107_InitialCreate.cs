@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace DAL.Migrations
 {
     /// <inheritdoc />
@@ -100,7 +102,6 @@ namespace DAL.Migrations
                     Slot = table.Column<string>(type: "text", nullable: false),
                     BaseValue = table.Column<decimal>(type: "numeric", nullable: false),
                     MaxStack = table.Column<int>(type: "integer", nullable: false),
-                    IsTradable = table.Column<bool>(type: "boolean", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IconUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -129,6 +130,7 @@ namespace DAL.Migrations
                     CritDamage = table.Column<int>(type: "integer", nullable: false),
                     ExperienceReward = table.Column<int>(type: "integer", nullable: false),
                     GoldReward = table.Column<decimal>(type: "numeric", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -557,7 +559,10 @@ namespace DAL.Migrations
                     Energy = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TotalDungeonClears = table.Column<int>(type: "integer", nullable: false)
+                    TotalDungeonClears = table.Column<int>(type: "integer", nullable: false),
+                    LastMapName = table.Column<string>(type: "text", nullable: false),
+                    PositionX = table.Column<double>(type: "double precision", nullable: false),
+                    PositionY = table.Column<double>(type: "double precision", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -769,7 +774,9 @@ namespace DAL.Migrations
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     IsClaimed = table.Column<bool>(type: "boolean", nullable: false),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1141,6 +1148,16 @@ namespace DAL.Migrations
                         principalTable: "PlayerProfiles",
                         principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "RoleId", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Player" },
+                    { 2, "Admin" },
+                    { 3, "Super Admin" }
                 });
 
             migrationBuilder.CreateIndex(

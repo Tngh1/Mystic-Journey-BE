@@ -36,7 +36,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateGachaBannerRequestDto request)
         {
@@ -58,7 +58,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateGachaBannerRequestDto request)
         {
@@ -84,7 +84,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("{id}/items")]
         public async Task<IActionResult> AddBannerItem(int id, [FromBody] CreateGachaBannerItemRequestDto request)
         {

@@ -65,7 +65,7 @@ namespace BLL.Services
         {
             return new DailyLoginRewardResponseDto
             {
-                Id = reward.DailyLoginRewardId,
+                DailyLoginRewardId = reward.DailyLoginRewardId,
                 DayNumber = reward.DayNumber,
                 RewardType = reward.RewardType,
                 RewardValue = reward.RewardValue,

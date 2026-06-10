@@ -29,6 +29,10 @@ namespace DAL.Models
 
         public int TotalDungeonClears { get; set; } = 0;
 
+        public string LastMapName { get; set; } = string.Empty;
+        public double PositionX { get; set; } = 0;
+        public double PositionY { get; set; } = 0;
+
         public PlayerStat? PlayerStats { get; set; }
 
         public ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();

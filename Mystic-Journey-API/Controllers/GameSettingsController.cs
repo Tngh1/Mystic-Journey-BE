@@ -54,7 +54,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("key/{key}")]
         public async Task<IActionResult> Update(string key, [FromBody] UpdateGameSettingRequestDto request)
         {

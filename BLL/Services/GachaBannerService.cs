@@ -32,7 +32,7 @@ namespace BLL.Services
             {
                 dto.BannerItems = banner.BannerItems.Select(bi => new GachaBannerItemResponseDto
                 {
-                    Id = bi.GachaBannerItemId,
+                    GachaBannerItemId = bi.GachaBannerItemId,
                     ItemId = bi.ItemId,
                     ItemName = bi.Item?.Name,
                     ItemIconUrl = bi.Item?.IconUrl,
@@ -87,7 +87,7 @@ namespace BLL.Services
 
             return new GachaBannerItemResponseDto
             {
-                Id = created.GachaBannerItemId,
+                GachaBannerItemId = created.GachaBannerItemId,
                 ItemId = created.ItemId,
                 DropRate = created.DropRate,
                 IsFeatured = created.IsFeatured
@@ -100,7 +100,7 @@ namespace BLL.Services
 
             var dtos = items.Select(b => new GachaBannerResponseDto
             {
-                Id = b.GachaBannerId,
+                GachaBannerId = b.GachaBannerId,
                 Name = b.Name,
                 Type = b.Type,
                 PullCost = b.PullCost,
@@ -119,7 +119,7 @@ namespace BLL.Services
 
             var dtos = items.Select(bi => new GachaBannerItemResponseDto
             {
-                Id = bi.GachaBannerItemId,
+                GachaBannerItemId = bi.GachaBannerItemId,
                 ItemId = bi.ItemId,
                 ItemName = bi.Item?.Name,
                 ItemIconUrl = bi.Item?.IconUrl,

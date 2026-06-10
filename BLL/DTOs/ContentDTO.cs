@@ -5,7 +5,7 @@ namespace BLL.DTOs
     // ============ Content ============
     public class ContentResponseDto
     {
-        public int Id { get; set; }
+        public int ContentId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string? Summary { get; set; }
@@ -53,7 +53,7 @@ namespace BLL.DTOs
     // ============ CategoryContent ============
     public class CategoryContentResponseDto
     {
-        public int Id { get; set; }
+        public int CategoryContentId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string? Description { get; set; }
@@ -80,7 +80,7 @@ namespace BLL.DTOs
     // ============ BlockContent ============
     public class BlockContentResponseDto
     {
-        public int Id { get; set; }
+        public int BlockContentId { get; set; }
         public string Title { get; set; } = string.Empty;
         public int ContentId { get; set; }
         public string? ContentData { get; set; }

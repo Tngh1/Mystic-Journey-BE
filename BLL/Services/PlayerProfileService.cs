@@ -97,7 +97,7 @@ namespace BLL.Services
         {
             return new PlayerProfileResponseDto
             {
-                Id = profile.PlayerProfileId,
+                PlayerProfileId = profile.PlayerProfileId,
                 AccountId = profile.AccountId,
                 AccountEmail = profile.Account?.Email,
                 DisplayName = profile.DisplayName,
@@ -118,7 +118,7 @@ namespace BLL.Services
         {
             return new PlayerProfileDetailResponseDto
             {
-                Id = profile.PlayerProfileId,
+                PlayerProfileId = profile.PlayerProfileId,
                 AccountId = profile.AccountId,
                 AccountEmail = profile.Account?.Email,
                 DisplayName = profile.DisplayName,

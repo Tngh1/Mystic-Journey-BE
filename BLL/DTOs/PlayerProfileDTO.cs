@@ -7,7 +7,7 @@ namespace BLL.DTOs
     // ============ PlayerProfile ============
     public class PlayerProfileResponseDto
     {
-        public int Id { get; set; }
+        public int PlayerProfileId { get; set; }
         public int AccountId { get; set; }
         public string? AccountEmail { get; set; }
         public string DisplayName { get; set; } = string.Empty;

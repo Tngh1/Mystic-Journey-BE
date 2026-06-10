@@ -43,14 +43,12 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet]
-        public IActionResult GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
         {
-            var query = _purchaseHistoryService.GetPurchaseHistoriesQueryable();
-            int totalCount = query.Count();
-            var items = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-            return Ok(new { totalCount, items });
+            var result = await _purchaseHistoryService.GetPurchaseHistoriesPaged(page, pageSize, search);
+            return Ok(result);
         }
     }
 }

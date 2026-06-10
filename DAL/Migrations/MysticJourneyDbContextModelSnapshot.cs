@@ -918,9 +918,6 @@ namespace DAL.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsTradable")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("MaxStack")
                         .HasColumnType("integer");
 
@@ -970,10 +967,16 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("ExpiredAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsClaimed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsRead")
@@ -1038,6 +1041,9 @@ namespace DAL.Migrations
 
                     b.Property<decimal>("GoldReward")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1306,8 +1312,18 @@ namespace DAL.Migrations
                     b.Property<decimal>("Gold")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("LastMapName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("Level")
                         .HasColumnType("integer");
+
+                    b.Property<double>("PositionX")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PositionY")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("TotalDungeonClears")
                         .HasColumnType("integer");
@@ -1592,6 +1608,23 @@ namespace DAL.Migrations
                     b.HasKey("RoleId");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            Name = "Player"
+                        },
+                        new
+                        {
+                            RoleId = 2,
+                            Name = "Admin"
+                        },
+                        new
+                        {
+                            RoleId = 3,
+                            Name = "Super Admin"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.ShopItem", b =>

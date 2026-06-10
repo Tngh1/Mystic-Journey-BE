@@ -34,7 +34,7 @@ namespace BLL.Services
                     .Where(d => d.IsActive)
                     .Select(d => new MonsterDropResponseDto
                     {
-                        Id = d.MonsterDropId,
+                        MonsterDropId = d.MonsterDropId,
                         MonsterId = d.MonsterId,
                         ItemId = d.ItemId,
                         ItemName = d.Item?.Name,
@@ -77,6 +77,7 @@ namespace BLL.Services
             monster.CritDamage = request.CritDamage;
             monster.ExperienceReward = request.ExperienceReward;
             monster.GoldReward = request.GoldReward;
+            monster.ImageUrl = request.ImageUrl;
             monster.IsActive = request.IsActive;
 
             var updated = await _repository.UpdateMonster(monster);
@@ -103,7 +104,7 @@ namespace BLL.Services
 
             return new MonsterDropResponseDto
             {
-                Id = created.MonsterDropId,
+                MonsterDropId = created.MonsterDropId,
                 MonsterId = created.MonsterId,
                 ItemId = created.ItemId,
                 DropRate = created.DropRate,
@@ -127,7 +128,7 @@ namespace BLL.Services
 
             var dtos = items.Select(d => new MonsterDropResponseDto
             {
-                Id = d.MonsterDropId,
+                MonsterDropId = d.MonsterDropId,
                 MonsterId = d.MonsterId,
                 ItemId = d.ItemId,
                 ItemName = d.Item?.Name,

@@ -44,6 +44,12 @@ namespace BLL.Services
             _cache = cache;
         }
 
+        private static string HashRefreshToken(string token)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToBase64String(bytes);
+        }
+
         public async Task<AccountResponseDto> LoginAccount(LoginRequestDto request)
         {
             var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
@@ -58,7 +64,7 @@ namespace BLL.Services
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
-            account.RefreshToken = refreshToken;
+            account.RefreshToken = HashRefreshToken(refreshToken);
             account.RefreshTokenExpiresAt = refreshExpiry;
             account.LastLogin = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
@@ -86,7 +92,7 @@ namespace BLL.Services
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
-            account.RefreshToken = refreshToken;
+            account.RefreshToken = HashRefreshToken(refreshToken);
             account.RefreshTokenExpiresAt = refreshExpiry;
             account.LastLogin = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
@@ -142,7 +148,7 @@ namespace BLL.Services
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
-            account.RefreshToken = refreshToken;
+            account.RefreshToken = HashRefreshToken(refreshToken);
             account.RefreshTokenExpiresAt = refreshExpiry;
             await _repository.UpdateAccount(account);
 
@@ -171,7 +177,8 @@ namespace BLL.Services
 
         public async Task<AccountResponseDto> RefreshToken(string refreshToken)
         {
-            var account = await _repository.GetAccountByRefreshToken(refreshToken)
+            var hashed = HashRefreshToken(refreshToken);
+            var account = await _repository.GetAccountByRefreshToken(hashed)
                 ?? throw new UnauthorizedAccessException("Invalid refresh token.");
 
             if (!account.IsActive)
@@ -183,7 +190,7 @@ namespace BLL.Services
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
             var (newRefreshToken, newRefreshExpiry) = GenerateRefreshToken();
 
-            account.RefreshToken = newRefreshToken;
+            account.RefreshToken = HashRefreshToken(newRefreshToken);
             account.RefreshTokenExpiresAt = newRefreshExpiry;
             account.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAccount(account);
@@ -194,6 +201,33 @@ namespace BLL.Services
             response.RefreshToken = newRefreshToken;
             response.RefreshTokenExpiresAt = newRefreshExpiry;
             return response;
+        }
+
+        public async Task RevokeRefreshToken(int accountId)
+        {
+            await _repository.RevokeRefreshToken(accountId);
+        }
+
+        public async Task RevokeRefreshTokenByToken(string refreshToken)
+        {
+            var hashed = HashRefreshToken(refreshToken);
+            await _repository.RevokeRefreshTokenByToken(hashed);
+        }
+
+        public async Task<MeResponseDto> GetMe(int accountId)
+        {
+            var account = await _repository.GetAccountById(accountId)
+                ?? throw new KeyNotFoundException("Account not found.");
+            return new MeResponseDto
+            {
+                AccountId = account.AccountId,
+                UserName = account.UserName,
+                Email = account.Email,
+                Role = account.Role?.Name ?? "Player",
+                LastMapName = account.PlayerProfile?.LastMapName ?? string.Empty,
+                PositionX = account.PlayerProfile?.PositionX ?? 0,
+                PositionY = account.PlayerProfile?.PositionY ?? 0
+            };
         }
 
         public async Task SendVerificationCode(string email)
@@ -266,6 +300,7 @@ namespace BLL.Services
 
             return (new JwtSecurityTokenHandler().WriteToken(token), expires);
         }
+
 
         private (string token, DateTime expires) GenerateRefreshToken()
             => (GenerateRandomToken(64), DateTime.UtcNow.AddDays(RefreshTokenExpiryDays));

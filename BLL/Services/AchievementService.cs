@@ -70,7 +70,7 @@ namespace BLL.Services
         {
             return new AchievementResponseDto
             {
-                Id = achievement.AchievementId,
+                AchievementId = achievement.AchievementId,
                 Name = achievement.Name,
                 Description = achievement.Description,
                 Type = achievement.Type,

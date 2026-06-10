@@ -6,7 +6,7 @@ namespace BLL.DTOs
 {
     public class ItemResponseDto
     {
-        public int Id { get; set; }
+        public int ItemId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string Type { get; set; } = string.Empty;
@@ -14,7 +14,6 @@ namespace BLL.DTOs
         public string Slot { get; set; } = string.Empty;
         public decimal BaseValue { get; set; }
         public int MaxStack { get; set; }
-        public bool IsTradable { get; set; }
         public bool IsActive { get; set; }
         public string? IconUrl { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -50,7 +49,6 @@ namespace BLL.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "MaxStack must be at least 1.")]
         public int MaxStack { get; set; } = 1;
 
-        public bool IsTradable { get; set; } = true;
         public bool IsActive { get; set; } = true;
         public string? IconUrl { get; set; }
 
@@ -85,7 +83,6 @@ namespace BLL.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "MaxStack must be at least 1.")]
         public int MaxStack { get; set; } = 1;
 
-        public bool IsTradable { get; set; } = true;
         public bool IsActive { get; set; } = true;
         public string? IconUrl { get; set; }
 
