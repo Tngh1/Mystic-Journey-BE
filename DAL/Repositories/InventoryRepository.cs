@@ -30,6 +30,14 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);
         }
 
+        public async Task<List<InventoryItem>> GetByPlayerId(int playerProfileId)
+        {
+            return await _context.InventoryItems
+                .Include(i => i.Item)
+                .Where(i => i.PlayerProfileId == playerProfileId)
+                .ToListAsync();
+        }
+
         public async Task<InventoryItem> AddItem(InventoryItem item)
         {
             item.CreatedAt = DateTime.UtcNow;
@@ -53,6 +61,28 @@ namespace DAL.Repositories
                 _context.InventoryItems.Remove(item);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<PlayerSkin?> GetPlayerSkinById(int id)
+        {
+            return await _context.PlayerSkins
+                .Include(ps => ps.Skin)
+                .FirstOrDefaultAsync(ps => ps.PlayerSkinId == id);
+        }
+
+        public async Task<List<PlayerSkin>> GetPlayerSkinsByPlayerId(int playerProfileId)
+        {
+            return await _context.PlayerSkins
+                .Include(ps => ps.Skin)
+                .Where(ps => ps.PlayerProfileId == playerProfileId)
+                .ToListAsync();
+        }
+
+        public async Task<PlayerSkin> UpdatePlayerSkin(PlayerSkin skin)
+        {
+            _context.PlayerSkins.Update(skin);
+            await _context.SaveChangesAsync();
+            return skin;
         }
     }
 }

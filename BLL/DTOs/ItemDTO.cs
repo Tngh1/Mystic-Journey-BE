@@ -24,8 +24,8 @@ namespace BLL.DTOs
         public int? BonusHp { get; set; }
         public int? BonusAtk { get; set; }
         public int? BonusDef { get; set; }
-        public int? BonusCritRate { get; set; }
-        public int? BonusCritDamage { get; set; }
+        public float? BonusCritRate { get; set; }
+        public float? BonusCritDamage { get; set; }
     }
 
     public class CreateItemRequestDto

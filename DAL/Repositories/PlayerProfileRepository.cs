@@ -38,6 +38,14 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(p => p.PlayerProfileId == id);
         }
 
+        public async Task<PlayerProfile?> GetByAccountId(int accountId)
+        {
+            return await _context.PlayerProfiles
+                .Include(p => p.PlayerStats)
+                .Include(p => p.Account)
+                .FirstOrDefaultAsync(p => p.AccountId == accountId);
+        }
+
         public async Task<List<PlayerProfile>> GetAllPlayerProfiles()
         {
             return await _context.PlayerProfiles
@@ -49,6 +57,11 @@ namespace DAL.Repositories
             return await _context.PlayerProfiles
                 .Include(p => p.Account)
                 .ToListAsync();
+        }
+
+        public async Task<PlayerStatsSnapshot?> GetSnapshotByPlayerProfileId(int playerProfileId)
+        {
+            return await _context.PlayerStatsSnapshots.FirstOrDefaultAsync(s => s.PlayerProfileId == playerProfileId);
         }
 
         public async Task<PlayerProfile> CreatePlayerProfile(PlayerProfile profile)

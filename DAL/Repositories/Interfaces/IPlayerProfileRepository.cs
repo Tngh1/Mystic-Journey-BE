@@ -9,6 +9,8 @@ namespace DAL.Repositories.Interfaces
         Task<PlayerProfile?> GetPlayerProfileById(int id);
         Task<PlayerProfile?> GetPlayerProfileByIdWithStats(int id);
         Task<PlayerProfile?> GetByIdFull(int id);
+        Task<PlayerProfile?> GetByAccountId(int accountId);
+        Task<PlayerStatsSnapshot?> GetSnapshotByPlayerProfileId(int playerProfileId);
         Task<List<PlayerProfile>> GetAllPlayerProfiles();
         Task<List<PlayerProfile>> GetAllPlayerProfilesWithAccounts();
         Task<PlayerProfile> CreatePlayerProfile(PlayerProfile profile);

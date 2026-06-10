@@ -1,0 +1,31 @@
+# Docker build artifacts
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# Git
+.git
+.gitignore
+
+# IDE / OS
+.vs
+.vscode
+.idea
+*.suo
+*.user
+Thumbs.db
+
+# Build outputs
+**/bin
+**/obj
+**/publish
+
+# Node (if any)
+**/node_modules
+
+# Docs and configs
+*.md
+**/appsettings.Development.json
+**/appsettings.*.json
+.env.docker
+
