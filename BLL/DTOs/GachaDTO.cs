@@ -5,7 +5,7 @@ namespace BLL.DTOs
     // ============ Gacha ============
     public class GachaBannerResponseDto
     {
-        public int Id { get; set; }
+        public int GachaBannerId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public int PullCost { get; set; }
@@ -22,7 +22,7 @@ namespace BLL.DTOs
 
     public class GachaBannerItemResponseDto
     {
-        public int Id { get; set; }
+        public int GachaBannerItemId { get; set; }
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public string? ItemIconUrl { get; set; }

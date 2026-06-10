@@ -102,7 +102,7 @@ namespace BLL.Services
             var categories = await _repository.GetAllCategories();
             return categories.Select(c => new CategoryContentResponseDto
             {
-                Id = c.CategoryContentId,
+                CategoryContentId = c.CategoryContentId,
                 Name = c.Name,
                 Slug = c.Slug,
                 Description = c.Description,
@@ -128,7 +128,7 @@ namespace BLL.Services
 
             return new CategoryContentResponseDto
             {
-                Id = created.CategoryContentId,
+                CategoryContentId = created.CategoryContentId,
                 Name = created.Name,
                 Slug = created.Slug,
                 Description = created.Description,
@@ -157,7 +157,7 @@ namespace BLL.Services
 
             return new BlockContentResponseDto
             {
-                Id = created.BlockContentId,
+                BlockContentId = created.BlockContentId,
                 Title = created.Title,
                 ContentId = created.ContentId,
                 ContentData = created.ContentData,
@@ -189,7 +189,7 @@ namespace BLL.Services
 
             return new BlockContentResponseDto
             {
-                Id = updated.BlockContentId,
+                BlockContentId = updated.BlockContentId,
                 Title = updated.Title,
                 ContentId = updated.ContentId,
                 ContentData = updated.ContentData,
@@ -217,7 +217,7 @@ namespace BLL.Services
 
             var dtos = items.Select(c => new CategoryContentResponseDto
             {
-                Id = c.CategoryContentId,
+                CategoryContentId = c.CategoryContentId,
                 Name = c.Name,
                 Slug = c.Slug,
                 Description = c.Description,
@@ -234,7 +234,7 @@ namespace BLL.Services
 
             var dtos = items.Select(b => new BlockContentResponseDto
             {
-                Id = b.BlockContentId,
+                BlockContentId = b.BlockContentId,
                 Title = b.Title,
                 ContentId = b.ContentId,
                 ContentData = b.ContentData,
@@ -253,7 +253,7 @@ namespace BLL.Services
         {
             return new ContentResponseDto
             {
-                Id = content.ContentId,
+                ContentId = content.ContentId,
                 Title = content.Title,
                 Slug = content.Slug,
                 Summary = content.Summary,
@@ -272,7 +272,7 @@ namespace BLL.Services
         {
             return new ContentDetailResponseDto
             {
-                Id = content.ContentId,
+                ContentId = content.ContentId,
                 Title = content.Title,
                 Slug = content.Slug,
                 Summary = content.Summary,
@@ -286,7 +286,7 @@ namespace BLL.Services
                 PublishedAt = content.PublishedAt,
                 Blocks = content.BlockContents?.Select(b => new BlockContentResponseDto
                 {
-                    Id = b.BlockContentId,
+                    BlockContentId = b.BlockContentId,
                     Title = b.Title,
                     ContentId = b.ContentId,
                     ContentData = b.ContentData,

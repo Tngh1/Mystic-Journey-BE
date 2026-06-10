@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260607054400_InitialCreate")]
+    [Migration("20260609135107_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -921,9 +921,6 @@ namespace DAL.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsTradable")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("MaxStack")
                         .HasColumnType("integer");
 
@@ -1047,6 +1044,9 @@ namespace DAL.Migrations
 
                     b.Property<decimal>("GoldReward")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1315,8 +1315,18 @@ namespace DAL.Migrations
                     b.Property<decimal>("Gold")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("LastMapName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("Level")
                         .HasColumnType("integer");
+
+                    b.Property<double>("PositionX")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PositionY")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("TotalDungeonClears")
                         .HasColumnType("integer");

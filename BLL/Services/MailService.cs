@@ -171,7 +171,7 @@ namespace BLL.Services
         {
             return new MailResponseDto
             {
-                Id = mail.MailId,
+                MailId = mail.MailId,
                 PlayerProfileId = mail.PlayerProfileId,
                 PlayerName = playerName ?? mail.PlayerProfile?.DisplayName,
                 Title = mail.Title,
@@ -197,7 +197,7 @@ namespace BLL.Services
 
             var dtos = items.Select(m => new MailResponseDto
             {
-                Id = m.MailId,
+                MailId = m.MailId,
                 PlayerProfileId = m.PlayerProfileId,
                 PlayerName = m.PlayerProfile?.DisplayName,
                 Title = m.Title,

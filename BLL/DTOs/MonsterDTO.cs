@@ -5,7 +5,7 @@ namespace BLL.DTOs
     // ============ Monster ============
     public class MonsterResponseDto
     {
-        public int Id { get; set; }
+        public int MonsterId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -19,12 +19,13 @@ namespace BLL.DTOs
         public int CritDamage { get; set; }
         public int ExperienceReward { get; set; }
         public decimal GoldReward { get; set; }
+        public string? ImageUrl { get; set; }
         public bool IsActive { get; set; }
     }
 
     public class MonsterDropResponseDto
     {
-        public int Id { get; set; }
+        public int MonsterDropId { get; set; }
         public int MonsterId { get; set; }
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
@@ -67,6 +68,7 @@ namespace BLL.DTOs
         public int CritDamage { get; set; } = 150;
         public int ExperienceReward { get; set; } = 10;
         public decimal GoldReward { get; set; } = 5;
+        public string? ImageUrl { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -97,6 +99,7 @@ namespace BLL.DTOs
         public int CritDamage { get; set; } = 150;
         public int ExperienceReward { get; set; } = 10;
         public decimal GoldReward { get; set; } = 5;
+        public string? ImageUrl { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
