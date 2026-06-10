@@ -102,7 +102,6 @@ namespace DAL.Migrations
                     Slot = table.Column<string>(type: "text", nullable: false),
                     BaseValue = table.Column<decimal>(type: "numeric", nullable: false),
                     MaxStack = table.Column<int>(type: "integer", nullable: false),
-                    IsTradable = table.Column<bool>(type: "boolean", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IconUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -131,6 +130,7 @@ namespace DAL.Migrations
                     CritDamage = table.Column<int>(type: "integer", nullable: false),
                     ExperienceReward = table.Column<int>(type: "integer", nullable: false),
                     GoldReward = table.Column<decimal>(type: "numeric", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },

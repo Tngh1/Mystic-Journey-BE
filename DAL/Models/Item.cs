@@ -21,7 +21,6 @@ namespace DAL.Models
 
         public decimal BaseValue { get; set; } = 0;
         public int MaxStack { get; set; } = 1;
-        public bool IsTradable { get; set; } = true;
         public bool IsActive { get; set; } = true;
 
         public string? IconUrl { get; set; }

@@ -45,7 +45,7 @@ namespace BLL.Services
             return await GetShopItemById(created.ShopItemId)
                 ?? new ShopItemResponseDto
                 {
-                    Id = created.ShopItemId,
+                    ShopItemId = created.ShopItemId,
                     ItemId = created.ItemId,
                     Currency = created.Currency,
                     Price = created.Price,
@@ -86,7 +86,7 @@ namespace BLL.Services
         {
             return new ShopItemResponseDto
             {
-                Id = shopItem.ShopItemId,
+                ShopItemId = shopItem.ShopItemId,
                 ItemId = shopItem.ItemId,
                 ItemName = shopItem.Item?.Name,
                 ItemIconUrl = shopItem.Item?.IconUrl,

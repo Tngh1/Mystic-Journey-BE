@@ -5,7 +5,7 @@ namespace BLL.DTOs
     // ============ Shop ============
     public class ShopItemResponseDto
     {
-        public int Id { get; set; }
+        public int ShopItemId { get; set; }
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public string? ItemIconUrl { get; set; }
@@ -54,7 +54,7 @@ namespace BLL.DTOs
     // ============ Purchase History ============
     public class PurchaseHistoryResponseDto
     {
-        public int Id { get; set; }
+        public int PurchaseHistoryId { get; set; }
         public int PlayerProfileId { get; set; }
         public string? PlayerName { get; set; }
         public int ShopItemId { get; set; }

@@ -5,7 +5,7 @@ namespace BLL.DTOs
     // ============ DailyLoginReward ============
     public class DailyLoginRewardResponseDto
     {
-        public int Id { get; set; }
+        public int DailyLoginRewardId { get; set; }
         public int DayNumber { get; set; }
         public string RewardType { get; set; } = "Gold";
         public decimal RewardValue { get; set; }

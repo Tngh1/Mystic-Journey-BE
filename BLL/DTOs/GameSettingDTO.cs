@@ -5,7 +5,7 @@ namespace BLL.DTOs
     // ============ GameSetting ============
     public class GameSettingResponseDto
     {
-        public int Id { get; set; }
+        public int GameSettingId { get; set; }
         public string Key { get; set; } = string.Empty;
         public string? Value { get; set; }
         public string? Description { get; set; }

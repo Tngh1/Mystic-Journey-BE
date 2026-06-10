@@ -53,7 +53,6 @@ namespace BLL.Services
                 Slot = request.Slot,
                 BaseValue = request.BaseValue,
                 MaxStack = request.MaxStack,
-                IsTradable = request.IsTradable,
                 IsActive = request.IsActive,
                 IconUrl = request.IconUrl,
                 CreatedAt = DateTime.UtcNow
@@ -93,7 +92,6 @@ namespace BLL.Services
             item.Slot = request.Slot;
             item.BaseValue = request.BaseValue;
             item.MaxStack = request.MaxStack;
-            item.IsTradable = request.IsTradable;
             item.IsActive = request.IsActive;
             item.IconUrl = request.IconUrl;
 

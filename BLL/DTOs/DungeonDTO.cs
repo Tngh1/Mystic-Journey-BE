@@ -5,7 +5,7 @@ namespace BLL.DTOs
     // ============ Dungeon ============
     public class DungeonConfigResponseDto
     {
-        public int Id { get; set; }
+        public int DungeonConfigId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }

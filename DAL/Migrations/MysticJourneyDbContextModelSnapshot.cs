@@ -918,9 +918,6 @@ namespace DAL.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsTradable")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("MaxStack")
                         .HasColumnType("integer");
 
@@ -1044,6 +1041,9 @@ namespace DAL.Migrations
 
                     b.Property<decimal>("GoldReward")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");

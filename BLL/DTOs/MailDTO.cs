@@ -4,7 +4,7 @@ namespace BLL.DTOs
 {
     public class MailResponseDto
     {
-        public int Id { get; set; }
+        public int MailId { get; set; }
         public int PlayerProfileId { get; set; }
         public string? PlayerName { get; set; }
         public string Title { get; set; } = string.Empty;

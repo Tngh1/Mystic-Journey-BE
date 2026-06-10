@@ -1,5 +1,4 @@
 using BLL.DTOs;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
@@ -8,6 +7,6 @@ namespace BLL.Services.Interfaces
     {
         Task<List<PurchaseHistoryResponseDto>> GetAllPurchaseHistories();
         Task<List<PurchaseHistoryResponseDto>> GetPurchasesByPlayerId(int playerProfileId);
-        IQueryable<PurchaseHistoryResponseDto> GetPurchaseHistoriesQueryable();
+        Task<PagedResultDto<PurchaseHistoryResponseDto>> GetPurchaseHistoriesPaged(int page, int pageSize, string? search = null);
     }
 }

@@ -46,7 +46,7 @@ namespace BLL.Services
         {
             return new PurchaseHistoryResponseDto
             {
-                Id = purchase.PurchaseHistoryId,
+                PurchaseHistoryId = purchase.PurchaseHistoryId,
                 PlayerProfileId = purchase.PlayerProfileId,
                 PlayerName = purchase.PlayerProfile?.DisplayName ?? "",
                 ShopItemId = purchase.ShopItemId,

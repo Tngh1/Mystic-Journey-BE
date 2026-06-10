@@ -51,7 +51,7 @@ namespace BLL.Services
         {
             return new PurchaseHistoryResponseDto
             {
-                Id = purchase.PurchaseHistoryId,
+                PurchaseHistoryId = purchase.PurchaseHistoryId,
                 PlayerProfileId = purchase.PlayerProfileId,
                 PlayerName = purchase.PlayerProfile?.DisplayName,
                 ShopItemId = purchase.ShopItemId,
@@ -63,15 +63,31 @@ namespace BLL.Services
             };
         }
 
-        public IQueryable<PurchaseHistoryResponseDto> GetPurchaseHistoriesQueryable()
+        public async Task<PagedResultDto<PurchaseHistoryResponseDto>> GetPurchaseHistoriesPaged(int page, int pageSize, string? search = null)
         {
-            return _context.PurchaseHistories
+            var query = _context.PurchaseHistories
                 .Include(p => p.PlayerProfile)
                 .Include(p => p.ShopItem)
                     .ThenInclude(s => s!.Item)
-                .AsNoTracking()
-                .Select(MapToResponseDto)
-                .AsQueryable();
+                .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(p =>
+                    (p.PlayerProfile != null && p.PlayerProfile.DisplayName.Contains(search)) ||
+                    (p.ShopItem != null && p.ShopItem.Item != null && p.ShopItem.Item.Name.Contains(search)) ||
+                    (p.ShopItem != null && p.ShopItem.Currency.Contains(search)));
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(p => p.PurchasedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dtos = items.Select(MapToResponseDto).ToList();
+            return new PagedResultDto<PurchaseHistoryResponseDto>(totalCount, dtos);
         }
     }
 }

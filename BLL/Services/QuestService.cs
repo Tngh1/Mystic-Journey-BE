@@ -35,7 +35,7 @@ namespace BLL.Services
             return await GetQuestById(created.QuestId)
                 ?? new QuestResponseDto
                 {
-                    Id = created.QuestId,
+                    QuestId = created.QuestId,
                     Title = created.Title,
                     Description = created.Description,
                     Type = created.Type,
@@ -80,7 +80,7 @@ namespace BLL.Services
         {
             return new QuestResponseDto
             {
-                Id = quest.QuestId,
+                QuestId = quest.QuestId,
                 Title = quest.Title,
                 Description = quest.Description,
                 Type = quest.Type,

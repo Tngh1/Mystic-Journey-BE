@@ -68,7 +68,7 @@ namespace BLL.Services
         {
             return new GameSettingResponseDto
             {
-                Id = setting.GameSettingId,
+                GameSettingId = setting.GameSettingId,
                 Key = setting.Name,
                 Value = setting.Value,
                 Description = setting.Description,
