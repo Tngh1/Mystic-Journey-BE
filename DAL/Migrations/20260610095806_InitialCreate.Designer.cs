@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260609135107_InitialCreate")]
+    [Migration("20260610095806_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1515,6 +1515,60 @@ namespace DAL.Migrations
                     b.ToTable("PlayerStats");
                 });
 
+            modelBuilder.Entity("DAL.Models.PlayerStatsSnapshot", b =>
+                {
+                    b.Property<int>("PlayerStatsSnapshotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerStatsSnapshotId"));
+
+                    b.Property<int>("Atk")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AttackSpeed")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CritDamage")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CritRate")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DamageBonus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Def")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxHp")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MoveSpeed")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PlayerProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PlayerStatsSnapshotId");
+
+                    b.HasIndex("PlayerProfileId")
+                        .IsUnique();
+
+                    b.ToTable("PlayerStatsSnapshots");
+                });
+
             modelBuilder.Entity("DAL.Models.PurchaseHistory", b =>
                 {
                     b.Property<int>("PurchaseHistoryId")
@@ -2227,6 +2281,17 @@ namespace DAL.Migrations
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
                         .WithOne("PlayerStats")
                         .HasForeignKey("DAL.Models.PlayerStat", "PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlayerProfile");
+                });
+
+            modelBuilder.Entity("DAL.Models.PlayerStatsSnapshot", b =>
+                {
+                    b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
+                        .WithMany()
+                        .HasForeignKey("PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
