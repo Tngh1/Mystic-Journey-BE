@@ -13,6 +13,7 @@ namespace DAL.Data
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
         public DbSet<PlayerStat> PlayerStats => Set<PlayerStat>();
+        public DbSet<PlayerStatsSnapshot> PlayerStatsSnapshots => Set<PlayerStatsSnapshot>();
         public DbSet<Item> Items => Set<Item>();
         public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
         public DbSet<EquipmentStats> EquipmentStats => Set<EquipmentStats>();
@@ -58,6 +59,9 @@ namespace DAL.Data
         new Role { RoleId = 2, Name = "Admin" },
         new Role { RoleId = 3, Name = "Super Admin" }
     );
+        modelBuilder.Entity<PlayerStatsSnapshot>()
+            .HasIndex(s => s.PlayerProfileId)
+            .IsUnique();
         }
     }
 }

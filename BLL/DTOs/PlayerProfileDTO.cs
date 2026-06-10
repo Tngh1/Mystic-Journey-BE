@@ -34,11 +34,11 @@ namespace BLL.DTOs
         public int MaxHp { get; set; }
         public int Atk { get; set; }
         public int Def { get; set; }
-        public int MoveSpeed { get; set; }
-        public int AttackSpeed { get; set; }
-        public int CritRate { get; set; }
-        public int CritDamage { get; set; }
-        public int DamageBonus { get; set; }
+        public float MoveSpeed { get; set; }
+        public float AttackSpeed { get; set; }
+        public float CritRate { get; set; }
+        public float CritDamage { get; set; }
+        public float DamageBonus { get; set; }
         public int SkillPoints { get; set; }
         public int TotalWins { get; set; }
         public int TotalLosses { get; set; }

@@ -26,18 +26,21 @@ namespace BLL.DTOs
         public int BonusHp { get; set; }
         public int BonusAtk { get; set; }
         public int BonusDef { get; set; }
-        public int BonusCritRate { get; set; }
-        public int BonusCritDamage { get; set; }
+        public float BonusCritRate { get; set; }
+        public float BonusCritDamage { get; set; }
     }
 
     public class EquipItemRequestDto
     {
         [Required]
         public int InventoryItemId { get; set; }
-
-        public string? Slot { get; set; }
     }
 
+    public class UnequipSkinRequestDto
+    {
+        [Required]
+        public int PlayerSkinId { get; set; }
+    }
     public class UnequipItemRequestDto
     {
         [Required]
@@ -97,5 +100,20 @@ namespace BLL.DTOs
 
         [Range(0, int.MaxValue, ErrorMessage = "EnhancementLevel cannot be negative.")]
         public int EnhancementLevel { get; set; }
+    }
+
+    public class ConsumeItemRequestDto
+    {
+        [Required]
+        public int InventoryItemId { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int Quantity { get; set; } = 1;
+    }
+
+    public class InventoryActionResultDto
+    {
+        public InventoryItemResponseDto? Item { get; set; }
+        public PlayerStatsResponseDto? PlayerStats { get; set; }
     }
 }

@@ -35,8 +35,8 @@ namespace BLL.Services
                 dto.BonusHp = item.EquipmentStats.BonusHp;
                 dto.BonusAtk = item.EquipmentStats.BonusAtk;
                 dto.BonusDef = item.EquipmentStats.BonusDef;
-                dto.BonusCritRate = item.EquipmentStats.BonusCritRate;
-                dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage;
+                dto.BonusCritRate = item.EquipmentStats.BonusCritRate != 0 ? BLL.Utils.StatHelper.FromScaled(item.EquipmentStats.BonusCritRate, BLL.Utils.StatScale.CritRate) : 0f;
+                dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage != 0 ? BLL.Utils.StatHelper.FromScaled(item.EquipmentStats.BonusCritDamage, BLL.Utils.StatScale.CritRate) : 0f;
             }
 
             return dto;
@@ -133,8 +133,8 @@ namespace BLL.Services
                     dto.BonusHp = item.EquipmentStats.BonusHp;
                     dto.BonusAtk = item.EquipmentStats.BonusAtk;
                     dto.BonusDef = item.EquipmentStats.BonusDef;
-                    dto.BonusCritRate = item.EquipmentStats.BonusCritRate;
-                    dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage;
+                    dto.BonusCritRate = item.EquipmentStats.BonusCritRate != 0 ? BLL.Utils.StatHelper.FromScaled(item.EquipmentStats.BonusCritRate, BLL.Utils.StatScale.CritRate) : 0f;
+                    dto.BonusCritDamage = item.EquipmentStats.BonusCritDamage != 0 ? BLL.Utils.StatHelper.FromScaled(item.EquipmentStats.BonusCritDamage, BLL.Utils.StatScale.CritRate) : 0f;
                 }
                 return dto;
             }).ToList();
