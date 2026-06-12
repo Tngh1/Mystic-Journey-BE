@@ -53,6 +53,7 @@ namespace BLL.Services
             achievement.RewardQuantity = request.RewardQuantity;
             achievement.RewardGold = request.RewardGold;
             achievement.RewardGem = request.RewardGem;
+            achievement.Point = request.Point;
 
             var updated = await _repository.UpdateAchievement(achievement);
             return MapToResponseDto(updated);
@@ -82,7 +83,8 @@ namespace BLL.Services
                 RewardItemName = achievement.RewardItem?.Name,
                 RewardQuantity = achievement.RewardQuantity,
                 RewardGold = achievement.RewardGold,
-                RewardGem = achievement.RewardGem
+                RewardGem = achievement.RewardGem,
+                Point = achievement.Point
             };
         }
     }
