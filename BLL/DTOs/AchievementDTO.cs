@@ -18,6 +18,7 @@ namespace BLL.DTOs
         public int RewardQuantity { get; set; }
         public decimal RewardGold { get; set; }
         public int RewardGem { get; set; }
+        public int Point { get; set; }
     }
 
     public class CreateAchievementRequestDto
@@ -35,6 +36,7 @@ namespace BLL.DTOs
         public int RewardQuantity { get; set; } = 1;
         public decimal RewardGold { get; set; }
         public int RewardGem { get; set; }
+        public int Point { get; set; }
     }
 
     public class UpdateAchievementRequestDto
@@ -52,5 +54,6 @@ namespace BLL.DTOs
         public int RewardQuantity { get; set; } = 1;
         public decimal RewardGold { get; set; }
         public int RewardGem { get; set; }
+        public int Point { get; set; }
     }
 }

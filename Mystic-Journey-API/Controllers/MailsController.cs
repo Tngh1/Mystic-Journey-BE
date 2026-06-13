@@ -96,7 +96,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize]
         [HttpPost("{id}/read")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
@@ -115,7 +115,7 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize]
         [HttpPost("{id}/claim")]
         public async Task<IActionResult> ClaimReward(int id)
         {

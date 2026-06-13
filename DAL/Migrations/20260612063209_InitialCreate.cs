@@ -240,7 +240,8 @@ namespace DAL.Migrations
                     RewardItemId = table.Column<int>(type: "integer", nullable: true),
                     RewardQuantity = table.Column<int>(type: "integer", nullable: false),
                     RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
-                    RewardGem = table.Column<int>(type: "integer", nullable: false)
+                    RewardGem = table.Column<int>(type: "integer", nullable: false),
+                    Point = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

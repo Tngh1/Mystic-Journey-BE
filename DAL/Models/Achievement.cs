@@ -30,6 +30,8 @@ namespace DAL.Models
         public decimal RewardGold { get; set; } = 0;
         public int RewardGem { get; set; } = 0;
 
+        public int Point { get; set; } = 0;
+
         public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
     }
 }
