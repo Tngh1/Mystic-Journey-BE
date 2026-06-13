@@ -1,46 +1,14 @@
+# Docker Compose for Mystic Journey Backend
 services:
   api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: mystic-journey-api
-    restart: unless-stopped
     ports:
       - "8080:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
     env_file:
       - ./Mystic-Journey-API/.env
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - mystic-network
-
-  db:
-    image: postgres:16-alpine
-    container_name: mystic-journey-db
-    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
-      POSTGRES_DB: ${POSTGRES_DB:-MysticJourneyDB}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - mystic-network
-
-volumes:
-  postgres_data:
-    driver: local
-
-networks:
-  mystic-network:
-    driver: bridge
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped

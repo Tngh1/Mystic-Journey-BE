@@ -1,47 +1,35 @@
-# Stage 1: Build
+# Mystic Journey Backend Dockerfile
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution and project files first (for better layer caching)
-COPY Mystic-Journey-BE.sln ./
-COPY Mystic-Journey-API/Mystic-Journey-API.csproj Mystic-Journey-API/
+# Copy project files
 COPY BLL/BLL.csproj BLL/
 COPY DAL/DAL.csproj DAL/
+COPY Mystic-Journey-API/Mystic-Journey-API.csproj Mystic-Journey-API/
 
 # Restore dependencies
 RUN dotnet restore Mystic-Journey-API/Mystic-Journey-API.csproj
 
 # Copy all source files
-COPY . .
+COPY BLL/ BLL/
+COPY DAL/ DAL/
+COPY Mystic-Journey-API/ Mystic-Journey-API/
 
-# Build and publish
+# Build
 WORKDIR /src/Mystic-Journey-API
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet build -c Release -o /app/build
 
-# Stage 2: Runtime
+# Publish
+FROM build AS publish
+RUN dotnet publish -c Release -o /app/publish
+
+# Final runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+COPY --from=publish /app/publish .
 
-# Create non-root user for security
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
-
-COPY --from=build /app/publish .
-
-# Set ownership
-RUN chown -R appuser:appgroup /app
-
-# Switch to non-root user
-USER appuser
-
-# Expose port
 EXPOSE 8080
-
-# Set environment variables
 ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_ENVIRONMENT=Production
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl --fail http://localhost:8080/swagger/index.html || exit 1
+ENV ASPNETCORE_ENVIRONMENT=Development
 
 ENTRYPOINT ["dotnet", "Mystic-Journey-API.dll"]
