@@ -52,7 +52,6 @@ namespace BLL.Services
                 ThumbnailUrl = request.ThumbnailUrl,
                 CategoryContentId = request.CategoryId,
                 IsPublished = request.IsPublished,
-                IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 PublishedAt = request.IsPublished ? DateTime.UtcNow : null
             };
@@ -72,7 +71,6 @@ namespace BLL.Services
             content.ThumbnailUrl = request.ThumbnailUrl;
             content.CategoryContentId = request.CategoryId;
             content.IsPublished = request.IsPublished;
-            content.IsActive = request.IsActive;
             content.UpdatedAt = DateTime.UtcNow;
 
             if (request.IsPublished && content.PublishedAt == null)
@@ -136,6 +134,39 @@ namespace BLL.Services
                 IsActive = created.IsActive,
                 CreatedAt = created.CreatedAt
             };
+        }
+
+        public async Task<CategoryContentResponseDto> UpdateCategory(int id, CreateCategoryContentRequestDto request)
+        {
+            var category = await _repository.GetCategoryById(id)
+                ?? throw new KeyNotFoundException($"Category with id {id} not found.");
+
+            category.Name = request.Name;
+            category.Slug = string.IsNullOrWhiteSpace(request.Slug) ? GenerateSlug(request.Name) : request.Slug;
+            category.Description = request.Description;
+            category.IconUrl = request.IconUrl;
+            category.IsActive = request.IsActive;
+
+            var updated = await _repository.UpdateCategory(category);
+
+            return new CategoryContentResponseDto
+            {
+                CategoryContentId = updated.CategoryContentId,
+                Name = updated.Name,
+                Slug = updated.Slug,
+                Description = updated.Description,
+                IconUrl = updated.IconUrl,
+                IsActive = updated.IsActive,
+                CreatedAt = updated.CreatedAt
+            };
+        }
+
+        public async Task DeleteCategory(int id)
+        {
+            var category = await _repository.GetCategoryById(id)
+                ?? throw new KeyNotFoundException($"Category with id {id} not found.");
+
+            await _repository.DeleteCategory(id);
         }
 
         public async Task<BlockContentResponseDto> CreateBlock(CreateBlockContentRequestDto request)
@@ -203,9 +234,9 @@ namespace BLL.Services
             };
         }
 
-        public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, bool? isActive)
+        public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished)
         {
-            var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished, isActive);
+            var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished);
 
             var dtos = items.Select(MapToResponseDto).ToList();
             return new PagedResultDto<ContentResponseDto>(totalCount, dtos);
@@ -261,7 +292,7 @@ namespace BLL.Services
                 CategoryId = content.CategoryContentId,
                 CategoryName = content.CategoryContent?.Name,
                 IsPublished = content.IsPublished,
-                IsActive = content.IsActive,
+                CreatedByName = content.CreatedByAccount?.UserName ?? string.Empty,
                 CreatedAt = content.CreatedAt,
                 UpdatedAt = content.UpdatedAt,
                 PublishedAt = content.PublishedAt
@@ -280,7 +311,7 @@ namespace BLL.Services
                 CategoryId = content.CategoryContentId,
                 CategoryName = content.CategoryContent?.Name,
                 IsPublished = content.IsPublished,
-                IsActive = content.IsActive,
+                CreatedByName = content.CreatedByAccount?.UserName ?? string.Empty,
                 CreatedAt = content.CreatedAt,
                 UpdatedAt = content.UpdatedAt,
                 PublishedAt = content.PublishedAt,

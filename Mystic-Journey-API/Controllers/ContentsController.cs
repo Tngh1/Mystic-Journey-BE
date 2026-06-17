@@ -160,6 +160,51 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPut("categories/{id}")]
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CreateCategoryContentRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var category = await _contentService.UpdateCategory(id, request);
+                return Ok(category);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpDelete("categories/{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            try
+            {
+                await _contentService.DeleteCategory(id);
+                return Ok(new { message = "Category deleted successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("blocks")]
         public async Task<IActionResult> CreateBlock([FromBody] CreateBlockContentRequestDto request)
         {
@@ -208,9 +253,9 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null, [FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null)
         {
-            var result = await _contentService.GetContentsPaged(page, pageSize, search, isPublished, isActive);
+            var result = await _contentService.GetContentsPaged(page, pageSize, search, isPublished);
             return Ok(result);
         }
 

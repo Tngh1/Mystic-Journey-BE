@@ -84,6 +84,23 @@ _context.Contents.Update(content);
             return category;
         }
 
+        public async Task<CategoryContent> UpdateCategory(CategoryContent category)
+        {
+            _context.CategoryContents.Update(category);
+            await _context.SaveChangesAsync();
+            return category;
+        }
+
+        public async Task DeleteCategory(int id)
+        {
+            var category = await _context.CategoryContents.FindAsync(id);
+            if (category != null)
+            {
+                _context.CategoryContents.Remove(category);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task<BlockContent?> GetBlockById(int id)
         {
             return await _context.BlockContents
@@ -112,7 +129,7 @@ _context.Contents.Update(content);
             return block;
         }
 
-        public async Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, bool? isActive)
+        public async Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished)
         {
             var query = _context.Contents
                 .Include(c => c.CategoryContent)
@@ -125,10 +142,6 @@ _context.Contents.Update(content);
             if (isPublished.HasValue)
             {
                 query = query.Where(x => x.IsPublished == isPublished.Value);
-            }
-            if (isActive.HasValue)
-            {
-                query = query.Where(x => x.IsActive == isActive.Value);
             }
 
             int totalCount = await query.CountAsync();
