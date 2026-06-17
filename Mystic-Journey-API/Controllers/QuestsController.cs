@@ -85,9 +85,9 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null, [FromQuery] string? mapName = null)
         {
-            var result = await _questService.GetQuestsPaged(page, pageSize, search, type, isActive);
+            var result = await _questService.GetQuestsPaged(page, pageSize, search, type, isActive, mapName);
             return Ok(result);
         }
     }

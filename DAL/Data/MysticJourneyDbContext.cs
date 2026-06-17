@@ -21,6 +21,8 @@ namespace DAL.Data
         public DbSet<PlayerSkill> PlayerSkills => Set<PlayerSkill>();
         public DbSet<Quest> Quests => Set<Quest>();
         public DbSet<PlayerQuest> PlayerQuests => Set<PlayerQuest>();
+        public DbSet<NPC> NPCs => Set<NPC>();
+        public DbSet<NPCDialogue> NPCDialogues => Set<NPCDialogue>();
         public DbSet<Monster> Monsters => Set<Monster>();
         public DbSet<PurchaseHistory> PurchaseHistories => Set<PurchaseHistory>();
         public DbSet<PlayerCurrencyLog> PlayerCurrencyLogs => Set<PlayerCurrencyLog>();
@@ -62,6 +64,10 @@ namespace DAL.Data
         modelBuilder.Entity<PlayerStatsSnapshot>()
             .HasIndex(s => s.PlayerProfileId)
             .IsUnique();
+        modelBuilder.Entity<Quest>()
+            .HasIndex(q => q.MapName);
+        modelBuilder.Entity<NPC>()
+            .HasIndex(n => n.MapName);
         }
     }
 }

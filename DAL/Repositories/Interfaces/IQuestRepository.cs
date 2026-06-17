@@ -12,6 +12,6 @@ namespace DAL.Repositories.Interfaces
         Task<List<Quest>> GetActiveQuests();
         Task<Quest> CreateQuest(Quest quest);
         Task<Quest> UpdateQuest(Quest quest);
-        Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName);
     }
 }

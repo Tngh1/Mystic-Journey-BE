@@ -49,6 +49,9 @@ builder.Services.AddScoped<IGachaBannerService, GachaBannerService>();
 // Quest Services
 builder.Services.AddScoped<IQuestRepository, QuestRepository>();
 builder.Services.AddScoped<IQuestService, QuestService>();
+builder.Services.AddScoped<IPlayerQuestRepository, PlayerQuestRepository>();
+builder.Services.AddScoped<IPlayerQuestService, PlayerQuestService>();
+builder.Services.AddScoped<IWorldService, WorldService>();
 
 // Achievement Services
 builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();

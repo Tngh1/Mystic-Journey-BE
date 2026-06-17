@@ -10,7 +10,14 @@ namespace BLL.DTOs
         public string? Description { get; set; }
         public string Type { get; set; } = "Main";
         public string DefaultStatus { get; set; } = "NotStarted";
+        public string MapName { get; set; } = "ElfForest";
+        public string? RegionName { get; set; }
+        public string ObjectiveType { get; set; } = "Explore";
+        public string? ObjectiveTarget { get; set; }
+        public string? ObjectiveLocation { get; set; }
+        public string? QuestGiverName { get; set; }
         public int RequiredLevel { get; set; }
+        public int TargetAmount { get; set; }
         public int RewardExperience { get; set; }
         public decimal RewardGold { get; set; }
         public decimal RewardGems { get; set; }
@@ -28,7 +35,17 @@ namespace BLL.DTOs
         public string? Description { get; set; }
         public string Type { get; set; } = "Main";
         public string DefaultStatus { get; set; } = "NotStarted";
+        [StringLength(100)]
+        public string MapName { get; set; } = "ElfForest";
+        [StringLength(100)]
+        public string? RegionName { get; set; }
+        public string ObjectiveType { get; set; } = "Explore";
+        public string? ObjectiveTarget { get; set; }
+        public string? ObjectiveLocation { get; set; }
+        public string? QuestGiverName { get; set; }
         public int RequiredLevel { get; set; } = 1;
+        [Range(1, 10000, ErrorMessage = "TargetAmount must be between 1 and 10000.")]
+        public int TargetAmount { get; set; } = 1;
         public int RewardExperience { get; set; }
         public decimal RewardGold { get; set; }
         public decimal RewardGems { get; set; }
@@ -45,7 +62,17 @@ namespace BLL.DTOs
         public string? Description { get; set; }
         public string Type { get; set; } = "Main";
         public string DefaultStatus { get; set; } = "NotStarted";
+        [StringLength(100)]
+        public string MapName { get; set; } = "ElfForest";
+        [StringLength(100)]
+        public string? RegionName { get; set; }
+        public string ObjectiveType { get; set; } = "Explore";
+        public string? ObjectiveTarget { get; set; }
+        public string? ObjectiveLocation { get; set; }
+        public string? QuestGiverName { get; set; }
         public int RequiredLevel { get; set; } = 1;
+        [Range(1, 10000, ErrorMessage = "TargetAmount must be between 1 and 10000.")]
+        public int TargetAmount { get; set; } = 1;
         public int RewardExperience { get; set; }
         public decimal RewardGold { get; set; }
         public decimal RewardGems { get; set; }

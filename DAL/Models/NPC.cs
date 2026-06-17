@@ -14,6 +14,13 @@ namespace DAL.Models
         // Types: Shopkeeper, QuestGiver, Trainer, Blacksmith, Healer, Merchant, Information
         public string Type { get; set; } = "Information";
 
+        [MaxLength(100)]
+        public string MapName { get; set; } = "ElfForest";
+
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
+        public float InteractionRadius { get; set; } = 2.5f;
+
         public string? IconUrl { get; set; }
         public bool IsActive { get; set; } = true;
 

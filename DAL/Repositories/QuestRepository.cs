@@ -52,13 +52,13 @@ namespace DAL.Repositories
 
         public async Task<Quest> UpdateQuest(Quest quest)
         {
-_context.Quests.Update(quest);
+            _context.Quests.Update(quest);
             await _context.SaveChangesAsync();
             return quest;
         }
 
 
-        public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName)
         {
             var query = _context.Quests
                 .Include(q => q.RewardItem)
@@ -75,6 +75,10 @@ _context.Quests.Update(quest);
             if (isActive.HasValue)
             {
                 query = query.Where(x => x.IsActive == isActive.Value);
+            }
+            if (!string.IsNullOrEmpty(mapName))
+            {
+                query = query.Where(x => x.MapName == mapName);
             }
 
             int totalCount = await query.CountAsync();

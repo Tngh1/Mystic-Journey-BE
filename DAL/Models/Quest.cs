@@ -16,7 +16,20 @@ namespace DAL.Models
         // DefaultStatuses: NotStarted, InProgress, Completed, Claimed, Failed
         public string DefaultStatus { get; set; } = "NotStarted";
 
+        [MaxLength(100)]
+        public string MapName { get; set; } = "ElfForest";
+
+        [MaxLength(100)]
+        public string? RegionName { get; set; }
+
+        // ObjectiveTypes: Explore, Defeat, Collect, Talk, OpenChest, Interact
+        public string ObjectiveType { get; set; } = "Explore";
+        public string? ObjectiveTarget { get; set; }
+        public string? ObjectiveLocation { get; set; }
+        public string? QuestGiverName { get; set; }
+
         public int RequiredLevel { get; set; } = 1;
+        public int TargetAmount { get; set; } = 1;
         public int RewardExperience { get; set; } = 0;
         public decimal RewardGold { get; set; } = 0;
         public decimal RewardGems { get; set; } = 0;

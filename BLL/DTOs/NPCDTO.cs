@@ -9,6 +9,10 @@ namespace BLL.DTOs
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string Type { get; set; } = "Information";
+        public string MapName { get; set; } = "ElfForest";
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
+        public float InteractionRadius { get; set; } = 2.5f;
         public string? IconUrl { get; set; }
         public bool IsActive { get; set; }
         public List<NPCDialogueResponseDto> Dialogues { get; set; } = new();
@@ -24,6 +28,11 @@ namespace BLL.DTOs
         public string? Description { get; set; }
 
         public string Type { get; set; } = "Information";
+        [StringLength(100)]
+        public string MapName { get; set; } = "ElfForest";
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
+        public float InteractionRadius { get; set; } = 2.5f;
         public string? IconUrl { get; set; }
         public bool IsActive { get; set; } = true;
     }
@@ -38,6 +47,11 @@ namespace BLL.DTOs
         public string? Description { get; set; }
 
         public string Type { get; set; } = "Information";
+        [StringLength(100)]
+        public string MapName { get; set; } = "ElfForest";
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
+        public float InteractionRadius { get; set; } = 2.5f;
         public string? IconUrl { get; set; }
         public bool IsActive { get; set; } = true;
     }

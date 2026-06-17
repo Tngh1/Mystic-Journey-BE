@@ -40,7 +40,14 @@ namespace BLL.Services
                     Description = created.Description,
                     Type = created.Type,
                     DefaultStatus = created.DefaultStatus,
+                    MapName = created.MapName,
+                    RegionName = created.RegionName,
+                    ObjectiveType = created.ObjectiveType,
+                    ObjectiveTarget = created.ObjectiveTarget,
+                    ObjectiveLocation = created.ObjectiveLocation,
+                    QuestGiverName = created.QuestGiverName,
                     RequiredLevel = created.RequiredLevel,
+                    TargetAmount = created.TargetAmount,
                     RewardExperience = created.RewardExperience,
                     RewardGold = created.RewardGold,
                     RewardGems = created.RewardGems,
@@ -58,7 +65,14 @@ namespace BLL.Services
             quest.Description = request.Description;
             quest.Type = request.Type;
             quest.DefaultStatus = request.DefaultStatus;
+            quest.MapName = request.MapName;
+            quest.RegionName = request.RegionName;
+            quest.ObjectiveType = request.ObjectiveType;
+            quest.ObjectiveTarget = request.ObjectiveTarget;
+            quest.ObjectiveLocation = request.ObjectiveLocation;
+            quest.QuestGiverName = request.QuestGiverName;
             quest.RequiredLevel = request.RequiredLevel;
+            quest.TargetAmount = request.TargetAmount;
             quest.RewardExperience = request.RewardExperience;
             quest.RewardGold = request.RewardGold;
             quest.RewardGems = request.RewardGems;
@@ -69,9 +83,9 @@ namespace BLL.Services
             return MapToResponseDto(updated);
         }
 
-        public async Task<PagedResultDto<QuestResponseDto>> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<PagedResultDto<QuestResponseDto>> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName)
         {
-            var (totalCount, items) = await _repository.GetQuestsPaged(page, pageSize, search, type, isActive);
+            var (totalCount, items) = await _repository.GetQuestsPaged(page, pageSize, search, type, isActive, mapName);
             var dtos = items.Select(MapToResponseDto).ToList();
             return new PagedResultDto<QuestResponseDto>(totalCount, dtos);
         }
@@ -85,7 +99,14 @@ namespace BLL.Services
                 Description = quest.Description,
                 Type = quest.Type,
                 DefaultStatus = quest.DefaultStatus,
+                MapName = quest.MapName,
+                RegionName = quest.RegionName,
+                ObjectiveType = quest.ObjectiveType,
+                ObjectiveTarget = quest.ObjectiveTarget,
+                ObjectiveLocation = quest.ObjectiveLocation,
+                QuestGiverName = quest.QuestGiverName,
                 RequiredLevel = quest.RequiredLevel,
+                TargetAmount = quest.TargetAmount,
                 RewardExperience = quest.RewardExperience,
                 RewardGold = quest.RewardGold,
                 RewardGems = quest.RewardGems,
