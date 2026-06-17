@@ -13,7 +13,7 @@ namespace BLL.DTOs
         public int? CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public bool IsPublished { get; set; }
-        public bool IsActive { get; set; }
+        public string CreatedByName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? PublishedAt { get; set; }
@@ -34,7 +34,6 @@ namespace BLL.DTOs
         public string? ThumbnailUrl { get; set; }
         public int? CategoryId { get; set; }
         public bool IsPublished { get; set; } = false;
-        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateContentRequestDto
@@ -47,7 +46,6 @@ namespace BLL.DTOs
         public string? ThumbnailUrl { get; set; }
         public int? CategoryId { get; set; }
         public bool IsPublished { get; set; }
-        public bool IsActive { get; set; } = true;
     }
 
     // ============ CategoryContent ============

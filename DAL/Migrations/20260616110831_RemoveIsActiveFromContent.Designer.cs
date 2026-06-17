@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260612063209_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260616110831_RemoveIsActiveFromContent")]
+    partial class RemoveIsActiveFromContent
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -339,9 +339,6 @@ namespace DAL.Migrations
 
                     b.Property<Guid>("CreatedByAccountId")
                         .HasColumnType("uuid");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");

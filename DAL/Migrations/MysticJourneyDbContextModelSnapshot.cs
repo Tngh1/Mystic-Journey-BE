@@ -337,9 +337,6 @@ namespace DAL.Migrations
                     b.Property<Guid>("CreatedByAccountId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
 
@@ -1680,7 +1677,7 @@ namespace DAL.Migrations
                         new
                         {
                             RoleId = 3,
-                            Name = "Super Admin"
+                            Name = "SuperAdmin"
                         });
                 });
 

@@ -1188,7 +1188,7 @@ namespace DAL.Migrations
                 {
                     { 1, "Player" },
                     { 2, "Admin" },
-                    { 3, "Super Admin" }
+                    { 3, "SuperAdmin" }
                 });
 
             migrationBuilder.CreateIndex(
