@@ -1,4 +1,4 @@
-using DAL.Data;
+﻿using DAL.Data;
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -551,6 +551,27 @@ namespace Mystic_Journey_API.Controllers
 
                 var quests = new List<Quest>
                 {
+                    // NEW: Talk-to-Elder tutorial step (player must talk/respond before receiving collect quest)
+                    new Quest
+                    {
+                        Title = "[ELFFOREST] Talk To Elder",
+                        Description = "Speak with Elder Rowan and respond to his questions to begin the tutorial.",
+                        Type = "Main",
+                        DefaultStatus = "NotStarted",
+                        MapName = "ElfForest",
+                        RegionName = "ElfLand",
+                        ObjectiveType = "Talk",
+                        ObjectiveTarget = "Elder Rowan",
+                        ObjectiveLocation = "Elder Rowan's Camp",
+                        QuestGiverName = "Elder Rowan",
+                        RequiredLevel = 1,
+                        TargetAmount = 1,
+                        RewardExperience = 10,
+                        RewardGold = 10,
+                        RewardGems = 0,
+                        IsActive = true,
+                    },
+
                     new Quest
                     {
                         Title = "[ELFFOREST] Buoc Dau O ElfLand",
@@ -692,8 +713,9 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Chao mung con den ElfLand. Khu rung dang yeu di; hay giup ta thu thap 3 bong White Flower truoc khi di xa hon.",
+                        Content = "Chao mung con den ElfLand. Hay noi chuyen voi ta va tra loi mot vai cau hoi de bat dau nhiem vu.",
                         ResponseType = "Quest",
+                        // Link to the new Talk-To-Elder quest (inserted as first element)
                         LinkedQuestId = quests[0].QuestId,
                         DisplayOrder = 1,
                         IsActive = true,
@@ -703,6 +725,7 @@ namespace Mystic_Journey_API.Controllers
                         NPCId = elderRowan.NPCId,
                         Content = "Hoa trang moc quanh goc cay co. Khi da du hoa, quay lai gap ta de ket thuc nhiem vu.",
                         ResponseType = "Quest",
+                        // Collect quest (now shifted to index 1)
                         LinkedQuestId = quests[1].QuestId,
                         DisplayOrder = 2,
                         IsActive = true,
@@ -712,6 +735,7 @@ namespace Mystic_Journey_API.Controllers
                         NPCId = elderRowan.NPCId,
                         Content = "Tu gio moi nhiem vu chinh con co the nhan tu ta. Hay xem Quest Tracker de biet viec can lam tiep theo.",
                         ResponseType = "Quest",
+                        // Stone/Interact quest (shifted to index 2)
                         LinkedQuestId = quests[2].QuestId,
                         DisplayOrder = 3,
                         IsActive = true,
@@ -721,6 +745,7 @@ namespace Mystic_Journey_API.Controllers
                         NPCId = elderRowan.NPCId,
                         Content = "Lam tot lam. Nhan thuong xong tui do se mo khoa de con chuan bi hanh trinh.",
                         ResponseType = "Quest",
+                        // Defeat quest (shifted to index 3)
                         LinkedQuestId = quests[3].QuestId,
                         DisplayOrder = 4,
                         IsActive = true,
@@ -730,6 +755,7 @@ namespace Mystic_Journey_API.Controllers
                         NPCId = elderRowan.NPCId,
                         Content = "Neu lac duong, cu quay lai day. Ta se nhac lai muc tieu hien tai cua con.",
                         ResponseType = "Quest",
+                        // Heartwood chest quest (shifted to index 4)
                         LinkedQuestId = quests[4].QuestId,
                         DisplayOrder = 5,
                         IsActive = true,
