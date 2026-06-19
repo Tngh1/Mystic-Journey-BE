@@ -10,6 +10,9 @@ namespace BLL.Services
     public class WorldService : IWorldService
     {
         private const int MaxNpcsPerMap = 4;
+        private const string TutorialMapName = "ElfForest";
+        private const double TutorialSpawnX = 11.9;
+        private const double TutorialSpawnY = 17.8;
 
         private readonly MysticJourneyDbContext _context;
         private readonly IPlayerProfileRepository _playerProfileRepository;
@@ -28,6 +31,7 @@ namespace BLL.Services
         public async Task<WorldStateResponseDto> GetWorldState(int playerProfileId)
         {
             var profile = await GetProfile(playerProfileId);
+            await EnsureTutorialSpawn(profile);
             var mapName = NormalizeMapName(profile.LastMapName);
 
             var npcs = await _context.NPCs
@@ -57,8 +61,8 @@ namespace BLL.Services
                 Npcs = npcs.Select(MapNpc).ToList(),
                 Quests = quests,
                 ActiveQuest = quests.FirstOrDefault(q => q.Status == "InProgress")
-                    ?? quests.FirstOrDefault(q => q.Status == "NotStarted")
-                    ?? quests.FirstOrDefault(q => q.Status == "Completed"),
+                    ?? quests.FirstOrDefault(q => q.Status == "Completed")
+                    ?? quests.FirstOrDefault(q => q.Status == "NotStarted"),
                 DailyLogin = dailyLogin
             };
         }
@@ -400,6 +404,25 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
         }
 
+        private async Task EnsureTutorialSpawn(PlayerProfile profile)
+        {
+            var hasMap = !string.IsNullOrWhiteSpace(profile.LastMapName);
+            var hasPosition = Math.Abs(profile.PositionX) > double.Epsilon ||
+                              Math.Abs(profile.PositionY) > double.Epsilon;
+            var isLegacyTutorialSpawn = string.Equals(NormalizeMapName(profile.LastMapName), TutorialMapName, StringComparison.OrdinalIgnoreCase) &&
+                                        Math.Abs(profile.PositionX - 46.9) < 0.1 &&
+                                        Math.Abs(profile.PositionY - 44.1) < 0.1;
+            var shouldApplyTutorialSpawn = profile.Level <= 1 && (!hasPosition || isLegacyTutorialSpawn);
+
+            if (hasMap && !shouldApplyTutorialSpawn)
+                return;
+
+            profile.LastMapName = TutorialMapName;
+            profile.PositionX = TutorialSpawnX;
+            profile.PositionY = TutorialSpawnY;
+            await _playerProfileRepository.UpdatePlayerProfile(profile);
+        }
+
         private async Task<PlayerDailyLoginResponseDto?> GetDailyLogin(int playerProfileId)
         {
             var dailyLogin = await _context.PlayerDailyLogins
@@ -512,7 +535,15 @@ namespace BLL.Services
         }
 
         private static string NormalizeMapName(string? mapName)
-            => string.IsNullOrWhiteSpace(mapName) ? "ElfForest" : mapName.Trim();
+        {
+            if (string.IsNullOrWhiteSpace(mapName))
+                return TutorialMapName;
+
+            var normalized = mapName.Trim();
+            return string.Equals(normalized, "ElfLand", StringComparison.OrdinalIgnoreCase)
+                ? TutorialMapName
+                : normalized;
+        }
 
         private static string ToDisplayMapName(string mapName)
         {

@@ -27,7 +27,7 @@ namespace Mystic_Journey_API.Controllers
     //
     //   Account test:
     //     testplayer / testplayer@mystic.test / Abc@12345
-    //     Level 3, Class=Knight, mặc định skin Knight
+    //     Level 1, Class=Knight, mặc định skin Knight
     //     Inventory: 1 mũ (equipped), 2 bình máu, 1 skin khác (Dragon Knight) trong túi
     //
     //   Quests (3 quest cho 3 map):
@@ -283,14 +283,14 @@ namespace Mystic_Journey_API.Controllers
                     AccountId    = account.AccountId,
                     DisplayName  = "Test Player",
                     Class        = "Knight",
-                    Level        = 3,
-                    ExperiencePoints = 280,
+                    Level        = 1,
+                    ExperiencePoints = 0,
                     Gold         = 1500,
                     Gems         = 200,
                     Energy       = 100,
                     LastMapName  = "ElfForest",
-                    PositionX    = 0,
-                    PositionY    = 0,
+                    PositionX    = 11.9,
+                    PositionY    = 17.8,
                     AvatarUrl    = "",
                 };
                 _ctx.PlayerProfiles.Add(profile);
@@ -439,7 +439,7 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/elfforest → Seed 2 users + 15 quests on map ElfForest
+        // POST /api/seed/elfforest -> Seed tutorial world on map ElfForest
         // ─────────────────────────────────────────────────────────────────────────
         [HttpPost("elfforest")]
         public async Task<IActionResult> SeedElfForest()
@@ -447,226 +447,252 @@ namespace Mystic_Journey_API.Controllers
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
             {
-                // 1. Create 4 items (weapon, armor, potion, skin item)
-                var existing = await _ctx.Items.Where(i => EF.Functions.Like(i.Name, "[ELF]%")).ToListAsync();
-                _ctx.Items.RemoveRange(existing);
-                await _ctx.SaveChangesAsync();
+                await EnsureElfForestSchema();
 
-                var potion = new Item
-                {
-                    Name = "[ELF] Health Potion",
-                    Description = "Hồi phục 150 HP.",
-                    Type = "Consumable",
-                    Rarity = "Common",
-                    Slot = "None",
-                    BaseValue = 30,
-                    MaxStack = 99,
-                    IsActive = true,
-                };
-                var sword = new Item
-                {
-                    Name = "[ELF] Short Sword",
-                    Description = "Kiếm ngắn dùng cho du kích rừng.",
-                    Type = "Weapon",
-                    Rarity = "Uncommon",
-                    Slot = "Weapon",
-                    BaseValue = 200,
-                    MaxStack = 1,
-                    IsActive = true,
-                };
-                var armor = new Item
-                {
-                    Name = "[ELF] Leather Armor",
-                    Description = "Áo da nhẹ, tăng chút phòng thủ.",
-                    Type = "Armor",
-                    Rarity = "Common",
-                    Slot = "Armor",
-                    BaseValue = 180,
-                    MaxStack = 1,
-                    IsActive = true,
-                };
+                // 1. Upsert ElfForest items. Keep IDs stable so existing inventory/rewards do not break.
+                var itemNames = new[] { "[ELF] Health Potion", "[ELF] Short Sword", "[ELF] Leather Armor" };
+                var existingItems = await _ctx.Items
+                    .Where(i => itemNames.Contains(i.Name))
+                    .ToListAsync();
 
-                _ctx.Items.AddRange(potion, sword, armor);
-                await _ctx.SaveChangesAsync();
-
-                // equipment stats
-                _ctx.EquipmentStats.Add(new EquipmentStats
+                Item UpsertItem(string name, string description, string type, string rarity, string slot, decimal baseValue, int maxStack)
                 {
-                    ItemId = sword.ItemId,
-                    BaseHp = 0,
-                    BaseAtk = 30,
-                    BaseDef = 0,
-                    BonusHp = 0,
-                    BonusAtk = 5,
-                    BonusDef = 0,
-                });
-                _ctx.EquipmentStats.Add(new EquipmentStats
-                {
-                    ItemId = armor.ItemId,
-                    BaseHp = 50,
-                    BaseAtk = 0,
-                    BaseDef = 12,
-                    BonusHp = 10,
-                    BonusAtk = 0,
-                    BonusDef = 2,
-                });
-                await _ctx.SaveChangesAsync();
-
-                // 2. Skins
-                var existingSkins = await _ctx.Skins.Where(s => EF.Functions.Like(s.Name, "[ELF]%")).ToListAsync();
-                _ctx.Skins.RemoveRange(existingSkins);
-                await _ctx.SaveChangesAsync();
-
-                var skinDefault = new Skin
-                {
-                    Name = "[ELF] ElfForest Default",
-                    Description = "Skin mặc định khu rừng Elf.",
-                    Type = "FullSet",
-                    Rarity = "Common",
-                    IsForSale = false,
-                    IsActive = true,
-                };
-                var skinAlt = new Skin
-                {
-                    Name = "[ELF] Ranger Cloak",
-                    Description = "Áo choàng của cung thủ rừng.",
-                    Type = "Cloak",
-                    Rarity = "Rare",
-                    IsForSale = false,
-                    IsActive = true,
-                };
-                _ctx.Skins.AddRange(skinDefault, skinAlt);
-                await _ctx.SaveChangesAsync();
-
-                // 3. Quests ElfForest 1-15
-                var existingQuests = await _ctx.Quests.Where(q => EF.Functions.Like(q.Title, "[ELFFOREST]%")).ToListAsync();
-                _ctx.Quests.RemoveRange(existingQuests);
-                await _ctx.SaveChangesAsync();
-
-                var elfQuestConfigs = new (int TargetAmount, decimal RewardGold, int RewardExperience, decimal RewardGems)[]
-                {
-                    (5, 500, 200, 0),
-                    (3, 300, 150, 0),
-                    (10, 800, 400, 5),
-                    (1, 200, 100, 0),
-                    (8, 600, 300, 0),
-                    (5, 500, 250, 0),
-                    (3, 400, 200, 5),
-                    (12, 1000, 500, 10),
-                    (1, 300, 150, 0),
-                    (6, 700, 350, 5),
-                    (4, 500, 250, 0),
-                    (8, 800, 400, 0),
-                    (2, 300, 150, 0),
-                    (5, 600, 300, 5),
-                    (1, 1500, 800, 20),
-                };
-
-                var quests = new List<Quest>();
-                var elfQuestObjectives = new (string ObjectiveType, string ObjectiveTarget, string ObjectiveLocation, string QuestGiverName)[]
-                {
-                    ("Defeat", "Forest Slime", "Mossy Gate", "Elder Rowan"),
-                    ("Collect", "Moonleaf", "Moonwell Grove", "Healer Lyria"),
-                    ("Defeat", "Wild Treant", "Ancient Roots", "Scout Elian"),
-                    ("Talk", "Merchant Mira", "Village Market", "Elder Rowan"),
-                    ("Interact", "Ancient Totem", "Old Shrine", "Scout Elian"),
-                    ("Defeat", "Wolf Pack", "North Trail", "Scout Elian"),
-                    ("Collect", "Crystal Dew", "Silver Pond", "Healer Lyria"),
-                    ("Defeat", "Forest Guardian", "Heartwood Clearing", "Elder Rowan"),
-                    ("OpenChest", "Random Chest", "ElfForest", "Merchant Mira"),
-                    ("Interact", "Lost Footprints", "Old Mine Road", "Scout Elian"),
-                    ("Collect", "Broken Charm", "Abandoned Camp", "Elder Rowan"),
-                    ("Defeat", "Dark Sprout", "Shadow Thicket", "Healer Lyria"),
-                    ("Talk", "Scout Elian", "Watch Post", "Elder Rowan"),
-                    ("Interact", "Sealed Root", "Ancient Roots", "Elder Rowan"),
-                    ("Defeat", "Corrupted Ancient", "Heartwood Clearing", "Elder Rowan"),
-                };
-                for (int i = 1; i <= 15; i++)
-                {
-                    var config = elfQuestConfigs[i - 1];
-                    var objective = elfQuestObjectives[i - 1];
-                    quests.Add(new Quest
+                    var item = existingItems.FirstOrDefault(i => i.Name == name);
+                    if (item == null)
                     {
-                        Title = $"[ELFFOREST] ElfForest - Quest {i}",
-                        Description = $"ElfForest quest stage {i}.",
+                        item = new Item { Name = name };
+                        _ctx.Items.Add(item);
+                    }
+
+                    item.Description = description;
+                    item.Type = type;
+                    item.Rarity = rarity;
+                    item.Slot = slot;
+                    item.BaseValue = baseValue;
+                    item.MaxStack = maxStack;
+                    item.IsActive = true;
+                    return item;
+                }
+
+                var potion = UpsertItem("[ELF] Health Potion", "Hồi phục 150 HP.", "Consumable", "Common", "None", 30, 99);
+                var sword = UpsertItem("[ELF] Short Sword", "Kiếm ngắn dùng cho du kích rừng.", "Weapon", "Uncommon", "Weapon", 200, 1);
+                var armor = UpsertItem("[ELF] Leather Armor", "Áo da nhẹ, tăng chút phòng thủ.", "Armor", "Common", "Armor", 180, 1);
+                await _ctx.SaveChangesAsync();
+
+                var existingEquipmentStats = await _ctx.EquipmentStats
+                    .Where(s => s.ItemId == sword.ItemId || s.ItemId == armor.ItemId)
+                    .ToListAsync();
+
+                void UpsertEquipmentStats(Item item, int baseHp, int baseAtk, int baseDef, int bonusHp, int bonusAtk, int bonusDef)
+                {
+                    var stats = existingEquipmentStats.FirstOrDefault(s => s.ItemId == item.ItemId);
+                    if (stats == null)
+                    {
+                        stats = new EquipmentStats { ItemId = item.ItemId };
+                        _ctx.EquipmentStats.Add(stats);
+                    }
+
+                    stats.BaseHp = baseHp;
+                    stats.BaseAtk = baseAtk;
+                    stats.BaseDef = baseDef;
+                    stats.BonusHp = bonusHp;
+                    stats.BonusAtk = bonusAtk;
+                    stats.BonusDef = bonusDef;
+                    stats.BonusMoveSpeed = 0;
+                    stats.BonusAttackSpeed = 0;
+                    stats.BonusCritRate = 0;
+                    stats.BonusCritDamage = 0;
+                    stats.BonusDamageBonus = 0;
+                }
+
+                UpsertEquipmentStats(sword, 0, 30, 0, 0, 5, 0);
+                UpsertEquipmentStats(armor, 50, 0, 12, 10, 0, 2);
+                await _ctx.SaveChangesAsync();
+
+                // 2. Upsert skins, same reason as items: player skin ownership can reference them.
+                var skinNames = new[] { "[ELF] ElfForest Default", "[ELF] Ranger Cloak" };
+                var existingSkins = await _ctx.Skins
+                    .Where(s => skinNames.Contains(s.Name))
+                    .ToListAsync();
+
+                Skin UpsertSkin(string name, string description, string type, string rarity)
+                {
+                    var skin = existingSkins.FirstOrDefault(s => s.Name == name);
+                    if (skin == null)
+                    {
+                        skin = new Skin { Name = name };
+                        _ctx.Skins.Add(skin);
+                    }
+
+                    skin.Description = description;
+                    skin.Type = type;
+                    skin.Rarity = rarity;
+                    skin.IsForSale = false;
+                    skin.IsActive = true;
+                    return skin;
+                }
+
+                var skinDefault = UpsertSkin("[ELF] ElfForest Default", "Skin mặc định khu rừng Elf.", "FullSet", "Common");
+                var skinAlt = UpsertSkin("[ELF] Ranger Cloak", "Áo choàng của cung thủ rừng.", "Cloak", "Rare");
+                await _ctx.SaveChangesAsync();
+
+                // 3. Reset ElfForest quests and dependent records in FK-safe order.
+                var existingQuests = await _ctx.Quests.Where(q => EF.Functions.Like(q.Title, "[ELFFOREST]%")).ToListAsync();
+                if (existingQuests.Count > 0)
+                {
+                    var existingQuestIds = existingQuests.Select(q => q.QuestId).ToList();
+                    _ctx.NPCDialogues.RemoveRange(_ctx.NPCDialogues.Where(d => d.LinkedQuestId.HasValue && existingQuestIds.Contains(d.LinkedQuestId.Value)));
+                    _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => existingQuestIds.Contains(pq.QuestId)));
+                    await _ctx.SaveChangesAsync();
+
+                    _ctx.Quests.RemoveRange(existingQuests);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                var quests = new List<Quest>
+                {
+                    new Quest
+                    {
+                        Title = "[ELFFOREST] Buoc Dau O ElfLand",
+                        Description = "Elder Rowan asks the player to collect White Flowers around the old willow clearing.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
                         MapName = "ElfForest",
-                        RegionName = "Greenwood",
-                        ObjectiveType = objective.ObjectiveType,
-                        ObjectiveTarget = objective.ObjectiveTarget,
-                        ObjectiveLocation = objective.ObjectiveLocation,
-                        QuestGiverName = objective.QuestGiverName,
-                        RequiredLevel = Math.Max(1, i),
-                        TargetAmount = config.TargetAmount,
-                        RewardExperience = config.RewardExperience,
-                        RewardGold = config.RewardGold,
-                        RewardGems = config.RewardGems,
+                        RegionName = "ElfLand",
+                        ObjectiveType = "Collect",
+                        ObjectiveTarget = "White Flower",
+                        ObjectiveLocation = "Old Willow Clearing",
+                        QuestGiverName = "Elder Rowan",
+                        RequiredLevel = 1,
+                        TargetAmount = 3,
+                        RewardExperience = 120,
+                        RewardGold = 80,
+                        RewardGems = 0,
+                        RewardItemId = potion.ItemId,
                         IsActive = true,
-                    });
-                }
+                    },
+                    new Quest
+                    {
+                        Title = "[ELFFOREST] Loi Hua Cua Khu Rung",
+                        Description = "Return to Elder Rowan and report that the first herbs have been gathered.",
+                        Type = "Main",
+                        DefaultStatus = "NotStarted",
+                        MapName = "ElfForest",
+                        RegionName = "ElfLand",
+                        ObjectiveType = "Talk",
+                        ObjectiveTarget = "Elder Rowan",
+                        ObjectiveLocation = "Elder Rowan's Camp",
+                        QuestGiverName = "Elder Rowan",
+                        RequiredLevel = 2,
+                        TargetAmount = 1,
+                        RewardExperience = 90,
+                        RewardGold = 120,
+                        RewardGems = 0,
+                        IsActive = true,
+                    },
+                    new Quest
+                    {
+                        Title = "[ELFFOREST] Bia Da Thuc Tinh",
+                        Description = "Touch the ancient stone marker to restore the first path seal.",
+                        Type = "Main",
+                        DefaultStatus = "NotStarted",
+                        MapName = "ElfForest",
+                        RegionName = "ElfLand",
+                        ObjectiveType = "Interact",
+                        ObjectiveTarget = "Ancient Stone Marker",
+                        ObjectiveLocation = "Old Willow Clearing",
+                        QuestGiverName = "Elder Rowan",
+                        RequiredLevel = 3,
+                        TargetAmount = 1,
+                        RewardExperience = 140,
+                        RewardGold = 180,
+                        RewardGems = 3,
+                        IsActive = true,
+                    },
+                    new Quest
+                    {
+                        Title = "[ELFFOREST] Bong Toi Ben Ria Rung",
+                        Description = "Drive back the shadow sprouts that are spreading near the forest edge.",
+                        Type = "Main",
+                        DefaultStatus = "NotStarted",
+                        MapName = "ElfForest",
+                        RegionName = "ElfLand",
+                        ObjectiveType = "Defeat",
+                        ObjectiveTarget = "Shadow Sprout",
+                        ObjectiveLocation = "Forest Edge",
+                        QuestGiverName = "Elder Rowan",
+                        RequiredLevel = 4,
+                        TargetAmount = 4,
+                        RewardExperience = 220,
+                        RewardGold = 260,
+                        RewardGems = 4,
+                        IsActive = true,
+                    },
+                    new Quest
+                    {
+                        Title = "[ELFFOREST] Canh Cua Heartwood",
+                        Description = "Open the sealed Heartwood chest and bring its sign back to Elder Rowan.",
+                        Type = "Main",
+                        DefaultStatus = "NotStarted",
+                        MapName = "ElfForest",
+                        RegionName = "ElfLand",
+                        ObjectiveType = "OpenChest",
+                        ObjectiveTarget = "Heartwood Chest",
+                        ObjectiveLocation = "Heartwood Gate",
+                        QuestGiverName = "Elder Rowan",
+                        RequiredLevel = 5,
+                        TargetAmount = 1,
+                        RewardExperience = 300,
+                        RewardGold = 400,
+                        RewardGems = 8,
+                        IsActive = true,
+                    }
+                };
                 _ctx.Quests.AddRange(quests);
                 await _ctx.SaveChangesAsync();
 
                 var existingNpcs = await _ctx.NPCs
                     .Where(n => n.MapName == "ElfForest")
                     .ToListAsync();
-                _ctx.NPCs.RemoveRange(existingNpcs);
-                await _ctx.SaveChangesAsync();
+                if (existingNpcs.Count > 0)
+                {
+                    var existingNpcIds = existingNpcs.Select(n => n.NPCId).ToList();
+                    _ctx.NPCDialogues.RemoveRange(_ctx.NPCDialogues.Where(d => existingNpcIds.Contains(d.NPCId)));
+                    await _ctx.SaveChangesAsync();
+
+                    _ctx.NPCs.RemoveRange(existingNpcs);
+                    await _ctx.SaveChangesAsync();
+                }
 
                 var elderRowan = new NPC
                 {
                     Name = "Elder Rowan",
-                    Description = "Village elder and main quest giver.",
+                    Description = "Tutorial elder and main quest giver.",
                     Type = "QuestGiver",
                     MapName = "ElfForest",
-                    PositionX = -2.5,
-                    PositionY = 1.25,
+                    PositionX = 12.4932,
+                    PositionY = 18.61223,
                     InteractionRadius = 2.25f,
                     IsActive = true,
                 };
-                var healerLyria = new NPC
-                {
-                    Name = "Healer Lyria",
-                    Description = "Forest healer who helps adventurers recover.",
-                    Type = "Healer",
-                    MapName = "ElfForest",
-                    PositionX = 3.75,
-                    PositionY = 1.5,
-                    InteractionRadius = 2f,
-                    IsActive = true,
-                };
-                var merchantMira = new NPC
-                {
-                    Name = "Merchant Mira",
-                    Description = "Village merchant with supplies and rumors.",
-                    Type = "Merchant",
-                    MapName = "ElfForest",
-                    PositionX = 1.5,
-                    PositionY = -3.25,
-                    InteractionRadius = 2f,
-                    IsActive = true,
-                };
-                var scoutElian = new NPC
-                {
-                    Name = "Scout Elian",
-                    Description = "Scout watching the dangerous forest paths.",
-                    Type = "Information",
-                    MapName = "ElfForest",
-                    PositionX = -5.25,
-                    PositionY = -2.75,
-                    InteractionRadius = 2f,
-                    IsActive = true,
-                };
 
-                _ctx.NPCs.AddRange(elderRowan, healerLyria, merchantMira, scoutElian);
+                _ctx.NPCs.Add(elderRowan);
                 await _ctx.SaveChangesAsync();
 
                 _ctx.NPCDialogues.AddRange(
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "The forest is restless. Start with the creatures near the Mossy Gate.",
+                        Content = "Ta la Elder Rowan. Moi buoc trong ElfLand deu co the bat dau tu cuoc tro chuyen nay; hay nghe ta, nhan nhiem vu, roi quay lai khi con da san sang.",
+                        ResponseType = "Dialogue",
+                        LinkedQuestId = null,
+                        DisplayOrder = 0,
+                        IsActive = true,
+                    },
+                    new NPCDialogue
+                    {
+                        NPCId = elderRowan.NPCId,
+                        Content = "Chao mung con den ElfLand. Khu rung dang yeu di; hay giup ta thu thap 3 bong White Flower truoc khi di xa hon.",
                         ResponseType = "Quest",
                         LinkedQuestId = quests[0].QuestId,
                         DisplayOrder = 1,
@@ -674,38 +700,38 @@ namespace Mystic_Journey_API.Controllers
                     },
                     new NPCDialogue
                     {
-                        NPCId = healerLyria.NPCId,
-                        Content = "Bring me Moonleaf from the grove and I can prepare medicine.",
+                        NPCId = elderRowan.NPCId,
+                        Content = "Hoa trang moc quanh goc cay co. Khi da du hoa, quay lai gap ta de ket thuc nhiem vu.",
                         ResponseType = "Quest",
                         LinkedQuestId = quests[1].QuestId,
-                        DisplayOrder = 1,
+                        DisplayOrder = 2,
                         IsActive = true,
                     },
                     new NPCDialogue
                     {
-                        NPCId = merchantMira.NPCId,
-                        Content = "I can trade supplies, and sometimes random chests turn up after fights.",
-                        ResponseType = "Shop",
-                        LinkedQuestId = quests[8].QuestId,
-                        DisplayOrder = 1,
-                        IsActive = true,
-                    },
-                    new NPCDialogue
-                    {
-                        NPCId = scoutElian.NPCId,
-                        Content = "I found fresh tracks toward the Ancient Roots. Stay sharp.",
+                        NPCId = elderRowan.NPCId,
+                        Content = "Tu gio moi nhiem vu chinh con co the nhan tu ta. Hay xem Quest Tracker de biet viec can lam tiep theo.",
                         ResponseType = "Quest",
                         LinkedQuestId = quests[2].QuestId,
-                        DisplayOrder = 1,
+                        DisplayOrder = 3,
                         IsActive = true,
                     },
                     new NPCDialogue
                     {
-                        NPCId = scoutElian.NPCId,
-                        Content = "The old mine road is unsafe, but it may reveal what corrupted the forest.",
+                        NPCId = elderRowan.NPCId,
+                        Content = "Lam tot lam. Nhan thuong xong tui do se mo khoa de con chuan bi hanh trinh.",
                         ResponseType = "Quest",
-                        LinkedQuestId = quests[9].QuestId,
-                        DisplayOrder = 2,
+                        LinkedQuestId = quests[3].QuestId,
+                        DisplayOrder = 4,
+                        IsActive = true,
+                    },
+                    new NPCDialogue
+                    {
+                        NPCId = elderRowan.NPCId,
+                        Content = "Neu lac duong, cu quay lai day. Ta se nhac lai muc tieu hien tai cua con.",
+                        ResponseType = "Quest",
+                        LinkedQuestId = quests[4].QuestId,
+                        DisplayOrder = 5,
                         IsActive = true,
                     }
                 );
@@ -725,60 +751,76 @@ namespace Mystic_Journey_API.Controllers
                     await _ctx.SaveChangesAsync();
                 }
 
-                // 4. Create 2 accounts with inventory
+                // 4. Upsert 2 tutorial accounts with inventory.
                 async Task<int> CreatePlayer(string username, string email, string displayName, string cls)
                 {
-                    // remove existing
-                    var acc = await _ctx.Accounts.Include(a => a.PlayerProfile).FirstOrDefaultAsync(a => a.Email == email);
-                    if (acc != null)
+                    var account = await _ctx.Accounts
+                        .Include(a => a.PlayerProfile)
+                        .FirstOrDefaultAsync(a => a.Email == email || a.UserName == username);
+
+                    if (account == null)
                     {
-                        var pp = acc.PlayerProfile;
-                        if (pp != null)
+                        account = new Account
                         {
-                            _ctx.InventoryItems.RemoveRange(_ctx.InventoryItems.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                            _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                            _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                            _ctx.PlayerChests.RemoveRange(_ctx.PlayerChests.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                            _ctx.PlayerDailyLogins.RemoveRange(_ctx.PlayerDailyLogins.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                            _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                            _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                            await _ctx.SaveChangesAsync();
-                            _ctx.PlayerProfiles.Remove(pp);
-                        }
-                        _ctx.Accounts.Remove(acc);
+                            CreatedAt = DateTime.UtcNow,
+                        };
+                        _ctx.Accounts.Add(account);
+                    }
+
+                    account.UserName = username;
+                    account.Email = email;
+                    account.HashPassword = HashPassword("Abc@12345");
+                    account.RoleId = 1;
+                    account.IsActive = true;
+                    account.RefreshToken = null;
+                    account.RefreshTokenExpiresAt = null;
+                    account.UpdatedAt = DateTime.UtcNow;
+                    await _ctx.SaveChangesAsync();
+
+                    var profile = account.PlayerProfile;
+                    if (profile == null)
+                    {
+                        profile = new PlayerProfile
+                        {
+                            AccountId = account.AccountId,
+                            CreatedAt = DateTime.UtcNow,
+                        };
+                        _ctx.PlayerProfiles.Add(profile);
                         await _ctx.SaveChangesAsync();
                     }
 
-                    var account = new Account
-                    {
-                        UserName = username,
-                        Email = email,
-                        HashPassword = HashPassword("Abc@12345"),
-                        RoleId = 1,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                    };
-                    _ctx.Accounts.Add(account);
-                    await _ctx.SaveChangesAsync();
-
-                    var profile = new PlayerProfile
-                    {
-                        AccountId = account.AccountId,
-                        DisplayName = displayName,
-                        Class = cls,
-                        Level = 2,
-                        ExperiencePoints = 0,
-                        Gold = 100,
-                        Gems = 10,
-                        Energy = 100,
-                        LastMapName = "ElfForest",
-                        PositionX = 0,
-                        PositionY = -1,
-                    };
-                    _ctx.PlayerProfiles.Add(profile);
-                    await _ctx.SaveChangesAsync();
-
                     int pid = profile.PlayerProfileId;
+
+                    _ctx.InventoryItems.RemoveRange(_ctx.InventoryItems.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerChests.RemoveRange(_ctx.PlayerChests.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerDailyLogins.RemoveRange(_ctx.PlayerDailyLogins.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerSkills.RemoveRange(_ctx.PlayerSkills.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerAchievements.RemoveRange(_ctx.PlayerAchievements.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerAnnouncements.RemoveRange(_ctx.PlayerAnnouncements.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PlayerCurrencyLogs.RemoveRange(_ctx.PlayerCurrencyLogs.Where(x => x.PlayerProfileId == pid));
+                    _ctx.PurchaseHistories.RemoveRange(_ctx.PurchaseHistories.Where(x => x.PlayerProfileId == pid));
+                    _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(x => x.PlayerProfileId == pid));
+                    _ctx.Mails.RemoveRange(_ctx.Mails.Where(x => x.PlayerProfileId == pid));
+                    _ctx.GuildMembers.RemoveRange(_ctx.GuildMembers.Where(x => x.PlayerProfileId == pid));
+                    await _ctx.SaveChangesAsync();
+
+                    profile.DisplayName = displayName;
+                    profile.Class = cls;
+                    profile.Level = 1;
+                    profile.ExperiencePoints = 0;
+                    profile.Gold = 100;
+                    profile.Gems = 10;
+                    profile.Energy = 100;
+                    profile.LastMapName = "ElfForest";
+                    profile.PositionX = 11.9;
+                    profile.PositionY = 17.8;
+                    profile.AvatarUrl = string.Empty;
+                    profile.UpdatedAt = DateTime.UtcNow;
+                    await _ctx.SaveChangesAsync();
 
                     // player stats
                     _ctx.PlayerStats.Add(new PlayerStat
@@ -842,7 +884,9 @@ namespace Mystic_Journey_API.Controllers
                     await _ctx.SaveChangesAsync();
 
                     // assign quests
-                    var elfQuests = await _ctx.Quests.Where(q => EF.Functions.Like(q.Title, "[ELFFOREST]%")).ToListAsync();
+                    var elfQuests = await _ctx.Quests
+                        .Where(q => EF.Functions.Like(q.Title, "[ELFFOREST]%") && q.RequiredLevel <= profile.Level)
+                        .ToListAsync();
                     foreach (var q in elfQuests)
                     {
                         _ctx.PlayerQuests.Add(new PlayerQuest
@@ -859,8 +903,8 @@ namespace Mystic_Journey_API.Controllers
                     return pid;
                 }
 
-                var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Elf Ranger 1", "Archer");
-                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Elf Ranger 2", "Archer");
+                var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Knight 1", "Knight");
+                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
 
                 await tx.CommitAsync();
 
@@ -922,6 +966,68 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        private async Task EnsureElfForestSchema()
+        {
+            await _ctx.Database.ExecuteSqlRawAsync(@"
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""TargetAmount"" integer NOT NULL DEFAULT 1;
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""MapName"" character varying(100) NOT NULL DEFAULT 'ElfForest';
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""RegionName"" character varying(100) NULL;
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveType"" text NOT NULL DEFAULT 'Explore';
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveTarget"" text NULL;
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveLocation"" text NULL;
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""QuestGiverName"" text NULL;
+
+CREATE TABLE IF NOT EXISTS ""NPCs"" (
+    ""NPCId"" integer GENERATED BY DEFAULT AS IDENTITY,
+    ""Name"" character varying(150) NOT NULL,
+    ""Description"" text NULL,
+    ""Type"" text NOT NULL,
+    ""MapName"" character varying(100) NOT NULL,
+    ""PositionX"" double precision NOT NULL,
+    ""PositionY"" double precision NOT NULL,
+    ""InteractionRadius"" real NOT NULL,
+    ""IconUrl"" text NULL,
+    ""IsActive"" boolean NOT NULL,
+    CONSTRAINT ""PK_NPCs"" PRIMARY KEY (""NPCId"")
+);
+
+CREATE TABLE IF NOT EXISTS ""NPCDialogues"" (
+    ""NPCDialogueId"" integer GENERATED BY DEFAULT AS IDENTITY,
+    ""NPCId"" integer NOT NULL,
+    ""Content"" text NOT NULL,
+    ""ResponseType"" text NOT NULL,
+    ""LinkedQuestId"" integer NULL,
+    ""LinkedShopItemId"" integer NULL,
+    ""DisplayOrder"" integer NOT NULL,
+    ""IsActive"" boolean NOT NULL,
+    CONSTRAINT ""PK_NPCDialogues"" PRIMARY KEY (""NPCDialogueId"")
+);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_NPCDialogues_NPCs_NPCId') THEN
+        ALTER TABLE ""NPCDialogues"" ADD CONSTRAINT ""FK_NPCDialogues_NPCs_NPCId""
+            FOREIGN KEY (""NPCId"") REFERENCES ""NPCs"" (""NPCId"") ON DELETE CASCADE;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_NPCDialogues_Quests_LinkedQuestId') THEN
+        ALTER TABLE ""NPCDialogues"" ADD CONSTRAINT ""FK_NPCDialogues_Quests_LinkedQuestId""
+            FOREIGN KEY (""LinkedQuestId"") REFERENCES ""Quests"" (""QuestId"") ON DELETE SET NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_NPCDialogues_ShopItems_LinkedShopItemId') THEN
+        ALTER TABLE ""NPCDialogues"" ADD CONSTRAINT ""FK_NPCDialogues_ShopItems_LinkedShopItemId""
+            FOREIGN KEY (""LinkedShopItemId"") REFERENCES ""ShopItems"" (""ShopItemId"") ON DELETE SET NULL;
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS ""IX_Quests_MapName"" ON ""Quests"" (""MapName"");
+CREATE INDEX IF NOT EXISTS ""IX_NPCs_MapName"" ON ""NPCs"" (""MapName"");
+CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_NPCId"" ON ""NPCDialogues"" (""NPCId"");
+CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedQuestId"" ON ""NPCDialogues"" (""LinkedQuestId"");
+CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogues"" (""LinkedShopItemId"");
+");
+        }
         // ─────────────────────────────────────────────────────────────────────────
         private static string HashPassword(string password)
         {

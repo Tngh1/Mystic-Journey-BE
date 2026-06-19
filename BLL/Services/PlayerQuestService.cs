@@ -40,7 +40,7 @@ namespace BLL.Services
 
             var mapName = NormalizeMapName(profile.LastMapName);
             var activeMapQuests = (await _questRepo.GetActiveQuests())
-                .Where(q => q.MapName == mapName)
+                .Where(q => q.MapName == mapName && q.RequiredLevel <= profile.Level)
                 .ToList();
 
             var records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
@@ -60,7 +60,10 @@ namespace BLL.Services
             }
 
             records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
-            return records.Select(MapToDto).ToList();
+            return records
+                .Where(pq => pq.Quest == null || pq.Quest.RequiredLevel <= profile.Level || pq.Status != "NotStarted")
+                .Select(MapToDto)
+                .ToList();
         }
 
         public async Task<PlayerQuestResponseDto?> GetMyQuestDetail(int playerProfileId, int questId)
@@ -192,7 +195,7 @@ namespace BLL.Services
                     ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
 
                 profile.Gold += quest.RewardGold;
-                profile.ExperiencePoints += quest.RewardExperience;
+                ApplyExperience(profile, quest.RewardExperience);
                 if (quest.RewardGems > 0)
                     profile.Gems += quest.RewardGems;
 
@@ -259,7 +262,26 @@ namespace BLL.Services
         }
 
         private static string NormalizeMapName(string? mapName)
-            => string.IsNullOrWhiteSpace(mapName) ? "ElfForest" : mapName.Trim();
+        {
+            if (string.IsNullOrWhiteSpace(mapName))
+                return "ElfForest";
+
+            var normalized = mapName.Trim();
+            return string.Equals(normalized, "ElfLand", StringComparison.OrdinalIgnoreCase)
+                ? "ElfForest"
+                : normalized;
+        }
+
+        private static void ApplyExperience(PlayerProfile profile, int rewardExperience)
+        {
+            profile.ExperiencePoints += Math.Max(0, rewardExperience);
+
+            while (profile.Level < 100 && profile.ExperiencePoints >= RequiredTotalExperienceForLevel(profile.Level + 1))
+                profile.Level++;
+        }
+
+        private static int RequiredTotalExperienceForLevel(int level)
+            => Math.Max(0, (level - 1) * 100);
 
         private static PlayerQuestResponseDto MapToDto(PlayerQuest pq) => new()
         {
