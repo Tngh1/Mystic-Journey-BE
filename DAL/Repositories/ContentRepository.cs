@@ -38,29 +38,38 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(c => c.Slug.ToLower() == slug.ToLower());
         }
 
-        public async Task<List<Content>> GetAllContents()
+        public async Task<Content> CreateContentWithBlocksAsync(Content content, IList<BlockContent> blocks)
         {
-            return await _context.Contents.ToListAsync();
-        }
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.Contents.AddAsync(content);
+                await _context.SaveChangesAsync();
 
-        public async Task<List<Content>> GetPublishedContents()
-        {
-            return await _context.Contents
-                .Include(c => c.CategoryContent)
-                .Where(c => c.IsPublished)
-                .ToListAsync();
-        }
+                if (blocks != null && blocks.Count > 0)
+                {
+                    foreach (var block in blocks)
+                    {
+                        block.ContentId = content.ContentId;
+                    }
 
-        public async Task<Content> CreateContent(Content content)
-        {
-            await _context.Contents.AddAsync(content);
-            await _context.SaveChangesAsync();
-            return content;
+                    await _context.BlockContents.AddRangeAsync(blocks);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                return content;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<Content> UpdateContent(Content content)
         {
-_context.Contents.Update(content);
+            _context.Contents.Update(content);
             await _context.SaveChangesAsync();
             return content;
         }
@@ -91,28 +100,10 @@ _context.Contents.Update(content);
             return category;
         }
 
-        public async Task DeleteCategory(int id)
-        {
-            var category = await _context.CategoryContents.FindAsync(id);
-            if (category != null)
-            {
-                _context.CategoryContents.Remove(category);
-                await _context.SaveChangesAsync();
-            }
-        }
-
         public async Task<BlockContent?> GetBlockById(int id)
         {
             return await _context.BlockContents
                 .FirstOrDefaultAsync(b => b.BlockContentId == id);
-        }
-
-        public async Task<List<BlockContent>> GetBlocksByContentId(int contentId)
-        {
-            return await _context.BlockContents
-                .Where(b => b.ContentId == contentId)
-                .OrderBy(b => b.SortOrder)
-                .ToListAsync();
         }
 
         public async Task<BlockContent> CreateBlock(BlockContent block)
@@ -127,6 +118,38 @@ _context.Contents.Update(content);
             _context.BlockContents.Update(block);
             await _context.SaveChangesAsync();
             return block;
+        }
+
+        public async Task RemoveBlock(int id)
+        {
+            var block = await _context.BlockContents.FindAsync(id);
+            if (block != null)
+            {
+                _context.BlockContents.Remove(block);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<int> UnpublishByCategoryIdAsync(int categoryId)
+        {
+            var publishedContents = await _context.Contents
+                .Where(c => c.CategoryContentId == categoryId && c.IsPublished)
+                .ToListAsync();
+
+            if (publishedContents.Count == 0)
+            {
+                return 0;
+            }
+
+            var now = DateTime.UtcNow;
+            foreach (var content in publishedContents)
+            {
+                content.IsPublished = false;
+                content.UpdatedAt = now;
+            }
+
+            await _context.SaveChangesAsync();
+            return publishedContents.Count;
         }
 
         public async Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished)
@@ -147,22 +170,6 @@ _context.Contents.Update(content);
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            return (totalCount, items);
-        }
-
-        public async Task<(int TotalCount, List<CategoryContent> Items)> GetCategoriesPaged(int page, int pageSize)
-        {
-            var query = _context.CategoryContents.AsNoTracking();
-            int totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-            return (totalCount, items);
-        }
-
-        public async Task<(int TotalCount, List<BlockContent> Items)> GetBlocksPaged(int page, int pageSize)
-        {
-            var query = _context.BlockContents.AsNoTracking();
-            int totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
             return (totalCount, items);
         }
     }

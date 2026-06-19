@@ -140,6 +140,27 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "NPCs",
+                columns: table => new
+                {
+                    NPCId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    MapName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    PositionX = table.Column<double>(type: "double precision", nullable: false),
+                    PositionY = table.Column<double>(type: "double precision", nullable: false),
+                    InteractionRadius = table.Column<float>(type: "real", nullable: false),
+                    IconUrl = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NPCs", x => x.NPCId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
@@ -375,7 +396,14 @@ namespace DAL.Migrations
                     Description = table.Column<string>(type: "text", nullable: true),
                     Type = table.Column<string>(type: "text", nullable: false),
                     DefaultStatus = table.Column<string>(type: "text", nullable: false),
+                    MapName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    RegionName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    ObjectiveType = table.Column<string>(type: "text", nullable: false),
+                    ObjectiveTarget = table.Column<string>(type: "text", nullable: true),
+                    ObjectiveLocation = table.Column<string>(type: "text", nullable: true),
+                    QuestGiverName = table.Column<string>(type: "text", nullable: true),
                     RequiredLevel = table.Column<int>(type: "integer", nullable: false),
+                    TargetAmount = table.Column<int>(type: "integer", nullable: false),
                     RewardExperience = table.Column<int>(type: "integer", nullable: false),
                     RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
                     RewardGems = table.Column<decimal>(type: "numeric", nullable: false),
@@ -478,6 +506,41 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "NPCDialogues",
+                columns: table => new
+                {
+                    NPCDialogueId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NPCId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    ResponseType = table.Column<string>(type: "text", nullable: false),
+                    LinkedQuestId = table.Column<int>(type: "integer", nullable: true),
+                    LinkedShopItemId = table.Column<int>(type: "integer", nullable: true),
+                    DisplayOrder = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NPCDialogues", x => x.NPCDialogueId);
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_NPCs_NPCId",
+                        column: x => x.NPCId,
+                        principalTable: "NPCs",
+                        principalColumn: "NPCId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_Quests_LinkedQuestId",
+                        column: x => x.LinkedQuestId,
+                        principalTable: "Quests",
+                        principalColumn: "QuestId");
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_ShopItems_LinkedShopItemId",
+                        column: x => x.LinkedShopItemId,
+                        principalTable: "ShopItems",
+                        principalColumn: "ShopItemId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Contents",
                 columns: table => new
                 {
@@ -489,7 +552,6 @@ namespace DAL.Migrations
                     ThumbnailUrl = table.Column<string>(type: "text", nullable: true),
                     CategoryContentId = table.Column<int>(type: "integer", nullable: true),
                     IsPublished = table.Column<bool>(type: "boolean", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -582,7 +644,6 @@ namespace DAL.Migrations
                 {
                     BlockContentId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     ContentId = table.Column<int>(type: "integer", nullable: false),
                     ContentData = table.Column<string>(type: "text", nullable: true),
                     MediaUrl = table.Column<string>(type: "text", nullable: true),
@@ -1358,6 +1419,21 @@ namespace DAL.Migrations
                 column: "MonsterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_NPCDialogues_LinkedQuestId",
+                table: "NPCDialogues",
+                column: "LinkedQuestId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NPCDialogues_LinkedShopItemId",
+                table: "NPCDialogues",
+                column: "LinkedShopItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NPCDialogues_NPCId",
+                table: "NPCDialogues",
+                column: "NPCId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PlayerAchievements_AchievementId",
                 table: "PlayerAchievements",
                 column: "AchievementId");
@@ -1442,8 +1518,7 @@ namespace DAL.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerStatsSnapshots_PlayerProfileId",
                 table: "PlayerStatsSnapshots",
-                column: "PlayerProfileId",
-                unique: true);
+                column: "PlayerProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PurchaseHistories_PlayerProfileId",
@@ -1515,6 +1590,9 @@ namespace DAL.Migrations
                 name: "MonsterDrops");
 
             migrationBuilder.DropTable(
+                name: "NPCDialogues");
+
+            migrationBuilder.DropTable(
                 name: "PlayerAchievements");
 
             migrationBuilder.DropTable(
@@ -1558,6 +1636,9 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Monsters");
+
+            migrationBuilder.DropTable(
+                name: "NPCs");
 
             migrationBuilder.DropTable(
                 name: "Achievements");

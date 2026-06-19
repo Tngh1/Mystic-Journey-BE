@@ -6,9 +6,6 @@ namespace DAL.Models
     {
         public int BlockContentId { get; set; }
 
-        [Required, MaxLength(100)]
-        public string Title { get; set; } = string.Empty;
-
         public int ContentId { get; set; }
         public Content? Content { get; set; }
 

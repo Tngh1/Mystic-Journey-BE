@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260612063209_InitialCreate")]
+    [Migration("20260617150944_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -159,11 +159,6 @@ namespace DAL.Migrations
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -339,9 +334,6 @@ namespace DAL.Migrations
 
                     b.Property<Guid>("CreatedByAccountId")
                         .HasColumnType("uuid");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
@@ -1115,6 +1107,93 @@ namespace DAL.Migrations
                     b.ToTable("MonsterDrops");
                 });
 
+            modelBuilder.Entity("DAL.Models.NPC", b =>
+                {
+                    b.Property<int>("NPCId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NPCId"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("text");
+
+                    b.Property<float>("InteractionRadius")
+                        .HasColumnType("real");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MapName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<double>("PositionX")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PositionY")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("NPCId");
+
+                    b.ToTable("NPCs");
+                });
+
+            modelBuilder.Entity("DAL.Models.NPCDialogue", b =>
+                {
+                    b.Property<int>("NPCDialogueId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NPCDialogueId"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("LinkedQuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LinkedShopItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NPCId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ResponseType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("NPCDialogueId");
+
+                    b.HasIndex("LinkedQuestId");
+
+                    b.HasIndex("LinkedShopItemId");
+
+                    b.HasIndex("NPCId");
+
+                    b.ToTable("NPCDialogues");
+                });
+
             modelBuilder.Entity("DAL.Models.PlayerAchievement", b =>
                 {
                     b.Property<int>("PlayerAchievementId")
@@ -1566,8 +1645,7 @@ namespace DAL.Migrations
 
                     b.HasKey("PlayerStatsSnapshotId");
 
-                    b.HasIndex("PlayerProfileId")
-                        .IsUnique();
+                    b.HasIndex("PlayerProfileId");
 
                     b.ToTable("PlayerStatsSnapshots");
                 });
@@ -1622,6 +1700,28 @@ namespace DAL.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("MapName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ObjectiveLocation")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ObjectiveTarget")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ObjectiveType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("QuestGiverName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RegionName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<int>("RequiredLevel")
                         .HasColumnType("integer");
 
@@ -1635,6 +1735,9 @@ namespace DAL.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<int?>("RewardItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetAmount")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
@@ -2132,6 +2235,29 @@ namespace DAL.Migrations
                     b.Navigation("Monster");
                 });
 
+            modelBuilder.Entity("DAL.Models.NPCDialogue", b =>
+                {
+                    b.HasOne("DAL.Models.Quest", "LinkedQuest")
+                        .WithMany()
+                        .HasForeignKey("LinkedQuestId");
+
+                    b.HasOne("DAL.Models.ShopItem", "LinkedShopItem")
+                        .WithMany()
+                        .HasForeignKey("LinkedShopItemId");
+
+                    b.HasOne("DAL.Models.NPC", "NPC")
+                        .WithMany("Dialogues")
+                        .HasForeignKey("NPCId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LinkedQuest");
+
+                    b.Navigation("LinkedShopItem");
+
+                    b.Navigation("NPC");
+                });
+
             modelBuilder.Entity("DAL.Models.PlayerAchievement", b =>
                 {
                     b.HasOne("DAL.Models.Achievement", "Achievement")
@@ -2400,6 +2526,11 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.Monster", b =>
                 {
                     b.Navigation("MonsterDrops");
+                });
+
+            modelBuilder.Entity("DAL.Models.NPC", b =>
+                {
+                    b.Navigation("Dialogues");
                 });
 
             modelBuilder.Entity("DAL.Models.PlayerProfile", b =>
