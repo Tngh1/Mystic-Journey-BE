@@ -1,6 +1,5 @@
 using BLL.DTOs;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
@@ -9,17 +8,15 @@ namespace BLL.Services.Interfaces
     {
         Task<ContentDetailResponseDto?> GetContentById(int id);
         Task<ContentDetailResponseDto?> GetContentBySlug(string slug);
-        Task<ContentResponseDto> CreateContent(CreateContentRequestDto request);
+        Task<ContentDetailResponseDto> CreateContentWithBlocksAsync(CreateContentWithBlocksRequestDto request);
         Task<ContentResponseDto> UpdateContent(int id, UpdateContentRequestDto request);
         Task<ContentResponseDto> PublishContent(int id);
         Task<List<CategoryContentResponseDto>> GetAllCategories();
         Task<CategoryContentResponseDto> CreateCategory(CreateCategoryContentRequestDto request);
         Task<CategoryContentResponseDto> UpdateCategory(int id, CreateCategoryContentRequestDto request);
-        Task DeleteCategory(int id);
         Task<BlockContentResponseDto> CreateBlock(CreateBlockContentRequestDto request);
         Task<BlockContentResponseDto> UpdateBlock(int id, UpdateBlockContentRequestDto request);
+        Task RemoveBlock(int id);
         Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished);
-        Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize);
-        Task<PagedResultDto<BlockContentResponseDto>> GetBlocksPaged(int page, int pageSize);
     }
 }

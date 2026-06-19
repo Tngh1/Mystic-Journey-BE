@@ -1,13 +1,10 @@
-using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -16,12 +13,10 @@ namespace BLL.Services
     public class ContentService : IContentService
     {
         private readonly IContentRepository _repository;
-        private readonly IMapper _mapper;
 
-        public ContentService(IContentRepository repository, IMapper mapper)
+        public ContentService(IContentRepository repository)
         {
             _repository = repository;
-            _mapper = mapper;
         }
 
         public async Task<ContentDetailResponseDto?> GetContentById(int id)
@@ -42,8 +37,22 @@ namespace BLL.Services
             return MapToDetailResponseDto(content);
         }
 
-        public async Task<ContentResponseDto> CreateContent(CreateContentRequestDto request)
+        public async Task<ContentDetailResponseDto> CreateContentWithBlocksAsync(CreateContentWithBlocksRequestDto request)
         {
+            if (request.IsPublished && request.CategoryId.HasValue)
+            {
+                var category = await _repository.GetCategoryById(request.CategoryId.Value);
+                if (category == null)
+                {
+                    throw new ArgumentException($"Category with id {request.CategoryId} not found.");
+                }
+                if (!category.IsActive)
+                {
+                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");
+                }
+            }
+
+            var now = DateTime.UtcNow;
             var content = new Content
             {
                 Title = request.Title,
@@ -52,18 +61,48 @@ namespace BLL.Services
                 ThumbnailUrl = request.ThumbnailUrl,
                 CategoryContentId = request.CategoryId,
                 IsPublished = request.IsPublished,
-                CreatedAt = DateTime.UtcNow,
-                PublishedAt = request.IsPublished ? DateTime.UtcNow : null
+                CreatedAt = now,
+                PublishedAt = request.IsPublished ? now : null
             };
 
-            var created = await _repository.CreateContent(content);
-            return MapToResponseDto(created);
+            var blocks = new List<BlockContent>(request.Blocks?.Count ?? 0);
+            for (var i = 0; i < (request.Blocks?.Count ?? 0); i++)
+            {
+                var item = request.Blocks![i];
+                blocks.Add(new BlockContent
+                {
+                    ContentData = item.ContentData,
+                    MediaUrl = item.MediaUrl,
+                    Caption = item.Caption,
+                    BlockType = string.IsNullOrWhiteSpace(item.BlockType) ? "Text" : item.BlockType,
+                    SortOrder = item.SortOrder ?? (i + 1),
+                    IsActive = item.IsActive,
+                    CreatedAt = now
+                });
+            }
+
+            var created = await _repository.CreateContentWithBlocksAsync(content, blocks);
+            created.BlockContents = blocks;
+            return MapToDetailResponseDto(created);
         }
 
         public async Task<ContentResponseDto> UpdateContent(int id, UpdateContentRequestDto request)
         {
             var content = await _repository.GetContentById(id)
                 ?? throw new KeyNotFoundException($"Content with id {id} not found.");
+
+            if (request.IsPublished && request.CategoryId.HasValue)
+            {
+                var category = await _repository.GetCategoryById(request.CategoryId.Value);
+                if (category == null)
+                {
+                    throw new ArgumentException($"Category with id {request.CategoryId} not found.");
+                }
+                if (!category.IsActive)
+                {
+                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");
+                }
+            }
 
             content.Title = request.Title;
             content.Slug = GenerateSlug(request.Title);
@@ -86,6 +125,19 @@ namespace BLL.Services
         {
             var content = await _repository.GetContentById(id)
                 ?? throw new KeyNotFoundException($"Content with id {id} not found.");
+
+            if (content.CategoryContentId.HasValue)
+            {
+                var category = await _repository.GetCategoryById(content.CategoryContentId.Value);
+                if (category == null)
+                {
+                    throw new ArgumentException($"Category with id {content.CategoryContentId} not found.");
+                }
+                if (!category.IsActive)
+                {
+                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");
+                }
+            }
 
             content.IsPublished = true;
             content.PublishedAt = DateTime.UtcNow;
@@ -141,6 +193,9 @@ namespace BLL.Services
             var category = await _repository.GetCategoryById(id)
                 ?? throw new KeyNotFoundException($"Category with id {id} not found.");
 
+            var wasActive = category.IsActive;
+            var willBeActive = request.IsActive;
+
             category.Name = request.Name;
             category.Slug = string.IsNullOrWhiteSpace(request.Slug) ? GenerateSlug(request.Name) : request.Slug;
             category.Description = request.Description;
@@ -148,6 +203,12 @@ namespace BLL.Services
             category.IsActive = request.IsActive;
 
             var updated = await _repository.UpdateCategory(category);
+
+            // Rule: deactivating a category must unpublish all its public contents
+            if (wasActive && !willBeActive)
+            {
+                await _repository.UnpublishByCategoryIdAsync(id);
+            }
 
             return new CategoryContentResponseDto
             {
@@ -161,19 +222,10 @@ namespace BLL.Services
             };
         }
 
-        public async Task DeleteCategory(int id)
-        {
-            var category = await _repository.GetCategoryById(id)
-                ?? throw new KeyNotFoundException($"Category with id {id} not found.");
-
-            await _repository.DeleteCategory(id);
-        }
-
         public async Task<BlockContentResponseDto> CreateBlock(CreateBlockContentRequestDto request)
         {
             var block = new BlockContent
             {
-                Title = request.Title,
                 ContentId = request.ContentId,
                 ContentData = request.ContentData,
                 MediaUrl = request.MediaUrl,
@@ -189,7 +241,6 @@ namespace BLL.Services
             return new BlockContentResponseDto
             {
                 BlockContentId = created.BlockContentId,
-                Title = created.Title,
                 ContentId = created.ContentId,
                 ContentData = created.ContentData,
                 MediaUrl = created.MediaUrl,
@@ -207,7 +258,6 @@ namespace BLL.Services
             var block = await _repository.GetBlockById(id)
                 ?? throw new KeyNotFoundException($"Block with id {id} not found.");
 
-            block.Title = request.Title;
             block.ContentData = request.ContentData;
             block.MediaUrl = request.MediaUrl;
             block.Caption = request.Caption;
@@ -221,7 +271,6 @@ namespace BLL.Services
             return new BlockContentResponseDto
             {
                 BlockContentId = updated.BlockContentId,
-                Title = updated.Title,
                 ContentId = updated.ContentId,
                 ContentData = updated.ContentData,
                 MediaUrl = updated.MediaUrl,
@@ -234,50 +283,20 @@ namespace BLL.Services
             };
         }
 
+        public async Task RemoveBlock(int id)
+        {
+            var block = await _repository.GetBlockById(id)
+                ?? throw new KeyNotFoundException($"Block with id {id} not found.");
+
+            await _repository.RemoveBlock(id);
+        }
+
         public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished)
         {
             var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished);
 
             var dtos = items.Select(MapToResponseDto).ToList();
             return new PagedResultDto<ContentResponseDto>(totalCount, dtos);
-        }
-
-        public async Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize)
-        {
-            var (totalCount, items) = await _repository.GetCategoriesPaged(page, pageSize);
-
-            var dtos = items.Select(c => new CategoryContentResponseDto
-            {
-                CategoryContentId = c.CategoryContentId,
-                Name = c.Name,
-                Slug = c.Slug,
-                Description = c.Description,
-                IconUrl = c.IconUrl,
-                IsActive = c.IsActive,
-                CreatedAt = c.CreatedAt
-            }).ToList();
-            return new PagedResultDto<CategoryContentResponseDto>(totalCount, dtos);
-        }
-
-        public async Task<PagedResultDto<BlockContentResponseDto>> GetBlocksPaged(int page, int pageSize)
-        {
-            var (totalCount, items) = await _repository.GetBlocksPaged(page, pageSize);
-
-            var dtos = items.Select(b => new BlockContentResponseDto
-            {
-                BlockContentId = b.BlockContentId,
-                Title = b.Title,
-                ContentId = b.ContentId,
-                ContentData = b.ContentData,
-                MediaUrl = b.MediaUrl,
-                Caption = b.Caption,
-                BlockType = b.BlockType,
-                SortOrder = b.SortOrder,
-                IsActive = b.IsActive,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt
-            }).ToList();
-            return new PagedResultDto<BlockContentResponseDto>(totalCount, dtos);
         }
 
         private static ContentResponseDto MapToResponseDto(Content content)
@@ -318,7 +337,6 @@ namespace BLL.Services
                 Blocks = content.BlockContents?.Select(b => new BlockContentResponseDto
                 {
                     BlockContentId = b.BlockContentId,
-                    Title = b.Title,
                     ContentId = b.ContentId,
                     ContentData = b.ContentData,
                     MediaUrl = b.MediaUrl,

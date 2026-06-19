@@ -3,7 +3,6 @@ using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -71,16 +70,24 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateContentRequestDto request)
+        [HttpPost("with-blocks")]
+        public async Task<IActionResult> CreateWithBlocks([FromBody] CreateContentWithBlocksRequestDto request)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var content = await _contentService.CreateContent(request);
+                var content = await _contentService.CreateContentWithBlocksAsync(request);
                 return Ok(content);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (System.ArgumentException ex)
             {
@@ -108,6 +115,10 @@ namespace Mystic_Journey_API.Controllers
             {
                 return NotFound(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (System.ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
@@ -130,6 +141,14 @@ namespace Mystic_Journey_API.Controllers
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (System.Exception ex)
             {
@@ -186,25 +205,6 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpDelete("categories/{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
-        {
-            try
-            {
-                await _contentService.DeleteCategory(id);
-                return Ok(new { message = "Category deleted successfully." });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("blocks")]
         public async Task<IActionResult> CreateBlock([FromBody] CreateBlockContentRequestDto request)
         {
@@ -252,24 +252,29 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpDelete("blocks/{id}")]
+        public async Task<IActionResult> RemoveBlock(int id)
+        {
+            try
+            {
+                await _contentService.RemoveBlock(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null)
         {
             var result = await _contentService.GetContentsPaged(page, pageSize, search, isPublished);
-            return Ok(result);
-        }
-
-        [HttpGet("blocks-paged")]
-        public async Task<IActionResult> GetBlocksPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-        {
-            var result = await _contentService.GetBlocksPaged(page, pageSize);
-            return Ok(result);
-        }
-
-        [HttpGet("categories-paged")]
-        public async Task<IActionResult> GetCategoriesPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-        {
-            var result = await _contentService.GetCategoriesPaged(page, pageSize);
             return Ok(result);
         }
     }

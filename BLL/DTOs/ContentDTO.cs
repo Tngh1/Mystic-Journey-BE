@@ -23,8 +23,7 @@ namespace BLL.DTOs
     {
         public List<BlockContentResponseDto> Blocks { get; set; } = new();
     }
-
-    public class CreateContentRequestDto
+    public class CreateContentWithBlocksRequestDto
     {
         [Required]
         [StringLength(250)]
@@ -34,6 +33,18 @@ namespace BLL.DTOs
         public string? ThumbnailUrl { get; set; }
         public int? CategoryId { get; set; }
         public bool IsPublished { get; set; } = false;
+
+        public List<CreateContentBlockItemDto> Blocks { get; set; } = new();
+    }
+
+    public class CreateContentBlockItemDto
+    {
+        public string? ContentData { get; set; }
+        public string? MediaUrl { get; set; }
+        public string? Caption { get; set; }
+        public string BlockType { get; set; } = "Text";
+        public int? SortOrder { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateContentRequestDto
@@ -79,7 +90,6 @@ namespace BLL.DTOs
     public class BlockContentResponseDto
     {
         public int BlockContentId { get; set; }
-        public string Title { get; set; } = string.Empty;
         public int ContentId { get; set; }
         public string? ContentData { get; set; }
         public string? MediaUrl { get; set; }
@@ -94,10 +104,6 @@ namespace BLL.DTOs
     public class CreateBlockContentRequestDto
     {
         [Required]
-        [StringLength(100)]
-        public string Title { get; set; } = string.Empty;
-
-        [Required]
         public int ContentId { get; set; }
 
         public string? ContentData { get; set; }
@@ -110,10 +116,6 @@ namespace BLL.DTOs
 
     public class UpdateBlockContentRequestDto
     {
-        [Required]
-        [StringLength(100)]
-        public string Title { get; set; } = string.Empty;
-
         public string? ContentData { get; set; }
         public string? MediaUrl { get; set; }
         public string? Caption { get; set; }
