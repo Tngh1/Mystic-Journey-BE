@@ -12,12 +12,7 @@ namespace DAL.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "TargetAmount",
-                table: "Quests",
-                type: "integer",
-                nullable: false,
-                defaultValue: 1);
+            migrationBuilder.Sql("ALTER TABLE \"Quests\" ADD COLUMN IF NOT EXISTS \"TargetAmount\" integer NOT NULL DEFAULT 1;");
 
             migrationBuilder.Sql("""
                 UPDATE "Quests"
@@ -95,9 +90,7 @@ namespace DAL.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "TargetAmount",
-                table: "Quests");
+            migrationBuilder.Sql("ALTER TABLE \"Quests\" DROP COLUMN IF EXISTS \"TargetAmount\";");
         }
     }
 }

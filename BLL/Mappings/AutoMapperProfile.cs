@@ -48,7 +48,6 @@ namespace BLL.Mappings
 
             CreateMap<Content, ContentResponseDto>();
             CreateMap<Content, ContentDetailResponseDto>();
-            CreateMap<CreateContentRequestDto, Content>();
             CreateMap<UpdateContentRequestDto, Content>();
 
             CreateMap<BlockContent, BlockContentResponseDto>();

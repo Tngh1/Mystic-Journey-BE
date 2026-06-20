@@ -96,6 +96,9 @@ namespace BLL.DTOs
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
+        public int? PlayerProfileId { get; set; }
+        public string PlayerClass { get; set; } = "Knight";
+        public int Level { get; set; } = 1;
         public string LastMapName { get; set; } = string.Empty;
         public double PositionX { get; set; }
         public double PositionY { get; set; }
@@ -145,6 +148,11 @@ namespace BLL.DTOs
         public int RoleId { get; set; }
         public int? PlayerProfileId { get; set; }
         public string? PlayerDisplayName { get; set; }
+        public string PlayerClass { get; set; } = "Knight";
+        public int Level { get; set; } = 1;
+        public string LastMapName { get; set; } = string.Empty;
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
         public string? RefreshToken { get; set; }

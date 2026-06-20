@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Mail;
@@ -26,6 +27,9 @@ namespace BLL.Services
 
         private const string OTP_CACHE_PREFIX = "otp:";
         private const string VERIFIED_CACHE_PREFIX = "verified:";
+        private const string DefaultMapName = "ElfForest";
+        private const double DefaultSpawnX = 11.9;
+        private const double DefaultSpawnY = 17.8;
 
         private int OtpExpiryMinutes => int.Parse(_configuration["TokenSettings:OtpExpiryMinutes"] ?? "5");
         private int VerifiedExpiryMinutes => int.Parse(_configuration["TokenSettings:VerifiedExpiryMinutes"] ?? "30");
@@ -58,7 +62,7 @@ namespace BLL.Services
             if (!account.IsActive)
                 throw new UnauthorizedAccessException("Account has been deactivated.");
 
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword))
+            if (!await VerifyPasswordWithFallback(account, request.Password))
                 throw new UnauthorizedAccessException("Invalid email/username or password.");
 
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
@@ -86,7 +90,7 @@ namespace BLL.Services
             if (!account.IsActive)
                 throw new UnauthorizedAccessException("Account has been deactivated.");
 
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, account.HashPassword))
+            if (!await VerifyPasswordWithFallback(account, request.Password))
                 throw new UnauthorizedAccessException("Invalid email/username or password.");
 
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
@@ -106,6 +110,11 @@ namespace BLL.Services
                 RoleId = account.RoleId,
                 PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
                 PlayerDisplayName = account.PlayerProfile?.DisplayName,
+                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
+                Level = account.PlayerProfile?.Level ?? 1,
+                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
+                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
+                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY,
                 AccessToken = accessToken,
                 AccessTokenExpiresAt = accessExpiry,
                 RefreshToken = refreshToken,
@@ -139,7 +148,10 @@ namespace BLL.Services
             account.PlayerProfile = new PlayerProfile
             {
                 DisplayName = normalizedUsername,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                LastMapName = DefaultMapName,
+                PositionX = DefaultSpawnX,
+                PositionY = DefaultSpawnY
             };
 
             await _repository.CreateAccount(account);
@@ -224,9 +236,12 @@ namespace BLL.Services
                 UserName = account.UserName,
                 Email = account.Email,
                 Role = account.Role?.Name ?? "Player",
-                LastMapName = account.PlayerProfile?.LastMapName ?? string.Empty,
-                PositionX = account.PlayerProfile?.PositionX ?? 0,
-                PositionY = account.PlayerProfile?.PositionY ?? 0
+                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
+                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
+                Level = account.PlayerProfile?.Level ?? 1,
+                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
+                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
+                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY
             };
         }
 
@@ -286,7 +301,7 @@ namespace BLL.Services
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.UtcNow.AddMinutes(AccessTokenExpiryMinutes);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
                 new Claim(ClaimTypes.Name, account.UserName),
@@ -294,11 +309,70 @@ namespace BLL.Services
                 new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player")
             };
 
+            if (account.PlayerProfile != null)
+            {
+                claims.Add(new Claim("playerProfileId", account.PlayerProfile.PlayerProfileId.ToString()));
+                claims.Add(new Claim("playerLevel", account.PlayerProfile.Level.ToString()));
+            }
+
             var token = new JwtSecurityToken(
                 jwt["Issuer"], jwt["Audience"], claims,
                 expires: expires, signingCredentials: creds);
 
             return (new JwtSecurityTokenHandler().WriteToken(token), expires);
+        }
+
+        private static string NormalizeMapName(string? mapName)
+            => string.IsNullOrWhiteSpace(mapName) ? DefaultMapName : mapName.Trim();
+
+        private static string NormalizePlayerClass(string? playerClass)
+            => string.IsNullOrWhiteSpace(playerClass) ? "Knight" : playerClass.Trim();
+
+        private static bool HasSavedPosition(PlayerProfile? profile)
+        {
+            if (profile == null)
+                return false;
+
+            var hasMap = !string.IsNullOrWhiteSpace(profile.LastMapName);
+            if (!hasMap)
+                return false;
+
+            var hasPosition = Math.Abs(profile.PositionX) > double.Epsilon ||
+                              Math.Abs(profile.PositionY) > double.Epsilon;
+
+            return hasPosition || profile.Level > 1;
+        }
+
+        private async Task<bool> VerifyPasswordWithFallback(Account account, string password)
+        {
+            try
+            {
+                // Try normal bcrypt verify first
+                if (BCrypt.Net.BCrypt.Verify(password, account.HashPassword))
+                    return true;
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // fallthrough to legacy check
+            }
+
+            // Fallback: some older accounts may store a SHA256(base64) of the password.
+            // Compare SHA256 base64 and upgrade to bcrypt if it matches.
+            try
+            {
+                var sha = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(password)));
+                if (string.Equals(sha, account.HashPassword, StringComparison.Ordinal))
+                {
+                    // Upgrade stored hash to bcrypt
+                    account.HashPassword = BCrypt.Net.BCrypt.HashPassword(password);
+                    account.UpdatedAt = DateTime.UtcNow;
+                    await _repository.UpdateAccount(account);
+                    return true;
+                }
+            }
+            catch { /* ignore */ }
+
+            return false;
         }
 
 

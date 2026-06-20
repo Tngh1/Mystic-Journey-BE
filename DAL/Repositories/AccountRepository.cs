@@ -74,6 +74,7 @@ namespace DAL.Repositories
         {
             return await _context.Accounts
                 .Include(a => a.Role)
+                .Include(a => a.PlayerProfile)
                 .FirstOrDefaultAsync(a => a.RefreshToken == refreshToken && a.IsActive);
         }
 

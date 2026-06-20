@@ -56,18 +56,10 @@ namespace DAL.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-        modelBuilder.Entity<Role>().HasData(
-        new Role { RoleId = 1, Name = "Player" },
-        new Role { RoleId = 2, Name = "Admin" },
-        new Role { RoleId = 3, Name = "SuperAdmin" }
-    );
-        modelBuilder.Entity<PlayerStatsSnapshot>()
-            .HasIndex(s => s.PlayerProfileId)
-            .IsUnique();
-        modelBuilder.Entity<Quest>()
-            .HasIndex(q => q.MapName);
-        modelBuilder.Entity<NPC>()
-            .HasIndex(n => n.MapName);
+            modelBuilder.Entity<Role>().HasData(
+            new Role { RoleId = 1, Name = "Player" },
+            new Role { RoleId = 2, Name = "Admin" },
+            new Role { RoleId = 3, Name = "SuperAdmin" });
         }
     }
 }
