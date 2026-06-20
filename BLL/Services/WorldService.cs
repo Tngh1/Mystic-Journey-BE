@@ -119,6 +119,7 @@ namespace BLL.Services
         {
             var profile = await GetProfile(playerProfileId);
             var mapName = NormalizeMapName(profile.LastMapName);
+            var progressDelta = Math.Max(1, request.ProgressDelta);
 
             if (NormalizeMapName(request.MapName) != mapName)
             {
@@ -127,10 +128,16 @@ namespace BLL.Services
 
             if (!request.QuestId.HasValue)
             {
+                var collectedItem = await TryCollectQuestItem(playerProfileId, request, null);
                 return new InteractObjectResponseDto
                 {
                     Success = true,
-                    Message = $"Object {request.ObjectKey} interacted."
+                    Message = collectedItem == null
+                        ? $"Object {request.ObjectKey} interacted."
+                        : $"Collected {DisplayItemName(collectedItem.Name)}.",
+                    CollectedItemId = collectedItem?.ItemId,
+                    CollectedItemName = collectedItem?.Name,
+                    CollectedQuantity = collectedItem == null ? 0 : progressDelta
                 };
             }
 
@@ -151,7 +158,31 @@ namespace BLL.Services
                 };
             }
 
-            var nextProgress = playerQuest.Progress + Math.Max(1, request.ProgressDelta);
+            var questItem = await TryCollectQuestItem(playerProfileId, request, playerQuest.Quest);
+            var targetAmount = Math.Max(1, playerQuest.Quest?.TargetAmount ?? playerQuest.TargetValue);
+
+            if (IsCollectQuest(playerQuest.Quest))
+            {
+                playerQuest.TargetValue = targetAmount;
+                playerQuest.Progress = Math.Min(targetAmount, playerQuest.Progress + progressDelta);
+                _context.PlayerQuests.Update(playerQuest);
+                await _context.SaveChangesAsync();
+
+                var collectQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId.Value);
+                return new InteractObjectResponseDto
+                {
+                    Success = true,
+                    Message = questItem == null
+                        ? $"Object {request.ObjectKey} interacted."
+                        : $"Collected {DisplayItemName(questItem.Name)}.",
+                    Quest = collectQuest,
+                    CollectedItemId = questItem?.ItemId,
+                    CollectedItemName = questItem?.Name,
+                    CollectedQuantity = questItem == null ? 0 : progressDelta
+                };
+            }
+
+            var nextProgress = playerQuest.Progress + progressDelta;
             var updates = await _playerQuestService.BatchUpdateProgress(
                 playerProfileId,
                 new BatchProgressRequestDto
@@ -168,6 +199,120 @@ namespace BLL.Services
                 Message = $"Object {request.ObjectKey} interacted.",
                 Quest = updates.FirstOrDefault()
             };
+        }
+
+        public async Task<TurnInQuestItemResponseDto> TurnInQuestItem(int playerProfileId, TurnInQuestItemRequestDto request)
+        {
+            var profile = await GetProfile(playerProfileId);
+            var mapName = NormalizeMapName(profile.LastMapName);
+
+            var npc = await _context.NPCs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(n => n.NPCId == request.NPCId && n.IsActive)
+                ?? throw new KeyNotFoundException($"NPC {request.NPCId} not found.");
+
+            if (npc.MapName != mapName)
+                throw new InvalidOperationException($"NPC {request.NPCId} is on map {npc.MapName}, but player is currently in {mapName}.");
+
+            var linkedToNpc = await _context.NPCDialogues
+                .AnyAsync(d => d.NPCId == request.NPCId && d.LinkedQuestId == request.QuestId && d.IsActive);
+            if (!linkedToNpc)
+                throw new InvalidOperationException($"Quest {request.QuestId} is not linked to NPC {request.NPCId}.");
+
+            var playerQuest = await _context.PlayerQuests
+                .Include(pq => pq.Quest)
+                .FirstOrDefaultAsync(pq => pq.PlayerProfileId == playerProfileId && pq.QuestId == request.QuestId)
+                ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
+
+            if (playerQuest.Quest?.MapName != mapName)
+                throw new InvalidOperationException($"Quest {request.QuestId} does not belong to current map {mapName}.");
+
+            if (!IsCollectQuest(playerQuest.Quest))
+                throw new InvalidOperationException($"Quest {request.QuestId} is not a QuestItem turn-in quest.");
+
+            if (playerQuest.Status == "Claimed")
+            {
+                var claimedQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
+                return new TurnInQuestItemResponseDto
+                {
+                    Success = true,
+                    Message = "Reward already claimed.",
+                    Quest = claimedQuest
+                };
+            }
+
+            var targetAmount = Math.Max(1, playerQuest.Quest?.TargetAmount ?? playerQuest.TargetValue);
+            var item = await ResolveQuestItem(
+                new InteractObjectRequestDto
+                {
+                    MapName = mapName,
+                    ObjectKey = playerQuest.Quest?.ObjectiveTarget ?? string.Empty,
+                    InteractionType = "Collect",
+                    QuestId = request.QuestId,
+                    ProgressDelta = targetAmount
+                },
+                playerQuest.Quest)
+                ?? throw new KeyNotFoundException($"Quest item for questId={request.QuestId} was not found.");
+
+            var inventoryItem = await _context.InventoryItems
+                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == item.ItemId);
+            var available = inventoryItem?.Quantity ?? 0;
+            if (available < targetAmount)
+            {
+                var missingQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
+                return new TurnInQuestItemResponseDto
+                {
+                    Success = false,
+                    Message = $"Need {targetAmount - available} more {DisplayItemName(item.Name)}.",
+                    Quest = missingQuest,
+                    ConsumedItemId = item.ItemId,
+                    ConsumedItemName = item.Name,
+                    ConsumedQuantity = 0
+                };
+            }
+
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (inventoryItem != null)
+                {
+                    inventoryItem.Quantity -= targetAmount;
+                    if (inventoryItem.Quantity <= 0)
+                        _context.InventoryItems.Remove(inventoryItem);
+                    else
+                        _context.InventoryItems.Update(inventoryItem);
+                }
+
+                await _context.SaveChangesAsync();
+
+                PlayerQuestResponseDto? completedQuest;
+                if (playerQuest.Status == "Completed")
+                {
+                    completedQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
+                }
+                else
+                {
+                    completedQuest = await _playerQuestService.CompleteQuest(
+                        playerProfileId,
+                        new CompleteQuestRequestDto { QuestId = request.QuestId });
+                }
+
+                await tx.CommitAsync();
+                return new TurnInQuestItemResponseDto
+                {
+                    Success = true,
+                    Message = $"Handed over {targetAmount} {DisplayItemName(item.Name)}.",
+                    Quest = completedQuest,
+                    ConsumedItemId = item.ItemId,
+                    ConsumedItemName = item.Name,
+                    ConsumedQuantity = targetAmount
+                };
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<OpenChestResponseDto> OpenChest(int playerProfileId, OpenWorldChestRequestDto request)
@@ -396,6 +541,92 @@ namespace BLL.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+
+        private async Task<Item?> TryCollectQuestItem(int playerProfileId, InteractObjectRequestDto request, Quest? quest)
+        {
+            if (!IsQuestItemInteraction(request, quest))
+                return null;
+
+            var item = await ResolveQuestItem(request, quest);
+            if (item == null)
+                return null;
+
+            await AddItemToInventory(playerProfileId, item.ItemId, Math.Max(1, request.ProgressDelta));
+            return item;
+        }
+
+        private async Task<Item?> ResolveQuestItem(InteractObjectRequestDto request, Quest? quest)
+        {
+            var searchText = $"{request.ObjectKey} {request.InteractionType} {quest?.ObjectiveTarget} {quest?.ObjectiveLocation}";
+
+            if (Contains(searchText, "White Flower") || Contains(searchText, "WhiteFlower") || Contains(searchText, "Flower"))
+                return await FindQuestItemByNames("[ELF] White Flower", "White Flower");
+
+            if (Contains(searchText, "Old Willow Branch") || Contains(searchText, "OldWillowBranch") || Contains(searchText, "Branch") || Contains(searchText, "Willow"))
+                return await FindQuestItemByNames("[ELF] Old Willow Branch", "Old Willow Branch");
+
+            var normalizedSearch = NormalizeToken(searchText);
+            var questItems = await _context.Items
+                .Where(i => i.IsActive && i.Type == "QuestItem")
+                .OrderBy(i => i.ItemId)
+                .ToListAsync();
+
+            return questItems.FirstOrDefault(i => normalizedSearch.Contains(NormalizeToken(i.Name)));
+        }
+
+        private async Task<Item?> FindQuestItemByNames(params string[] names)
+        {
+            return await _context.Items
+                .Where(i => i.IsActive && i.Type == "QuestItem" && names.Contains(i.Name))
+                .OrderBy(i => i.ItemId)
+                .FirstOrDefaultAsync();
+        }
+
+        private static bool IsQuestItemInteraction(InteractObjectRequestDto request, Quest? quest)
+        {
+            return string.Equals(request.InteractionType, "Collect", StringComparison.OrdinalIgnoreCase) ||
+                   IsCollectQuest(quest) ||
+                   Contains(request.ObjectKey, "Flower") ||
+                   Contains(request.ObjectKey, "Branch") ||
+                   Contains(request.ObjectKey, "Willow");
+        }
+
+        private static bool IsCollectQuest(Quest? quest)
+        {
+            return string.Equals(quest?.ObjectiveType, "Collect", StringComparison.OrdinalIgnoreCase);
+        }
+
+
+        private static bool Contains(string? source, string value)
+        {
+            return !string.IsNullOrWhiteSpace(source) &&
+                   !string.IsNullOrWhiteSpace(value) &&
+                   source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+        private static string NormalizeToken(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+
+            var chars = value
+                .Where(char.IsLetterOrDigit)
+                .Select(char.ToLowerInvariant)
+                .ToArray();
+            return new string(chars);
+        }
+
+        private static string DisplayItemName(string? itemName)
+        {
+            if (string.IsNullOrWhiteSpace(itemName))
+                return "quest item";
+
+            var trimmed = itemName.Trim();
+            var closingPrefix = trimmed.IndexOf(']');
+            return closingPrefix >= 0 && closingPrefix + 1 < trimmed.Length
+                ? trimmed[(closingPrefix + 1)..].Trim()
+                : trimmed;
         }
 
         private async Task<PlayerProfile> GetProfile(int playerProfileId)

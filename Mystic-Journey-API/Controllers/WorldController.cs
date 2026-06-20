@@ -87,6 +87,35 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+
+        [HttpPost("npc/turn-in")]
+        public async Task<IActionResult> TurnInQuestItem([FromBody] TurnInQuestItemRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var profileId = GetPlayerProfileId();
+                var result = await _worldService.TurnInQuestItem(profileId, request);
+                return Ok(new ApiResponse<TurnInQuestItemResponseDto> { Success = result.Success, Message = result.Message, Data = result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ErrorResponse { Error = "QUEST_OR_NPC_NOT_FOUND", Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+            }
+        }
         [HttpPost("chests/open")]
         public async Task<IActionResult> OpenChest([FromBody] OpenWorldChestRequestDto request)
         {

@@ -9,6 +9,7 @@ namespace BLL.Services.Interfaces
         Task<TalkToNpcResponseDto> TalkToNpc(int playerProfileId, TalkToNpcRequestDto request);
         Task<OpenChestResponseDto> OpenChest(int playerProfileId, OpenWorldChestRequestDto request);
         Task<InteractObjectResponseDto> InteractWithObject(int playerProfileId, InteractObjectRequestDto request);
+        Task<TurnInQuestItemResponseDto> TurnInQuestItem(int playerProfileId, TurnInQuestItemRequestDto request);
         Task<PlayerDailyLoginResponseDto?> GetDailyLoginStatus(int playerProfileId);
         Task<ClaimDailyRewardResponseDto> ClaimDailyLoginReward(int playerProfileId);
     }
