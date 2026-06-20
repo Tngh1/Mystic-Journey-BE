@@ -73,8 +73,29 @@ namespace BLL.DTOs
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
         public PlayerQuestResponseDto? Quest { get; set; }
+        public int? CollectedItemId { get; set; }
+        public string? CollectedItemName { get; set; }
+        public int CollectedQuantity { get; set; }
     }
 
+    public class TurnInQuestItemRequestDto
+    {
+        [Required]
+        public int NPCId { get; set; }
+
+        [Required]
+        public int QuestId { get; set; }
+    }
+
+    public class TurnInQuestItemResponseDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public PlayerQuestResponseDto? Quest { get; set; }
+        public int? ConsumedItemId { get; set; }
+        public string? ConsumedItemName { get; set; }
+        public int ConsumedQuantity { get; set; }
+    }
     public class OpenWorldChestRequestDto
     {
         public int? ChestId { get; set; }

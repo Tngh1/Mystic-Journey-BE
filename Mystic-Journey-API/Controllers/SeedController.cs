@@ -1,4 +1,4 @@
-﻿using DAL.Data;
+using DAL.Data;
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -450,7 +450,14 @@ namespace Mystic_Journey_API.Controllers
                 await EnsureElfForestSchema();
 
                 // 1. Upsert ElfForest items. Keep IDs stable so existing inventory/rewards do not break.
-                var itemNames = new[] { "[ELF] Health Potion", "[ELF] Short Sword", "[ELF] Leather Armor" };
+                var itemNames = new[]
+                {
+                    "[ELF] Health Potion",
+                    "[ELF] Short Sword",
+                    "[ELF] Leather Armor",
+                    "[ELF] White Flower",
+                    "[ELF] Old Willow Branch"
+                };
                 var existingItems = await _ctx.Items
                     .Where(i => itemNames.Contains(i.Name))
                     .ToListAsync();
@@ -477,6 +484,8 @@ namespace Mystic_Journey_API.Controllers
                 var potion = UpsertItem("[ELF] Health Potion", "Hồi phục 150 HP.", "Consumable", "Common", "None", 30, 99);
                 var sword = UpsertItem("[ELF] Short Sword", "Kiếm ngắn dùng cho du kích rừng.", "Weapon", "Uncommon", "Weapon", 200, 1);
                 var armor = UpsertItem("[ELF] Leather Armor", "Áo da nhẹ, tăng chút phòng thủ.", "Armor", "Common", "Armor", 180, 1);
+                UpsertItem("[ELF] White Flower", "Hoa trắng dùng cho nhiệm vụ tân thủ ở ElfForest.", "QuestItem", "Common", "None", 0, 99);
+                UpsertItem("[ELF] Old Willow Branch", "Cành cây liễu già dùng cho nhiệm vụ ở ElfForest.", "QuestItem", "Common", "None", 0, 99);
                 await _ctx.SaveChangesAsync();
 
                 var existingEquipmentStats = await _ctx.EquipmentStats
