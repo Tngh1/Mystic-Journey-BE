@@ -18,6 +18,14 @@ namespace Mystic_Journey_API.Controllers
             _worldService = worldService;
         }
 
+        private int GetPlayerProfileId()
+        {
+            var claim = User.FindFirstValue("playerProfileId");
+            if (!int.TryParse(claim, out var id))
+                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
+            return id;
+        }
+
         [HttpGet("state")]
         public async Task<IActionResult> GetState()
         {
@@ -25,15 +33,15 @@ namespace Mystic_Journey_API.Controllers
             {
                 var profileId = GetPlayerProfileId();
                 var result = await _worldService.GetWorldState(profileId);
-                return Ok(new ApiResponse<WorldStateResponseDto> { Success = true, Data = result });
+                return Ok(new ApiResponse<WorldStateResponseDto> { Data = result });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -46,15 +54,15 @@ namespace Mystic_Journey_API.Controllers
 
                 var profileId = GetPlayerProfileId();
                 var result = await _worldService.UpdatePosition(profileId, request);
-                return Ok(new ApiResponse<PlayerWorldPositionDto> { Success = true, Data = result });
+                return Ok(new ApiResponse<PlayerWorldPositionDto> { Data = result });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -67,26 +75,25 @@ namespace Mystic_Journey_API.Controllers
 
                 var profileId = GetPlayerProfileId();
                 var result = await _worldService.TalkToNpc(profileId, request);
-                return Ok(new ApiResponse<TalkToNpcResponseDto> { Success = true, Data = result });
+                return Ok(new ApiResponse<TalkToNpcResponseDto> { Data = result });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "NPC_NOT_FOUND", Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
-
 
         [HttpPost("npc/turn-in")]
         public async Task<IActionResult> TurnInQuestItem([FromBody] TurnInQuestItemRequestDto request)
@@ -97,25 +104,26 @@ namespace Mystic_Journey_API.Controllers
 
                 var profileId = GetPlayerProfileId();
                 var result = await _worldService.TurnInQuestItem(profileId, request);
-                return Ok(new ApiResponse<TurnInQuestItemResponseDto> { Success = result.Success, Message = result.Message, Data = result });
+                return Ok(new ApiResponse<TurnInQuestItemResponseDto> { Data = result });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "QUEST_OR_NPC_NOT_FOUND", Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
+
         [HttpPost("chests/open")]
         public async Task<IActionResult> OpenChest([FromBody] OpenWorldChestRequestDto request)
         {
@@ -123,27 +131,27 @@ namespace Mystic_Journey_API.Controllers
             {
                 var profileId = GetPlayerProfileId();
                 var result = await _worldService.OpenChest(profileId, request);
-                return Ok(new ApiResponse<OpenChestResponseDto> { Success = true, Data = result });
+                return Ok(new ApiResponse<OpenChestResponseDto> { Data = result });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "CHEST_NOT_FOUND", Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "BAD_REQUEST", Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -156,23 +164,23 @@ namespace Mystic_Journey_API.Controllers
 
                 var profileId = GetPlayerProfileId();
                 var result = await _worldService.InteractWithObject(profileId, request);
-                return Ok(new ApiResponse<InteractObjectResponseDto> { Success = true, Data = result });
+                return Ok(new ApiResponse<InteractObjectResponseDto> { Data = result });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "OBJECT_NOT_FOUND", Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -183,24 +191,16 @@ namespace Mystic_Journey_API.Controllers
             {
                 var profileId = GetPlayerProfileId();
                 var result = await _worldService.ClaimDailyLoginReward(profileId);
-                return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Success = result.Success, Message = result.Message, Data = result });
+                return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Data = result });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
-        }
-
-        private int GetPlayerProfileId()
-        {
-            var claim = User.FindFirstValue("playerProfileId");
-            if (!int.TryParse(claim, out var id))
-                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
-            return id;
         }
     }
 }

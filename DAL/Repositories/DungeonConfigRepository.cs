@@ -23,18 +23,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(d => d.DungeonConfigId == id);
         }
 
-        public async Task<List<DungeonConfig>> GetAllDungeonConfigs()
-        {
-            return await _context.DungeonConfigs.ToListAsync();
-        }
-
-        public async Task<List<DungeonConfig>> GetActiveDungeonConfigs()
-        {
-            return await _context.DungeonConfigs
-                .Where(d => d.IsActive)
-                .ToListAsync();
-        }
-
         public async Task<DungeonConfig> CreateDungeonConfig(DungeonConfig dungeon)
         {
             await _context.DungeonConfigs.AddAsync(dungeon);

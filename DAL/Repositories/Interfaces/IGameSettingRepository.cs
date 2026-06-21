@@ -8,7 +8,6 @@ namespace DAL.Repositories.Interfaces
     {
         Task<GameSetting?> GetGameSettingById(int id);
         Task<GameSetting?> GetByName(string name);
-        Task<List<GameSetting>> GetAllGameSettings();
         Task<GameSetting> UpdateGameSetting(GameSetting setting);
         Task<(int TotalCount, List<GameSetting> Items)> GetSettingsPaged(int page, int pageSize, string? search);
     }

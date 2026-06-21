@@ -8,7 +8,10 @@ using System.Text;
 namespace Mystic_Journey_API.Controllers
 {
     // =============================================================================
-    // SeedController – Seeder dữ liệu mẫu cho UC 20 (Inventory)
+    // SEED: Data Seeder Controller
+    // Dùng để tạo dữ liệu mẫu cho development/testing
+    // Không phải code của Player hay Manager Dashboard
+    // =============================================================================
     // POST /api/seed/inventory  → Chèn toàn bộ dữ liệu mẫu
     // DELETE /api/seed/inventory → Xoá toàn bộ dữ liệu mẫu (để reset)
     //

@@ -1,7 +1,9 @@
 using BLL.DTOs;
 using BLL.Services.Interfaces;
+using DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -12,12 +14,35 @@ namespace Mystic_Journey_API.Controllers
     {
         private readonly IMailService _mailService;
         private readonly IPlayerProfileService _playerProfileService;
+        private readonly IAuthRepository _authRepository;
 
-        public MailsController(IMailService mailService, IPlayerProfileService playerProfileService)
+        public MailsController(
+            IMailService mailService,
+            IPlayerProfileService playerProfileService,
+            IAuthRepository authRepository)
         {
             _mailService = mailService;
             _playerProfileService = playerProfileService;
+            _authRepository = authRepository;
         }
+
+        // ========== SHARED: Helper Methods ==========
+
+        private int GetCurrentAccountId()
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 0;
+        }
+
+        private async Task<int> GetCurrentPlayerProfileId()
+        {
+            var accountId = GetCurrentAccountId();
+            var account = await _authRepository.GetAccountById(accountId);
+            return account?.PlayerProfile?.PlayerProfileId ?? 0;
+        }
+
+        // ========== PLAYER: View Mail ==========
+        // Dành cho người chơi - Xem chi tiết mail
 
         [AllowAnonymous]
         [HttpGet("{id}")]
@@ -37,6 +62,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ========== PLAYER: View Player's Mails ==========
+        // Dành cho người chơi - Xem danh sách mail của một player
+
         [AllowAnonymous]
         [HttpGet("player/{playerProfileId}")]
         public async Task<IActionResult> GetByPlayerId(int playerProfileId)
@@ -51,6 +79,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== MANAGER: Send Mail (Dashboard) ==========
+        // Dành cho Admin/Manager - Gửi mail cho người chơi từ dashboard
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("by-ids")]
@@ -95,6 +126,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== PLAYER: Manage Own Mail ==========
+        // Dành cho người chơi - Đánh dấu đã đọc, nhận thưởng, xóa mail
 
         [Authorize]
         [HttpPost("{id}/read")]
@@ -165,6 +199,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ========== MANAGER: Mail Management (Dashboard) ==========
+        // Dành cho Admin/Manager - Quản lý danh sách mail trên dashboard
+
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> GetAll(
@@ -176,6 +213,32 @@ namespace Mystic_Journey_API.Controllers
         {
             var result = await _mailService.GetMailsPaged(page, pageSize, search, isRead, isClaimed);
             return Ok(result);
+        }
+
+        // ========== PLAYER: Get Own Mails (/me endpoint) ==========
+        // Dành cho người chơi - Lấy danh sách mail của chính mình
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyMails()
+        {
+            try
+            {
+                var playerProfileId = await GetCurrentPlayerProfileId();
+                if (playerProfileId == 0)
+                    return Unauthorized(new { message = "Player profile not found." });
+
+                var result = await _mailService.GetMeMails(playerProfileId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

@@ -25,13 +25,6 @@ namespace BLL.Services
             _mapper = mapper;
         }
 
-        public async Task<List<DailyLoginRewardResponseDto>> GetAllDailyLoginRewards()
-        {
-            var rewards = await _repository.GetAllDailyLoginRewards();
-
-            return rewards.Select(MapToResponseDto).ToList();
-        }
-
         public async Task<DailyLoginRewardResponseDto> CreateDailyLoginReward(CreateDailyLoginRewardRequestDto request)
         {
             var existingReward = await _repository.GetDailyLoginRewardByDayNumber(request.DayNumber);

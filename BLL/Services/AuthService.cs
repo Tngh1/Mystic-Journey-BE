@@ -18,9 +18,9 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
-    public class AccountService : IAccountService
+    public class AuthService : IAuthService
     {
-        private readonly IAccountRepository _repository;
+        private readonly IAuthRepository _repository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
@@ -36,8 +36,8 @@ namespace BLL.Services
         private int AccessTokenExpiryMinutes => int.Parse(_configuration["TokenSettings:AccessTokenExpiryMinutes"] ?? _configuration["Jwt:AccessTokenExpiryMinutes"] ?? "30");
         private int RefreshTokenExpiryDays => int.Parse(_configuration["TokenSettings:RefreshTokenExpiryDays"] ?? _configuration["Jwt:RefreshTokenExpireDays"] ?? "7");
 
-        public AccountService(
-            IAccountRepository repository,
+        public AuthService(
+            IAuthRepository repository,
             IMapper mapper,
             IConfiguration configuration,
             IMemoryCache cache)
@@ -54,7 +54,7 @@ namespace BLL.Services
             return Convert.ToBase64String(bytes);
         }
 
-        public async Task<AccountResponseDto> LoginAccount(LoginRequestDto request)
+        public async Task<AuthResponseDto> Login(LoginRequestDto request)
         {
             var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
                 ?? throw new UnauthorizedAccessException("Invalid email/username or password.");
@@ -74,40 +74,15 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAccount(account);
 
-            var response = _mapper.Map<AccountResponseDto>(account);
-            response.AccessToken = accessToken;
-            response.AccessTokenExpiresAt = accessExpiry;
-            response.RefreshToken = refreshToken;
-            response.RefreshTokenExpiresAt = refreshExpiry;
-            return response;
-        }
-
-        public async Task<LoginGameResponseDto> LoginGame(LoginGameRequestDto request)
-        {
-            var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
-                ?? throw new UnauthorizedAccessException("Invalid email/username or password.");
-
-            if (!account.IsActive)
-                throw new UnauthorizedAccessException("Account has been deactivated.");
-
-            if (!await VerifyPasswordWithFallback(account, request.Password))
-                throw new UnauthorizedAccessException("Invalid email/username or password.");
-
-            var (accessToken, accessExpiry) = GenerateAccessToken(account);
-            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
-
-            account.RefreshToken = HashRefreshToken(refreshToken);
-            account.RefreshTokenExpiresAt = refreshExpiry;
-            account.LastLogin = DateTime.UtcNow;
-            account.UpdatedAt = DateTime.UtcNow;
-            await _repository.UpdateAccount(account);
-
-            return new LoginGameResponseDto
+            var hasCharacter = account.PlayerProfile != null;
+            return new AuthResponseDto
             {
                 AccountId = account.AccountId,
                 UserName = account.UserName,
                 EmailAddress = account.Email,
                 RoleId = account.RoleId,
+                Role = account.Role?.Name ?? "Player",
+                HasCharacter = hasCharacter,
                 PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
                 PlayerDisplayName = account.PlayerProfile?.DisplayName,
                 PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
@@ -122,7 +97,7 @@ namespace BLL.Services
             };
         }
 
-        public async Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request)
+        public async Task<AuthResponseDto> Register(RegisterRequestDto request)
         {
             var normalizedEmail = request.EmailAddress.Trim().ToLowerInvariant();
             var normalizedUsername = request.UserName.Trim();
@@ -164,15 +139,30 @@ namespace BLL.Services
             account.RefreshTokenExpiresAt = refreshExpiry;
             await _repository.UpdateAccount(account);
 
-            var response = _mapper.Map<AccountResponseDto>(account);
-            response.AccessToken = accessToken;
-            response.AccessTokenExpiresAt = accessExpiry;
-            response.RefreshToken = refreshToken;
-            response.RefreshTokenExpiresAt = refreshExpiry;
+            var response = new AuthResponseDto
+            {
+                AccountId = account.AccountId,
+                UserName = account.UserName,
+                EmailAddress = account.Email,
+                RoleId = account.RoleId,
+                Role = account.Role?.Name ?? "Player",
+                HasCharacter = true,
+                PlayerProfileId = account.PlayerProfile.PlayerProfileId,
+                PlayerDisplayName = account.PlayerProfile.DisplayName,
+                PlayerClass = NormalizePlayerClass(account.PlayerProfile.Class),
+                Level = account.PlayerProfile.Level,
+                LastMapName = NormalizeMapName(account.PlayerProfile.LastMapName),
+                PositionX = account.PlayerProfile.PositionX,
+                PositionY = account.PlayerProfile.PositionY,
+                AccessToken = accessToken,
+                AccessTokenExpiresAt = accessExpiry,
+                RefreshToken = refreshToken,
+                RefreshTokenExpiresAt = refreshExpiry
+            };
             return response;
         }
 
-        public async Task<AccountResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request)
+        public async Task<AuthResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request)
         {
             var account = await _repository.GetAccountById(accountId)
                 ?? throw new KeyNotFoundException("Account not found.");
@@ -184,10 +174,10 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAccount(account);
 
-            return _mapper.Map<AccountResponseDto>(account);
+            return _mapper.Map<AuthResponseDto>(account);
         }
 
-        public async Task<AccountResponseDto> RefreshToken(string refreshToken)
+        public async Task<AuthResponseDto> RefreshToken(string refreshToken)
         {
             var hashed = HashRefreshToken(refreshToken);
             var account = await _repository.GetAccountByRefreshToken(hashed)
@@ -207,12 +197,27 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAccount(account);
 
-            var response = _mapper.Map<AccountResponseDto>(account);
-            response.AccessToken = accessToken;
-            response.AccessTokenExpiresAt = accessExpiry;
-            response.RefreshToken = newRefreshToken;
-            response.RefreshTokenExpiresAt = newRefreshExpiry;
-            return response;
+            var hasCharacter = account.PlayerProfile != null;
+            return new AuthResponseDto
+            {
+                AccountId = account.AccountId,
+                UserName = account.UserName,
+                EmailAddress = account.Email,
+                RoleId = account.RoleId,
+                Role = account.Role?.Name ?? "Player",
+                HasCharacter = hasCharacter,
+                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
+                PlayerDisplayName = account.PlayerProfile?.DisplayName,
+                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
+                Level = account.PlayerProfile?.Level ?? 1,
+                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
+                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
+                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY,
+                AccessToken = accessToken,
+                AccessTokenExpiresAt = accessExpiry,
+                RefreshToken = newRefreshToken,
+                RefreshTokenExpiresAt = newRefreshExpiry
+            };
         }
 
         public async Task RevokeRefreshToken(int accountId)
@@ -347,34 +352,28 @@ namespace BLL.Services
         {
             try
             {
-                // Try normal bcrypt verify first
                 if (BCrypt.Net.BCrypt.Verify(password, account.HashPassword))
                     return true;
             }
             catch (BCrypt.Net.SaltParseException)
             {
-                // fallthrough to legacy check
             }
 
-            // Fallback: some older accounts may store a SHA256(base64) of the password.
-            // Compare SHA256 base64 and upgrade to bcrypt if it matches.
             try
             {
                 var sha = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(password)));
                 if (string.Equals(sha, account.HashPassword, StringComparison.Ordinal))
                 {
-                    // Upgrade stored hash to bcrypt
                     account.HashPassword = BCrypt.Net.BCrypt.HashPassword(password);
                     account.UpdatedAt = DateTime.UtcNow;
                     await _repository.UpdateAccount(account);
                     return true;
                 }
             }
-            catch { /* ignore */ }
+            catch { }
 
             return false;
         }
-
 
         private (string token, DateTime expires) GenerateRefreshToken()
             => (GenerateRandomToken(64), DateTime.UtcNow.AddDays(RefreshTokenExpiryDays));

@@ -17,6 +17,9 @@ namespace Mystic_Journey_API.Controllers
             _dashboardService = dashboardService;
         }
 
+        // ========== MANAGER: Dashboard Statistics (Dashboard) ==========
+        // Dành cho Admin/Manager - Xem thống kê dashboard
+
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()

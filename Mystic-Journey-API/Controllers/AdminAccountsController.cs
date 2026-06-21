@@ -3,7 +3,6 @@ using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -18,6 +17,9 @@ namespace Mystic_Journey_API.Controllers
         {
             _accountAdminService = accountAdminService;
         }
+
+        // ========== MANAGER: Account Management (Dashboard) ==========
+        // Dành cho Admin/Manager - Quản lý tài khoản trên dashboard
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("{id}")]

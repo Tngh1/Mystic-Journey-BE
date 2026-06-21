@@ -29,26 +29,26 @@ namespace Mystic_Journey_API.Controllers
             {
                 var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!int.TryParse(claim, out var accountId))
-                    return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = "Invalid authentication token." });
+                    return Unauthorized(new { message = "Invalid authentication token." });
 
                 var profile = await _playerProfileRepository.GetByAccountId(accountId);
                 if (profile == null)
-                    return NotFound(new ErrorResponse { Error = "PROFILE_NOT_FOUND", Message = "Player profile not found." });
+                    return NotFound(new { message = "Player profile not found." });
 
                 var updated = await _inventoryService.EquipSkin(profile.PlayerProfileId, request);
-                return Ok(new ApiResponse<PlayerSkinResponseDto> { Success = true, Message = "Skin updated.", Data = updated });
+                return Ok(new ApiResponse<PlayerSkinResponseDto> { Data = updated });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "SKIN_NOT_FOUND", Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -60,26 +60,26 @@ namespace Mystic_Journey_API.Controllers
             {
                 var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!int.TryParse(claim, out var accountId))
-                    return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = "Invalid authentication token." });
+                    return Unauthorized(new { message = "Invalid authentication token." });
 
                 var profile = await _playerProfileRepository.GetByAccountId(accountId);
                 if (profile == null)
-                    return NotFound(new ErrorResponse { Error = "PROFILE_NOT_FOUND", Message = "Player profile not found." });
+                    return NotFound(new { message = "Player profile not found." });
 
                 await _inventoryService.UnequipSkin(profile.PlayerProfileId, request);
-                return Ok(new ApiResponse<object> { Success = true, Message = "Skin unequipped." });
+                return Ok(new ApiResponse<object> { Data = null });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "SKIN_NOT_FOUND", Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
     }

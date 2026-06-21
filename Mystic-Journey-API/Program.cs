@@ -22,9 +22,9 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
-// Account Services
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<IAccountService, AccountService>();
+// Auth Services
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Item Services
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
@@ -79,6 +79,9 @@ builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
 
 // Account Admin Services
 builder.Services.AddScoped<IAccountAdminService, AccountAdminService>();
+
+// PlayerAchievement Services
+builder.Services.AddScoped<IPlayerAchievementRepository, PlayerAchievementRepository>();
 
 // Purchase History Services
 builder.Services.AddScoped<IPurchaseHistoryService, PurchaseHistoryService>();

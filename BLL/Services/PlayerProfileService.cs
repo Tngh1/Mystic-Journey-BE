@@ -3,6 +3,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BLL.Services
@@ -16,12 +18,6 @@ namespace BLL.Services
         {
             _repository = repository;
             _mapper = mapper;
-        }
-
-        public async Task<List<PlayerProfileResponseDto>> GetAllProfiles()
-        {
-            var profiles = await _repository.GetAllPlayerProfilesWithAccounts();
-            return profiles.Select(MapToResponseDto).ToList();
         }
 
         public async Task<PlayerProfileDetailResponseDto?> GetProfileById(int id)
@@ -62,24 +58,6 @@ namespace BLL.Services
             if (request.Energy >= 0)
                 profile.Energy = request.Energy;
 
-            if (request.IsBanned.HasValue)
-            {
-                profile.PlayerStats ??= new PlayerStat
-                {
-                    PlayerProfileId = profile.PlayerProfileId,
-                    CurrentHp = 100,
-                    MaxHp = 100,
-                    Atk = 10,
-                    Def = 5,
-                    MoveSpeed = 100,
-                    AttackSpeed = 100,
-                    CritRate = 5,
-                    CritDamage = 150,
-                    DamageBonus = 0,
-                    CreatedAt = DateTime.UtcNow
-                };
-            }
-
             profile.UpdatedAt = DateTime.UtcNow;
 
             var updated = await _repository.UpdatePlayerProfile(profile);
@@ -91,6 +69,149 @@ namespace BLL.Services
             var (totalCount, items) = await _repository.GetProfilesPaged(page, pageSize, search, level);
             var dtos = items.Select(MapToResponseDto).ToList();
             return new PagedResultDto<PlayerProfileResponseDto>(totalCount, dtos);
+        }
+
+        public async Task<PlayerMeInventoryResponseDto> GetMeInventory(int playerProfileId)
+        {
+            var profile = await _repository.GetByIdWithAll(playerProfileId)
+                ?? throw new KeyNotFoundException($"Player profile with id {playerProfileId} not found.");
+
+            var items = profile.InventoryItems?.Select(i => new InventoryItemResponseDto
+            {
+                InventoryItemId = i.InventoryItemId,
+                PlayerProfileId = i.PlayerProfileId,
+                ItemId = i.ItemId,
+                ItemName = i.Item?.Name ?? "",
+                ItemDescription = i.Item?.Description,
+                ItemType = i.Item?.Type ?? "",
+                ItemRarity = i.Item?.Rarity ?? "",
+                ItemSlot = i.Item?.Slot ?? "None",
+                IconUrl = i.Item?.IconUrl,
+                Quantity = i.Quantity,
+                IsEquipped = i.IsEquipped,
+                IsSkin = i.IsSkin,
+                EquippedSlot = i.EquippedSlot,
+                EnhancementLevel = i.EnhancementLevel,
+                CreatedAt = i.CreatedAt
+            }).ToList() ?? new();
+
+            return new PlayerMeInventoryResponseDto
+            {
+                PlayerProfileId = profile.PlayerProfileId,
+                Items = items,
+                TotalCount = items.Count
+            };
+        }
+
+        public async Task<PlayerMeSkillsResponseDto> GetMeSkills(int playerProfileId)
+        {
+            var profile = await _repository.GetByIdWithAll(playerProfileId)
+                ?? throw new KeyNotFoundException($"Player profile with id {playerProfileId} not found.");
+
+            var skills = profile.PlayerSkills?.Select(ps => new PlayerSkillResponseDto
+            {
+                PlayerSkillId = ps.PlayerSkillId,
+                PlayerProfileId = ps.PlayerProfileId,
+                SkillId = ps.SkillId,
+                SkillName = ps.Skill?.Name ?? "",
+                SkillDescription = ps.Skill?.Description,
+                SkillType = ps.Skill?.Type ?? "",
+                DamageType = ps.Skill?.DamageType ?? "",
+                TargetType = ps.Skill?.TargetType ?? "",
+                Level = ps.Level,
+                Experience = ps.Experience,
+                IsEquipped = ps.IsEquipped,
+                CooldownSeconds = ps.Skill?.CooldownSeconds ?? 0,
+                BaseDamage = ps.Skill?.BaseDamage ?? 0,
+                UnlockLevel = ps.Skill?.UnlockLevel ?? 1,
+                UnlockedAt = ps.UnlockedAt
+            }).ToList() ?? new();
+
+            return new PlayerMeSkillsResponseDto
+            {
+                PlayerProfileId = profile.PlayerProfileId,
+                Skills = skills,
+                TotalCount = skills.Count
+            };
+        }
+
+        public async Task<PlayerMeQuestsResponseDto> GetMeQuests(int playerProfileId)
+        {
+            var profile = await _repository.GetByIdWithAll(playerProfileId)
+                ?? throw new KeyNotFoundException($"Player profile with id {playerProfileId} not found.");
+
+            var quests = profile.PlayerQuests?.Select(pq => new PlayerQuestResponseDto
+            {
+                PlayerQuestId = pq.PlayerQuestId,
+                PlayerProfileId = pq.PlayerProfileId,
+                QuestId = pq.QuestId,
+                QuestTitle = pq.Quest?.Title ?? "",
+                QuestDescription = pq.Quest?.Description,
+                QuestType = pq.Quest?.Type ?? "",
+                MapName = pq.Quest?.MapName ?? "",
+                RegionName = pq.Quest?.RegionName,
+                ObjectiveType = pq.Quest?.ObjectiveType ?? "",
+                ObjectiveTarget = pq.Quest?.ObjectiveTarget,
+                ObjectiveLocation = pq.Quest?.ObjectiveLocation,
+                QuestGiverName = pq.Quest?.QuestGiverName,
+                Status = pq.Status,
+                Progress = pq.Progress,
+                TargetValue = pq.TargetValue,
+                TargetAmount = pq.Quest?.TargetAmount ?? 0,
+                RequiredLevel = pq.Quest?.RequiredLevel ?? 0,
+                RewardExperience = pq.Quest?.RewardExperience ?? 0,
+                RewardGold = pq.Quest?.RewardGold ?? 0,
+                RewardGems = pq.Quest?.RewardGems ?? 0,
+                RewardItemId = pq.Quest?.RewardItemId,
+                RewardItemName = pq.Quest?.RewardItem?.Name,
+                AcceptedAt = pq.AcceptedAt,
+                CompletedAt = pq.CompletedAt,
+                ClaimedAt = pq.ClaimedAt
+            }).ToList() ?? new();
+
+            return new PlayerMeQuestsResponseDto
+            {
+                PlayerProfileId = profile.PlayerProfileId,
+                Quests = quests,
+                TotalCount = quests.Count
+            };
+        }
+
+        public async Task<PlayerMeAchievementsResponseDto> GetMeAchievements(int playerProfileId)
+        {
+            var profile = await _repository.GetByIdWithAll(playerProfileId)
+                ?? throw new KeyNotFoundException($"Player profile with id {playerProfileId} not found.");
+
+            var achievements = profile.PlayerAchievements ?? new List<PlayerAchievement>();
+
+            var dtos = achievements.Select(pa => new PlayerAchievementResponseDto
+            {
+                PlayerAchievementId = pa.PlayerAchievementId,
+                PlayerProfileId = pa.PlayerProfileId,
+                AchievementId = pa.AchievementId,
+                AchievementName = pa.Achievement?.Name ?? "",
+                AchievementDescription = pa.Achievement?.Description,
+                AchievementType = pa.Achievement?.Type ?? "",
+                IconUrl = pa.Achievement?.IconUrl,
+                Progress = pa.Progress,
+                RequiredValue = pa.Achievement?.RequiredValue ?? 0,
+                IsCompleted = pa.IsCompleted,
+                CompletedAt = pa.CompletedAt,
+                UnlockedAt = pa.UnlockedAt,
+                RewardItemId = pa.Achievement?.RewardItemId,
+                RewardItemName = pa.Achievement?.RewardItem?.Name,
+                RewardQuantity = pa.Achievement?.RewardQuantity ?? 0,
+                RewardGold = pa.Achievement?.RewardGold ?? 0,
+                RewardGem = pa.Achievement?.RewardGem ?? 0
+            }).ToList();
+
+            return new PlayerMeAchievementsResponseDto
+            {
+                PlayerProfileId = profile.PlayerProfileId,
+                Achievements = dtos,
+                TotalCount = dtos.Count,
+                CompletedCount = dtos.Count(a => a.IsCompleted)
+            };
         }
 
         private static PlayerProfileResponseDto MapToResponseDto(PlayerProfile profile)
@@ -109,8 +230,7 @@ namespace BLL.Services
                 Gems = profile.Gems,
                 Energy = profile.Energy,
                 CreatedAt = profile.CreatedAt,
-                UpdatedAt = profile.UpdatedAt,
-                IsBanned = profile.Account != null && !profile.Account.IsActive
+                UpdatedAt = profile.UpdatedAt
             };
         }
 
@@ -131,7 +251,6 @@ namespace BLL.Services
                 Energy = profile.Energy,
                 CreatedAt = profile.CreatedAt,
                 UpdatedAt = profile.UpdatedAt,
-                IsBanned = profile.Account != null && !profile.Account.IsActive,
                 Stats = profile.PlayerStats != null ? new PlayerStatsResponseDto
                 {
                     CurrentHp = profile.PlayerStats.CurrentHp,

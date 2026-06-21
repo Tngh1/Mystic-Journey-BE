@@ -18,6 +18,9 @@ namespace Mystic_Journey_API.Controllers
             _contentService = contentService;
         }
 
+        // ========== PLAYER: View Content ==========
+        // Dành cho người chơi - Xem nội dung game (hướng dẫn, tin tức...)
+
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -54,20 +57,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [AllowAnonymous]
-        [HttpGet("categories")]
-        public async Task<IActionResult> GetAllCategories()
-        {
-            try
-            {
-                var categories = await _contentService.GetAllCategories();
-                return Ok(categories);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
+        // ========== MANAGER: Content Management (Dashboard) ==========
+        // Dành cho Admin/Manager - Quản lý nội dung game trên dashboard
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("with-blocks")]
@@ -179,6 +170,27 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetCategories([FromQuery] int? page = null, [FromQuery] int? pageSize = null, [FromQuery] string? search = null, [FromQuery] bool? isActive = null)
+        {
+            try
+            {
+                if (page.HasValue && pageSize.HasValue)
+                {
+                    var pagedResult = await _contentService.GetCategoriesPaged(page.Value, pageSize.Value, search, isActive);
+                    return Ok(pagedResult);
+                }
+                
+                var allResult = await _contentService.GetAllCategories(search, isActive);
+                return Ok(allResult);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("categories/{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CreateCategoryContentRequestDto request)
         {
@@ -270,6 +282,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== PLAYER: Browse Contents ==========
+        // Dành cho người chơi - Xem danh sách nội dung
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null)

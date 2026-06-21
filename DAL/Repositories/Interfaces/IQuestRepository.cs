@@ -8,7 +8,6 @@ namespace DAL.Repositories.Interfaces
     {
         Task<Quest?> GetQuestById(int id);
         Task<Quest?> GetByIdWithReward(int id);
-        Task<List<Quest>> GetAllQuests();
         Task<List<Quest>> GetActiveQuests();
         Task<Quest> CreateQuest(Quest quest);
         Task<Quest> UpdateQuest(Quest quest);

@@ -8,8 +8,6 @@ namespace DAL.Repositories.Interfaces
     {
         Task<GachaBanner?> GetGachaBannerById(int id);
         Task<GachaBanner?> GetGachaBannerByIdWithItems(int id);
-        Task<List<GachaBanner>> GetAllGachaBanners();
-        Task<List<GachaBanner>> GetActiveGachaBanners();
         Task<GachaBanner> CreateGachaBanner(GachaBanner banner);
         Task<GachaBanner> UpdateGachaBanner(GachaBanner banner);
         Task<GachaBannerItem> CreateBannerItem(GachaBannerItem item);

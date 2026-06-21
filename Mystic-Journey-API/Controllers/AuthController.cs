@@ -11,14 +11,16 @@ namespace Mystic_Journey_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountsController : ControllerBase
+    public class AuthController : ControllerBase
     {
-        private readonly IAccountService _accountService;
+        private readonly IAuthService _authService;
 
-        public AccountsController(IAccountService accountService)
+        public AuthController(IAuthService authService)
         {
-            _accountService = accountService;
+            _authService = authService;
         }
+
+        // ========== SHARED: Token & Cookie Helpers ==========
 
         private int GetCurrentAccountId()
         {
@@ -39,8 +41,8 @@ namespace Mystic_Journey_API.Controllers
 
         private void SetTokenCookies(string accessToken, DateTime accessExpiry, string refreshToken, DateTime refreshExpiry)
         {
-            Response.Cookies.Append("access_token", accessToken, BuildCookieOptions(accessExpiry));
-            Response.Cookies.Append("refresh_token", refreshToken, BuildCookieOptions(refreshExpiry));
+            Response.Cookies.Append("access_token", accessToken, BuildCookieOptions(accessExpiry.ToUniversalTime()));
+            Response.Cookies.Append("refresh_token", refreshToken, BuildCookieOptions(refreshExpiry.ToUniversalTime()));
         }
 
         private void ClearTokenCookies()
@@ -56,13 +58,29 @@ namespace Mystic_Journey_API.Controllers
             Response.Cookies.Delete("refresh_token", options);
         }
 
-        private MeResponseDto MeResponse(AccountResponseDto dto) => new MeResponseDto
+        private AuthResponseDto ToAuthResponse(AuthResponseDto dto) => new AuthResponseDto
         {
             AccountId = dto.AccountId,
             UserName = dto.UserName,
-            Email = dto.EmailAddress,
-            Role = dto.Role
+            EmailAddress = dto.EmailAddress,
+            RoleId = dto.RoleId,
+            Role = dto.Role,
+            HasCharacter = dto.HasCharacter,
+            PlayerProfileId = dto.PlayerProfileId,
+            PlayerDisplayName = dto.PlayerDisplayName,
+            PlayerClass = dto.PlayerClass,
+            Level = dto.Level,
+            LastMapName = dto.LastMapName,
+            PositionX = dto.PositionX,
+            PositionY = dto.PositionY,
+            AccessToken = dto.AccessToken,
+            AccessTokenExpiresAt = dto.AccessTokenExpiresAt,
+            RefreshToken = dto.RefreshToken,
+            RefreshTokenExpiresAt = dto.RefreshTokenExpiresAt
         };
+
+        // ========== PLAYER: Authentication ==========
+        // Dành cho người chơi - Đăng nhập, đăng ký, quản lý tài khoản
 
         [AllowAnonymous]
         [HttpPost("login")]
@@ -70,26 +88,11 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var result = await _accountService.LoginAccount(request);
-                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value.ToUniversalTime(), result.RefreshToken!, result.RefreshTokenExpiresAt!.Value.ToUniversalTime());
-                return Ok(MeResponse(result));
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpPost("login-game")]
-        public async Task<IActionResult> LoginGame([FromBody] LoginGameRequestDto request)
-        {
-            try
-            {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var result = await _accountService.LoginGame(request);
+                var result = await _authService.Login(request);
+                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value, result.RefreshToken!, result.RefreshTokenExpiresAt!.Value);
                 return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
@@ -104,9 +107,9 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var result = await _accountService.RegisterAccount(request);
-                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value.ToUniversalTime(), result.RefreshToken!, result.RefreshTokenExpiresAt!.Value.ToUniversalTime());
-                return Ok(MeResponse(result));
+                var result = await _authService.Register(request);
+                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value, result.RefreshToken!, result.RefreshTokenExpiresAt!.Value);
+                return Ok(result);
             }
             catch (ArgumentException ex)
             {
@@ -123,7 +126,7 @@ namespace Mystic_Journey_API.Controllers
         public async Task<IActionResult> Me()
         {
             var accountId = GetCurrentAccountId();
-            var result = await _accountService.GetMe(accountId);
+            var result = await _authService.GetMe(accountId);
             return Ok(result);
         }
 
@@ -134,7 +137,7 @@ namespace Mystic_Journey_API.Controllers
             try
             {
                 var accountId = GetCurrentAccountId();
-                await _accountService.ChangePassword(accountId, request);
+                await _authService.ChangePassword(accountId, request);
                 return Ok(new { message = "Password changed successfully." });
             }
             catch (KeyNotFoundException ex)
@@ -152,7 +155,7 @@ namespace Mystic_Journey_API.Controllers
         public async Task<IActionResult> Logout()
         {
             var accountId = GetCurrentAccountId();
-            await _accountService.RevokeRefreshToken(accountId);
+            await _authService.RevokeRefreshToken(accountId);
             ClearTokenCookies();
             return Ok(new { message = "Logged out successfully." });
         }
@@ -163,7 +166,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.SendVerificationCode(request.Email);
+                await _authService.SendVerificationCode(request.Email);
                 return Ok(new { message = $"Verification code sent to {request.Email}." });
             }
             catch (System.ArgumentException ex)
@@ -186,7 +189,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.VerifyEmail(request);
+                await _authService.VerifyEmail(request);
                 return Ok(new { message = "Email verified successfully." });
             }
             catch (System.ArgumentException ex)
@@ -209,13 +212,13 @@ namespace Mystic_Journey_API.Controllers
 
             try
             {
-                var result = await _accountService.RefreshToken(refreshToken);
-                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value.ToUniversalTime(), result.RefreshToken!, result.RefreshTokenExpiresAt!.Value.ToUniversalTime());
-                return Ok(MeResponse(result));
+                var result = await _authService.RefreshToken(refreshToken);
+                SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value, result.RefreshToken!, result.RefreshTokenExpiresAt!.Value);
+                return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
             {
-                await _accountService.RevokeRefreshTokenByToken(refreshToken);
+                await _authService.RevokeRefreshTokenByToken(refreshToken);
                 ClearTokenCookies();
                 return Unauthorized(new { message = ex.Message });
             }
@@ -227,7 +230,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.ForgotPassword(request.Email);
+                await _authService.ForgotPassword(request.Email);
                 return Ok(new { message = $"Reset code sent to {request.Email}." });
             }
             catch (System.ArgumentException ex)
@@ -250,7 +253,7 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                await _accountService.ResetPassword(
+                await _authService.ResetPassword(
                     request.Email,
                     request.VerificationCode,
                     request.NewPassword,

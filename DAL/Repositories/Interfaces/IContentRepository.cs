@@ -13,7 +13,8 @@ namespace DAL.Repositories.Interfaces
         Task<Content> CreateContentWithBlocksAsync(Content content, IList<BlockContent> blocks);
 
         Task<CategoryContent?> GetCategoryById(int id);
-        Task<List<CategoryContent>> GetAllCategories();
+        Task<List<CategoryContent>> GetAllCategories(string? search, bool? isActive);
+        Task<(int TotalCount, List<CategoryContent> Items)> GetCategoriesPaged(int page, int pageSize, string? search, bool? isActive);
         Task<CategoryContent> CreateCategory(CategoryContent category);
         Task<CategoryContent> UpdateCategory(CategoryContent category);
         Task<BlockContent?> GetBlockById(int id);

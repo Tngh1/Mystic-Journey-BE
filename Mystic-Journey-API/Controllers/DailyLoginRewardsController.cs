@@ -3,8 +3,6 @@ using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
@@ -18,6 +16,9 @@ namespace Mystic_Journey_API.Controllers
         {
             _dailyLoginRewardService = dailyLoginRewardService;
         }
+
+        // ========== MANAGER: Daily Login Reward Management (Dashboard) ==========
+        // Dành cho Admin/Manager - Quản lý phần thưởng đăng nhập hàng ngày trên dashboard
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
@@ -37,6 +38,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== PLAYER: Browse Daily Login Rewards ==========
+        // Dành cho người chơi - Xem danh sách phần thưởng đăng nhập hàng ngày
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)

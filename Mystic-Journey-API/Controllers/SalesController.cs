@@ -3,7 +3,6 @@ using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -18,6 +17,9 @@ namespace Mystic_Journey_API.Controllers
         {
             _saleService = saleService;
         }
+
+        // ========== PLAYER: View Own Purchase History ==========
+        // Dành cho người chơi - Xem lịch sử mua hàng của mình
 
         [Authorize]
         [HttpGet("player/{playerProfileId}")]

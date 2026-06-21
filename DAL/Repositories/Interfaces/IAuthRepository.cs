@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
 {
-    public interface IAccountRepository
+    public interface IAuthRepository
     {
         Task<Account?> GetAccountById(int id);
         Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername);

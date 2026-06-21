@@ -2,7 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -17,6 +18,9 @@ namespace Mystic_Journey_API.Controllers
         {
             _itemService = itemService;
         }
+
+        // ========== PLAYER: View Item Details ==========
+        // Dành cho người chơi - Xem chi tiết item
 
         [AllowAnonymous]
         [HttpGet("{id}")]
@@ -35,6 +39,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== MANAGER: Item Management (Dashboard) ==========
+        // Dành cho Admin/Manager - CRUD item trên dashboard
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
@@ -83,6 +90,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== PLAYER: Browse Items ==========
+        // Dành cho người chơi - Xem danh sách items
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] string? rarity = null, [FromQuery] bool? isActive = null)

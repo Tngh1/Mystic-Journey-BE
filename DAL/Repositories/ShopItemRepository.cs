@@ -30,19 +30,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(s => s.ShopItemId == id);
         }
 
-        public async Task<List<ShopItem>> GetAllShopItems()
-        {
-            return await _context.ShopItems.ToListAsync();
-        }
-
-        public async Task<List<ShopItem>> GetActiveShopItems()
-        {
-            return await _context.ShopItems
-                .Include(s => s.Item)
-                .Where(s => s.IsActive)
-                .ToListAsync();
-        }
-
         public async Task<ShopItem> CreateShopItem(ShopItem shopItem)
         {
             await _context.ShopItems.AddAsync(shopItem);

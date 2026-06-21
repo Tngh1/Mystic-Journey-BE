@@ -8,6 +8,7 @@ namespace BLL.Services.Interfaces
         Task<MailResponseDto?> GetMailById(int id);
         Task<List<MailResponseDto>> GetMailsByPlayerId(int playerProfileId);
         Task<PagedResultDto<MailResponseDto>> GetMailsByPlayerIdPaged(int playerProfileId, int page, int pageSize);
+        Task<PlayerMeMailsResponseDto> GetMeMails(int playerProfileId);
         Task SendMailByListId(SendMailByListIdDto request);
         Task SendMailToAll(SendMailToAllDto request);
         Task<MailResponseDto> MarkMailAsRead(int mailId);

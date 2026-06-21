@@ -2,7 +2,6 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -17,6 +16,9 @@ namespace Mystic_Journey_API.Controllers
         {
             _questService = questService;
         }
+
+        // ========== PLAYER: View Quest Details ==========
+        // Dành cho người chơi - Xem chi tiết quest
 
         [AllowAnonymous]
         [HttpGet("{id}")]
@@ -35,6 +37,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== MANAGER: Quest Management (Dashboard) ==========
+        // Dành cho Admin/Manager - CRUD quest trên dashboard
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
@@ -83,6 +88,9 @@ namespace Mystic_Journey_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ========== PLAYER: Browse Quests ==========
+        // Dành cho người chơi - Xem danh sách quests
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null, [FromQuery] string? mapName = null)
