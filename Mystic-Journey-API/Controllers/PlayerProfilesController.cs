@@ -3,7 +3,7 @@ using BLL.Services.Interfaces;
 using DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
+using Mystic_Journey_API.Extensions;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -23,8 +23,6 @@ namespace Mystic_Journey_API.Controllers
             _authRepository = authRepository;
         }
 
-        // ========== SHARED: Helper Methods ==========
-
         private int GetCurrentAccountId()
         {
             var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -38,161 +36,75 @@ namespace Mystic_Journey_API.Controllers
             return account?.PlayerProfile?.PlayerProfileId ?? 0;
         }
 
-        // ========== PLAYER: View Profile ==========
-        // Dành cho người chơi - Xem profile (của mình hoặc người khác)
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var result = await _playerProfileService.GetProfileById(id);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _playerProfileService.GetProfileById(id);
+            return Ok(new ApiResponse<PlayerProfileDetailResponseDto> { Success = true, Data = result });
         }
-
-        // ========== PLAYER: Update Own Profile ==========
-        // Dành cho người chơi - Cập nhật profile của mình
 
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePlayerProfileRequestDto dto)
         {
-            try
-            {
-                var result = await _playerProfileService.UpdateProfile(id, dto);
-                return Ok(result);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _playerProfileService.UpdateProfile(id, dto);
+            return Ok(new ApiResponse<PlayerProfileResponseDto> { Success = true, Data = result });
         }
-
-        // ========== MANAGER: Player Profile Management (Dashboard) ==========
-        // Dành cho Admin/Manager - Quản lý danh sách player profiles trên dashboard
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] int? level = null)
         {
             var result = await _playerProfileService.GetProfilesPaged(page, pageSize, search, level);
-            return Ok(result);
+            return Ok(new ApiResponse<PagedResultDto<PlayerProfileResponseDto>> { Success = true, Data = result });
         }
-
-        // ========== PLAYER: Player's Own Data (/me endpoints) ==========
-        // Dành cho người chơi - Lấy dữ liệu của chính mình
 
         [Authorize]
         [HttpGet("me/inventory")]
         public async Task<IActionResult> GetMyInventory()
         {
-            try
-            {
-                var playerProfileId = await GetCurrentPlayerProfileId();
-                if (playerProfileId == 0)
-                    return Unauthorized(new { message = "Player profile not found." });
+            var playerProfileId = await GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
 
-                var result = await _playerProfileService.GetMeInventory(playerProfileId);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _playerProfileService.GetMeInventory(playerProfileId);
+            return Ok(new ApiResponse<PlayerMeInventoryResponseDto> { Success = true, Data = result });
         }
 
         [Authorize]
         [HttpGet("me/skills")]
         public async Task<IActionResult> GetMySkills()
         {
-            try
-            {
-                var playerProfileId = await GetCurrentPlayerProfileId();
-                if (playerProfileId == 0)
-                    return Unauthorized(new { message = "Player profile not found." });
+            var playerProfileId = await GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
 
-                var result = await _playerProfileService.GetMeSkills(playerProfileId);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _playerProfileService.GetMeSkills(playerProfileId);
+            return Ok(new ApiResponse<PlayerMeSkillsResponseDto> { Success = true, Data = result });
         }
 
         [Authorize]
         [HttpGet("me/quests")]
         public async Task<IActionResult> GetMyQuests()
         {
-            try
-            {
-                var playerProfileId = await GetCurrentPlayerProfileId();
-                if (playerProfileId == 0)
-                    return Unauthorized(new { message = "Player profile not found." });
+            var playerProfileId = await GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
 
-                var result = await _playerProfileService.GetMeQuests(playerProfileId);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _playerProfileService.GetMeQuests(playerProfileId);
+            return Ok(new ApiResponse<PlayerMeQuestsResponseDto> { Success = true, Data = result });
         }
 
         [Authorize]
         [HttpGet("me/achievements")]
         public async Task<IActionResult> GetMyAchievements()
         {
-            try
-            {
-                var playerProfileId = await GetCurrentPlayerProfileId();
-                if (playerProfileId == 0)
-                    return Unauthorized(new { message = "Player profile not found." });
+            var playerProfileId = await GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
 
-                var result = await _playerProfileService.GetMeAchievements(playerProfileId);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _playerProfileService.GetMeAchievements(playerProfileId);
+            return Ok(new ApiResponse<PlayerMeAchievementsResponseDto> { Success = true, Data = result });
         }
     }
 }

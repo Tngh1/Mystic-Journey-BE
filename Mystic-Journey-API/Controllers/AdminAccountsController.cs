@@ -2,7 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
+using Mystic_Journey_API.Extensions;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -18,70 +18,34 @@ namespace Mystic_Journey_API.Controllers
             _accountAdminService = accountAdminService;
         }
 
-        // ========== MANAGER: Account Management (Dashboard) ==========
-        // Dành cho Admin/Manager - Quản lý tài khoản trên dashboard
-
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var account = await _accountAdminService.GetAccountById(id);
-                if (account == null)
-                    return NotFound(new { message = $"Account with id {id} not found." });
+            var account = await _accountAdminService.GetAccountById(id);
+            if (account == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Account with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
-                return Ok(account);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAccountAdminRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var account = await _accountAdminService.CreateAccount(request);
-                return Ok(account);
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var account = await _accountAdminService.CreateAccount(request);
+            return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountAdminRequestDto request)
         {
-            try
-            {
-                var account = await _accountAdminService.UpdateAccount(id, request);
-                return Ok(account);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var account = await _accountAdminService.UpdateAccount(id, request);
+            return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
@@ -89,45 +53,23 @@ namespace Mystic_Journey_API.Controllers
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isActive = null, [FromQuery] string? roleName = null)
         {
             var result = await _accountAdminService.GetAccountsPaged(page, pageSize, search, isActive, roleName);
-            return Ok(result);
+            return Ok(new ApiResponse<PagedResultDto<AccountAdminResponseDto>> { Success = true, Data = result });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("{id}/ban")]
         public async Task<IActionResult> BanAccount(int id)
         {
-            try
-            {
-                var account = await _accountAdminService.BanAccount(id);
-                return Ok(account);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var account = await _accountAdminService.BanAccount(id);
+            return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("{id}/unban")]
         public async Task<IActionResult> UnbanAccount(int id)
         {
-            try
-            {
-                var account = await _accountAdminService.UnbanAccount(id);
-                return Ok(account);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var account = await _accountAdminService.UnbanAccount(id);
+            return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
     }
 }

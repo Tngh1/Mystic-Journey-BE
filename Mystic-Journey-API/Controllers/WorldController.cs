@@ -2,6 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Mystic_Journey_API.Extensions;
 using System.Security.Claims;
 
 namespace Mystic_Journey_API.Controllers
@@ -29,178 +30,69 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet("state")]
         public async Task<IActionResult> GetState()
         {
-            try
-            {
-                var profileId = GetPlayerProfileId();
-                var result = await _worldService.GetWorldState(profileId);
-                return Ok(new ApiResponse<WorldStateResponseDto> { Data = result });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.GetWorldState(profileId);
+            return Ok(new ApiResponse<WorldStateResponseDto> { Success = true, Data = result });
         }
 
         [HttpPut("position")]
         public async Task<IActionResult> UpdatePosition([FromBody] UpdateWorldPositionRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _worldService.UpdatePosition(profileId, request);
-                return Ok(new ApiResponse<PlayerWorldPositionDto> { Data = result });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.UpdatePosition(profileId, request);
+            return Ok(new ApiResponse<PlayerWorldPositionDto> { Success = true, Data = result });
         }
 
         [HttpPost("npc/talk")]
         public async Task<IActionResult> TalkToNpc([FromBody] TalkToNpcRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _worldService.TalkToNpc(profileId, request);
-                return Ok(new ApiResponse<TalkToNpcResponseDto> { Data = result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.TalkToNpc(profileId, request);
+            return Ok(new ApiResponse<TalkToNpcResponseDto> { Success = true, Data = result });
         }
 
         [HttpPost("npc/turn-in")]
         public async Task<IActionResult> TurnInQuestItem([FromBody] TurnInQuestItemRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _worldService.TurnInQuestItem(profileId, request);
-                return Ok(new ApiResponse<TurnInQuestItemResponseDto> { Data = result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.TurnInQuestItem(profileId, request);
+            return Ok(new ApiResponse<TurnInQuestItemResponseDto> { Success = true, Data = result });
         }
 
         [HttpPost("chests/open")]
         public async Task<IActionResult> OpenChest([FromBody] OpenWorldChestRequestDto request)
         {
-            try
-            {
-                var profileId = GetPlayerProfileId();
-                var result = await _worldService.OpenChest(profileId, request);
-                return Ok(new ApiResponse<OpenChestResponseDto> { Data = result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.OpenChest(profileId, request);
+            return Ok(new ApiResponse<OpenChestResponseDto> { Success = true, Data = result });
         }
 
         [HttpPost("interactions")]
         public async Task<IActionResult> InteractWithObject([FromBody] InteractObjectRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _worldService.InteractWithObject(profileId, request);
-                return Ok(new ApiResponse<InteractObjectResponseDto> { Data = result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.InteractWithObject(profileId, request);
+            return Ok(new ApiResponse<InteractObjectResponseDto> { Success = true, Data = result });
         }
 
         [HttpPost("daily-login/claim")]
         public async Task<IActionResult> ClaimDailyLoginReward()
         {
-            try
-            {
-                var profileId = GetPlayerProfileId();
-                var result = await _worldService.ClaimDailyLoginReward(profileId);
-                return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Data = result });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.ClaimDailyLoginReward(profileId);
+            return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Success = true, Data = result });
         }
     }
 }

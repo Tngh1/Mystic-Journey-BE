@@ -1,7 +1,9 @@
+using BLL.DTOs;
 using DAL.Data;
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mystic_Journey_API.Extensions;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -398,11 +400,11 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new
+                return Ok(new ApiResponse<object>
                 {
-                    success = true,
-                    message = "Seed thành công!",
-                    data = new
+                    Success = true,
+                    Message = "Seed thành công!",
+                    Data = new
                     {
                         accountEmail    = TEST_EMAIL,
                         password        = "Abc@12345",
@@ -437,7 +439,7 @@ namespace Mystic_Journey_API.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -946,12 +948,12 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new { success = true, message = "Seed ElfForest completed", players = new[] { p1, p2 } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 } } });
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -995,12 +997,12 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                return Ok(new { success = true, message = "Xoá seed data thành công." });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Xoá seed data thành công." });
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
             }
         }
 

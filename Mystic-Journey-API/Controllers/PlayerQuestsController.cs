@@ -2,9 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
+using Mystic_Journey_API.Extensions;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
@@ -31,139 +30,56 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet("{questId:int}")]
         public async Task<IActionResult> GetMyQuestDetail(int questId)
         {
-            try
-            {
-                var profileId = GetPlayerProfileId();
-                var result = await _service.GetMyQuestDetail(profileId, questId);
-                if (result == null)
-                    return NotFound(new { message = $"Quest {questId} not found on current map." });
+            var profileId = GetPlayerProfileId();
+            var result = await _service.GetMyQuestDetail(profileId, questId);
+            if (result == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Quest {questId} not found on current map.", ErrorCode = ErrorCodes.NotFound });
 
-                return Ok(new ApiResponse<object> { Data = result });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
         }
 
         [HttpPost("accept")]
         public async Task<IActionResult> AcceptQuest([FromBody] AcceptQuestRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _service.AcceptQuest(profileId, request);
-                return Ok(new ApiResponse<object> { Data = result });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _service.AcceptQuest(profileId, request);
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
         }
 
         [HttpPut("batch-progress")]
         public async Task<IActionResult> BatchUpdateProgress([FromBody] BatchProgressRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _service.BatchUpdateProgress(profileId, request);
-                return Ok(new ApiResponse<object> { Data = result });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _service.BatchUpdateProgress(profileId, request);
+            return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });
         }
 
         [HttpPost("complete")]
         public async Task<IActionResult> CompleteQuest([FromBody] CompleteQuestRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _service.CompleteQuest(profileId, request);
-                return Ok(new ApiResponse<object> { Data = result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _service.CompleteQuest(profileId, request);
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
         }
 
         [HttpPost("claim")]
         public async Task<IActionResult> ClaimReward([FromBody] ClaimQuestRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var profileId = GetPlayerProfileId();
-                var result = await _service.ClaimReward(profileId, request);
-                return Ok(new ApiResponse<object> { Data = result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var profileId = GetPlayerProfileId();
+            var result = await _service.ClaimReward(profileId, request);
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
         }
     }
 }

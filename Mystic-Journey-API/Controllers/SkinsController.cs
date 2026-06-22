@@ -2,7 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
+using Mystic_Journey_API.Extensions;
 using System.Security.Claims;
 using DAL.Repositories.Interfaces;
 
@@ -25,62 +25,32 @@ namespace Mystic_Journey_API.Controllers
         [HttpPost("equip")]
         public async Task<IActionResult> EquipSkin([FromBody] EquipSkinRequestDto request)
         {
-            try
-            {
-                var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(claim, out var accountId))
-                    return Unauthorized(new { message = "Invalid authentication token." });
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(claim, out var accountId))
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Invalid authentication token.", ErrorCode = ErrorCodes.Unauthorized });
 
-                var profile = await _playerProfileRepository.GetByAccountId(accountId);
-                if (profile == null)
-                    return NotFound(new { message = "Player profile not found." });
+            var profile = await _playerProfileRepository.GetByAccountId(accountId);
+            if (profile == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.NotFound });
 
-                var updated = await _inventoryService.EquipSkin(profile.PlayerProfileId, request);
-                return Ok(new ApiResponse<PlayerSkinResponseDto> { Data = updated });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var updated = await _inventoryService.EquipSkin(profile.PlayerProfileId, request);
+            return Ok(new ApiResponse<PlayerSkinResponseDto> { Success = true, Data = updated });
         }
 
         [Authorize]
         [HttpPost("unequip")]
         public async Task<IActionResult> UnequipSkin([FromBody] UnequipSkinRequestDto request)
         {
-            try
-            {
-                var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(claim, out var accountId))
-                    return Unauthorized(new { message = "Invalid authentication token." });
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(claim, out var accountId))
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Invalid authentication token.", ErrorCode = ErrorCodes.Unauthorized });
 
-                var profile = await _playerProfileRepository.GetByAccountId(accountId);
-                if (profile == null)
-                    return NotFound(new { message = "Player profile not found." });
+            var profile = await _playerProfileRepository.GetByAccountId(accountId);
+            if (profile == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.NotFound });
 
-                await _inventoryService.UnequipSkin(profile.PlayerProfileId, request);
-                return Ok(new ApiResponse<object> { Data = null });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            await _inventoryService.UnequipSkin(profile.PlayerProfileId, request);
+            return Ok(new ApiResponse<object> { Success = true, Message = "Skin unequipped successfully." });
         }
     }
 }
