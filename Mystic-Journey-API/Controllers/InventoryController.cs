@@ -23,6 +23,21 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyInventory()
+        {
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(claim, out var accountId))
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Invalid authentication token.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var profile = await _playerProfileRepository.GetByAccountId(accountId);
+            if (profile == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.NotFound });
+
+            var inventory = await _inventoryService.GetInventory(profile.PlayerProfileId);
+            return Ok(new ApiResponse<InventorySummaryDto> { Success = true, Data = inventory });
+        }
+        [Authorize]
         [HttpPost("equip-item")]
         public async Task<IActionResult> EquipItem([FromBody] EquipItemRequestDto request)
         {

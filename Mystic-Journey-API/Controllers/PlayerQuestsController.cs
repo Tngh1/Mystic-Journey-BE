@@ -27,6 +27,13 @@ namespace Mystic_Journey_API.Controllers
             return id;
         }
 
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyQuests()
+        {
+            var profileId = GetPlayerProfileId();
+            var result = await _service.GetMyQuests(profileId);
+            return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });
+        }
         [HttpGet("{questId:int}")]
         public async Task<IActionResult> GetMyQuestDetail(int questId)
         {
