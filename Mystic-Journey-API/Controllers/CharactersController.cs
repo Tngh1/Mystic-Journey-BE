@@ -54,23 +54,23 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "CHARACTER_ALREADY_CREATED", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "CHARACTER_ALREADY_CREATED", Message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "PROFILE_NOT_FOUND", Message = ex.Message });
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "PROFILE_NOT_FOUND", Message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_CLASS", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_CLASS", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
             }
         }
 
@@ -98,15 +98,15 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "STATS_NOT_FOUND", Message = ex.Message });
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "STATS_NOT_FOUND", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
             }
         }
 
@@ -140,23 +140,23 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INSUFFICIENT_SKILL_POINTS", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INSUFFICIENT_SKILL_POINTS", Message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "STATS_NOT_FOUND", Message = ex.Message });
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "STATS_NOT_FOUND", Message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_ATTRIBUTE", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_ATTRIBUTE", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
             }
         }
 

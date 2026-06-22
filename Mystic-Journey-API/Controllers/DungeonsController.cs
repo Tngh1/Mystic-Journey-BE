@@ -94,19 +94,19 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "NOT_FOUND", Message = ex.Message });
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "NOT_FOUND", Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_OPERATION", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
             }
         }
 
@@ -135,19 +135,19 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "NOT_FOUND", Message = ex.Message });
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "NOT_FOUND", Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_OPERATION", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
             }
         }
 
@@ -173,19 +173,19 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "NOT_FOUND", Message = ex.Message });
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "NOT_FOUND", Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_OPERATION", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
             }
         }
 
@@ -212,19 +212,19 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ErrorResponse { Error = "NOT_FOUND", Message = ex.Message });
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "NOT_FOUND", Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ErrorResponse { Error = "INVALID_OPERATION", Message = ex.Message });
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_OPERATION", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ErrorResponse { Error = "UNAUTHORIZED", Message = ex.Message });
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new ErrorResponse { Error = "INTERNAL_ERROR", Message = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
             }
         }
 
