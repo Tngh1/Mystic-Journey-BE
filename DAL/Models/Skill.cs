@@ -23,6 +23,10 @@ namespace DAL.Models
 
         public int CooldownSeconds { get; set; } = 0;
         public int BaseDamage { get; set; } = 0;
+        // Extra damage added per level (flat)
+        public int DamagePerLevel { get; set; } = 0;
+        // Percentage growth applied per level (e.g. 10 means +10% per level)
+        public double DamageGrowthPercent { get; set; } = 0.0;
         public int UnlockLevel { get; set; } = 1;
 
         public bool IsActive { get; set; } = true;

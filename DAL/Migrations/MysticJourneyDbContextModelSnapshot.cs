@@ -1845,6 +1845,12 @@ namespace DAL.Migrations
                     b.Property<int>("CooldownSeconds")
                         .HasColumnType("integer");
 
+                    b.Property<double>("DamageGrowthPercent")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("DamagePerLevel")
+                        .HasColumnType("integer");
+
                     b.Property<string>("DamageType")
                         .IsRequired()
                         .HasColumnType("text");
@@ -2264,7 +2270,7 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
-                        .WithMany()
+                        .WithMany("PlayerAchievements")
                         .HasForeignKey("PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2535,6 +2541,8 @@ namespace DAL.Migrations
                     b.Navigation("InventoryItems");
 
                     b.Navigation("Mails");
+
+                    b.Navigation("PlayerAchievements");
 
                     b.Navigation("PlayerQuests");
 

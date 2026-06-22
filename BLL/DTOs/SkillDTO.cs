@@ -14,6 +14,8 @@ namespace BLL.DTOs
         public string ClassRequirement { get; set; } = "Knight";
         public int CooldownSeconds { get; set; }
         public int BaseDamage { get; set; }
+        public int DamagePerLevel { get; set; }
+        public double DamageGrowthPercent { get; set; }
         public int UnlockLevel { get; set; }
         public bool IsActive { get; set; }
     }
@@ -37,6 +39,10 @@ namespace BLL.DTOs
 
         [Range(0, int.MaxValue)]
         public int BaseDamage { get; set; }
+        [Range(0, int.MaxValue)]
+        public int DamagePerLevel { get; set; }
+        [Range(0, 1000)]
+        public double DamageGrowthPercent { get; set; }
 
         [Range(1, 100)]
         public int UnlockLevel { get; set; } = 1;
@@ -63,6 +69,10 @@ namespace BLL.DTOs
 
         [Range(0, int.MaxValue)]
         public int BaseDamage { get; set; }
+        [Range(0, int.MaxValue)]
+        public int DamagePerLevel { get; set; }
+        [Range(0, 1000)]
+        public double DamageGrowthPercent { get; set; }
 
         [Range(1, 100)]
         public int UnlockLevel { get; set; } = 1;
@@ -84,6 +94,8 @@ namespace BLL.DTOs
         public int Level { get; set; }
         public int Experience { get; set; }
         public bool IsEquipped { get; set; }
+        // Calculated damage taking level and growth into account
+        public int EffectiveDamage { get; set; }
         public int CooldownSeconds { get; set; }
         public int BaseDamage { get; set; }
         public int UnlockLevel { get; set; }

@@ -187,6 +187,8 @@ namespace DAL.Migrations
                     ClassRequirement = table.Column<string>(type: "text", nullable: false),
                     CooldownSeconds = table.Column<int>(type: "integer", nullable: false),
                     BaseDamage = table.Column<int>(type: "integer", nullable: false),
+                    DamagePerLevel = table.Column<int>(type: "integer", nullable: false),
+                    DamageGrowthPercent = table.Column<double>(type: "double precision", nullable: false),
                     UnlockLevel = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },

@@ -123,6 +123,9 @@ namespace BLL.Services
                 IsEquipped = ps.IsEquipped,
                 CooldownSeconds = ps.Skill?.CooldownSeconds ?? 0,
                 BaseDamage = ps.Skill?.BaseDamage ?? 0,
+                // compute effective damage based on level
+                EffectiveDamage = (int)Math.Round((ps.Skill?.BaseDamage ?? 0) * (1 + (ps.Skill?.DamageGrowthPercent ?? 0.0) / 100.0 * (ps.Level - 1))
+                    + (ps.Skill?.DamagePerLevel ?? 0) * (ps.Level - 1)),
                 UnlockLevel = ps.Skill?.UnlockLevel ?? 1,
                 UnlockedAt = ps.UnlockedAt
             }).ToList() ?? new();
