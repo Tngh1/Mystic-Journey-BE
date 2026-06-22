@@ -15,7 +15,7 @@ namespace DAL.Models
         public string AvatarUrl { get; set; } = string.Empty;
 
         // Classes: Knight, Archer, Mage
-        public string Class { get; set; } = "Knight";
+        public string Class { get; set; } = string.Empty;
 
         public int Level { get; set; } = 1;
         public int ExperiencePoints { get; set; } = 0;
