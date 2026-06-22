@@ -101,7 +101,35 @@ namespace BLL.Services
             using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
-                ps.IsEquipped = request.IsEquipped;
+                // If equipping into a slot, ensure only one skill occupies that slot
+                if (request.IsEquipped)
+                {
+                    // Validate slot index
+                    var slot = request.SlotIndex ?? 0;
+                    if (slot < 0 || slot > 2) throw new ArgumentException("Invalid slot index.");
+
+                    // Un-equip any other skill the player has in this slot
+                    var others = await _repository.GetPlayerSkillsByPlayerId(actorPlayerProfileId);
+                    foreach (var other in others)
+                    {
+                        if (other.PlayerSkillId != ps.PlayerSkillId && other.EquippedSlot.HasValue && other.EquippedSlot.Value == slot)
+                        {
+                            other.IsEquipped = false;
+                            other.EquippedSlot = null;
+                            await _repository.UpdatePlayerSkill(other);
+                        }
+                    }
+
+                    ps.IsEquipped = true;
+                    ps.EquippedSlot = slot;
+                }
+                else
+                {
+                    // Un-equip this skill
+                    ps.IsEquipped = false;
+                    ps.EquippedSlot = null;
+                }
+
                 var updated = await _repository.UpdatePlayerSkill(ps);
 
                 await tx.CommitAsync();

@@ -11,31 +11,31 @@ namespace Mystic_Journey_API.Controllers
 {
     // =============================================================================
     // SEED: Data Seeder Controller
-    // Dùng để tạo dữ liệu mẫu cho development/testing
-    // Không phải code của Player hay Manager Dashboard
+    // Used to create sample data for development/testing
+    // Not part of player logic or admin dashboard
     // =============================================================================
-    // POST /api/seed/inventory  → Chèn toàn bộ dữ liệu mẫu
-    // DELETE /api/seed/inventory → Xoá toàn bộ dữ liệu mẫu (để reset)
+    // POST /api/seed/inventory  → Insert full sample dataset
+    // DELETE /api/seed/inventory → Remove all sample data (reset)
     //
-    // Dữ liệu tạo ra:
-    //   Items (4 loại):
-    //     [1] Skin item  (IsSkin=true, tạo bằng InventoryItem với IsSkin=true)
+    // Data created:
+    //   Items (4 types):
+    //     [1] Skin item  (IsSkin=true, created as InventoryItem with IsSkin=true)
     //     [2] Potion / Health Potion (Consumable, MaxStack=99)
     //     [3] Sword of Dawn (Weapon, +stat)
     //     [4] Iron Helm (Helmet/Armor, +stat)
     //
-    //   Skins (3 loại):
+    //   Skins (4 types):
     //     [1] Knight Default Skin  (class default)
     //     [2] Archer Default Skin  (class default)
     //     [3] Mage Default Skin    (class default)
     //     [4] Dragon Knight Skin   (premium skin)
     //
-    //   Account test:
+    //   Test account:
     //     testplayer / testplayer@mystic.test / Abc@12345
-    //     Level 1, Class=Knight, mặc định skin Knight
-    //     Inventory: 1 mũ (equipped), 2 bình máu, 1 skin khác (Dragon Knight) trong túi
+    //     Level 1, Class=Knight, default skin Knight
+    //     Inventory: 1 helmet (equipped), 2 health potions, 1 extra skin (Dragon Knight) in bag
     //
-    //   Quests (3 quest cho 3 map):
+    //   Quests (3 main quests for 3 maps):
     //     Quest 1 – Map 1: The Forest Awakening (Main)
     //     Quest 2 – Map 2: Dark Caverns (Main)
     //     Quest 3 – Map 3: Dragon Lair (Main)
@@ -71,7 +71,7 @@ namespace Mystic_Journey_API.Controllers
                 var potion = new Item
                 {
                     Name        = "[SEED] Health Potion",
-                    Description = "Hồi phục 200 HP tức thì.",
+                    Description = "Restore 200 HP instantly.",
                     Type        = "Consumable",
                     Rarity      = "Common",
                     Slot        = "None",
@@ -85,7 +85,7 @@ namespace Mystic_Journey_API.Controllers
                 var sword = new Item
                 {
                     Name        = "[SEED] Sword of Dawn",
-                    Description = "Kiếm bình minh, ánh sáng phá tan bóng tối.",
+                    Description = "Sword of Dawn - a blade of dawn that banishes darkness.",
                     Type        = "Weapon",
                     Rarity      = "Rare",
                     Slot        = "Weapon",
@@ -99,7 +99,7 @@ namespace Mystic_Journey_API.Controllers
                 var helm = new Item
                 {
                     Name        = "[SEED] Iron Helm",
-                    Description = "Mũ sắt kiên cố, tăng phòng thủ.",
+                    Description = "Sturdy iron helm that increases defense.",
                     Type        = "Armor",
                     Rarity      = "Uncommon",
                     Slot        = "Helmet",
@@ -149,7 +149,7 @@ namespace Mystic_Journey_API.Controllers
                 var skinKnight = new Skin
                 {
                     Name        = "[SEED] Knight Default",
-                    Description = "Trang phục mặc định của hiệp sĩ.",
+                    Description = "Default armor for the Knight class.",
                     Type        = "FullSet",
                     Rarity      = "Common",
                     IsForSale   = false,
@@ -158,7 +158,7 @@ namespace Mystic_Journey_API.Controllers
                 var skinArcher = new Skin
                 {
                     Name        = "[SEED] Archer Default",
-                    Description = "Trang phục mặc định của xạ thủ.",
+                    Description = "Default outfit for the Archer class.",
                     Type        = "FullSet",
                     Rarity      = "Common",
                     IsForSale   = false,
@@ -167,7 +167,7 @@ namespace Mystic_Journey_API.Controllers
                 var skinMage = new Skin
                 {
                     Name        = "[SEED] Mage Default",
-                    Description = "Trang phục mặc định của pháp sư.",
+                    Description = "Default outfit for the Mage class.",
                     Type        = "FullSet",
                     Rarity      = "Common",
                     IsForSale   = false,
@@ -176,7 +176,7 @@ namespace Mystic_Journey_API.Controllers
                 var skinDragon = new Skin
                 {
                     Name        = "[SEED] Dragon Knight",
-                    Description = "Giáp rồng huyền thoại. Thay đổi ngoại hình.",
+                    Description = "Legendary dragon armor that changes the character's appearance.",
                     Type        = "FullSet",
                     Rarity      = "Epic",
                     IsForSale   = true,
@@ -202,7 +202,7 @@ namespace Mystic_Journey_API.Controllers
                     new Quest
                     {
                         Title             = "[SEED] Map 1 – The Forest Awakening",
-                        Description       = "Khám phá khu rừng cổ đại và tiêu diệt quái vật đầu tiên. (Map 1)",
+                        Description       = "Explore the ancient forest and defeat the first monsters. (Map 1)",
                         Type              = "Main",
                         DefaultStatus     = "NotStarted",
                         RequiredLevel     = 1,
@@ -215,7 +215,7 @@ namespace Mystic_Journey_API.Controllers
                     new Quest
                     {
                         Title             = "[SEED] Map 2 – Dark Caverns",
-                        Description       = "Thâm nhập hang động tối tăm đầy bẫy và quái vật. (Map 2)",
+                        Description       = "Delve into dark caverns filled with traps and monsters. (Map 2)",
                         Type              = "Main",
                         DefaultStatus     = "NotStarted",
                         RequiredLevel     = 2,
@@ -368,6 +368,27 @@ namespace Mystic_Journey_API.Controllers
 
                 await _ctx.SaveChangesAsync();
 
+                // ── 6b. PlayerSkills: give test player the Knight Slash skill if it exists
+                var seedKnight = await _ctx.Skills.FirstOrDefaultAsync(s => s.Name == "[SEED] Knight Slash");
+                if (seedKnight != null)
+                {
+                    // Nếu chưa có thì thêm
+                    var exists = await _ctx.PlayerSkills.AnyAsync(ps => ps.PlayerProfileId == pid && ps.SkillId == seedKnight.SkillId);
+                    if (!exists)
+                    {
+                        _ = _ctx.PlayerSkills.Add(new PlayerSkill
+                        {
+                            PlayerProfileId = pid,
+                            SkillId = seedKnight.SkillId,
+                            Level = 1,
+                            Experience = 0,
+                            EquippedSlot = null,
+                            UnlockedAt = DateTime.UtcNow,
+                        });
+                        await _ctx.SaveChangesAsync();
+                    }
+                }
+
                 // ── 7. PlayerQuests ──────────────────────────────────────────
                 var quests = await _ctx.Quests
                     .Where(q => EF.Functions.Like(q.Title, "[SEED]%"))
@@ -493,7 +514,7 @@ namespace Mystic_Journey_API.Controllers
 
                 var s1 = UpsertSkill(
                     "[SEED] AP Skill",
-                    "Kỹ năng hệ thống mẫu AP (ví dụ: hiệu ứng phép/aoe).",
+                    "Sample AP skill (e.g., magic/area effect).",
                     "Active",
                     "Magical",
                     "Area",
@@ -507,7 +528,7 @@ namespace Mystic_Journey_API.Controllers
 
                 var s2 = UpsertSkill(
                     "[SEED] Adrenaline",
-                    "Kỹ năng tăng sức mạnh tạm thời (buff).",
+                    "Temporary power-up skill (buff).",
                     "Buff",
                     "TrueDamage",
                     "Self",
@@ -521,7 +542,7 @@ namespace Mystic_Journey_API.Controllers
 
                 var s3 = UpsertSkill(
                     "[SEED] Knight Slash",
-                    "Đòn chém của hiệp sĩ, sát thương vật lý cận chiến lên 1 mục tiêu.",
+                    "A knight's slash dealing melee physical damage to a single target.",
                     "Active",
                     "Physical",
                     "SingleTarget",
@@ -601,7 +622,7 @@ namespace Mystic_Journey_API.Controllers
                     return item;
                 }
 
-                var potion = UpsertItem("[ELF] Health Potion", "Hồi phục 150 HP.", "Consumable", "Common", "None", 30, 99);
+                var potion = UpsertItem("[ELF] Health Potion", "Restore 150 HP.", "Consumable", "Common", "None", 30, 99);
                 var sword = UpsertItem("[ELF] Short Sword", "Kiếm ngắn dùng cho du kích rừng.", "Weapon", "Uncommon", "Weapon", 200, 1);
                 var armor = UpsertItem("[ELF] Leather Armor", "Áo da nhẹ, tăng chút phòng thủ.", "Armor", "Common", "Armor", 180, 1);
                 UpsertItem("[ELF] White Flower", "Hoa trắng dùng cho nhiệm vụ tân thủ ở ElfForest.", "QuestItem", "Common", "None", 0, 99);
@@ -703,7 +724,7 @@ namespace Mystic_Journey_API.Controllers
 
                     new Quest
                     {
-                        Title = "[ELFFOREST] Buoc Dau O ElfLand",
+                        Title = "[ELFFOREST] First Steps in ElfLand",
                         Description = "Elder Rowan asks the player to collect White Flowers around the old willow clearing.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
@@ -723,7 +744,7 @@ namespace Mystic_Journey_API.Controllers
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Loi Hua Cua Khu Rung",
+                        Title = "[ELFFOREST] Report to Elder Rowan",
                         Description = "Return to Elder Rowan and report that the first herbs have been gathered.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
@@ -742,7 +763,7 @@ namespace Mystic_Journey_API.Controllers
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Bia Da Thuc Tinh",
+                        Title = "[ELFFOREST] Awaken the Stone Marker",
                         Description = "Touch the ancient stone marker to restore the first path seal.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
@@ -761,7 +782,7 @@ namespace Mystic_Journey_API.Controllers
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Bong Toi Ben Ria Rung",
+                        Title = "[ELFFOREST] Shadows at the Forest Edge",
                         Description = "Drive back the shadow sprouts that are spreading near the forest edge.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
@@ -780,7 +801,7 @@ namespace Mystic_Journey_API.Controllers
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Canh Cua Heartwood",
+                        Title = "[ELFFOREST] Heartwood Gate",
                         Description = "Open the sealed Heartwood chest and bring its sign back to Elder Rowan.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
@@ -833,7 +854,7 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Ta la Elder Rowan. Moi buoc trong ElfLand deu co the bat dau tu cuoc tro chuyen nay; hay nghe ta, nhan nhiem vu, roi quay lai khi con da san sang.",
+                        Content = "I am Elder Rowan. Every journey in ElfLand begins with this conversation; listen, accept the quest, and return when you are ready.",
                         ResponseType = "Dialogue",
                         LinkedQuestId = null,
                         DisplayOrder = 0,
@@ -842,7 +863,7 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Chao mung con den ElfLand. Hay noi chuyen voi ta va tra loi mot vai cau hoi de bat dau nhiem vu.",
+                        Content = "Welcome to ElfLand. Speak with me and answer a few questions to begin your first quest.",
                         ResponseType = "Quest",
                         // Link to the new Talk-To-Elder quest (inserted as first element)
                         LinkedQuestId = quests[0].QuestId,
@@ -852,7 +873,7 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Hoa trang moc quanh goc cay co. Khi da du hoa, quay lai gap ta de ket thuc nhiem vu.",
+                        Content = "Collect white flowers around the old willow. When you have enough, return to me to complete the quest.",
                         ResponseType = "Quest",
                         // Collect quest (now shifted to index 1)
                         LinkedQuestId = quests[1].QuestId,
@@ -862,7 +883,7 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Tu gio moi nhiem vu chinh con co the nhan tu ta. Hay xem Quest Tracker de biet viec can lam tiep theo.",
+                        Content = "From now on you can receive main quests from me. Check the Quest Tracker for your next objectives.",
                         ResponseType = "Quest",
                         // Stone/Interact quest (shifted to index 2)
                         LinkedQuestId = quests[2].QuestId,
@@ -872,7 +893,7 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Lam tot lam. Nhan thuong xong tui do se mo khoa de con chuan bi hanh trinh.",
+                        Content = "Well done. Claim your reward and the path will be unlocked for your journey.",
                         ResponseType = "Quest",
                         // Defeat quest (shifted to index 3)
                         LinkedQuestId = quests[3].QuestId,
@@ -882,7 +903,7 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Neu lac duong, cu quay lai day. Ta se nhac lai muc tieu hien tai cua con.",
+                        Content = "If you get lost, return here. I will remind you of your current objectives.",
                         ResponseType = "Quest",
                         // Heartwood chest quest (shifted to index 4)
                         LinkedQuestId = quests[4].QuestId,
