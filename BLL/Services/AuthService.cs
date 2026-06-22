@@ -56,8 +56,10 @@ namespace BLL.Services
 
         public async Task<AuthResponseDto> Login(LoginRequestDto request)
         {
-            var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim())
-                ?? throw new UnauthorizedAccessException("Invalid email/username or password.");
+            var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim());
+
+            if (account == null)
+                throw new AccountNotFoundException("Account is not registered. Please register before logging in.");
 
             if (!account.IsActive)
                 throw new UnauthorizedAccessException("Account has been deactivated.");
@@ -441,5 +443,10 @@ namespace BLL.Services
     public class BadRequestException : Exception
     {
         public BadRequestException(string message) : base(message) { }
+    }
+
+    public class AccountNotFoundException : Exception
+    {
+        public AccountNotFoundException(string message) : base(message) { }
     }
 }

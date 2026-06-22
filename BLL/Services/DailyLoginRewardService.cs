@@ -65,7 +65,8 @@ namespace BLL.Services
                 RewardItemId = reward.RewardItemId,
                 RewardItemName = reward.RewardItem?.Name,
                 RewardItemQuantity = reward.RewardItemQuantity,
-                IsActive = reward.IsActive
+                IsActive = reward.IsActive,
+                CreatedAt = reward.CreatedAt
             };
         }
 
