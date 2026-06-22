@@ -186,7 +186,9 @@ namespace DAL.Migrations
                     TargetType = table.Column<string>(type: "text", nullable: false),
                     ClassRequirement = table.Column<string>(type: "text", nullable: false),
                     CooldownSeconds = table.Column<int>(type: "integer", nullable: false),
-                    BaseDamage = table.Column<int>(type: "integer", nullable: false),
+                    BaseDamage = table.Column<double>(type: "double precision", nullable: false),
+                    DamagePerLevel = table.Column<double>(type: "double precision", nullable: false),
+                    DamageGrowthPercent = table.Column<double>(type: "double precision", nullable: false),
                     UnlockLevel = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
@@ -413,40 +415,6 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Quests",
-                columns: table => new
-                {
-                    QuestId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    DefaultStatus = table.Column<string>(type: "text", nullable: false),
-                    MapName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    RegionName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    ObjectiveType = table.Column<string>(type: "text", nullable: false),
-                    ObjectiveTarget = table.Column<string>(type: "text", nullable: true),
-                    ObjectiveLocation = table.Column<string>(type: "text", nullable: true),
-                    QuestGiverName = table.Column<string>(type: "text", nullable: true),
-                    RequiredLevel = table.Column<int>(type: "integer", nullable: false),
-                    TargetAmount = table.Column<int>(type: "integer", nullable: false),
-                    RewardExperience = table.Column<int>(type: "integer", nullable: false),
-                    RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
-                    RewardGems = table.Column<decimal>(type: "numeric", nullable: false),
-                    RewardItemId = table.Column<int>(type: "integer", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Quests", x => x.QuestId);
-                    table.ForeignKey(
-                        name: "FK_Quests_Items_RewardItemId",
-                        column: x => x.RewardItemId,
-                        principalTable: "Items",
-                        principalColumn: "ItemId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ShopItems",
                 columns: table => new
                 {
@@ -532,38 +500,43 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "NPCDialogues",
+                name: "Quests",
                 columns: table => new
                 {
-                    NPCDialogueId = table.Column<int>(type: "integer", nullable: false)
+                    QuestId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    NPCId = table.Column<int>(type: "integer", nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
-                    ResponseType = table.Column<string>(type: "text", nullable: false),
-                    LinkedQuestId = table.Column<int>(type: "integer", nullable: true),
-                    LinkedShopItemId = table.Column<int>(type: "integer", nullable: true),
-                    DisplayOrder = table.Column<int>(type: "integer", nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    DefaultStatus = table.Column<string>(type: "text", nullable: false),
+                    MapName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    RegionName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    ObjectiveType = table.Column<string>(type: "text", nullable: false),
+                    ObjectiveTarget = table.Column<string>(type: "text", nullable: true),
+                    ObjectiveLocation = table.Column<string>(type: "text", nullable: true),
+                    QuestGiverName = table.Column<string>(type: "text", nullable: true),
+                    RequiredLevel = table.Column<int>(type: "integer", nullable: false),
+                    TargetAmount = table.Column<int>(type: "integer", nullable: false),
+                    RewardExperience = table.Column<int>(type: "integer", nullable: false),
+                    RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
+                    RewardGems = table.Column<decimal>(type: "numeric", nullable: false),
+                    RewardItemId = table.Column<int>(type: "integer", nullable: true),
+                    RewardSkillId = table.Column<int>(type: "integer", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_NPCDialogues", x => x.NPCDialogueId);
+                    table.PrimaryKey("PK_Quests", x => x.QuestId);
                     table.ForeignKey(
-                        name: "FK_NPCDialogues_NPCs_NPCId",
-                        column: x => x.NPCId,
-                        principalTable: "NPCs",
-                        principalColumn: "NPCId",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Quests_Items_RewardItemId",
+                        column: x => x.RewardItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId");
                     table.ForeignKey(
-                        name: "FK_NPCDialogues_Quests_LinkedQuestId",
-                        column: x => x.LinkedQuestId,
-                        principalTable: "Quests",
-                        principalColumn: "QuestId");
-                    table.ForeignKey(
-                        name: "FK_NPCDialogues_ShopItems_LinkedShopItemId",
-                        column: x => x.LinkedShopItemId,
-                        principalTable: "ShopItems",
-                        principalColumn: "ShopItemId");
+                        name: "FK_Quests_Skills_RewardSkillId",
+                        column: x => x.RewardSkillId,
+                        principalTable: "Skills",
+                        principalColumn: "SkillId");
                 });
 
             migrationBuilder.CreateTable(
@@ -668,6 +641,41 @@ namespace DAL.Migrations
                         principalTable: "Accounts",
                         principalColumn: "AccountId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NPCDialogues",
+                columns: table => new
+                {
+                    NPCDialogueId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NPCId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    ResponseType = table.Column<string>(type: "text", nullable: false),
+                    LinkedQuestId = table.Column<int>(type: "integer", nullable: true),
+                    LinkedShopItemId = table.Column<int>(type: "integer", nullable: true),
+                    DisplayOrder = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NPCDialogues", x => x.NPCDialogueId);
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_NPCs_NPCId",
+                        column: x => x.NPCId,
+                        principalTable: "NPCs",
+                        principalColumn: "NPCId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_Quests_LinkedQuestId",
+                        column: x => x.LinkedQuestId,
+                        principalTable: "Quests",
+                        principalColumn: "QuestId");
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_ShopItems_LinkedShopItemId",
+                        column: x => x.LinkedShopItemId,
+                        principalTable: "ShopItems",
+                        principalColumn: "ShopItemId");
                 });
 
             migrationBuilder.CreateTable(
@@ -1099,7 +1107,7 @@ namespace DAL.Migrations
                     SkillId = table.Column<int>(type: "integer", nullable: false),
                     Level = table.Column<int>(type: "integer", nullable: false),
                     Experience = table.Column<int>(type: "integer", nullable: false),
-                    IsEquipped = table.Column<bool>(type: "boolean", nullable: false),
+                    EquippedSlot = table.Column<int>(type: "integer", nullable: true),
                     UnlockedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -1648,6 +1656,11 @@ namespace DAL.Migrations
                 column: "RewardItemId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Quests_RewardSkillId",
+                table: "Quests",
+                column: "RewardSkillId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ShopItems_ItemId",
                 table: "ShopItems",
                 column: "ItemId");
@@ -1770,9 +1783,6 @@ namespace DAL.Migrations
                 name: "Quests");
 
             migrationBuilder.DropTable(
-                name: "Skills");
-
-            migrationBuilder.DropTable(
                 name: "Skins");
 
             migrationBuilder.DropTable(
@@ -1786,6 +1796,9 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "PlayerProfiles");
+
+            migrationBuilder.DropTable(
+                name: "Skills");
 
             migrationBuilder.DropTable(
                 name: "Items");

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Mystic_Journey_API.Filters;
 using System.Text;
 
 Env.Load();
@@ -22,9 +23,9 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
-// Account Services
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<IAccountService, AccountService>();
+// Auth Services
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Item Services
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
@@ -78,6 +79,10 @@ builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 
+// Skill Services
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+
 // PlayerProfile Services
 builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
 builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
@@ -88,6 +93,9 @@ builder.Services.AddScoped<ICharacterService, CharacterService>();
 
 // Account Admin Services
 builder.Services.AddScoped<IAccountAdminService, AccountAdminService>();
+
+// PlayerAchievement Services
+builder.Services.AddScoped<IPlayerAchievementRepository, PlayerAchievementRepository>();
 
 // Purchase History Services
 builder.Services.AddScoped<IPurchaseHistoryService, PurchaseHistoryService>();
@@ -130,7 +138,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<ApiExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

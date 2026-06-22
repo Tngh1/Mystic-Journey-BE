@@ -23,6 +23,8 @@ namespace BLL.DTOs
         public decimal RewardGems { get; set; }
         public int? RewardItemId { get; set; }
         public string? RewardItemName { get; set; }
+        public int? RewardSkillId { get; set; }
+        public string? RewardSkillName { get; set; }
         public bool IsActive { get; set; }
     }
 
@@ -50,6 +52,7 @@ namespace BLL.DTOs
         public decimal RewardGold { get; set; }
         public decimal RewardGems { get; set; }
         public int? RewardItemId { get; set; }
+        public int? RewardSkillId { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -77,6 +80,7 @@ namespace BLL.DTOs
         public decimal RewardGold { get; set; }
         public decimal RewardGems { get; set; }
         public int? RewardItemId { get; set; }
+        public int? RewardSkillId { get; set; }
         public bool IsActive { get; set; } = true;
     }
 }

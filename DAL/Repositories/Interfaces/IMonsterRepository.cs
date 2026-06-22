@@ -8,8 +8,6 @@ namespace DAL.Repositories.Interfaces
     {
         Task<Monster?> GetMonsterById(int id);
         Task<Monster?> GetMonsterByIdWithDrops(int id);
-        Task<List<Monster>> GetAllMonsters();
-        Task<List<Monster>> GetActiveMonsters();
         Task<Monster> CreateMonster(Monster monster);
         Task<Monster> UpdateMonster(Monster monster);
         Task<MonsterDrop> CreateDrop(MonsterDrop drop);

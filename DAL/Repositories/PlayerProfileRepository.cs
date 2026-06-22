@@ -38,6 +38,19 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(p => p.PlayerProfileId == id);
         }
 
+        public async Task<PlayerProfile?> GetByIdWithAll(int id)
+        {
+            return await _context.PlayerProfiles
+                .Include(p => p.PlayerStats)
+                .Include(p => p.Account)
+                .Include(p => p.InventoryItems).ThenInclude(i => i.Item)
+                .Include(p => p.PlayerSkills).ThenInclude(ps => ps.Skill)
+                .Include(p => p.PlayerQuests).ThenInclude(pq => pq.Quest).ThenInclude(q => q.RewardItem)
+                .Include(p => p.Mails).ThenInclude(m => m.AttachedItem)
+                .Include(p => p.PlayerAchievements).ThenInclude(pa => pa.Achievement).ThenInclude(a => a.RewardItem)
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == id);
+        }
+
         public async Task<PlayerProfile?> GetByAccountId(int accountId)
         {
             return await _context.PlayerProfiles
@@ -46,22 +59,14 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(p => p.AccountId == accountId);
         }
 
-        public async Task<List<PlayerProfile>> GetAllPlayerProfiles()
-        {
-            return await _context.PlayerProfiles
-                .ToListAsync();
-        }
-
-        public async Task<List<PlayerProfile>> GetAllPlayerProfilesWithAccounts()
-        {
-            return await _context.PlayerProfiles
-                .Include(p => p.Account)
-                .ToListAsync();
-        }
-
         public async Task<PlayerStatsSnapshot?> GetSnapshotByPlayerProfileId(int playerProfileId)
         {
             return await _context.PlayerStatsSnapshots.FirstOrDefaultAsync(s => s.PlayerProfileId == playerProfileId);
+        }
+
+        public async Task<List<PlayerProfile>> GetAllPlayerProfiles()
+        {
+            return await _context.PlayerProfiles.ToListAsync();
         }
 
         public async Task<PlayerProfile> CreatePlayerProfile(PlayerProfile profile)
@@ -75,12 +80,12 @@ namespace DAL.Repositories
         public async Task<PlayerProfile> UpdatePlayerProfile(PlayerProfile profile)
         {
             profile.UpdatedAt = DateTime.UtcNow;
-_context.PlayerProfiles.Update(profile);
+            _context.PlayerProfiles.Update(profile);
             await _context.SaveChangesAsync();
             return profile;
         }
 
-        public async Task<List<PlayerProfile>> Search(string? keyword = null, string? playerClass = null, bool? isBanned = null)
+        public async Task<List<PlayerProfile>> Search(string? keyword = null, string? playerClass = null)
         {
             var query = _context.PlayerProfiles.AsQueryable();
 
@@ -95,18 +100,6 @@ _context.PlayerProfiles.Update(profile);
             if (!string.IsNullOrWhiteSpace(playerClass))
             {
                 query = query.Where(p => p.Class == playerClass);
-            }
-
-            if (isBanned.HasValue)
-            {
-                if (isBanned.Value)
-                {
-                    query = query.Where(p => p.Account != null && !p.Account.IsActive);
-                }
-                else
-                {
-                    query = query.Where(p => p.Account != null && p.Account.IsActive);
-                }
             }
 
             return await query.ToListAsync();

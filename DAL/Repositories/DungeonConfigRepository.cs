@@ -43,7 +43,6 @@ namespace DAL.Repositories
                 .Where(d => d.IsActive)
                 .ToListAsync();
         }
-
         public async Task<DungeonConfig> CreateDungeonConfig(DungeonConfig dungeon)
         {
             await _context.DungeonConfigs.AddAsync(dungeon);

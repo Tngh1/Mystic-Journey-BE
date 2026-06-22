@@ -29,11 +29,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(g => g.Name.ToLower() == name.ToLower());
         }
 
-        public async Task<List<GameSetting>> GetAllGameSettings()
-        {
-            return await _context.GameSettings.ToListAsync();
-        }
-
         public async Task<GameSetting> UpdateGameSetting(GameSetting setting)
         {
 _context.GameSettings.Update(setting);

@@ -8,16 +8,16 @@ namespace BLL.Services
 {
     public class AccountAdminService : IAccountAdminService
     {
-        private readonly IAccountRepository _accountRepository;
+        private readonly IAuthRepository _authRepository;
 
-        public AccountAdminService(IAccountRepository accountRepository)
+        public AccountAdminService(IAuthRepository authRepository)
         {
-            _accountRepository = accountRepository;
+            _authRepository = authRepository;
         }
 
         public async Task<AccountAdminResponseDto?> GetAccountById(int id)
         {
-            var account = await _accountRepository.GetAccountById(id);
+            var account = await _authRepository.GetAccountById(id);
             if (account == null)
                 return null;
 
@@ -29,10 +29,10 @@ namespace BLL.Services
             var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var normalizedUsername = request.UserName.Trim();
 
-            if (await _accountRepository.IsEmailExist(normalizedEmail))
+            if (await _authRepository.IsEmailExist(normalizedEmail))
                 throw new InvalidOperationException("Email already exists.");
 
-            if (await _accountRepository.IsUsernameExist(normalizedUsername))
+            if (await _authRepository.IsUsernameExist(normalizedUsername))
                 throw new InvalidOperationException("Username already exists.");
 
             var account = new Account
@@ -60,15 +60,15 @@ namespace BLL.Services
                 };
             }
 
-            await _accountRepository.CreateAccount(account);
+            await _authRepository.CreateAccount(account);
 
-            var created = await _accountRepository.GetAccountById(account.AccountId);
+            var created = await _authRepository.GetAccountById(account.AccountId);
             return MapToResponseDto(created!);
         }
 
         public async Task<AccountAdminResponseDto> UpdateAccount(int id, UpdateAccountAdminRequestDto request)
         {
-            var account = await _accountRepository.GetAccountById(id)
+            var account = await _authRepository.GetAccountById(id)
                 ?? throw new KeyNotFoundException($"Account with id {id} not found.");
 
             if (request.FullName != null)
@@ -79,7 +79,7 @@ namespace BLL.Services
             if (request.Email != null)
             {
                 var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-                if (normalizedEmail != account.Email && await _accountRepository.IsEmailExist(normalizedEmail))
+                if (normalizedEmail != account.Email && await _authRepository.IsEmailExist(normalizedEmail))
                     throw new InvalidOperationException("Email already exists.");
 
                 account.Email = normalizedEmail;
@@ -101,14 +101,14 @@ namespace BLL.Services
             }
 
             account.UpdatedAt = DateTime.UtcNow;
-            await _accountRepository.UpdateAccount(account);
+            await _authRepository.UpdateAccount(account);
 
             return MapToResponseDto(account);
         }
 
         public async Task<PagedResultDto<AccountAdminResponseDto>> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName)
         {
-            var (totalCount, items) = await _accountRepository.GetAccountsPaged(page, pageSize, search, isActive, roleName);
+            var (totalCount, items) = await _authRepository.GetAccountsPaged(page, pageSize, search, isActive, roleName);
 
             var dtos = items.Select(MapToResponseDto).ToList();
             return new PagedResultDto<AccountAdminResponseDto>(totalCount, dtos);
@@ -116,21 +116,21 @@ namespace BLL.Services
 
         public async Task<AccountAdminResponseDto> BanAccount(int accountId)
         {
-            var account = await _accountRepository.GetAccountById(accountId)
+            var account = await _authRepository.GetAccountById(accountId)
                 ?? throw new KeyNotFoundException($"Account with id {accountId} not found.");
             account.IsActive = false;
             account.UpdatedAt = DateTime.UtcNow;
-            await _accountRepository.UpdateAccount(account);
+            await _authRepository.UpdateAccount(account);
             return MapToResponseDto(account);
         }
 
         public async Task<AccountAdminResponseDto> UnbanAccount(int accountId)
         {
-            var account = await _accountRepository.GetAccountById(accountId)
+            var account = await _authRepository.GetAccountById(accountId)
                 ?? throw new KeyNotFoundException($"Account with id {accountId} not found.");
             account.IsActive = true;
             account.UpdatedAt = DateTime.UtcNow;
-            await _accountRepository.UpdateAccount(account);
+            await _authRepository.UpdateAccount(account);
             return MapToResponseDto(account);
         }
 

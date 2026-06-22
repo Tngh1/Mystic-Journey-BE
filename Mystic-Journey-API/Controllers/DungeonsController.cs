@@ -3,6 +3,7 @@ using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Mystic_Journey_API.Extensions;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -28,66 +29,33 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var dungeon = await _dungeonConfigService.GetDungeonById(id);
-                if (dungeon == null)
-                    return NotFound(new { message = $"Dungeon with id {id} not found." });
+            var dungeon = await _dungeonConfigService.GetDungeonById(id);
+            if (dungeon == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Dungeon with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
-                return Ok(dungeon);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateDungeonConfigRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var dungeon = await _dungeonConfigService.CreateDungeon(request);
-                return Ok(dungeon);
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var dungeon = await _dungeonConfigService.CreateDungeon(request);
+            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDungeonConfigRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var dungeon = await _dungeonConfigService.UpdateDungeon(id, request);
-                return Ok(dungeon);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var dungeon = await _dungeonConfigService.UpdateDungeon(id, request);
+            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
         }
 
         [HttpGet]
@@ -99,7 +67,7 @@ namespace Mystic_Journey_API.Controllers
             [FromQuery] bool? isActive = null)
         {
             var result = await _dungeonConfigService.GetDungeonsPaged(page, pageSize, search, type, isActive);
-            return Ok(result);
+            return Ok(new ApiResponse<PagedResultDto<DungeonConfigResponseDto>> { Success = true, Data = result });
         }
 
         // ── Dungeon Session Endpoints ─────────────────────────────────────────────────

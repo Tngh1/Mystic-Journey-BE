@@ -30,19 +30,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(a => a.AchievementId == id);
         }
 
-        public async Task<List<Achievement>> GetAllAchievements()
-        {
-            return await _context.Achievements.ToListAsync();
-        }
-
-        public async Task<List<Achievement>> GetActiveAchievements()
-        {
-            return await _context.Achievements
-                .Include(a => a.RewardItem)
-                .Where(a => a.IsActive)
-                .ToListAsync();
-        }
-
         public async Task<Achievement> CreateAchievement(Achievement achievement)
         {
             await _context.Achievements.AddAsync(achievement);

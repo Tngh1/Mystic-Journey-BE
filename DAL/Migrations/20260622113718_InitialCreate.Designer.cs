@@ -12,8 +12,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
+<<<<<<<< HEAD:DAL/Migrations/20260622085558_Initial.Designer.cs
     [Migration("20260622085558_Initial")]
     partial class Initial
+========
+    [Migration("20260622113718_InitialCreate")]
+    partial class InitialCreate
+>>>>>>>> origin/taiphce:DAL/Migrations/20260622113718_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1568,11 +1573,11 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerSkillId"));
 
-                    b.Property<int>("Experience")
+                    b.Property<int?>("EquippedSlot")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsEquipped")
-                        .HasColumnType("boolean");
+                    b.Property<int>("Experience")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Level")
                         .HasColumnType("integer");
@@ -1831,6 +1836,9 @@ namespace DAL.Migrations
                     b.Property<int?>("RewardItemId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("RewardSkillId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("TargetAmount")
                         .HasColumnType("integer");
 
@@ -1846,6 +1854,8 @@ namespace DAL.Migrations
                     b.HasKey("QuestId");
 
                     b.HasIndex("RewardItemId");
+
+                    b.HasIndex("RewardSkillId");
 
                     b.ToTable("Quests");
                 });
@@ -1932,8 +1942,8 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SkillId"));
 
-                    b.Property<int>("BaseDamage")
-                        .HasColumnType("integer");
+                    b.Property<double>("BaseDamage")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("ClassRequirement")
                         .IsRequired()
@@ -1941,6 +1951,12 @@ namespace DAL.Migrations
 
                     b.Property<int>("CooldownSeconds")
                         .HasColumnType("integer");
+
+                    b.Property<double>("DamageGrowthPercent")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("DamagePerLevel")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("DamageType")
                         .IsRequired()
@@ -2435,7 +2451,7 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
-                        .WithMany()
+                        .WithMany("PlayerAchievements")
                         .HasForeignKey("PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2620,7 +2636,13 @@ namespace DAL.Migrations
                         .WithMany()
                         .HasForeignKey("RewardItemId");
 
+                    b.HasOne("DAL.Models.Skill", "RewardSkill")
+                        .WithMany()
+                        .HasForeignKey("RewardSkillId");
+
                     b.Navigation("RewardItem");
+
+                    b.Navigation("RewardSkill");
                 });
 
             modelBuilder.Entity("DAL.Models.ShopItem", b =>
@@ -2722,6 +2744,8 @@ namespace DAL.Migrations
                     b.Navigation("InventoryItems");
 
                     b.Navigation("Mails");
+
+                    b.Navigation("PlayerAchievements");
 
                     b.Navigation("PlayerQuests");
 

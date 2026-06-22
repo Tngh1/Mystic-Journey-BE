@@ -9,7 +9,6 @@ namespace DAL.Repositories.Interfaces
         Task<(int TotalCount, List<DailyLoginReward> Items)> GetDailyLoginRewardsPaged(int page, int pageSize);
         Task<DailyLoginReward?> GetDailyLoginRewardById(int id);
         Task<DailyLoginReward?> GetDailyLoginRewardByDayNumber(int dayNumber);
-        Task<List<DailyLoginReward>> GetAllDailyLoginRewards();
         Task<DailyLoginReward> CreateDailyLoginReward(DailyLoginReward reward);
         Task<DailyLoginReward> UpdateDailyLoginReward(DailyLoginReward reward);
     }

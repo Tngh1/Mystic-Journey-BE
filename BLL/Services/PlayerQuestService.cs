@@ -1,9 +1,7 @@
 using BLL.DTOs;
 using BLL.Services.Interfaces;
-using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +14,8 @@ namespace BLL.Services
         private readonly IPlayerQuestRepository _playerQuestRepo;
         private readonly IPlayerProfileRepository _playerProfileRepo;
         private readonly IQuestRepository _questRepo;
-        private readonly MysticJourneyDbContext _context;
+        private readonly IInventoryRepository _inventoryRepo;
+        private readonly ISkillRepository _skillRepo;
 
         // Anti-cheat: max progress delta per batch call.
         private const int MaxProgressDeltaPerCall = 50;
@@ -25,12 +24,14 @@ namespace BLL.Services
             IPlayerQuestRepository playerQuestRepo,
             IPlayerProfileRepository playerProfileRepo,
             IQuestRepository questRepo,
-            MysticJourneyDbContext context)
+            IInventoryRepository inventoryRepo,
+            ISkillRepository skillRepo)
         {
             _playerQuestRepo = playerQuestRepo;
             _playerProfileRepo = playerProfileRepo;
             _questRepo = questRepo;
-            _context = context;
+            _inventoryRepo = inventoryRepo;
+            _skillRepo = skillRepo;
         }
 
         public async Task<List<PlayerQuestResponseDto>> GetMyQuests(int playerProfileId)
@@ -184,34 +185,44 @@ namespace BLL.Services
             var quest = await _questRepo.GetByIdWithReward(request.QuestId)
                 ?? throw new ArgumentException($"Quest {request.QuestId} does not exist.");
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            pq.Status = "Claimed";
+            pq.ClaimedAt = DateTime.UtcNow;
+            await _playerQuestRepo.Update(pq);
+
+            var profile = await _playerProfileRepo.GetPlayerProfileById(playerProfileId)
+                ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
+
+            profile.Gold += quest.RewardGold;
+            ApplyExperience(profile, quest.RewardExperience);
+            if (quest.RewardGems > 0)
+                profile.Gems += quest.RewardGems;
+
+            await _playerProfileRepo.UpdatePlayerProfile(profile);
+
+            if (quest.RewardItemId.HasValue)
+                await AddItemToInventory(playerProfileId, quest.RewardItemId.Value, 1);
+
+            // If quest grants a skill, add it to player's skills (if not already owned)
+            if (quest.RewardSkillId.HasValue)
             {
-                pq.Status = "Claimed";
-                pq.ClaimedAt = DateTime.UtcNow;
-                await _playerQuestRepo.Update(pq);
+                var owned = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
+                if (!owned.Any(ps => ps.SkillId == quest.RewardSkillId.Value))
+                {
+                    var newPlayerSkill = new PlayerSkill
+                    {
+                        PlayerProfileId = playerProfileId,
+                        SkillId = quest.RewardSkillId.Value,
+                        Level = 1,
+                        Experience = 0,
+                        EquippedSlot = null,
+                        UnlockedAt = DateTime.UtcNow
+                    };
 
-                var profile = await _playerProfileRepo.GetPlayerProfileById(playerProfileId)
-                    ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
-
-                profile.Gold += quest.RewardGold;
-                ApplyExperience(profile, quest.RewardExperience);
-                if (quest.RewardGems > 0)
-                    profile.Gems += quest.RewardGems;
-
-                await _playerProfileRepo.UpdatePlayerProfile(profile);
-
-                if (quest.RewardItemId.HasValue)
-                    await AddItemToInventory(playerProfileId, quest.RewardItemId.Value, 1);
-
-                await tx.CommitAsync();
-                return MapToDto(pq);
+                    await _skillRepo.CreatePlayerSkill(newPlayerSkill);
+                }
             }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+
+            return MapToDto(pq);
         }
 
         public async Task<PlayerQuestResponseDto> CompleteQuest(int playerProfileId, CompleteQuestRequestDto request)
@@ -237,17 +248,16 @@ namespace BLL.Services
 
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
         {
-            var existing = await _context.InventoryItems
-                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);
+            var existing = await _inventoryRepo.GetByPlayerAndItem(playerProfileId, itemId);
 
             if (existing != null)
             {
                 existing.Quantity += quantity;
-                _context.InventoryItems.Update(existing);
+                await _inventoryRepo.UpdateItem(existing);
             }
             else
             {
-                await _context.InventoryItems.AddAsync(new InventoryItem
+                await _inventoryRepo.AddItem(new InventoryItem
                 {
                     PlayerProfileId = playerProfileId,
                     ItemId = itemId,
@@ -257,8 +267,6 @@ namespace BLL.Services
                     EnhancementLevel = 0
                 });
             }
-
-            await _context.SaveChangesAsync();
         }
 
         private static string NormalizeMapName(string? mapName)

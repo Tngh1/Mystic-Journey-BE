@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
-    public class AccountRepository : IAccountRepository
+    public class AuthRepository : IAuthRepository
     {
         private readonly MysticJourneyDbContext _context;
 
-        public AccountRepository(MysticJourneyDbContext context)
+        public AuthRepository(MysticJourneyDbContext context)
         {
             _context = context;
         }

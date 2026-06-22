@@ -1,14 +1,19 @@
+using BLL.DTOs;
 using DAL.Data;
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mystic_Journey_API.Extensions;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace Mystic_Journey_API.Controllers
 {
     // =============================================================================
-    // SeedController – Seeder dữ liệu mẫu cho UC 20 (Inventory)
+    // SEED: Data Seeder Controller
+    // Dùng để tạo dữ liệu mẫu cho development/testing
+    // Không phải code của Player hay Manager Dashboard
+    // =============================================================================
     // POST /api/seed/inventory  → Chèn toàn bộ dữ liệu mẫu
     // DELETE /api/seed/inventory → Xoá toàn bộ dữ liệu mẫu (để reset)
     //
@@ -190,6 +195,9 @@ namespace Mystic_Journey_API.Controllers
                 _ctx.Quests.RemoveRange(existingQuests);
                 await _ctx.SaveChangesAsync();
 
+                // If a seed skill exists for Knight Slash, set it as reward for Map 1.
+                var knightSlash = await _ctx.Skills.FirstOrDefaultAsync(s => s.Name == "[SEED] Knight Slash");
+
                 _ctx.Quests.AddRange(
                     new Quest
                     {
@@ -201,6 +209,7 @@ namespace Mystic_Journey_API.Controllers
                         TargetAmount      = 5,
                         RewardExperience  = 200,
                         RewardGold        = 500,
+                        RewardSkillId     = knightSlash != null ? (int?)knightSlash.SkillId : null,
                         IsActive          = true,
                     },
                     new Quest
@@ -395,11 +404,11 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new
+                return Ok(new ApiResponse<object>
                 {
-                    success = true,
-                    message = "Seed thành công!",
-                    data = new
+                    Success = true,
+                    Message = "Seed thành công!",
+                    Data = new
                     {
                         accountEmail    = TEST_EMAIL,
                         password        = "Abc@12345",
@@ -434,7 +443,118 @@ namespace Mystic_Journey_API.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/skills  → Upsert 3 hệ thống Skill mẫu
+        // Dùng để nhanh chóng chèn 3 skill cơ bản cho toàn bộ hệ thống (không phải player)
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("skills")]
+        public async Task<IActionResult> SeedSkills()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var seedNames = new[]
+                {
+                    "[SEED] AP Skill",
+                    "[SEED] Adrenaline",
+                    "[SEED] Knight Slash"
+                };
+
+                var existing = await _ctx.Skills.Where(s => seedNames.Contains(s.Name)).ToListAsync();
+
+                Skill UpsertSkill(string name, string description, string type, string damageType, string targetType, string classReq, int cooldown, double baseDamage, double damagePerLevel, double damageGrowthPercent, int unlockLevel)
+                {
+                    var sk = existing.FirstOrDefault(x => x.Name == name);
+                    if (sk == null)
+                    {
+                        sk = new Skill { Name = name };
+                        _ctx.Skills.Add(sk);
+                        existing.Add(sk);
+                    }
+
+                    sk.Description = description;
+                    sk.Type = type;
+                    sk.DamageType = damageType;
+                    sk.TargetType = targetType;
+                    sk.ClassRequirement = classReq;
+                    sk.CooldownSeconds = cooldown;
+                    sk.BaseDamage = baseDamage;
+                    sk.DamagePerLevel = damagePerLevel;
+                    sk.DamageGrowthPercent = damageGrowthPercent;
+                    sk.UnlockLevel = unlockLevel;
+                    sk.IsActive = true;
+
+                    return sk;
+                }
+
+                var s1 = UpsertSkill(
+                    "[SEED] AP Skill",
+                    "Kỹ năng hệ thống mẫu AP (ví dụ: hiệu ứng phép/aoe).",
+                    "Active",
+                    "Magical",
+                    "Area",
+                    "Mage",
+                    8,
+                    120.0,
+                    15.0,
+                    5.0,
+                    1
+                );
+
+                var s2 = UpsertSkill(
+                    "[SEED] Adrenaline",
+                    "Kỹ năng tăng sức mạnh tạm thời (buff).",
+                    "Buff",
+                    "TrueDamage",
+                    "Self",
+                    "All",
+                    30,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1
+                );
+
+                var s3 = UpsertSkill(
+                    "[SEED] Knight Slash",
+                    "Đòn chém của hiệp sĩ, sát thương vật lý cận chiến lên 1 mục tiêu.",
+                    "Active",
+                    "Physical",
+                    "SingleTarget",
+                    "Knight",
+                    5,
+                    90.0,
+                    12.0,
+                    3.0,
+                    1
+                );
+
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Seed skills thành công",
+                    Data = new
+                    {
+                        skills = new[]
+                        {
+                            new { name = s1.Name, id = s1.SkillId },
+                            new { name = s2.Name, id = s2.SkillId },
+                            new { name = s3.Name, id = s3.SkillId }
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -481,11 +601,11 @@ namespace Mystic_Journey_API.Controllers
                     return item;
                 }
 
-                var potion = UpsertItem("[ELF] Health Potion", "Hồi phục 150 HP.", "Consumable", "Common", "None", 30, 99);
-                var sword = UpsertItem("[ELF] Short Sword", "Kiếm ngắn dùng cho du kích rừng.", "Weapon", "Uncommon", "Weapon", 200, 1);
-                var armor = UpsertItem("[ELF] Leather Armor", "Áo da nhẹ, tăng chút phòng thủ.", "Armor", "Common", "Armor", 180, 1);
-                UpsertItem("[ELF] White Flower", "Hoa trắng dùng cho nhiệm vụ tân thủ ở ElfForest.", "QuestItem", "Common", "None", 0, 99);
-                UpsertItem("[ELF] Old Willow Branch", "Cành cây liễu già dùng cho nhiệm vụ ở ElfForest.", "QuestItem", "Common", "None", 0, 99);
+                var potion = UpsertItem("[ELF] Health Potion", "Restores 150 HP.", "Consumable", "Common", "None", 30, 99);
+                var sword = UpsertItem("[ELF] Short Sword", "A short sword used by forest scouts.", "Weapon", "Uncommon", "Weapon", 200, 1);
+                var armor = UpsertItem("[ELF] Leather Armor", "Light leather armor that grants a small defense bonus.", "Armor", "Common", "Armor", 180, 1);
+                UpsertItem("[ELF] White Flower", "A white flower used for the ElfForest tutorial quest.", "QuestItem", "Common", "None", 0, 99);
+                UpsertItem("[ELF] Old Willow Branch", "A branch from the old willow, used for ElfForest quest objectives.", "QuestItem", "Common", "None", 0, 99);
                 await _ctx.SaveChangesAsync();
 
                 var existingEquipmentStats = await _ctx.EquipmentStats
@@ -541,8 +661,8 @@ namespace Mystic_Journey_API.Controllers
                     return skin;
                 }
 
-                var skinDefault = UpsertSkin("[ELF] ElfForest Default", "Skin mặc định khu rừng Elf.", "FullSet", "Common");
-                var skinAlt = UpsertSkin("[ELF] Ranger Cloak", "Áo choàng của cung thủ rừng.", "Cloak", "Rare");
+                var skinDefault = UpsertSkin("[ELF] ElfForest Default", "Default outfit for the ElfForest tutorial area.", "FullSet", "Common");
+                var skinAlt = UpsertSkin("[ELF] Ranger Cloak", "A cloak worn by forest rangers.", "Cloak", "Rare");
                 await _ctx.SaveChangesAsync();
 
                 // 3. Reset ElfForest quests and dependent records in FK-safe order.
@@ -560,11 +680,10 @@ namespace Mystic_Journey_API.Controllers
 
                 var quests = new List<Quest>
                 {
-                    // NEW: Talk-to-Elder tutorial step (player must talk/respond before receiving collect quest)
                     new Quest
                     {
-                        Title = "[ELFFOREST] Talk To Elder",
-                        Description = "Speak with Elder Rowan and respond to his questions to begin the tutorial.",
+                        Title = "[ELFFOREST] Speak With Elder Rowan",
+                        Description = "Speak with Elder Rowan and answer his first questions to begin the tutorial.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
                         MapName = "ElfForest",
@@ -578,12 +697,13 @@ namespace Mystic_Journey_API.Controllers
                         RewardExperience = 10,
                         RewardGold = 10,
                         RewardGems = 0,
+                        RewardItemId = null,
+                        RewardSkillId = null,
                         IsActive = true,
                     },
-
                     new Quest
                     {
-                        Title = "[ELFFOREST] Buoc Dau O ElfLand",
+                        Title = "[ELFFOREST] Gather White Flowers",
                         Description = "Elder Rowan asks the player to collect White Flowers around the old willow clearing.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
@@ -599,12 +719,13 @@ namespace Mystic_Journey_API.Controllers
                         RewardGold = 80,
                         RewardGems = 0,
                         RewardItemId = potion.ItemId,
+                        RewardSkillId = null,
                         IsActive = true,
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Loi Hua Cua Khu Rung",
-                        Description = "Return to Elder Rowan and report that the first herbs have been gathered.",
+                        Title = "[ELFFOREST] Report To Elder Rowan",
+                        Description = "Return to Elder Rowan and report that the first White Flowers have been gathered.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
                         MapName = "ElfForest",
@@ -618,31 +739,35 @@ namespace Mystic_Journey_API.Controllers
                         RewardExperience = 90,
                         RewardGold = 120,
                         RewardGems = 0,
+                        RewardItemId = null,
+                        RewardSkillId = null,
                         IsActive = true,
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Bia Da Thuc Tinh",
-                        Description = "Touch the ancient stone marker to restore the first path seal.",
+                        Title = "[ELFFOREST] Equip Your First Skill",
+                        Description = "Open the skill interface and equip your first skill before starting combat training.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
                         MapName = "ElfForest",
                         RegionName = "ElfLand",
-                        ObjectiveType = "Interact",
-                        ObjectiveTarget = "Ancient Stone Marker",
-                        ObjectiveLocation = "Old Willow Clearing",
+                        ObjectiveType = "EquipSkill",
+                        ObjectiveTarget = "First Skill",
+                        ObjectiveLocation = "Elder Rowan's Camp",
                         QuestGiverName = "Elder Rowan",
                         RequiredLevel = 3,
                         TargetAmount = 1,
                         RewardExperience = 140,
                         RewardGold = 180,
                         RewardGems = 3,
+                        RewardItemId = null,
+                        RewardSkillId = null,
                         IsActive = true,
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Bong Toi Ben Ria Rung",
-                        Description = "Drive back the shadow sprouts that are spreading near the forest edge.",
+                        Title = "[ELFFOREST] Skill Combat Training",
+                        Description = "Use your equipped skill to defeat five Shadow Sprouts near the forest edge.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
                         MapName = "ElfForest",
@@ -652,29 +777,12 @@ namespace Mystic_Journey_API.Controllers
                         ObjectiveLocation = "Forest Edge",
                         QuestGiverName = "Elder Rowan",
                         RequiredLevel = 4,
-                        TargetAmount = 4,
+                        TargetAmount = 5,
                         RewardExperience = 220,
                         RewardGold = 260,
                         RewardGems = 4,
-                        IsActive = true,
-                    },
-                    new Quest
-                    {
-                        Title = "[ELFFOREST] Canh Cua Heartwood",
-                        Description = "Open the sealed Heartwood chest and bring its sign back to Elder Rowan.",
-                        Type = "Main",
-                        DefaultStatus = "NotStarted",
-                        MapName = "ElfForest",
-                        RegionName = "ElfLand",
-                        ObjectiveType = "OpenChest",
-                        ObjectiveTarget = "Heartwood Chest",
-                        ObjectiveLocation = "Heartwood Gate",
-                        QuestGiverName = "Elder Rowan",
-                        RequiredLevel = 5,
-                        TargetAmount = 1,
-                        RewardExperience = 300,
-                        RewardGold = 400,
-                        RewardGems = 8,
+                        RewardItemId = null,
+                        RewardSkillId = null,
                         IsActive = true,
                     }
                 };
@@ -713,7 +821,7 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Ta la Elder Rowan. Moi buoc trong ElfLand deu co the bat dau tu cuoc tro chuyen nay; hay nghe ta, nhan nhiem vu, roi quay lai khi con da san sang.",
+                        Content = "Welcome to ElfLand. I am Elder Rowan, keeper of this clearing. Speak with me whenever you need guidance.",
                         ResponseType = "Dialogue",
                         LinkedQuestId = null,
                         DisplayOrder = 0,
@@ -722,9 +830,8 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Chao mung con den ElfLand. Hay noi chuyen voi ta va tra loi mot vai cau hoi de bat dau nhiem vu.",
+                        Content = "First, let us make sure you can hear the forest. Talk with me and accept your first task.",
                         ResponseType = "Quest",
-                        // Link to the new Talk-To-Elder quest (inserted as first element)
                         LinkedQuestId = quests[0].QuestId,
                         DisplayOrder = 1,
                         IsActive = true,
@@ -732,9 +839,8 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Hoa trang moc quanh goc cay co. Khi da du hoa, quay lai gap ta de ket thuc nhiem vu.",
+                        Content = "White Flowers grow near the old willow. Gather three of them, then return here.",
                         ResponseType = "Quest",
-                        // Collect quest (now shifted to index 1)
                         LinkedQuestId = quests[1].QuestId,
                         DisplayOrder = 2,
                         IsActive = true,
@@ -742,9 +848,8 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Tu gio moi nhiem vu chinh con co the nhan tu ta. Hay xem Quest Tracker de biet viec can lam tiep theo.",
+                        Content = "Good work. Report back to me so I can record your first lesson as complete.",
                         ResponseType = "Quest",
-                        // Stone/Interact quest (shifted to index 2)
                         LinkedQuestId = quests[2].QuestId,
                         DisplayOrder = 3,
                         IsActive = true,
@@ -752,9 +857,8 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Lam tot lam. Nhan thuong xong tui do se mo khoa de con chuan bi hanh trinh.",
+                        Content = "Before you fight, equip your first skill. A prepared hand survives longer than a brave one.",
                         ResponseType = "Quest",
-                        // Defeat quest (shifted to index 3)
                         LinkedQuestId = quests[3].QuestId,
                         DisplayOrder = 4,
                         IsActive = true,
@@ -762,16 +866,14 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Neu lac duong, cu quay lai day. Ta se nhac lai muc tieu hien tai cua con.",
+                        Content = "Now use that skill against the Shadow Sprouts near the forest edge. Defeat five of them and come back stronger.",
                         ResponseType = "Quest",
-                        // Heartwood chest quest (shifted to index 4)
                         LinkedQuestId = quests[4].QuestId,
                         DisplayOrder = 5,
                         IsActive = true,
                     }
                 );
                 await _ctx.SaveChangesAsync();
-
                 if (!await _ctx.DailyLoginRewards.AnyAsync())
                 {
                     _ctx.DailyLoginRewards.AddRange(
@@ -943,12 +1045,12 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new { success = true, message = "Seed ElfForest completed", players = new[] { p1, p2 } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 } } });
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -992,12 +1094,12 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                return Ok(new { success = true, message = "Xoá seed data thành công." });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Xoá seed data thành công." });
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -1011,6 +1113,7 @@ ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveType"" text NOT NULL 
 ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveTarget"" text NULL;
 ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveLocation"" text NULL;
 ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""QuestGiverName"" text NULL;
+ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""RewardSkillId"" integer NULL;
 
 CREATE TABLE IF NOT EXISTS ""NPCs"" (
     ""NPCId"" integer GENERATED BY DEFAULT AS IDENTITY,
@@ -1070,3 +1173,4 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
         }
     }
 }
+

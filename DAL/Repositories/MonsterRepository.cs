@@ -31,18 +31,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(m => m.MonsterId == id);
         }
 
-        public async Task<List<Monster>> GetAllMonsters()
-        {
-            return await _context.Monsters.ToListAsync();
-        }
-
-        public async Task<List<Monster>> GetActiveMonsters()
-        {
-            return await _context.Monsters
-                .Where(m => m.IsActive)
-                .ToListAsync();
-        }
-
         public async Task<Monster> CreateMonster(Monster monster)
         {
             await _context.Monsters.AddAsync(monster);

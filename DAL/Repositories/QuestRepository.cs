@@ -30,15 +30,9 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(q => q.QuestId == id);
         }
 
-        public async Task<List<Quest>> GetAllQuests()
-        {
-            return await _context.Quests.ToListAsync();
-        }
-
         public async Task<List<Quest>> GetActiveQuests()
         {
             return await _context.Quests
-                .Include(q => q.RewardItem)
                 .Where(q => q.IsActive)
                 .ToListAsync();
         }

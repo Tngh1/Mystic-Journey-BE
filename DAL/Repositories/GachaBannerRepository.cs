@@ -31,19 +31,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(b => b.GachaBannerId == id);
         }
 
-        public async Task<List<GachaBanner>> GetAllGachaBanners()
-        {
-            return await _context.GachaBanners.ToListAsync();
-        }
-
-        public async Task<List<GachaBanner>> GetActiveGachaBanners()
-        {
-            return await _context.GachaBanners
-                .Include(b => b.BannerItems)
-                .Where(b => b.IsActive)
-                .ToListAsync();
-        }
-
         public async Task<GachaBanner> CreateGachaBanner(GachaBanner banner)
         {
             await _context.GachaBanners.AddAsync(banner);

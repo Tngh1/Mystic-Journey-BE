@@ -3,15 +3,14 @@ using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
-    public interface IAccountService
+    public interface IAuthService
     {
-        Task<AccountResponseDto> LoginAccount(LoginRequestDto request);
-        Task<LoginGameResponseDto> LoginGame(LoginGameRequestDto request);
-        Task<AccountResponseDto> RegisterAccount(RegisterRequestDto request);
-        Task<AccountResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request);
+        Task<AuthResponseDto> Login(LoginRequestDto request);
+        Task<AuthResponseDto> Register(RegisterRequestDto request);
+        Task<AuthResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request);
         Task SendVerificationCode(string email);
         Task VerifyEmail(VerifyEmailRequestDto request);
-        Task<AccountResponseDto> RefreshToken(string refreshToken);
+        Task<AuthResponseDto> RefreshToken(string refreshToken);
         Task RevokeRefreshToken(int accountId);
         Task RevokeRefreshTokenByToken(string refreshToken);
         Task<MeResponseDto> GetMe(int accountId);
