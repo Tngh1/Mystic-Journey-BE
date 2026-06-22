@@ -4,56 +4,39 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Achievements",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    IconUrl = table.Column<string>(type: "text", nullable: true),
-                    RequiredValue = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Achievements", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "CategoryContents",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    CategoryContentId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Slug = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Slug = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IconUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CategoryContents", x => x.Id);
+                    table.PrimaryKey("PK_CategoryContents", x => x.CategoryContentId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Chests",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    ChestId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
@@ -65,40 +48,14 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Chests", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DungeonConfigs",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    LevelRequirement = table.Column<int>(type: "integer", nullable: false),
-                    MaxMembers = table.Column<int>(type: "integer", nullable: false),
-                    Difficulty = table.Column<int>(type: "integer", nullable: false),
-                    TotalStages = table.Column<int>(type: "integer", nullable: false),
-                    RecommendedPower = table.Column<int>(type: "integer", nullable: false),
-                    RewardExperience = table.Column<int>(type: "integer", nullable: false),
-                    RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DungeonConfigs", x => x.Id);
+                    table.PrimaryKey("PK_Chests", x => x.ChestId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "GachaBanners",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    GachaBannerId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Type = table.Column<string>(type: "text", nullable: false),
@@ -110,14 +67,14 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GachaBanners", x => x.Id);
+                    table.PrimaryKey("PK_GachaBanners", x => x.GachaBannerId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "GameAnnouncements",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    GameAnnouncementId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
@@ -129,32 +86,14 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameAnnouncements", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "GameSettings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GameSettings", x => x.Id);
+                    table.PrimaryKey("PK_GameAnnouncements", x => x.GameAnnouncementId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Items",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    ItemId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
@@ -163,21 +102,20 @@ namespace DAL.Migrations
                     Slot = table.Column<string>(type: "text", nullable: false),
                     BaseValue = table.Column<decimal>(type: "numeric", nullable: false),
                     MaxStack = table.Column<int>(type: "integer", nullable: false),
-                    IsTradable = table.Column<bool>(type: "boolean", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IconUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Items", x => x.Id);
+                    table.PrimaryKey("PK_Items", x => x.ItemId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Monsters",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    MonsterId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Type = table.Column<string>(type: "text", nullable: false),
@@ -192,31 +130,54 @@ namespace DAL.Migrations
                     CritDamage = table.Column<int>(type: "integer", nullable: false),
                     ExperienceReward = table.Column<int>(type: "integer", nullable: false),
                     GoldReward = table.Column<decimal>(type: "numeric", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Monsters", x => x.MonsterId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NPCs",
+                columns: table => new
+                {
+                    NPCId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    MapName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    PositionX = table.Column<double>(type: "double precision", nullable: false),
+                    PositionY = table.Column<double>(type: "double precision", nullable: false),
+                    InteractionRadius = table.Column<float>(type: "real", nullable: false),
+                    IconUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Monsters", x => x.Id);
+                    table.PrimaryKey("PK_NPCs", x => x.NPCId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    RoleId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Roles", x => x.Id);
+                    table.PrimaryKey("PK_Roles", x => x.RoleId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Skills",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    SkillId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
@@ -231,14 +192,14 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Skills", x => x.Id);
+                    table.PrimaryKey("PK_Skills", x => x.SkillId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Skins",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    SkinId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
@@ -254,65 +215,96 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Skins", x => x.Id);
+                    table.PrimaryKey("PK_Skins", x => x.SkinId);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Contents",
+                name: "SubCategoryContents",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
                     Slug = table.Column<string>(type: "text", nullable: false),
-                    Summary = table.Column<string>(type: "text", nullable: true),
-                    ThumbnailUrl = table.Column<string>(type: "text", nullable: true),
-                    CategoryContentId = table.Column<int>(type: "integer", nullable: true),
-                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    IconUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CategoryContentId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Contents", x => x.Id);
+                    table.PrimaryKey("PK_SubCategoryContents", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Contents_CategoryContents_CategoryContentId",
+                        name: "FK_SubCategoryContents_CategoryContents_CategoryContentId",
                         column: x => x.CategoryContentId,
                         principalTable: "CategoryContents",
-                        principalColumn: "Id");
+                        principalColumn: "CategoryContentId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "DungeonRuns",
+                name: "DungeonConfigs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    DungeonConfigId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DungeonConfigId = table.Column<int>(type: "integer", nullable: false),
-                    CurrentStage = table.Column<int>(type: "integer", nullable: false),
-                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    LevelRequirement = table.Column<int>(type: "integer", nullable: false),
+                    MaxMembers = table.Column<int>(type: "integer", nullable: false),
+                    Difficulty = table.Column<int>(type: "integer", nullable: false),
+                    EnergyCost = table.Column<int>(type: "integer", nullable: false),
+                    RecommendedPower = table.Column<int>(type: "integer", nullable: false),
+                    ChestId = table.Column<int>(type: "integer", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DungeonRuns", x => x.Id);
+                    table.PrimaryKey("PK_DungeonConfigs", x => x.DungeonConfigId);
                     table.ForeignKey(
-                        name: "FK_DungeonRuns_DungeonConfigs_DungeonConfigId",
-                        column: x => x.DungeonConfigId,
-                        principalTable: "DungeonConfigs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_DungeonConfigs_Chests_ChestId",
+                        column: x => x.ChestId,
+                        principalTable: "Chests",
+                        principalColumn: "ChestId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Achievements",
+                columns: table => new
+                {
+                    AchievementId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    IconUrl = table.Column<string>(type: "text", nullable: true),
+                    RequiredValue = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    RewardItemId = table.Column<int>(type: "integer", nullable: true),
+                    RewardQuantity = table.Column<int>(type: "integer", nullable: false),
+                    RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
+                    RewardGem = table.Column<int>(type: "integer", nullable: false),
+                    Point = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Achievements", x => x.AchievementId);
+                    table.ForeignKey(
+                        name: "FK_Achievements_Items_RewardItemId",
+                        column: x => x.RewardItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "ChestItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    ChestItemId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ChestId = table.Column<int>(type: "integer", nullable: false),
                     ItemId = table.Column<int>(type: "integer", nullable: false),
@@ -323,18 +315,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ChestItems", x => x.Id);
+                    table.PrimaryKey("PK_ChestItems", x => x.ChestItemId);
                     table.ForeignKey(
                         name: "FK_ChestItems_Chests_ChestId",
                         column: x => x.ChestId,
                         principalTable: "Chests",
-                        principalColumn: "Id",
+                        principalColumn: "ChestId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChestItems_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
+                        principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -342,7 +334,7 @@ namespace DAL.Migrations
                 name: "DailyLoginRewards",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    DailyLoginRewardId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     DayNumber = table.Column<int>(type: "integer", nullable: false),
                     RewardType = table.Column<string>(type: "text", nullable: false),
@@ -354,19 +346,19 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DailyLoginRewards", x => x.Id);
+                    table.PrimaryKey("PK_DailyLoginRewards", x => x.DailyLoginRewardId);
                     table.ForeignKey(
                         name: "FK_DailyLoginRewards_Items_RewardItemId",
                         column: x => x.RewardItemId,
                         principalTable: "Items",
-                        principalColumn: "Id");
+                        principalColumn: "ItemId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "EquipmentStats",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    EquipmentStatsId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ItemId = table.Column<int>(type: "integer", nullable: false),
                     BaseHp = table.Column<int>(type: "integer", nullable: false),
@@ -383,12 +375,12 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EquipmentStats", x => x.Id);
+                    table.PrimaryKey("PK_EquipmentStats", x => x.EquipmentStatsId);
                     table.ForeignKey(
                         name: "FK_EquipmentStats_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
+                        principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -396,7 +388,7 @@ namespace DAL.Migrations
                 name: "GachaBannerItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    GachaBannerItemId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GachaBannerId = table.Column<int>(type: "integer", nullable: false),
                     ItemId = table.Column<int>(type: "integer", nullable: false),
@@ -405,18 +397,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GachaBannerItems", x => x.Id);
+                    table.PrimaryKey("PK_GachaBannerItems", x => x.GachaBannerItemId);
                     table.ForeignKey(
                         name: "FK_GachaBannerItems_GachaBanners_GachaBannerId",
                         column: x => x.GachaBannerId,
                         principalTable: "GachaBanners",
-                        principalColumn: "Id",
+                        principalColumn: "GachaBannerId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_GachaBannerItems_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
+                        principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -424,13 +416,20 @@ namespace DAL.Migrations
                 name: "Quests",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    QuestId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
                     Type = table.Column<string>(type: "text", nullable: false),
                     DefaultStatus = table.Column<string>(type: "text", nullable: false),
+                    MapName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    RegionName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    ObjectiveType = table.Column<string>(type: "text", nullable: false),
+                    ObjectiveTarget = table.Column<string>(type: "text", nullable: true),
+                    ObjectiveLocation = table.Column<string>(type: "text", nullable: true),
+                    QuestGiverName = table.Column<string>(type: "text", nullable: true),
                     RequiredLevel = table.Column<int>(type: "integer", nullable: false),
+                    TargetAmount = table.Column<int>(type: "integer", nullable: false),
                     RewardExperience = table.Column<int>(type: "integer", nullable: false),
                     RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
                     RewardGems = table.Column<decimal>(type: "numeric", nullable: false),
@@ -439,19 +438,19 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Quests", x => x.Id);
+                    table.PrimaryKey("PK_Quests", x => x.QuestId);
                     table.ForeignKey(
                         name: "FK_Quests_Items_RewardItemId",
                         column: x => x.RewardItemId,
                         principalTable: "Items",
-                        principalColumn: "Id");
+                        principalColumn: "ItemId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "ShopItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    ShopItemId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ItemId = table.Column<int>(type: "integer", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
@@ -464,12 +463,12 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ShopItems", x => x.Id);
+                    table.PrimaryKey("PK_ShopItems", x => x.ShopItemId);
                     table.ForeignKey(
                         name: "FK_ShopItems_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
+                        principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -477,7 +476,7 @@ namespace DAL.Migrations
                 name: "MonsterDrops",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    MonsterDropId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     MonsterId = table.Column<int>(type: "integer", nullable: false),
                     ItemId = table.Column<int>(type: "integer", nullable: false),
@@ -489,18 +488,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MonsterDrops", x => x.Id);
+                    table.PrimaryKey("PK_MonsterDrops", x => x.MonsterDropId);
                     table.ForeignKey(
                         name: "FK_MonsterDrops_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
+                        principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_MonsterDrops_Monsters_MonsterId",
                         column: x => x.MonsterId,
                         principalTable: "Monsters",
-                        principalColumn: "Id",
+                        principalColumn: "MonsterId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -508,32 +507,166 @@ namespace DAL.Migrations
                 name: "Accounts",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FullName = table.Column<string>(type: "text", nullable: false),
+                    AccountId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserName = table.Column<string>(type: "text", nullable: false),
-                    EmailAddress = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
                     HashPassword = table.Column<string>(type: "text", nullable: false),
-                    Gender = table.Column<string>(type: "text", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    Birthday = table.Column<DateOnly>(type: "date", nullable: true),
                     RoleId = table.Column<int>(type: "integer", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    EmailVerificationToken = table.Column<string>(type: "text", nullable: true),
-                    EmailVerificationTokenExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    PasswordResetToken = table.Column<string>(type: "text", nullable: true),
-                    PasswordResetTokenExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Accounts", x => x.Id);
+                    table.PrimaryKey("PK_Accounts", x => x.AccountId);
                     table.ForeignKey(
                         name: "FK_Accounts_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id",
+                        principalColumn: "RoleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NPCDialogues",
+                columns: table => new
+                {
+                    NPCDialogueId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NPCId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    ResponseType = table.Column<string>(type: "text", nullable: false),
+                    LinkedQuestId = table.Column<int>(type: "integer", nullable: true),
+                    LinkedShopItemId = table.Column<int>(type: "integer", nullable: true),
+                    DisplayOrder = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NPCDialogues", x => x.NPCDialogueId);
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_NPCs_NPCId",
+                        column: x => x.NPCId,
+                        principalTable: "NPCs",
+                        principalColumn: "NPCId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_Quests_LinkedQuestId",
+                        column: x => x.LinkedQuestId,
+                        principalTable: "Quests",
+                        principalColumn: "QuestId");
+                    table.ForeignKey(
+                        name: "FK_NPCDialogues_ShopItems_LinkedShopItemId",
+                        column: x => x.LinkedShopItemId,
+                        principalTable: "ShopItems",
+                        principalColumn: "ShopItemId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Contents",
+                columns: table => new
+                {
+                    ContentId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Title = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    Slug = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    Summary = table.Column<string>(type: "text", nullable: true),
+                    ThumbnailUrl = table.Column<string>(type: "text", nullable: true),
+                    CategoryContentId = table.Column<int>(type: "integer", nullable: true),
+                    SubCategoryContentId = table.Column<int>(type: "integer", nullable: true),
+                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedByAccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedByAccountAccountId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Contents", x => x.ContentId);
+                    table.ForeignKey(
+                        name: "FK_Contents_Accounts_CreatedByAccountAccountId",
+                        column: x => x.CreatedByAccountAccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId");
+                    table.ForeignKey(
+                        name: "FK_Contents_CategoryContents_CategoryContentId",
+                        column: x => x.CategoryContentId,
+                        principalTable: "CategoryContents",
+                        principalColumn: "CategoryContentId");
+                    table.ForeignKey(
+                        name: "FK_Contents_SubCategoryContents_SubCategoryContentId",
+                        column: x => x.SubCategoryContentId,
+                        principalTable: "SubCategoryContents",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GameSettings",
+                columns: table => new
+                {
+                    GameSettingId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedByAccountId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedByAccountAccountId = table.Column<int>(type: "integer", nullable: true),
+                    UpdatedByAccountId = table.Column<Guid>(type: "uuid", nullable: true),
+                    UpdatedByAccountAccountId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GameSettings", x => x.GameSettingId);
+                    table.ForeignKey(
+                        name: "FK_GameSettings_Accounts_CreatedByAccountAccountId",
+                        column: x => x.CreatedByAccountAccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId");
+                    table.ForeignKey(
+                        name: "FK_GameSettings_Accounts_UpdatedByAccountAccountId",
+                        column: x => x.UpdatedByAccountAccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlayerProfiles",
+                columns: table => new
+                {
+                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    AccountId = table.Column<int>(type: "integer", nullable: false),
+                    DisplayName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: false),
+                    Class = table.Column<string>(type: "text", nullable: false),
+                    Level = table.Column<int>(type: "integer", nullable: false),
+                    ExperiencePoints = table.Column<int>(type: "integer", nullable: false),
+                    Gold = table.Column<decimal>(type: "numeric", nullable: false),
+                    Gems = table.Column<decimal>(type: "numeric", nullable: false),
+                    Energy = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TotalDungeonClears = table.Column<int>(type: "integer", nullable: false),
+                    LastMapName = table.Column<string>(type: "text", nullable: false),
+                    PositionX = table.Column<double>(type: "double precision", nullable: false),
+                    PositionY = table.Column<double>(type: "double precision", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayerProfiles", x => x.PlayerProfileId);
+                    table.ForeignKey(
+                        name: "FK_PlayerProfiles_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -544,11 +677,12 @@ namespace DAL.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
                     ContentId = table.Column<int>(type: "integer", nullable: false),
+                    BlockType = table.Column<string>(type: "text", nullable: false),
                     ContentData = table.Column<string>(type: "text", nullable: true),
                     MediaUrl = table.Column<string>(type: "text", nullable: true),
                     Caption = table.Column<string>(type: "text", nullable: true),
-                    BlockType = table.Column<string>(type: "text", nullable: false),
                     SortOrder = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -561,73 +695,69 @@ namespace DAL.Migrations
                         name: "FK_BlockContents_Contents_ContentId",
                         column: x => x.ContentId,
                         principalTable: "Contents",
-                        principalColumn: "Id",
+                        principalColumn: "ContentId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PlayerProfiles",
+                name: "ChatMessages",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    ChatMessageId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DisplayName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    AvatarUrl = table.Column<string>(type: "text", nullable: false),
-                    Class = table.Column<string>(type: "text", nullable: false),
-                    Level = table.Column<int>(type: "integer", nullable: false),
-                    ExperiencePoints = table.Column<int>(type: "integer", nullable: false),
-                    Gold = table.Column<decimal>(type: "numeric", nullable: false),
-                    Gems = table.Column<decimal>(type: "numeric", nullable: false),
-                    Energy = table.Column<int>(type: "integer", nullable: false),
+                    SenderId = table.Column<int>(type: "integer", nullable: false),
+                    RecipientId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    IsReported = table.Column<bool>(type: "boolean", nullable: false),
+                    IsHidden = table.Column<bool>(type: "boolean", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatMessages", x => x.ChatMessageId);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_PlayerProfiles_RecipientId",
+                        column: x => x.RecipientId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_PlayerProfiles_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DungeonSessions",
+                columns: table => new
+                {
+                    DungeonSessionId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
+                    DungeonConfigId = table.Column<int>(type: "integer", nullable: false),
+                    EnterTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CompletedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    IsRewardClaimed = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerProfiles", x => x.Id);
+                    table.PrimaryKey("PK_DungeonSessions", x => x.DungeonSessionId);
                     table.ForeignKey(
-                        name: "FK_PlayerProfiles_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DungeonRunMembers",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DungeonRunId = table.Column<int>(type: "integer", nullable: false),
-                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
-                    IsLeader = table.Column<bool>(type: "boolean", nullable: false),
-                    IsReady = table.Column<bool>(type: "boolean", nullable: false),
-                    CurrentStage = table.Column<int>(type: "integer", nullable: false),
-                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false),
-                    IsDefeated = table.Column<bool>(type: "boolean", nullable: false),
-                    RewardExperience = table.Column<int>(type: "integer", nullable: false),
-                    RewardGold = table.Column<decimal>(type: "numeric", nullable: false),
-                    IsRewardClaimed = table.Column<bool>(type: "boolean", nullable: false),
-                    JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DefeatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DungeonRunMembers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DungeonRunMembers_DungeonRuns_DungeonRunId",
-                        column: x => x.DungeonRunId,
-                        principalTable: "DungeonRuns",
-                        principalColumn: "Id",
+                        name: "FK_DungeonSessions_DungeonConfigs_DungeonConfigId",
+                        column: x => x.DungeonConfigId,
+                        principalTable: "DungeonConfigs",
+                        principalColumn: "DungeonConfigId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DungeonRunMembers_PlayerProfiles_PlayerProfileId",
+                        name: "FK_DungeonSessions_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -635,7 +765,7 @@ namespace DAL.Migrations
                 name: "Friends",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    FriendId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     RequesterId = table.Column<int>(type: "integer", nullable: false),
                     AddresseeId = table.Column<int>(type: "integer", nullable: false),
@@ -645,18 +775,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Friends", x => x.Id);
+                    table.PrimaryKey("PK_Friends", x => x.FriendId);
                     table.ForeignKey(
                         name: "FK_Friends_PlayerProfiles_AddresseeId",
                         column: x => x.AddresseeId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Friends_PlayerProfiles_RequesterId",
                         column: x => x.RequesterId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -664,7 +794,7 @@ namespace DAL.Migrations
                 name: "GachaPullHistories",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    GachaPullHistoryId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     GachaBannerId = table.Column<int>(type: "integer", nullable: false),
@@ -675,24 +805,24 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GachaPullHistories", x => x.Id);
+                    table.PrimaryKey("PK_GachaPullHistories", x => x.GachaPullHistoryId);
                     table.ForeignKey(
                         name: "FK_GachaPullHistories_GachaBanners_GachaBannerId",
                         column: x => x.GachaBannerId,
                         principalTable: "GachaBanners",
-                        principalColumn: "Id",
+                        principalColumn: "GachaBannerId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_GachaPullHistories_Items_RewardItemId",
                         column: x => x.RewardItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
+                        principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_GachaPullHistories_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -700,7 +830,7 @@ namespace DAL.Migrations
                 name: "Guilds",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    GuildId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
@@ -714,12 +844,12 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Guilds", x => x.Id);
+                    table.PrimaryKey("PK_Guilds", x => x.GuildId);
                     table.ForeignKey(
                         name: "FK_Guilds_PlayerProfiles_LeaderId",
                         column: x => x.LeaderId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -727,7 +857,7 @@ namespace DAL.Migrations
                 name: "InventoryItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    InventoryItemId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     ItemId = table.Column<int>(type: "integer", nullable: false),
@@ -740,18 +870,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InventoryItems", x => x.Id);
+                    table.PrimaryKey("PK_InventoryItems", x => x.InventoryItemId);
                     table.ForeignKey(
                         name: "FK_InventoryItems_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
+                        principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_InventoryItems_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -759,7 +889,7 @@ namespace DAL.Migrations
                 name: "Mails",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    MailId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
@@ -772,21 +902,23 @@ namespace DAL.Migrations
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     IsClaimed = table.Column<bool>(type: "boolean", nullable: false),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Mails", x => x.Id);
+                    table.PrimaryKey("PK_Mails", x => x.MailId);
                     table.ForeignKey(
                         name: "FK_Mails_Items_AttachedItemId",
                         column: x => x.AttachedItemId,
                         principalTable: "Items",
-                        principalColumn: "Id");
+                        principalColumn: "ItemId");
                     table.ForeignKey(
                         name: "FK_Mails_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -794,7 +926,7 @@ namespace DAL.Migrations
                 name: "PlayerAchievements",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerAchievementId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     AchievementId = table.Column<int>(type: "integer", nullable: false),
@@ -805,18 +937,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerAchievements", x => x.Id);
+                    table.PrimaryKey("PK_PlayerAchievements", x => x.PlayerAchievementId);
                     table.ForeignKey(
                         name: "FK_PlayerAchievements_Achievements_AchievementId",
                         column: x => x.AchievementId,
                         principalTable: "Achievements",
-                        principalColumn: "Id",
+                        principalColumn: "AchievementId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlayerAchievements_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -824,27 +956,27 @@ namespace DAL.Migrations
                 name: "PlayerAnnouncements",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerAnnouncementId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
-                    AnnouncementId = table.Column<int>(type: "integer", nullable: false),
+                    GameAnnouncementId = table.Column<int>(type: "integer", nullable: false),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     ReadAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerAnnouncements", x => x.Id);
+                    table.PrimaryKey("PK_PlayerAnnouncements", x => x.PlayerAnnouncementId);
                     table.ForeignKey(
-                        name: "FK_PlayerAnnouncements_GameAnnouncements_AnnouncementId",
-                        column: x => x.AnnouncementId,
+                        name: "FK_PlayerAnnouncements_GameAnnouncements_GameAnnouncementId",
+                        column: x => x.GameAnnouncementId,
                         principalTable: "GameAnnouncements",
-                        principalColumn: "Id",
+                        principalColumn: "GameAnnouncementId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlayerAnnouncements_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -852,7 +984,7 @@ namespace DAL.Migrations
                 name: "PlayerChests",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerChestId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     ChestId = table.Column<int>(type: "integer", nullable: false),
@@ -862,18 +994,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerChests", x => x.Id);
+                    table.PrimaryKey("PK_PlayerChests", x => x.PlayerChestId);
                     table.ForeignKey(
                         name: "FK_PlayerChests_Chests_ChestId",
                         column: x => x.ChestId,
                         principalTable: "Chests",
-                        principalColumn: "Id",
+                        principalColumn: "ChestId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlayerChests_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -881,7 +1013,7 @@ namespace DAL.Migrations
                 name: "PlayerCurrencyLogs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerCurrencyLogId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
@@ -893,12 +1025,12 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerCurrencyLogs", x => x.Id);
+                    table.PrimaryKey("PK_PlayerCurrencyLogs", x => x.PlayerCurrencyLogId);
                     table.ForeignKey(
                         name: "FK_PlayerCurrencyLogs_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -906,7 +1038,7 @@ namespace DAL.Migrations
                 name: "PlayerDailyLogins",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerDailyLoginId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     CurrentStreak = table.Column<int>(type: "integer", nullable: false),
@@ -916,12 +1048,12 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerDailyLogins", x => x.Id);
+                    table.PrimaryKey("PK_PlayerDailyLogins", x => x.PlayerDailyLoginId);
                     table.ForeignKey(
                         name: "FK_PlayerDailyLogins_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -929,7 +1061,7 @@ namespace DAL.Migrations
                 name: "PlayerQuests",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerQuestId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     QuestId = table.Column<int>(type: "integer", nullable: false),
@@ -942,18 +1074,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerQuests", x => x.Id);
+                    table.PrimaryKey("PK_PlayerQuests", x => x.PlayerQuestId);
                     table.ForeignKey(
                         name: "FK_PlayerQuests_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlayerQuests_Quests_QuestId",
                         column: x => x.QuestId,
                         principalTable: "Quests",
-                        principalColumn: "Id",
+                        principalColumn: "QuestId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -961,7 +1093,7 @@ namespace DAL.Migrations
                 name: "PlayerSkills",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerSkillId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     SkillId = table.Column<int>(type: "integer", nullable: false),
@@ -972,18 +1104,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerSkills", x => x.Id);
+                    table.PrimaryKey("PK_PlayerSkills", x => x.PlayerSkillId);
                     table.ForeignKey(
                         name: "FK_PlayerSkills_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlayerSkills_Skills_SkillId",
                         column: x => x.SkillId,
                         principalTable: "Skills",
-                        principalColumn: "Id",
+                        principalColumn: "SkillId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -991,7 +1123,7 @@ namespace DAL.Migrations
                 name: "PlayerSkins",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerSkinId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     SkinId = table.Column<int>(type: "integer", nullable: false),
@@ -1000,18 +1132,18 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerSkins", x => x.Id);
+                    table.PrimaryKey("PK_PlayerSkins", x => x.PlayerSkinId);
                     table.ForeignKey(
                         name: "FK_PlayerSkins_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlayerSkins_Skins_SkinId",
                         column: x => x.SkinId,
                         principalTable: "Skins",
-                        principalColumn: "Id",
+                        principalColumn: "SkinId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1019,7 +1151,7 @@ namespace DAL.Migrations
                 name: "PlayerStats",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PlayerStatId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     CurrentHp = table.Column<int>(type: "integer", nullable: false),
@@ -1041,12 +1173,42 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerStats", x => x.Id);
+                    table.PrimaryKey("PK_PlayerStats", x => x.PlayerStatId);
                     table.ForeignKey(
                         name: "FK_PlayerStats_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlayerStatsSnapshots",
+                columns: table => new
+                {
+                    PlayerStatsSnapshotId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
+                    MaxHp = table.Column<int>(type: "integer", nullable: false),
+                    Atk = table.Column<int>(type: "integer", nullable: false),
+                    Def = table.Column<int>(type: "integer", nullable: false),
+                    MoveSpeed = table.Column<int>(type: "integer", nullable: false),
+                    AttackSpeed = table.Column<int>(type: "integer", nullable: false),
+                    CritRate = table.Column<int>(type: "integer", nullable: false),
+                    CritDamage = table.Column<int>(type: "integer", nullable: false),
+                    DamageBonus = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayerStatsSnapshots", x => x.PlayerStatsSnapshotId);
+                    table.ForeignKey(
+                        name: "FK_PlayerStatsSnapshots_PlayerProfiles_PlayerProfileId",
+                        column: x => x.PlayerProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1054,7 +1216,7 @@ namespace DAL.Migrations
                 name: "PurchaseHistories",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    PurchaseHistoryId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
                     ShopItemId = table.Column<int>(type: "integer", nullable: false),
@@ -1064,54 +1226,43 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PurchaseHistories", x => x.Id);
+                    table.PrimaryKey("PK_PurchaseHistories", x => x.PurchaseHistoryId);
                     table.ForeignKey(
                         name: "FK_PurchaseHistories_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PurchaseHistories_ShopItems_ShopItemId",
                         column: x => x.ShopItemId,
                         principalTable: "ShopItems",
-                        principalColumn: "Id",
+                        principalColumn: "ShopItemId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ChatMessage",
+                name: "DungeonProgresses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    DungeonProgressId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    SenderId = table.Column<int>(type: "integer", nullable: false),
-                    ChatType = table.Column<string>(type: "text", nullable: false),
-                    RecipientId = table.Column<int>(type: "integer", nullable: true),
-                    GuildId = table.Column<int>(type: "integer", nullable: true),
-                    Content = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    IsReported = table.Column<bool>(type: "boolean", nullable: false),
-                    IsHidden = table.Column<bool>(type: "boolean", nullable: false),
-                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    DungeonSessionId = table.Column<int>(type: "integer", nullable: false),
+                    MonstersKilled = table.Column<int>(type: "integer", nullable: false),
+                    BossKilled = table.Column<bool>(type: "boolean", nullable: false),
+                    CompletionPercentage = table.Column<int>(type: "integer", nullable: false),
+                    ExtraData = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ChatMessage", x => x.Id);
+                    table.PrimaryKey("PK_DungeonProgresses", x => x.DungeonProgressId);
                     table.ForeignKey(
-                        name: "FK_ChatMessage_Guilds_GuildId",
-                        column: x => x.GuildId,
-                        principalTable: "Guilds",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_ChatMessage_PlayerProfiles_RecipientId",
-                        column: x => x.RecipientId,
-                        principalTable: "PlayerProfiles",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_ChatMessage_PlayerProfiles_SenderId",
-                        column: x => x.SenderId,
-                        principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        name: "FK_DungeonProgresses_DungeonSessions_DungeonSessionId",
+                        column: x => x.DungeonSessionId,
+                        principalTable: "DungeonSessions",
+                        principalColumn: "DungeonSessionId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1119,7 +1270,7 @@ namespace DAL.Migrations
                 name: "GuildInvitations",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    GuildInvitationId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GuildId = table.Column<int>(type: "integer", nullable: false),
                     InviterId = table.Column<int>(type: "integer", nullable: false),
@@ -1130,24 +1281,24 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GuildInvitations", x => x.Id);
+                    table.PrimaryKey("PK_GuildInvitations", x => x.GuildInvitationId);
                     table.ForeignKey(
                         name: "FK_GuildInvitations_Guilds_GuildId",
                         column: x => x.GuildId,
                         principalTable: "Guilds",
-                        principalColumn: "Id",
+                        principalColumn: "GuildId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_GuildInvitations_PlayerProfiles_InviteeId",
                         column: x => x.InviteeId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_GuildInvitations_PlayerProfiles_InviterId",
                         column: x => x.InviterId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1155,7 +1306,7 @@ namespace DAL.Migrations
                 name: "GuildMembers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    GuildMemberId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GuildId = table.Column<int>(type: "integer", nullable: false),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
@@ -1167,19 +1318,29 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GuildMembers", x => x.Id);
+                    table.PrimaryKey("PK_GuildMembers", x => x.GuildMemberId);
                     table.ForeignKey(
                         name: "FK_GuildMembers_Guilds_GuildId",
                         column: x => x.GuildId,
                         principalTable: "Guilds",
-                        principalColumn: "Id",
+                        principalColumn: "GuildId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_GuildMembers_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "RoleId", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Player" },
+                    { 2, "Admin" },
+                    { 3, "SuperAdmin" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -1188,23 +1349,23 @@ namespace DAL.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Achievements_RewardItemId",
+                table: "Achievements",
+                column: "RewardItemId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BlockContents_ContentId",
                 table: "BlockContents",
                 column: "ContentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatMessage_GuildId",
-                table: "ChatMessage",
-                column: "GuildId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ChatMessage_RecipientId",
-                table: "ChatMessage",
+                name: "IX_ChatMessages_RecipientId",
+                table: "ChatMessages",
                 column: "RecipientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatMessage_SenderId",
-                table: "ChatMessage",
+                name: "IX_ChatMessages_SenderId",
+                table: "ChatMessages",
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
@@ -1223,24 +1384,40 @@ namespace DAL.Migrations
                 column: "CategoryContentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Contents_CreatedByAccountAccountId",
+                table: "Contents",
+                column: "CreatedByAccountAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Contents_SubCategoryContentId",
+                table: "Contents",
+                column: "SubCategoryContentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DailyLoginRewards_RewardItemId",
                 table: "DailyLoginRewards",
                 column: "RewardItemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DungeonRunMembers_DungeonRunId",
-                table: "DungeonRunMembers",
-                column: "DungeonRunId");
+                name: "IX_DungeonConfigs_ChestId",
+                table: "DungeonConfigs",
+                column: "ChestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DungeonRunMembers_PlayerProfileId",
-                table: "DungeonRunMembers",
-                column: "PlayerProfileId");
+                name: "IX_DungeonProgresses_DungeonSessionId",
+                table: "DungeonProgresses",
+                column: "DungeonSessionId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_DungeonRuns_DungeonConfigId",
-                table: "DungeonRuns",
+                name: "IX_DungeonSessions_DungeonConfigId",
+                table: "DungeonSessions",
                 column: "DungeonConfigId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DungeonSessions_PlayerProfileId",
+                table: "DungeonSessions",
+                column: "PlayerProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EquipmentStats_ItemId",
@@ -1282,6 +1459,16 @@ namespace DAL.Migrations
                 name: "IX_GachaPullHistories_RewardItemId",
                 table: "GachaPullHistories",
                 column: "RewardItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GameSettings_CreatedByAccountAccountId",
+                table: "GameSettings",
+                column: "CreatedByAccountAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GameSettings_UpdatedByAccountAccountId",
+                table: "GameSettings",
+                column: "UpdatedByAccountAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuildInvitations_GuildId",
@@ -1344,6 +1531,21 @@ namespace DAL.Migrations
                 column: "MonsterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_NPCDialogues_LinkedQuestId",
+                table: "NPCDialogues",
+                column: "LinkedQuestId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NPCDialogues_LinkedShopItemId",
+                table: "NPCDialogues",
+                column: "LinkedShopItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NPCDialogues_NPCId",
+                table: "NPCDialogues",
+                column: "NPCId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PlayerAchievements_AchievementId",
                 table: "PlayerAchievements",
                 column: "AchievementId");
@@ -1354,9 +1556,9 @@ namespace DAL.Migrations
                 column: "PlayerProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlayerAnnouncements_AnnouncementId",
+                name: "IX_PlayerAnnouncements_GameAnnouncementId",
                 table: "PlayerAnnouncements",
-                column: "AnnouncementId");
+                column: "GameAnnouncementId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerAnnouncements_PlayerProfileId",
@@ -1426,6 +1628,11 @@ namespace DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlayerStatsSnapshots_PlayerProfileId",
+                table: "PlayerStatsSnapshots",
+                column: "PlayerProfileId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PurchaseHistories_PlayerProfileId",
                 table: "PurchaseHistories",
                 column: "PlayerProfileId");
@@ -1444,6 +1651,11 @@ namespace DAL.Migrations
                 name: "IX_ShopItems_ItemId",
                 table: "ShopItems",
                 column: "ItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubCategoryContents_CategoryContentId",
+                table: "SubCategoryContents",
+                column: "CategoryContentId");
         }
 
         /// <inheritdoc />
@@ -1453,7 +1665,7 @@ namespace DAL.Migrations
                 name: "BlockContents");
 
             migrationBuilder.DropTable(
-                name: "ChatMessage");
+                name: "ChatMessages");
 
             migrationBuilder.DropTable(
                 name: "ChestItems");
@@ -1462,7 +1674,7 @@ namespace DAL.Migrations
                 name: "DailyLoginRewards");
 
             migrationBuilder.DropTable(
-                name: "DungeonRunMembers");
+                name: "DungeonProgresses");
 
             migrationBuilder.DropTable(
                 name: "EquipmentStats");
@@ -1495,6 +1707,9 @@ namespace DAL.Migrations
                 name: "MonsterDrops");
 
             migrationBuilder.DropTable(
+                name: "NPCDialogues");
+
+            migrationBuilder.DropTable(
                 name: "PlayerAchievements");
 
             migrationBuilder.DropTable(
@@ -1522,13 +1737,16 @@ namespace DAL.Migrations
                 name: "PlayerStats");
 
             migrationBuilder.DropTable(
+                name: "PlayerStatsSnapshots");
+
+            migrationBuilder.DropTable(
                 name: "PurchaseHistories");
 
             migrationBuilder.DropTable(
                 name: "Contents");
 
             migrationBuilder.DropTable(
-                name: "DungeonRuns");
+                name: "DungeonSessions");
 
             migrationBuilder.DropTable(
                 name: "GachaBanners");
@@ -1540,13 +1758,13 @@ namespace DAL.Migrations
                 name: "Monsters");
 
             migrationBuilder.DropTable(
+                name: "NPCs");
+
+            migrationBuilder.DropTable(
                 name: "Achievements");
 
             migrationBuilder.DropTable(
                 name: "GameAnnouncements");
-
-            migrationBuilder.DropTable(
-                name: "Chests");
 
             migrationBuilder.DropTable(
                 name: "Quests");
@@ -1561,7 +1779,7 @@ namespace DAL.Migrations
                 name: "ShopItems");
 
             migrationBuilder.DropTable(
-                name: "CategoryContents");
+                name: "SubCategoryContents");
 
             migrationBuilder.DropTable(
                 name: "DungeonConfigs");
@@ -1571,6 +1789,12 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Items");
+
+            migrationBuilder.DropTable(
+                name: "CategoryContents");
+
+            migrationBuilder.DropTable(
+                name: "Chests");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

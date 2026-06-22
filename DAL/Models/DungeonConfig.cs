@@ -23,6 +23,9 @@ namespace DAL.Models
 
         public int Difficulty { get; set; } = 1;
 
+        /// <summary>Energy required to enter and claim reward from this dungeon.</summary>
+        public int EnergyCost { get; set; } = 10;
+
         public int RecommendedPower { get; set; } = 0;
 
         public int? ChestId { get; set; }

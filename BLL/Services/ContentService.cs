@@ -240,7 +240,7 @@ namespace BLL.Services
 
             return new BlockContentResponseDto
             {
-                BlockContentId = created.BlockContentId,
+                BlockContentId = created.Id,
                 ContentId = created.ContentId,
                 ContentData = created.ContentData,
                 MediaUrl = created.MediaUrl,
@@ -270,7 +270,7 @@ namespace BLL.Services
 
             return new BlockContentResponseDto
             {
-                BlockContentId = updated.BlockContentId,
+                BlockContentId = updated.Id,
                 ContentId = updated.ContentId,
                 ContentData = updated.ContentData,
                 MediaUrl = updated.MediaUrl,
@@ -336,7 +336,7 @@ namespace BLL.Services
                 PublishedAt = content.PublishedAt,
                 Blocks = content.BlockContents?.Select(b => new BlockContentResponseDto
                 {
-                    BlockContentId = b.BlockContentId,
+                    BlockContentId = b.Id,
                     ContentId = b.ContentId,
                     ContentData = b.ContentData,
                     MediaUrl = b.MediaUrl,

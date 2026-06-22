@@ -38,6 +38,11 @@ builder.Services.AddScoped<IMonsterService, MonsterService>();
 builder.Services.AddScoped<IDungeonConfigRepository, DungeonConfigRepository>();
 builder.Services.AddScoped<IDungeonConfigService, DungeonConfigService>();
 
+// Dungeon Session Services
+builder.Services.AddScoped<IDungeonSessionRepository, DungeonSessionRepository>();
+builder.Services.AddScoped<IDungeonProgressRepository, DungeonProgressRepository>();
+builder.Services.AddScoped<IDungeonSessionService, DungeonSessionService>();
+
 // Shop Services
 builder.Services.AddScoped<IShopItemRepository, ShopItemRepository>();
 builder.Services.AddScoped<IShopItemService, ShopItemService>();
@@ -76,6 +81,10 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 // PlayerProfile Services
 builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
 builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
+
+// Character Services
+builder.Services.AddScoped<IPlayerStatRepository, PlayerStatRepository>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
 
 // Account Admin Services
 builder.Services.AddScoped<IAccountAdminService, AccountAdminService>();

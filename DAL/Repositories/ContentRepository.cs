@@ -103,7 +103,7 @@ namespace DAL.Repositories
         public async Task<BlockContent?> GetBlockById(int id)
         {
             return await _context.BlockContents
-                .FirstOrDefaultAsync(b => b.BlockContentId == id);
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public async Task<BlockContent> CreateBlock(BlockContent block)

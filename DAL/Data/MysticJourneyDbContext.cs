@@ -35,6 +35,8 @@ namespace DAL.Data
         public DbSet<GachaBannerItem> GachaBannerItems => Set<GachaBannerItem>();
         public DbSet<GachaPullHistory> GachaPullHistories => Set<GachaPullHistory>();
         public DbSet<DungeonConfig> DungeonConfigs => Set<DungeonConfig>();
+        public DbSet<DungeonSession> DungeonSessions => Set<DungeonSession>();
+        public DbSet<DungeonProgress> DungeonProgresses => Set<DungeonProgress>();
         public DbSet<Achievement> Achievements => Set<Achievement>();
         public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
         public DbSet<Guild> Guilds => Set<Guild>();
