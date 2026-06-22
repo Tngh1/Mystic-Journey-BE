@@ -332,8 +332,8 @@ namespace BLL.Services
         private static string NormalizeMapName(string? mapName)
             => string.IsNullOrWhiteSpace(mapName) ? DefaultMapName : mapName.Trim();
 
-        private static string NormalizePlayerClass(string? playerClass)
-            => string.IsNullOrWhiteSpace(playerClass) ? "Knight" : playerClass.Trim();
+        private static string? NormalizePlayerClass(string? playerClass)
+            => string.IsNullOrWhiteSpace(playerClass) ? null : playerClass.Trim();
 
         private static bool HasSavedPosition(PlayerProfile? profile)
         {
