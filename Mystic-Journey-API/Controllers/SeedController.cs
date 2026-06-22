@@ -678,6 +678,29 @@ namespace Mystic_Journey_API.Controllers
                     await _ctx.SaveChangesAsync();
                 }
 
+                // Upsert a tutorial skill that will be rewarded by the Gather White Flowers quest
+                var tutorialSkill = await _ctx.Skills.FirstOrDefaultAsync(s => s.Name == "[ELF] First Strike");
+                if (tutorialSkill == null)
+                {
+                    tutorialSkill = new Skill
+                    {
+                        Name = "[ELF] First Strike",
+                        Description = "A simple tutorial melee strike taught by Elder Rowan.",
+                        Type = "Active",
+                        DamageType = "Physical",
+                        TargetType = "SingleTarget",
+                        ClassRequirement = "All",
+                        CooldownSeconds = 6,
+                        BaseDamage = 40.0,
+                        DamagePerLevel = 6.0,
+                        DamageGrowthPercent = 2.0,
+                        UnlockLevel = 1,
+                        IsActive = true
+                    };
+                    _ctx.Skills.Add(tutorialSkill);
+                    await _ctx.SaveChangesAsync();
+                }
+
                 var quests = new List<Quest>
                 {
                     new Quest
@@ -719,7 +742,7 @@ namespace Mystic_Journey_API.Controllers
                         RewardGold = 80,
                         RewardGems = 0,
                         RewardItemId = potion.ItemId,
-                        RewardSkillId = null,
+                        RewardSkillId = tutorialSkill.SkillId,
                         IsActive = true,
                     },
                     new Quest
@@ -745,38 +768,17 @@ namespace Mystic_Journey_API.Controllers
                     },
                     new Quest
                     {
-                        Title = "[ELFFOREST] Equip Your First Skill",
-                        Description = "Open the skill interface and equip your first skill before starting combat training.",
+                        Title = "[ELFFOREST] Equip & Use Your First Skill",
+                        Description = "Equip the skill you just learned and use it to defeat five Shadow Sprouts near the forest edge.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
                         MapName = "ElfForest",
                         RegionName = "ElfLand",
-                        ObjectiveType = "EquipSkill",
-                        ObjectiveTarget = "First Skill",
-                        ObjectiveLocation = "Elder Rowan's Camp",
-                        QuestGiverName = "Elder Rowan",
-                        RequiredLevel = 3,
-                        TargetAmount = 1,
-                        RewardExperience = 140,
-                        RewardGold = 180,
-                        RewardGems = 3,
-                        RewardItemId = null,
-                        RewardSkillId = null,
-                        IsActive = true,
-                    },
-                    new Quest
-                    {
-                        Title = "[ELFFOREST] Skill Combat Training",
-                        Description = "Use your equipped skill to defeat five Shadow Sprouts near the forest edge.",
-                        Type = "Main",
-                        DefaultStatus = "NotStarted",
-                        MapName = "ElfForest",
-                        RegionName = "ElfLand",
-                        ObjectiveType = "Defeat",
-                        ObjectiveTarget = "Shadow Sprout",
+                        ObjectiveType = "EquipSkillAndDefeat",
+                        ObjectiveTarget = tutorialSkill.Name,
                         ObjectiveLocation = "Forest Edge",
                         QuestGiverName = "Elder Rowan",
-                        RequiredLevel = 4,
+                        RequiredLevel = 3,
                         TargetAmount = 5,
                         RewardExperience = 220,
                         RewardGold = 260,
@@ -866,9 +868,9 @@ namespace Mystic_Journey_API.Controllers
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Now use that skill against the Shadow Sprouts near the forest edge. Defeat five of them and come back stronger.",
+                        Content = "Now equip that skill and use it against the Shadow Sprouts near the forest edge. Defeat five of them and come back stronger.",
                         ResponseType = "Quest",
-                        LinkedQuestId = quests[4].QuestId,
+                        LinkedQuestId = quests[3].QuestId,
                         DisplayOrder = 5,
                         IsActive = true,
                     }
