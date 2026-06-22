@@ -19,6 +19,9 @@ namespace DAL.Models
         public int? CategoryContentId { get; set; }
         public CategoryContent? CategoryContent { get; set; }
 
+        public int? SubCategoryContentId { get; set; }
+        public SubCategoryContent? SubCategoryContent { get; set; }
+
         public bool IsPublished { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

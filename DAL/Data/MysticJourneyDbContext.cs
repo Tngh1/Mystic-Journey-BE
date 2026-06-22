@@ -51,6 +51,7 @@ namespace DAL.Data
         public DbSet<GameAnnouncement> GameAnnouncements => Set<GameAnnouncement>();
         public DbSet<PlayerAnnouncement> PlayerAnnouncements => Set<PlayerAnnouncement>();
         public DbSet<CategoryContent> CategoryContents => Set<CategoryContent>();
+        public DbSet<SubCategoryContent> SubCategoryContents => Set<SubCategoryContent>();
         public DbSet<Content> Contents => Set<Content>();
         public DbSet<BlockContent> BlockContents => Set<BlockContent>();
 
