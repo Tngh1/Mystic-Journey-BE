@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260622045054_InitialCreate")]
+    [Migration("20260622090727_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1737,6 +1737,9 @@ namespace DAL.Migrations
                     b.Property<int?>("RewardItemId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("RewardSkillId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("TargetAmount")
                         .HasColumnType("integer");
 
@@ -1752,6 +1755,8 @@ namespace DAL.Migrations
                     b.HasKey("QuestId");
 
                     b.HasIndex("RewardItemId");
+
+                    b.HasIndex("RewardSkillId");
 
                     b.ToTable("Quests");
                 });
@@ -2458,7 +2463,13 @@ namespace DAL.Migrations
                         .WithMany()
                         .HasForeignKey("RewardItemId");
 
+                    b.HasOne("DAL.Models.Skill", "RewardSkill")
+                        .WithMany()
+                        .HasForeignKey("RewardSkillId");
+
                     b.Navigation("RewardItem");
+
+                    b.Navigation("RewardSkill");
                 });
 
             modelBuilder.Entity("DAL.Models.ShopItem", b =>

@@ -249,9 +249,11 @@ CREATE TABLE "Quests" (
     "RewardGold" numeric NOT NULL,
     "RewardGems" numeric NOT NULL,
     "RewardItemId" integer,
+    "RewardSkillId" integer,
     "IsActive" boolean NOT NULL,
     CONSTRAINT "PK_Quests" PRIMARY KEY ("QuestId"),
     CONSTRAINT "FK_Quests_Items_RewardItemId" FOREIGN KEY ("RewardItemId") REFERENCES "Items" ("ItemId")
+    ,CONSTRAINT "FK_Quests_Skills_RewardSkillId" FOREIGN KEY ("RewardSkillId") REFERENCES "Skills" ("SkillId")
 );
 
 CREATE TABLE "ShopItems" (

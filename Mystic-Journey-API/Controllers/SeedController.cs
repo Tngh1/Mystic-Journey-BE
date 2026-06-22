@@ -195,6 +195,9 @@ namespace Mystic_Journey_API.Controllers
                 _ctx.Quests.RemoveRange(existingQuests);
                 await _ctx.SaveChangesAsync();
 
+                // If a seed skill exists for Knight Slash, set it as reward for Map 1.
+                var knightSlash = await _ctx.Skills.FirstOrDefaultAsync(s => s.Name == "[SEED] Knight Slash");
+
                 _ctx.Quests.AddRange(
                     new Quest
                     {
@@ -206,6 +209,7 @@ namespace Mystic_Journey_API.Controllers
                         TargetAmount      = 5,
                         RewardExperience  = 200,
                         RewardGold        = 500,
+                        RewardSkillId     = knightSlash != null ? (int?)knightSlash.SkillId : null,
                         IsActive          = true,
                     },
                     new Quest
@@ -433,6 +437,117 @@ namespace Mystic_Journey_API.Controllers
                             new { name = "[SEED] Sword of Dawn", itemId = sword.ItemId  },
                             new { name = "[SEED] Iron Helm",     itemId = helm.ItemId   },
                         },
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/skills  → Upsert 3 hệ thống Skill mẫu
+        // Dùng để nhanh chóng chèn 3 skill cơ bản cho toàn bộ hệ thống (không phải player)
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("skills")]
+        public async Task<IActionResult> SeedSkills()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var seedNames = new[]
+                {
+                    "[SEED] AP Skill",
+                    "[SEED] Adrenaline",
+                    "[SEED] Knight Slash"
+                };
+
+                var existing = await _ctx.Skills.Where(s => seedNames.Contains(s.Name)).ToListAsync();
+
+                Skill UpsertSkill(string name, string description, string type, string damageType, string targetType, string classReq, int cooldown, double baseDamage, double damagePerLevel, double damageGrowthPercent, int unlockLevel)
+                {
+                    var sk = existing.FirstOrDefault(x => x.Name == name);
+                    if (sk == null)
+                    {
+                        sk = new Skill { Name = name };
+                        _ctx.Skills.Add(sk);
+                        existing.Add(sk);
+                    }
+
+                    sk.Description = description;
+                    sk.Type = type;
+                    sk.DamageType = damageType;
+                    sk.TargetType = targetType;
+                    sk.ClassRequirement = classReq;
+                    sk.CooldownSeconds = cooldown;
+                    sk.BaseDamage = baseDamage;
+                    sk.DamagePerLevel = damagePerLevel;
+                    sk.DamageGrowthPercent = damageGrowthPercent;
+                    sk.UnlockLevel = unlockLevel;
+                    sk.IsActive = true;
+
+                    return sk;
+                }
+
+                var s1 = UpsertSkill(
+                    "[SEED] AP Skill",
+                    "Kỹ năng hệ thống mẫu AP (ví dụ: hiệu ứng phép/aoe).",
+                    "Active",
+                    "Magical",
+                    "Area",
+                    "Mage",
+                    8,
+                    120.0,
+                    15.0,
+                    5.0,
+                    1
+                );
+
+                var s2 = UpsertSkill(
+                    "[SEED] Adrenaline",
+                    "Kỹ năng tăng sức mạnh tạm thời (buff).",
+                    "Buff",
+                    "TrueDamage",
+                    "Self",
+                    "All",
+                    30,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1
+                );
+
+                var s3 = UpsertSkill(
+                    "[SEED] Knight Slash",
+                    "Đòn chém của hiệp sĩ, sát thương vật lý cận chiến lên 1 mục tiêu.",
+                    "Active",
+                    "Physical",
+                    "SingleTarget",
+                    "Knight",
+                    5,
+                    90.0,
+                    12.0,
+                    3.0,
+                    1
+                );
+
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Seed skills thành công",
+                    Data = new
+                    {
+                        skills = new[]
+                        {
+                            new { name = s1.Name, id = s1.SkillId },
+                            new { name = s2.Name, id = s2.SkillId },
+                            new { name = s3.Name, id = s3.SkillId }
+                        }
                     }
                 });
             }

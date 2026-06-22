@@ -15,6 +15,7 @@ namespace BLL.Services
         private readonly IPlayerProfileRepository _playerProfileRepo;
         private readonly IQuestRepository _questRepo;
         private readonly IInventoryRepository _inventoryRepo;
+        private readonly ISkillRepository _skillRepo;
 
         // Anti-cheat: max progress delta per batch call.
         private const int MaxProgressDeltaPerCall = 50;
@@ -23,12 +24,14 @@ namespace BLL.Services
             IPlayerQuestRepository playerQuestRepo,
             IPlayerProfileRepository playerProfileRepo,
             IQuestRepository questRepo,
-            IInventoryRepository inventoryRepo)
+            IInventoryRepository inventoryRepo,
+            ISkillRepository skillRepo)
         {
             _playerQuestRepo = playerQuestRepo;
             _playerProfileRepo = playerProfileRepo;
             _questRepo = questRepo;
             _inventoryRepo = inventoryRepo;
+            _skillRepo = skillRepo;
         }
 
         public async Task<List<PlayerQuestResponseDto>> GetMyQuests(int playerProfileId)
@@ -198,6 +201,26 @@ namespace BLL.Services
 
             if (quest.RewardItemId.HasValue)
                 await AddItemToInventory(playerProfileId, quest.RewardItemId.Value, 1);
+
+            // If quest grants a skill, add it to player's skills (if not already owned)
+            if (quest.RewardSkillId.HasValue)
+            {
+                var owned = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
+                if (!owned.Any(ps => ps.SkillId == quest.RewardSkillId.Value))
+                {
+                    var newPlayerSkill = new PlayerSkill
+                    {
+                        PlayerProfileId = playerProfileId,
+                        SkillId = quest.RewardSkillId.Value,
+                        Level = 1,
+                        Experience = 0,
+                        IsEquipped = false,
+                        UnlockedAt = DateTime.UtcNow
+                    };
+
+                    await _skillRepo.CreatePlayerSkill(newPlayerSkill);
+                }
+            }
 
             return MapToDto(pq);
         }
