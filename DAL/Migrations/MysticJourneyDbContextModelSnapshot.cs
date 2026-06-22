@@ -1471,11 +1471,11 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerSkillId"));
 
-                    b.Property<int>("Experience")
+                    b.Property<int?>("EquippedSlot")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsEquipped")
-                        .HasColumnType("boolean");
+                    b.Property<int>("Experience")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Level")
                         .HasColumnType("integer");

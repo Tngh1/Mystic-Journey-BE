@@ -120,7 +120,8 @@ namespace BLL.Services
                 TargetType = ps.Skill?.TargetType ?? "",
                 Level = ps.Level,
                 Experience = ps.Experience,
-                IsEquipped = ps.IsEquipped,
+                    IsEquipped = ps.IsEquipped,
+                    EquippedSlot = ps.EquippedSlot,
                 CooldownSeconds = ps.Skill?.CooldownSeconds ?? 0,
                 BaseDamage = ps.Skill?.BaseDamage ?? 0.0,
                 // compute effective damage based on level (double precision)

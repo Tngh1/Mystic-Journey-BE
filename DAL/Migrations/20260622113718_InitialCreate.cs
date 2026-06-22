@@ -1041,7 +1041,7 @@ namespace DAL.Migrations
                     SkillId = table.Column<int>(type: "integer", nullable: false),
                     Level = table.Column<int>(type: "integer", nullable: false),
                     Experience = table.Column<int>(type: "integer", nullable: false),
-                    IsEquipped = table.Column<bool>(type: "boolean", nullable: false),
+                    EquippedSlot = table.Column<int>(type: "integer", nullable: true),
                     UnlockedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260622090727_InitialCreate")]
+    [Migration("20260622113718_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1474,11 +1474,11 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerSkillId"));
 
-                    b.Property<int>("Experience")
+                    b.Property<int?>("EquippedSlot")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsEquipped")
-                        .HasColumnType("boolean");
+                    b.Property<int>("Experience")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Level")
                         .HasColumnType("integer");

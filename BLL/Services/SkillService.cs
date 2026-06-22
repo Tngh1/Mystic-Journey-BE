@@ -101,36 +101,52 @@ namespace BLL.Services
             using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
-                // If equipping into a slot, ensure only one skill occupies that slot
                 if (request.IsEquipped)
                 {
-                    // Validate slot index
                     var slot = request.SlotIndex ?? 0;
                     if (slot < 0 || slot > 2) throw new ArgumentException("Invalid slot index.");
 
-                    // Un-equip any other skill the player has in this slot
+                    // Tháo kỹ năng cũ đang nằm trong ô này ra
                     var others = await _repository.GetPlayerSkillsByPlayerId(actorPlayerProfileId);
                     foreach (var other in others)
                     {
                         if (other.PlayerSkillId != ps.PlayerSkillId && other.EquippedSlot.HasValue && other.EquippedSlot.Value == slot)
                         {
-                            other.IsEquipped = false;
                             other.EquippedSlot = null;
+                            // IsEquipped is derived from EquippedSlot; clear EquippedSlot only
                             await _repository.UpdatePlayerSkill(other);
                         }
                     }
 
-                    ps.IsEquipped = true;
+                    // Đảm bảo kỹ năng này không bị gắn ở ô khác trùng lặp
+                    foreach (var otherSameSkill in others)
+                    {
+                        if (otherSameSkill.PlayerSkillId != ps.PlayerSkillId && otherSameSkill.SkillId == ps.SkillId && otherSameSkill.EquippedSlot.HasValue)
+                        {
+                            otherSameSkill.EquippedSlot = null;
+                            // IsEquipped is derived from EquippedSlot; clear EquippedSlot only
+                            await _repository.UpdatePlayerSkill(otherSameSkill);
+                        }
+                    }
+
+                    // Trang bị kỹ năng hiện tại
                     ps.EquippedSlot = slot;
+                    // IsEquipped is derived from EquippedSlot
                 }
                 else
                 {
-                    // Un-equip this skill
-                    ps.IsEquipped = false;
+                    // Hủy trang bị
                     ps.EquippedSlot = null;
+                    // IsEquipped is derived from EquippedSlot
                 }
 
                 var updated = await _repository.UpdatePlayerSkill(ps);
+
+                // =================================================================
+                // QUAN TRỌNG NHẤT: Bắt buộc gọi SaveChangesAsync để tạo lệnh UPDATE 
+                // xuống SQL Database TRƯỚC KHI gọi Commit Transaction!
+                // =================================================================
+                await _context.SaveChangesAsync(); 
 
                 await tx.CommitAsync();
 
