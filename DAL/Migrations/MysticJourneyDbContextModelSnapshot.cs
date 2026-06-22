@@ -1835,8 +1835,8 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SkillId"));
 
-                    b.Property<int>("BaseDamage")
-                        .HasColumnType("integer");
+                    b.Property<double>("BaseDamage")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("ClassRequirement")
                         .IsRequired()
@@ -1848,8 +1848,8 @@ namespace DAL.Migrations
                     b.Property<double>("DamageGrowthPercent")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("DamagePerLevel")
-                        .HasColumnType("integer");
+                    b.Property<double>("DamagePerLevel")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("DamageType")
                         .IsRequired()

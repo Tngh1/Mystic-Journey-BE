@@ -13,8 +13,8 @@ namespace BLL.DTOs
         public string TargetType { get; set; } = "SingleTarget";
         public string ClassRequirement { get; set; } = "Knight";
         public int CooldownSeconds { get; set; }
-        public int BaseDamage { get; set; }
-        public int DamagePerLevel { get; set; }
+        public double BaseDamage { get; set; }
+        public double DamagePerLevel { get; set; }
         public double DamageGrowthPercent { get; set; }
         public int UnlockLevel { get; set; }
         public bool IsActive { get; set; }
@@ -37,10 +37,10 @@ namespace BLL.DTOs
         [Range(0, int.MaxValue)]
         public int CooldownSeconds { get; set; }
 
-        [Range(0, int.MaxValue)]
-        public int BaseDamage { get; set; }
-        [Range(0, int.MaxValue)]
-        public int DamagePerLevel { get; set; }
+        [Range(0, double.MaxValue)]
+        public double BaseDamage { get; set; }
+        [Range(0, double.MaxValue)]
+        public double DamagePerLevel { get; set; }
         [Range(0, 1000)]
         public double DamageGrowthPercent { get; set; }
 
@@ -67,10 +67,10 @@ namespace BLL.DTOs
         [Range(0, int.MaxValue)]
         public int CooldownSeconds { get; set; }
 
-        [Range(0, int.MaxValue)]
-        public int BaseDamage { get; set; }
-        [Range(0, int.MaxValue)]
-        public int DamagePerLevel { get; set; }
+        [Range(0, double.MaxValue)]
+        public double BaseDamage { get; set; }
+        [Range(0, double.MaxValue)]
+        public double DamagePerLevel { get; set; }
         [Range(0, 1000)]
         public double DamageGrowthPercent { get; set; }
 
@@ -95,9 +95,9 @@ namespace BLL.DTOs
         public int Experience { get; set; }
         public bool IsEquipped { get; set; }
         // Calculated damage taking level and growth into account
-        public int EffectiveDamage { get; set; }
+        public double EffectiveDamage { get; set; }
         public int CooldownSeconds { get; set; }
-        public int BaseDamage { get; set; }
+        public double BaseDamage { get; set; }
         public int UnlockLevel { get; set; }
         public DateTime UnlockedAt { get; set; }
     }
