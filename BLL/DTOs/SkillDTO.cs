@@ -94,6 +94,7 @@ namespace BLL.DTOs
         public int Level { get; set; }
         public int Experience { get; set; }
         public bool IsEquipped { get; set; }
+        public int? EquippedSlot { get; set; }
         // Calculated damage taking level and growth into account
         public double EffectiveDamage { get; set; }
         public int CooldownSeconds { get; set; }
@@ -114,5 +115,8 @@ namespace BLL.DTOs
         public int PlayerSkillId { get; set; }
 
         public bool IsEquipped { get; set; }
+
+        // Slot index 0..2 (null when not equipping)
+        public int? SlotIndex { get; set; }
     }
 }

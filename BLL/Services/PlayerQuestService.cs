@@ -214,7 +214,7 @@ namespace BLL.Services
                         SkillId = quest.RewardSkillId.Value,
                         Level = 1,
                         Experience = 0,
-                        IsEquipped = false,
+                        EquippedSlot = null,
                         UnlockedAt = DateTime.UtcNow
                     };
 
