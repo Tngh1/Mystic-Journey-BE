@@ -27,6 +27,7 @@ namespace DAL.Repositories
         {
             return await _context.Quests
                 .Include(q => q.RewardItem)
+                .Include(q => q.RewardSkill)
                 .FirstOrDefaultAsync(q => q.QuestId == id);
         }
 
@@ -56,6 +57,7 @@ namespace DAL.Repositories
         {
             var query = _context.Quests
                 .Include(q => q.RewardItem)
+                .Include(q => q.RewardSkill)
                 .AsNoTracking();
 
             if (!string.IsNullOrEmpty(search))
