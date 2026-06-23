@@ -329,21 +329,14 @@ namespace BLL.Services
                 ItemDescription = item.Item?.Description,
                 ItemType = item.Item?.Type ?? string.Empty,
                 ItemRarity = item.Item?.Rarity ?? string.Empty,
+                ItemSlot = item.Item?.Slot ?? "None",
                 IconUrl = item.Item?.IconUrl,
                 Quantity = item.Quantity,
                 IsEquipped = item.IsEquipped,
                 IsSkin = item.IsSkin,
                 EquippedSlot = item.EquippedSlot,
                 EnhancementLevel = item.EnhancementLevel,
-                CreatedAt = item.CreatedAt,
-                BaseHp = item.Item?.EquipmentStats?.BaseHp ?? 0,
-                BaseAtk = item.Item?.EquipmentStats?.BaseAtk ?? 0,
-                BaseDef = item.Item?.EquipmentStats?.BaseDef ?? 0,
-                BonusHp = item.Item?.EquipmentStats?.BonusHp ?? 0,
-                BonusAtk = item.Item?.EquipmentStats?.BonusAtk ?? 0,
-                BonusDef = item.Item?.EquipmentStats?.BonusDef ?? 0,
-                BonusCritRate = item.Item?.EquipmentStats != null ? BLL.Utils.StatHelper.FromScaled(item.Item.EquipmentStats.BonusCritRate, BLL.Utils.StatScale.CritRate) : 0f,
-                BonusCritDamage = item.Item?.EquipmentStats != null ? BLL.Utils.StatHelper.FromScaled(item.Item.EquipmentStats.BonusCritDamage, BLL.Utils.StatScale.CritRate) : 0f
+                CreatedAt = item.CreatedAt
             };
         }
     }

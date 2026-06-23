@@ -2,7 +2,8 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
+using Mystic_Journey_API.Extensions;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -22,260 +23,125 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var content = await _contentService.GetContentById(id);
-                if (content == null)
-                    return NotFound(new { message = $"Content with id {id} not found." });
+            var content = await _contentService.GetContentById(id);
+            if (content == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Content with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
-                return Ok(content);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            return Ok(new ApiResponse<ContentDetailResponseDto> { Success = true, Data = content });
         }
 
         [AllowAnonymous]
         [HttpGet("slug/{slug}")]
         public async Task<IActionResult> GetBySlug(string slug)
         {
-            try
-            {
-                var content = await _contentService.GetContentBySlug(slug);
-                if (content == null)
-                    return NotFound(new { message = $"Content with slug '{slug}' not found." });
+            var content = await _contentService.GetContentBySlug(slug);
+            if (content == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Content with slug '{slug}' not found.", ErrorCode = ErrorCodes.NotFound });
 
-                return Ok(content);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpGet("categories")]
-        public async Task<IActionResult> GetAllCategories()
-        {
-            try
-            {
-                var categories = await _contentService.GetAllCategories();
-                return Ok(categories);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            return Ok(new ApiResponse<ContentDetailResponseDto> { Success = true, Data = content });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("with-blocks")]
         public async Task<IActionResult> CreateWithBlocks([FromBody] CreateContentWithBlocksRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var content = await _contentService.CreateContentWithBlocksAsync(request);
-                return Ok(content);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var content = await _contentService.CreateContentWithBlocksAsync(request);
+            return Ok(new ApiResponse<ContentDetailResponseDto> { Success = true, Data = content });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateContentRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var content = await _contentService.UpdateContent(id, request);
-                return Ok(content);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var content = await _contentService.UpdateContent(id, request);
+            return Ok(new ApiResponse<ContentResponseDto> { Success = true, Data = content });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("{id}/publish")]
         public async Task<IActionResult> Publish(int id)
         {
-            try
-            {
-                var content = await _contentService.PublishContent(id);
-                return Ok(content);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var content = await _contentService.PublishContent(id);
+            return Ok(new ApiResponse<ContentResponseDto> { Success = true, Data = content });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("categories")]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryContentRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var category = await _contentService.CreateCategory(request);
-                return Ok(category);
-            }
-            catch (System.ArgumentException ex)
+            var category = await _contentService.CreateCategory(request);
+            return Ok(new ApiResponse<CategoryContentResponseDto> { Success = true, Data = category });
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetCategories([FromQuery] int? page = null, [FromQuery] int? pageSize = null, [FromQuery] string? search = null, [FromQuery] bool? isActive = null)
+        {
+            if (page.HasValue && pageSize.HasValue)
             {
-                return BadRequest(new { message = ex.Message });
+                var pagedResult = await _contentService.GetCategoriesPaged(page.Value, pageSize.Value, search, isActive);
+                return Ok(new ApiResponse<PagedResultDto<CategoryContentResponseDto>> { Success = true, Data = pagedResult });
             }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+
+            var allResult = await _contentService.GetAllCategories(search, isActive);
+            return Ok(new ApiResponse<List<CategoryContentResponseDto>> { Success = true, Data = allResult });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("categories/{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CreateCategoryContentRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var category = await _contentService.UpdateCategory(id, request);
-                return Ok(category);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var category = await _contentService.UpdateCategory(id, request);
+            return Ok(new ApiResponse<CategoryContentResponseDto> { Success = true, Data = category });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("blocks")]
         public async Task<IActionResult> CreateBlock([FromBody] CreateBlockContentRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var block = await _contentService.CreateBlock(request);
-                return Ok(block);
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var block = await _contentService.CreateBlock(request);
+            return Ok(new ApiResponse<BlockContentResponseDto> { Success = true, Data = block });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("blocks/{id}")]
         public async Task<IActionResult> UpdateBlock(int id, [FromBody] UpdateBlockContentRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var block = await _contentService.UpdateBlock(id, request);
-                return Ok(block);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var block = await _contentService.UpdateBlock(id, request);
+            return Ok(new ApiResponse<BlockContentResponseDto> { Success = true, Data = block });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpDelete("blocks/{id}")]
         public async Task<IActionResult> RemoveBlock(int id)
         {
-            try
-            {
-                await _contentService.RemoveBlock(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            await _contentService.RemoveBlock(id);
+            return Ok(new ApiResponse<object> { Success = true, Message = "Block removed successfully." });
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null)
         {
             var result = await _contentService.GetContentsPaged(page, pageSize, search, isPublished);
-            return Ok(result);
+            return Ok(new ApiResponse<PagedResultDto<ContentResponseDto>> { Success = true, Data = result });
         }
     }
 }

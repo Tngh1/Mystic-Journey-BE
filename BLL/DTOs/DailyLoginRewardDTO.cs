@@ -13,6 +13,7 @@ namespace BLL.DTOs
         public string? RewardItemName { get; set; }
         public int RewardItemQuantity { get; set; }
         public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class CreateDailyLoginRewardRequestDto

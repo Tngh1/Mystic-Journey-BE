@@ -15,7 +15,7 @@ namespace DAL.Models
         public string AvatarUrl { get; set; } = string.Empty;
 
         // Classes: Knight, Archer, Mage
-        public string Class { get; set; } = "Knight";
+        public string Class { get; set; } = string.Empty;
 
         public int Level { get; set; } = 1;
         public int ExperiencePoints { get; set; } = 0;
@@ -39,5 +39,6 @@ namespace DAL.Models
         public ICollection<PlayerSkill> PlayerSkills { get; set; } = new List<PlayerSkill>();
         public ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();
         public ICollection<Mail> Mails { get; set; } = new List<Mail>();
+        public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
     }
 }

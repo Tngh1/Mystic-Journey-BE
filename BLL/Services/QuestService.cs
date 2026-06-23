@@ -52,6 +52,7 @@ namespace BLL.Services
                     RewardGold = created.RewardGold,
                     RewardGems = created.RewardGems,
                     RewardItemId = created.RewardItemId,
+                    RewardSkillId = created.RewardSkillId,
                     IsActive = created.IsActive
                 };
         }
@@ -77,6 +78,7 @@ namespace BLL.Services
             quest.RewardGold = request.RewardGold;
             quest.RewardGems = request.RewardGems;
             quest.RewardItemId = request.RewardItemId;
+            quest.RewardSkillId = request.RewardSkillId;
             quest.IsActive = request.IsActive;
 
             var updated = await _repository.UpdateQuest(quest);
@@ -112,6 +114,8 @@ namespace BLL.Services
                 RewardGems = quest.RewardGems,
                 RewardItemId = quest.RewardItemId,
                 RewardItemName = quest.RewardItem?.Name,
+                RewardSkillId = quest.RewardSkillId,
+                RewardSkillName = quest.RewardSkill?.Name,
                 IsActive = quest.IsActive
             };
         }

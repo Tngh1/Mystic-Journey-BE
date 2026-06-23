@@ -36,6 +36,10 @@ namespace DAL.Models
 
         public int? RewardItemId { get; set; }
         public Item? RewardItem { get; set; }
+        
+        // Optional: skill rewarded when quest claimed
+        public int? RewardSkillId { get; set; }
+        public Skill? RewardSkill { get; set; }
 
         public bool IsActive { get; set; } = true;
 

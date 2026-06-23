@@ -126,11 +126,11 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Models.BlockContent", b =>
                 {
-                    b.Property<int>("BlockContentId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("BlockContentId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BlockType")
                         .IsRequired()
@@ -148,6 +148,9 @@ namespace DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -157,10 +160,14 @@ namespace DAL.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("BlockContentId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ContentId");
 
@@ -343,6 +350,9 @@ namespace DAL.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
+                    b.Property<int?>("SubCategoryContentId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Summary")
                         .HasColumnType("text");
 
@@ -362,6 +372,8 @@ namespace DAL.Migrations
                     b.HasIndex("CategoryContentId");
 
                     b.HasIndex("CreatedByAccountAccountId");
+
+                    b.HasIndex("SubCategoryContentId");
 
                     b.ToTable("Contents");
                 });
@@ -421,6 +433,9 @@ namespace DAL.Migrations
                     b.Property<int>("Difficulty")
                         .HasColumnType("integer");
 
+                    b.Property<int>("EnergyCost")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
@@ -450,6 +465,85 @@ namespace DAL.Migrations
                     b.HasIndex("ChestId");
 
                     b.ToTable("DungeonConfigs");
+                });
+
+            modelBuilder.Entity("DAL.Models.DungeonProgress", b =>
+                {
+                    b.Property<int>("DungeonProgressId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DungeonProgressId"));
+
+                    b.Property<bool>("BossKilled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("CompletionPercentage")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DungeonSessionId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ExtraData")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MonstersKilled")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("DungeonProgressId");
+
+                    b.HasIndex("DungeonSessionId")
+                        .IsUnique();
+
+                    b.ToTable("DungeonProgresses");
+                });
+
+            modelBuilder.Entity("DAL.Models.DungeonSession", b =>
+                {
+                    b.Property<int>("DungeonSessionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DungeonSessionId"));
+
+                    b.Property<DateTime?>("CompletedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DungeonConfigId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("EnterTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRewardClaimed")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PlayerProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("DungeonSessionId");
+
+                    b.HasIndex("DungeonConfigId");
+
+                    b.HasIndex("PlayerProfileId");
+
+                    b.ToTable("DungeonSessions");
                 });
 
             modelBuilder.Entity("DAL.Models.EquipmentStats", b =>
@@ -1471,11 +1565,11 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerSkillId"));
 
-                    b.Property<int>("Experience")
+                    b.Property<int?>("EquippedSlot")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsEquipped")
-                        .HasColumnType("boolean");
+                    b.Property<int>("Experience")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Level")
                         .HasColumnType("integer");
@@ -1734,6 +1828,9 @@ namespace DAL.Migrations
                     b.Property<int?>("RewardItemId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("RewardSkillId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("TargetAmount")
                         .HasColumnType("integer");
 
@@ -1749,6 +1846,8 @@ namespace DAL.Migrations
                     b.HasKey("QuestId");
 
                     b.HasIndex("RewardItemId");
+
+                    b.HasIndex("RewardSkillId");
 
                     b.ToTable("Quests");
                 });
@@ -1835,8 +1934,8 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SkillId"));
 
-                    b.Property<int>("BaseDamage")
-                        .HasColumnType("integer");
+                    b.Property<double>("BaseDamage")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("ClassRequirement")
                         .IsRequired()
@@ -1844,6 +1943,12 @@ namespace DAL.Migrations
 
                     b.Property<int>("CooldownSeconds")
                         .HasColumnType("integer");
+
+                    b.Property<double>("DamageGrowthPercent")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("DamagePerLevel")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("DamageType")
                         .IsRequired()
@@ -1927,6 +2032,44 @@ namespace DAL.Migrations
                     b.ToTable("Skins");
                 });
 
+            modelBuilder.Entity("DAL.Models.SubCategoryContent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryContentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryContentId");
+
+                    b.ToTable("SubCategoryContents");
+                });
+
             modelBuilder.Entity("DAL.Models.Account", b =>
                 {
                     b.HasOne("DAL.Models.Role", "Role")
@@ -2006,9 +2149,15 @@ namespace DAL.Migrations
                         .WithMany()
                         .HasForeignKey("CreatedByAccountAccountId");
 
+                    b.HasOne("DAL.Models.SubCategoryContent", "SubCategoryContent")
+                        .WithMany("Contents")
+                        .HasForeignKey("SubCategoryContentId");
+
                     b.Navigation("CategoryContent");
 
                     b.Navigation("CreatedByAccount");
+
+                    b.Navigation("SubCategoryContent");
                 });
 
             modelBuilder.Entity("DAL.Models.DailyLoginReward", b =>
@@ -2027,6 +2176,36 @@ namespace DAL.Migrations
                         .HasForeignKey("ChestId");
 
                     b.Navigation("Chest");
+                });
+
+            modelBuilder.Entity("DAL.Models.DungeonProgress", b =>
+                {
+                    b.HasOne("DAL.Models.DungeonSession", "DungeonSession")
+                        .WithOne("Progress")
+                        .HasForeignKey("DAL.Models.DungeonProgress", "DungeonSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DungeonSession");
+                });
+
+            modelBuilder.Entity("DAL.Models.DungeonSession", b =>
+                {
+                    b.HasOne("DAL.Models.DungeonConfig", "DungeonConfig")
+                        .WithMany()
+                        .HasForeignKey("DungeonConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
+                        .WithMany()
+                        .HasForeignKey("PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DungeonConfig");
+
+                    b.Navigation("PlayerProfile");
                 });
 
             modelBuilder.Entity("DAL.Models.EquipmentStats", b =>
@@ -2264,7 +2443,7 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
-                        .WithMany()
+                        .WithMany("PlayerAchievements")
                         .HasForeignKey("PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2449,7 +2628,13 @@ namespace DAL.Migrations
                         .WithMany()
                         .HasForeignKey("RewardItemId");
 
+                    b.HasOne("DAL.Models.Skill", "RewardSkill")
+                        .WithMany()
+                        .HasForeignKey("RewardSkillId");
+
                     b.Navigation("RewardItem");
+
+                    b.Navigation("RewardSkill");
                 });
 
             modelBuilder.Entity("DAL.Models.ShopItem", b =>
@@ -2461,6 +2646,17 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("DAL.Models.SubCategoryContent", b =>
+                {
+                    b.HasOne("DAL.Models.CategoryContent", "CategoryContent")
+                        .WithMany()
+                        .HasForeignKey("CategoryContentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CategoryContent");
                 });
 
             modelBuilder.Entity("DAL.Models.Account", b =>
@@ -2486,6 +2682,11 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.Content", b =>
                 {
                     b.Navigation("BlockContents");
+                });
+
+            modelBuilder.Entity("DAL.Models.DungeonSession", b =>
+                {
+                    b.Navigation("Progress");
                 });
 
             modelBuilder.Entity("DAL.Models.GachaBanner", b =>
@@ -2536,6 +2737,8 @@ namespace DAL.Migrations
 
                     b.Navigation("Mails");
 
+                    b.Navigation("PlayerAchievements");
+
                     b.Navigation("PlayerQuests");
 
                     b.Navigation("PlayerSkills");
@@ -2566,6 +2769,11 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.Skin", b =>
                 {
                     b.Navigation("PlayerSkins");
+                });
+
+            modelBuilder.Entity("DAL.Models.SubCategoryContent", b =>
+                {
+                    b.Navigation("Contents");
                 });
 #pragma warning restore 612, 618
         }

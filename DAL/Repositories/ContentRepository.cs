@@ -81,9 +81,27 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(c => c.CategoryContentId == id);
         }
 
-        public async Task<List<CategoryContent>> GetAllCategories()
+        public async Task<List<CategoryContent>> GetAllCategories(string? search, bool? isActive)
         {
-            return await _context.CategoryContents.ToListAsync();
+            var query = _context.CategoryContents.AsNoTracking();
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
+            if (isActive.HasValue)
+                query = query.Where(c => c.IsActive == isActive.Value);
+            return await query.ToListAsync();
+        }
+
+        public async Task<(int TotalCount, List<CategoryContent> Items)> GetCategoriesPaged(int page, int pageSize, string? search, bool? isActive)
+        {
+            var query = _context.CategoryContents.AsNoTracking();
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
+            if (isActive.HasValue)
+                query = query.Where(c => c.IsActive == isActive.Value);
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (totalCount, items);
         }
 
         public async Task<CategoryContent> CreateCategory(CategoryContent category)
@@ -103,7 +121,7 @@ namespace DAL.Repositories
         public async Task<BlockContent?> GetBlockById(int id)
         {
             return await _context.BlockContents
-                .FirstOrDefaultAsync(b => b.BlockContentId == id);
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public async Task<BlockContent> CreateBlock(BlockContent block)

@@ -2,7 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+using Mystic_Journey_API.Extensions;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -22,73 +22,40 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var achievement = await _achievementService.GetAchievementById(id);
-                if (achievement == null)
-                    return NotFound(new { message = $"Achievement with id {id} not found." });
+            var achievement = await _achievementService.GetAchievementById(id);
+            if (achievement == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Achievement with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
-                return Ok(achievement);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            return Ok(new ApiResponse<AchievementResponseDto> { Success = true, Data = achievement });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAchievementRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var achievement = await _achievementService.CreateAchievement(request);
-                return Ok(achievement);
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var achievement = await _achievementService.CreateAchievement(request);
+            return Ok(new ApiResponse<AchievementResponseDto> { Success = true, Data = achievement });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateAchievementRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-                var achievement = await _achievementService.UpdateAchievement(id, request);
-                return Ok(achievement);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (System.ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var achievement = await _achievementService.UpdateAchievement(id, request);
+            return Ok(new ApiResponse<AchievementResponseDto> { Success = true, Data = achievement });
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
         {
             var result = await _achievementService.GetAchievementsPaged(page, pageSize, search, type, isActive);
-            return Ok(result);
+            return Ok(new ApiResponse<PagedResultDto<AchievementResponseDto>> { Success = true, Data = result });
         }
     }
 }

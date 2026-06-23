@@ -147,21 +147,6 @@ namespace BLL.Services
             return MapToResponseDto(updated);
         }
 
-        public async Task<List<CategoryContentResponseDto>> GetAllCategories()
-        {
-            var categories = await _repository.GetAllCategories();
-            return categories.Select(c => new CategoryContentResponseDto
-            {
-                CategoryContentId = c.CategoryContentId,
-                Name = c.Name,
-                Slug = c.Slug,
-                Description = c.Description,
-                IconUrl = c.IconUrl,
-                IsActive = c.IsActive,
-                CreatedAt = c.CreatedAt
-            }).ToList();
-        }
-
         public async Task<CategoryContentResponseDto> CreateCategory(CreateCategoryContentRequestDto request)
         {
             var category = new CategoryContent
@@ -186,6 +171,37 @@ namespace BLL.Services
                 IsActive = created.IsActive,
                 CreatedAt = created.CreatedAt
             };
+        }
+
+        public async Task<List<CategoryContentResponseDto>> GetAllCategories(string? search = null, bool? isActive = null)
+        {
+            var categories = await _repository.GetAllCategories(search, isActive);
+            return categories.Select(c => new CategoryContentResponseDto
+            {
+                CategoryContentId = c.CategoryContentId,
+                Name = c.Name,
+                Slug = c.Slug,
+                Description = c.Description,
+                IconUrl = c.IconUrl,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt
+            }).ToList();
+        }
+
+        public async Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize, string? search = null, bool? isActive = null)
+        {
+            var (totalCount, items) = await _repository.GetCategoriesPaged(page, pageSize, search, isActive);
+            var dtos = items.Select(c => new CategoryContentResponseDto
+            {
+                CategoryContentId = c.CategoryContentId,
+                Name = c.Name,
+                Slug = c.Slug,
+                Description = c.Description,
+                IconUrl = c.IconUrl,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt
+            }).ToList();
+            return new PagedResultDto<CategoryContentResponseDto>(totalCount, dtos);
         }
 
         public async Task<CategoryContentResponseDto> UpdateCategory(int id, CreateCategoryContentRequestDto request)
@@ -240,7 +256,7 @@ namespace BLL.Services
 
             return new BlockContentResponseDto
             {
-                BlockContentId = created.BlockContentId,
+                BlockContentId = created.Id,
                 ContentId = created.ContentId,
                 ContentData = created.ContentData,
                 MediaUrl = created.MediaUrl,
@@ -270,7 +286,7 @@ namespace BLL.Services
 
             return new BlockContentResponseDto
             {
-                BlockContentId = updated.BlockContentId,
+                BlockContentId = updated.Id,
                 ContentId = updated.ContentId,
                 ContentData = updated.ContentData,
                 MediaUrl = updated.MediaUrl,
@@ -336,7 +352,7 @@ namespace BLL.Services
                 PublishedAt = content.PublishedAt,
                 Blocks = content.BlockContents?.Select(b => new BlockContentResponseDto
                 {
-                    BlockContentId = b.BlockContentId,
+                    BlockContentId = b.Id,
                     ContentId = b.ContentId,
                     ContentData = b.ContentData,
                     MediaUrl = b.MediaUrl,

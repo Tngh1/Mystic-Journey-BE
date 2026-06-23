@@ -77,13 +77,21 @@ namespace BLL.DTOs
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public class AccountResponseDto
+    public class AuthResponseDto
     {
         public int AccountId { get; set; }
         public string UserName { get; set; } = string.Empty;
         public string EmailAddress { get; set; } = string.Empty;
         public int RoleId { get; set; } = 1;
         public string Role { get; set; } = "Player";
+        public bool HasCharacter { get; set; }
+        public int? PlayerProfileId { get; set; }
+        public string? PlayerDisplayName { get; set; }
+        public string PlayerClass { get; set; } = "Knight";
+        public int Level { get; set; } = 1;
+        public string LastMapName { get; set; } = string.Empty;
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
         public string? RefreshToken { get; set; }
@@ -128,34 +136,5 @@ namespace BLL.DTOs
     {
         [Required(ErrorMessage = "Refresh token is required.")]
         public string RefreshToken { get; set; } = string.Empty;
-    }
-
-    public class LoginGameRequestDto
-    {
-        [Required(ErrorMessage = "Email or username is required.")]
-        [StringLength(255)]
-        public string EmailOrUsername { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Password is required.")]
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class LoginGameResponseDto
-    {
-        public int AccountId { get; set; }
-        public string UserName { get; set; } = string.Empty;
-        public string EmailAddress { get; set; } = string.Empty;
-        public int RoleId { get; set; }
-        public int? PlayerProfileId { get; set; }
-        public string? PlayerDisplayName { get; set; }
-        public string PlayerClass { get; set; } = "Knight";
-        public int Level { get; set; } = 1;
-        public string LastMapName { get; set; } = string.Empty;
-        public double PositionX { get; set; }
-        public double PositionY { get; set; }
-        public string? AccessToken { get; set; }
-        public DateTime? AccessTokenExpiresAt { get; set; }
-        public string? RefreshToken { get; set; }
-        public DateTime? RefreshTokenExpiresAt { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace BLL.Mappings
         {
             CreateMap<RegisterRequestDto, Account>();
 
-            CreateMap<Account, AccountResponseDto>();
+            CreateMap<AuthResponseDto, AuthResponseDto>();
 
             CreateMap<Item, ItemResponseDto>();
             CreateMap<CreateItemRequestDto, Item>();

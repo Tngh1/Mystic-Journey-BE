@@ -39,11 +39,6 @@ namespace DAL.Repositories
             return await _context.DailyLoginRewards.FirstOrDefaultAsync(r => r.DayNumber == dayNumber);
         }
 
-        public async Task<List<DailyLoginReward>> GetAllDailyLoginRewards()
-        {
-            return await _context.DailyLoginRewards.OrderBy(r => r.DayNumber).ToListAsync();
-        }
-
         public async Task<DailyLoginReward> CreateDailyLoginReward(DailyLoginReward reward)
         {
             await _context.DailyLoginRewards.AddAsync(reward);

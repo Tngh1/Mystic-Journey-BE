@@ -1,7 +1,7 @@
+using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -21,15 +21,8 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
-            try
-            {
-                var result = await _dashboardService.GetDashboardStats();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _dashboardService.GetDashboardStats();
+            return Ok(new ApiResponse<DashboardStatsDto> { Success = true, Data = result });
         }
     }
 }

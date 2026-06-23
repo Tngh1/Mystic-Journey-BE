@@ -1,10 +1,7 @@
 using BLL.DTOs;
 using BLL.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Mystic_Journey_API.Extensions;
 
 namespace Mystic_Journey_API.Controllers
 {
@@ -19,30 +16,19 @@ namespace Mystic_Journey_API.Controllers
             _dailyLoginRewardService = dailyLoginRewardService;
         }
 
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateDailyLoginRewardRequestDto dto)
         {
-            try
-            {
-                var result = await _dailyLoginRewardService.CreateDailyLoginReward(dto);
-                return Ok(result);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _dailyLoginRewardService.CreateDailyLoginReward(dto);
+            return Ok(new ApiResponse<DailyLoginRewardResponseDto> { Success = true, Data = result });
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _dailyLoginRewardService.GetDailyLoginRewardsPaged(page, pageSize);
-            return Ok(result);
+            return Ok(new ApiResponse<PagedResultDto<DailyLoginRewardResponseDto>> { Success = true, Data = result });
         }
     }
 }

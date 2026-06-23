@@ -50,6 +50,42 @@ namespace BLL.Services
             return new PagedResultDto<MailResponseDto>(totalCount, dtos);
         }
 
+        public async Task<PlayerMeMailsResponseDto> GetMeMails(int playerProfileId)
+        {
+            var mails = await _repository.GetMailsByPlayerId(playerProfileId);
+            var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId);
+            var playerName = profile?.DisplayName ?? "";
+
+            var dtos = mails.Select(m => new MailResponseDto
+            {
+                MailId = m.MailId,
+                PlayerProfileId = m.PlayerProfileId,
+                PlayerName = playerName,
+                Title = m.Title,
+                Content = m.Content,
+                Type = m.Type,
+                AttachedGold = m.AttachedGold,
+                AttachedGems = m.AttachedGems,
+                AttachedItemId = m.AttachedItemId,
+                AttachedItemName = m.AttachedItem?.Name,
+                AttachedItemQuantity = m.AttachedItemQuantity,
+                IsRead = m.IsRead,
+                IsClaimed = m.IsClaimed,
+                IsDeleted = m.IsDeleted,
+                DeletedAt = m.DeletedAt,
+                SentAt = m.SentAt,
+                ExpiredAt = m.ExpiredAt
+            }).ToList();
+
+            return new PlayerMeMailsResponseDto
+            {
+                PlayerProfileId = playerProfileId,
+                Mails = dtos,
+                TotalCount = dtos.Count,
+                UnreadCount = dtos.Count(m => !m.IsRead && !m.IsDeleted)
+            };
+        }
+
         public async Task SendMailByListId(SendMailByListIdDto request)
         {
             if (request.PlayerProfileIds == null || request.PlayerProfileIds.Count == 0)

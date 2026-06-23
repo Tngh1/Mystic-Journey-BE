@@ -13,7 +13,9 @@ namespace BLL.DTOs
         public string TargetType { get; set; } = "SingleTarget";
         public string ClassRequirement { get; set; } = "Knight";
         public int CooldownSeconds { get; set; }
-        public int BaseDamage { get; set; }
+        public double BaseDamage { get; set; }
+        public double DamagePerLevel { get; set; }
+        public double DamageGrowthPercent { get; set; }
         public int UnlockLevel { get; set; }
         public bool IsActive { get; set; }
     }
@@ -35,8 +37,12 @@ namespace BLL.DTOs
         [Range(0, int.MaxValue)]
         public int CooldownSeconds { get; set; }
 
-        [Range(0, int.MaxValue)]
-        public int BaseDamage { get; set; }
+        [Range(0, double.MaxValue)]
+        public double BaseDamage { get; set; }
+        [Range(0, double.MaxValue)]
+        public double DamagePerLevel { get; set; }
+        [Range(0, 1000)]
+        public double DamageGrowthPercent { get; set; }
 
         [Range(1, 100)]
         public int UnlockLevel { get; set; } = 1;
@@ -61,8 +67,12 @@ namespace BLL.DTOs
         [Range(0, int.MaxValue)]
         public int CooldownSeconds { get; set; }
 
-        [Range(0, int.MaxValue)]
-        public int BaseDamage { get; set; }
+        [Range(0, double.MaxValue)]
+        public double BaseDamage { get; set; }
+        [Range(0, double.MaxValue)]
+        public double DamagePerLevel { get; set; }
+        [Range(0, 1000)]
+        public double DamageGrowthPercent { get; set; }
 
         [Range(1, 100)]
         public int UnlockLevel { get; set; } = 1;
@@ -84,8 +94,11 @@ namespace BLL.DTOs
         public int Level { get; set; }
         public int Experience { get; set; }
         public bool IsEquipped { get; set; }
+        public int? EquippedSlot { get; set; }
+        // Calculated damage taking level and growth into account
+        public double EffectiveDamage { get; set; }
         public int CooldownSeconds { get; set; }
-        public int BaseDamage { get; set; }
+        public double BaseDamage { get; set; }
         public int UnlockLevel { get; set; }
         public DateTime UnlockedAt { get; set; }
     }
@@ -102,5 +115,14 @@ namespace BLL.DTOs
         public int PlayerSkillId { get; set; }
 
         public bool IsEquipped { get; set; }
+
+        // Slot index 0..2 (null when not equipping)
+        public int? SlotIndex { get; set; }
+    }
+
+    public class UnlockPlayerSkillRequestDto
+    {
+        [Required]
+        public int SkillId { get; set; }
     }
 }

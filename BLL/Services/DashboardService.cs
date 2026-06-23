@@ -16,20 +16,20 @@ namespace BLL.Services
     {
         private readonly MysticJourneyDbContext _context;
         private readonly IPlayerProfileRepository _playerProfileRepository;
-        private readonly IAccountRepository _accountRepository;
+        private readonly IAuthRepository _authRepository;
         private readonly IItemRepository _itemRepository;
         private readonly IMonsterRepository _monsterRepository;
 
         public DashboardService(
             MysticJourneyDbContext context,
             IPlayerProfileRepository playerProfileRepository,
-            IAccountRepository accountRepository,
+            IAuthRepository authRepository,
             IItemRepository itemRepository,
             IMonsterRepository monsterRepository)
         {
             _context = context;
             _playerProfileRepository = playerProfileRepository;
-            _accountRepository = accountRepository;
+            _authRepository = authRepository;
             _itemRepository = itemRepository;
             _monsterRepository = monsterRepository;
         }
@@ -37,7 +37,7 @@ namespace BLL.Services
         public async Task<DashboardStatsDto> GetDashboardStats()
         {
             var totalPlayers = await _playerProfileRepository.GetTotalPlayerProfilesCount();
-            var totalAccounts = await _accountRepository.GetTotalAccountsCount();
+            var totalAccounts = await _authRepository.GetTotalAccountsCount();
             var totalItems = await _context.Items.CountAsync();
             var totalMonsters = await _context.Monsters.CountAsync();
             var totalTransactions = await _context.PurchaseHistories.CountAsync();

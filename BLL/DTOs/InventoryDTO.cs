@@ -12,6 +12,7 @@ namespace BLL.DTOs
         public string? ItemDescription { get; set; }
         public string ItemType { get; set; } = string.Empty;
         public string ItemRarity { get; set; } = string.Empty;
+        public string ItemSlot { get; set; } = "None";
         public string? IconUrl { get; set; }
         public int Quantity { get; set; }
         public bool IsEquipped { get; set; }
@@ -19,15 +20,6 @@ namespace BLL.DTOs
         public string? EquippedSlot { get; set; }
         public int EnhancementLevel { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        public int BaseHp { get; set; }
-        public int BaseAtk { get; set; }
-        public int BaseDef { get; set; }
-        public int BonusHp { get; set; }
-        public int BonusAtk { get; set; }
-        public int BonusDef { get; set; }
-        public float BonusCritRate { get; set; }
-        public float BonusCritDamage { get; set; }
     }
 
     public class EquipItemRequestDto
