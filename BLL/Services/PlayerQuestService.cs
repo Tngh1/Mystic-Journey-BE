@@ -220,6 +220,30 @@ namespace BLL.Services
 
                     await _skillRepo.CreatePlayerSkill(newPlayerSkill);
                 }
+
+                // Additionally, when the tutorial Gather White Flowers is claimed,
+                // also grant the three class-default starter skills to the player
+                // if they don't already own them. This helps ensure each player
+                // receives a default skill per class for testing and tutorial flow.
+                if (quest.Title != null && quest.Title.Contains("Gather White Flowers"))
+                {
+                    var defaults = await _skillRepo.GetSkillsByNames(new[] { "[SEED] Knight Default", "[SEED] Archer Default", "[SEED] Mage Default" });
+                    foreach (var def in defaults)
+                    {
+                        if (!owned.Any(ps => ps.SkillId == def.SkillId))
+                        {
+                            await _skillRepo.CreatePlayerSkill(new PlayerSkill
+                            {
+                                PlayerProfileId = playerProfileId,
+                                SkillId = def.SkillId,
+                                Level = 1,
+                                Experience = 0,
+                                EquippedSlot = null,
+                                UnlockedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+                }
             }
 
             return MapToDto(pq);

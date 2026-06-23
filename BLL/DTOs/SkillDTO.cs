@@ -125,4 +125,13 @@ namespace BLL.DTOs
         [Required]
         public int SkillId { get; set; }
     }
+
+    public class DismantlePlayerSkillRequestDto
+    {
+        [Required]
+        public int PlayerSkillId { get; set; }
+
+        // Optional: apply resulting XP to this owned PlayerSkill
+        public int? TargetPlayerSkillId { get; set; }
+    }
 }

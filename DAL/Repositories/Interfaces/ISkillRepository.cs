@@ -15,5 +15,7 @@ namespace DAL.Repositories.Interfaces
         Task<List<PlayerSkill>> GetPlayerSkillsByPlayerId(int playerProfileId);
         Task<PlayerSkill> CreatePlayerSkill(PlayerSkill playerSkill);
         Task<PlayerSkill> UpdatePlayerSkill(PlayerSkill playerSkill);
+        Task DeletePlayerSkill(PlayerSkill playerSkill);
+        Task<List<Skill>> GetSkillsByNames(string[] names);
     }
 }

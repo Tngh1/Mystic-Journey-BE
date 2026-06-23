@@ -83,5 +83,18 @@ namespace DAL.Repositories
             await _context.SaveChangesAsync();
             return playerSkill;
         }
+
+        public async Task DeletePlayerSkill(PlayerSkill playerSkill)
+        {
+            _context.PlayerSkills.Remove(playerSkill);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Skill>> GetSkillsByNames(string[] names)
+        {
+            return await _context.Skills
+                .Where(s => names.Contains(s.Name))
+                .ToListAsync();
+        }
     }
 }
