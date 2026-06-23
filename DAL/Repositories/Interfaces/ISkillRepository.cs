@@ -17,5 +17,7 @@ namespace DAL.Repositories.Interfaces
         Task<PlayerSkill> UpdatePlayerSkill(PlayerSkill playerSkill);
         Task DeletePlayerSkill(PlayerSkill playerSkill);
         Task<List<Skill>> GetSkillsByNames(string[] names);
+        Task<Skill?> GetSkillByName(string name);
+        Task<List<Skill>> GetAllSkillsAsync();
     }
 }

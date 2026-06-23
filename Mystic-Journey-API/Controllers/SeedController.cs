@@ -707,28 +707,53 @@ namespace Mystic_Journey_API.Controllers
                     await _ctx.SaveChangesAsync();
                 }
 
-                // Upsert a tutorial skill that will be rewarded by the Gather White Flowers quest
-                var tutorialSkill = await _ctx.Skills.FirstOrDefaultAsync(s => s.Name == "[ELF] First Strike");
-                if (tutorialSkill == null)
+                // Upsert 3 tutorial skills rewarded when player delivers 3 White Flowers
+                var elfSkillNames = new[] { "[ELF] First Strike", "[ELF] Forest Arrow", "[ELF] Shield Bash" };
+                var existingElfSkills = await _ctx.Skills
+                    .Where(s => elfSkillNames.Contains(s.Name))
+                    .ToListAsync();
+
+                Skill UpsertSkill(string name, string description, string type, string damageType,
+                    string targetType, string classReq, int cooldown, double baseDmg, double dmgPerLv, double growthPct)
                 {
-                    tutorialSkill = new Skill
+                    var s = existingElfSkills.FirstOrDefault(x => x.Name == name);
+                    if (s == null)
                     {
-                        Name = "[ELF] First Strike",
-                        Description = "A simple tutorial melee strike taught by Elder Rowan.",
-                        Type = "Active",
-                        DamageType = "Physical",
-                        TargetType = "SingleTarget",
-                        ClassRequirement = "All",
-                        CooldownSeconds = 6,
-                        BaseDamage = 40.0,
-                        DamagePerLevel = 6.0,
-                        DamageGrowthPercent = 2.0,
-                        UnlockLevel = 1,
-                        IsActive = true
-                    };
-                    _ctx.Skills.Add(tutorialSkill);
-                    await _ctx.SaveChangesAsync();
+                        s = new Skill { Name = name };
+                        _ctx.Skills.Add(s);
+                        existingElfSkills.Add(s); // keep local list in sync
+                    }
+                    s.Description         = description;
+                    s.Type                = type;
+                    s.DamageType          = damageType;
+                    s.TargetType          = targetType;
+                    s.ClassRequirement    = classReq;
+                    s.CooldownSeconds     = cooldown;
+                    s.BaseDamage          = baseDmg;
+                    s.DamagePerLevel      = dmgPerLv;
+                    s.DamageGrowthPercent = growthPct;
+                    s.UnlockLevel         = 1;
+                    s.IsActive            = true;
+                    return s;
                 }
+
+                var tutorialSkill = UpsertSkill(
+                    "[ELF] First Strike",
+                    "A simple tutorial melee strike taught by Elder Rowan.",
+                    "Active", "Physical", "SingleTarget", "All", 6, 40.0, 6.0, 2.0);
+
+                var tutorialSkill2 = UpsertSkill(
+                    "[ELF] Forest Arrow",
+                    "A quick ranged shot aimed at a single enemy — Elder Rowan's second lesson.",
+                    "Active", "Physical", "SingleTarget", "All", 8, 35.0, 5.0, 1.5);
+
+                var tutorialSkill3 = UpsertSkill(
+                    "[ELF] Shield Bash",
+                    "A short-range bash that staggers nearby enemies — the third skill from Elder Rowan.",
+                    "Active", "Physical", "Area", "All", 10, 30.0, 4.0, 1.0);
+
+                await _ctx.SaveChangesAsync();
+
 
                 var quests = new List<Quest>
                 {
@@ -769,7 +794,7 @@ namespace Mystic_Journey_API.Controllers
                         TargetAmount = 3,
                         RewardExperience = 120,
                         RewardGold = 80,
-                        RewardGems = 0,
+                        RewardGems = 25,
                         RewardItemId = potion.ItemId,
                         RewardSkillId = tutorialSkill.SkillId,
                         IsActive = true,
@@ -795,22 +820,45 @@ namespace Mystic_Journey_API.Controllers
                         RewardSkillId = null,
                         IsActive = true,
                     },
+                    // Quest 4: Equip a skill (no kill needed yet)
                     new Quest
                     {
-                        Title = "[ELFFOREST] Equip & Use Your First Skill",
-                        Description = "Equip the skill you just learned and use it to defeat five Shadow Sprouts near the forest edge.",
+                        Title = "[ELFFOREST] Equip Your First Skill",
+                        Description = "Elder Rowan taught you three skills. Equip one of them to a skill slot before heading into battle.",
                         Type = "Main",
                         DefaultStatus = "NotStarted",
                         MapName = "ElfForest",
                         RegionName = "ElfLand",
-                        ObjectiveType = "EquipSkillAndDefeat",
-                        ObjectiveTarget = tutorialSkill.Name,
+                        ObjectiveType = "EquipSkill",
+                        ObjectiveTarget = "Any Skill Slot",
+                        ObjectiveLocation = "Skill Menu",
+                        QuestGiverName = "Elder Rowan",
+                        RequiredLevel = 3,
+                        TargetAmount = 1,
+                        RewardExperience = 60,
+                        RewardGold = 80,
+                        RewardGems = 0,
+                        RewardItemId = null,
+                        RewardSkillId = null,
+                        IsActive = true,
+                    },
+                    // Quest 5: Kill 3 Shadow Sprouts
+                    new Quest
+                    {
+                        Title = "[ELFFOREST] Defeat The Shadow Sprouts",
+                        Description = "Use your newly equipped skill and defeat three Shadow Sprouts lurking near the forest edge.",
+                        Type = "Main",
+                        DefaultStatus = "NotStarted",
+                        MapName = "ElfForest",
+                        RegionName = "ElfLand",
+                        ObjectiveType = "Defeat",
+                        ObjectiveTarget = "Shadow Sprout",
                         ObjectiveLocation = "Forest Edge",
                         QuestGiverName = "Elder Rowan",
                         RequiredLevel = 3,
-                        TargetAmount = 5,
-                        RewardExperience = 220,
-                        RewardGold = 260,
+                        TargetAmount = 3,
+                        RewardExperience = 200,
+                        RewardGold = 180,
                         RewardGems = 4,
                         RewardItemId = null,
                         RewardSkillId = null,
@@ -885,21 +933,23 @@ namespace Mystic_Journey_API.Controllers
                         DisplayOrder = 3,
                         IsActive = true,
                     },
+                    // Quest 4: equip skill
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Before you fight, equip your first skill. A prepared hand survives longer than a brave one.",
+                        Content = "Before you fight, equip one of the three skills I taught you. Open the Skill Menu and place it in a slot — a prepared hand survives longer than a brave one.",
                         ResponseType = "Quest",
                         LinkedQuestId = quests[3].QuestId,
                         DisplayOrder = 4,
                         IsActive = true,
                     },
+                    // Quest 5: defeat enemies
                     new NPCDialogue
                     {
                         NPCId = elderRowan.NPCId,
-                        Content = "Now equip that skill and use it against the Shadow Sprouts near the forest edge. Defeat five of them and come back stronger.",
+                        Content = "Good — your skill is equipped. Now head to the Forest Edge and defeat four Shadow Sprouts. Come back when they are vanquished.",
                         ResponseType = "Quest",
-                        LinkedQuestId = quests[3].QuestId,
+                        LinkedQuestId = quests[4].QuestId,
                         DisplayOrder = 5,
                         IsActive = true,
                     }
@@ -1068,6 +1118,26 @@ namespace Mystic_Journey_API.Controllers
                     }
                     await _ctx.SaveChangesAsync();
 
+                    // Unlock 3 skills rewarded from the Gather White Flowers quest
+                    foreach (var skill in new[] { tutorialSkill, tutorialSkill2, tutorialSkill3 })
+                    {
+                        var alreadyHas = await _ctx.PlayerSkills.AnyAsync(
+                            ps => ps.PlayerProfileId == pid && ps.SkillId == skill.SkillId);
+                        if (!alreadyHas)
+                        {
+                            _ctx.PlayerSkills.Add(new PlayerSkill
+                            {
+                                PlayerProfileId = pid,
+                                SkillId        = skill.SkillId,
+                                Level          = 1,
+                                Experience     = 0,
+                                EquippedSlot   = null, // chưa trang bị, player tự chọn
+                                UnlockedAt     = DateTime.UtcNow,
+                            });
+                        }
+                    }
+                    await _ctx.SaveChangesAsync();
+
                     return pid;
                 }
 
@@ -1077,6 +1147,124 @@ namespace Mystic_Journey_API.Controllers
                 await tx.CommitAsync();
 
                 return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 } } });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/dailylogin  → Seed 30 ngày DailyLoginRewards
+        // Xoá reward cũ rồi chèn mới đủ 30 ngày với nhiều loại phần thưởng.
+        // Các ngày có Item reward sẽ tự động dùng item [SEED] / [ELF] nếu tồn tại.
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("dailylogin")]
+        public async Task<IActionResult> SeedDailyLogin()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                // Xoá toàn bộ reward cũ để seed lại sạch
+                var existingRewards = await _ctx.DailyLoginRewards.ToListAsync();
+                _ctx.DailyLoginRewards.RemoveRange(existingRewards);
+                await _ctx.SaveChangesAsync();
+
+                // Tìm một số item mẫu để dùng làm phần thưởng ngày đặc biệt
+                var potion = await _ctx.Items.FirstOrDefaultAsync(i =>
+                    i.Name == "[SEED] Health Potion" || i.Name == "[ELF] Health Potion");
+                var sword = await _ctx.Items.FirstOrDefaultAsync(i =>
+                    i.Name == "[SEED] Sword of Dawn" || i.Name == "[ELF] Short Sword");
+                var helm = await _ctx.Items.FirstOrDefaultAsync(i =>
+                    i.Name == "[SEED] Iron Helm" || i.Name == "[ELF] Leather Armor");
+
+                // Định nghĩa phần thưởng cho 30 ngày
+                // RewardType: Gold | Gems | Energy | Item
+                var rewards = new List<DailyLoginReward>
+                {
+                    // Tuần 1 – khởi động
+                    new DailyLoginReward { DayNumber = 1,  RewardType = "Gold",   RewardValue = 100,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 2,  RewardType = "Energy", RewardValue = 20,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 3,  RewardType = "Gold",   RewardValue = 200,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 4,  RewardType = "Gems",   RewardValue = 5,    IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 5,  RewardType = "Gold",   RewardValue = 300,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 6,  RewardType = "Energy", RewardValue = 30,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward
+                    {
+                        DayNumber = 7, RewardType = "Item", RewardValue = 0,
+                        RewardItemId = potion?.ItemId, RewardItemQuantity = potion != null ? 3 : 0,
+                        IsActive = true, CreatedAt = DateTime.UtcNow
+                    },
+
+                    // Tuần 2 – tăng dần
+                    new DailyLoginReward { DayNumber = 8,  RewardType = "Gold",   RewardValue = 400,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 9,  RewardType = "Gems",   RewardValue = 10,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 10, RewardType = "Gold",   RewardValue = 500,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 11, RewardType = "Energy", RewardValue = 40,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 12, RewardType = "Gold",   RewardValue = 600,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 13, RewardType = "Gems",   RewardValue = 15,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward
+                    {
+                        DayNumber = 14, RewardType = "Item", RewardValue = 0,
+                        RewardItemId = helm?.ItemId, RewardItemQuantity = helm != null ? 1 : 0,
+                        IsActive = true, CreatedAt = DateTime.UtcNow
+                    },
+
+                    // Tuần 3 – milestone giữa tháng
+                    new DailyLoginReward { DayNumber = 15, RewardType = "Gold",   RewardValue = 800,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 16, RewardType = "Gems",   RewardValue = 20,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 17, RewardType = "Energy", RewardValue = 50,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 18, RewardType = "Gold",   RewardValue = 900,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 19, RewardType = "Gems",   RewardValue = 25,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 20, RewardType = "Gold",   RewardValue = 1000, IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward
+                    {
+                        DayNumber = 21, RewardType = "Item", RewardValue = 0,
+                        RewardItemId = potion?.ItemId, RewardItemQuantity = potion != null ? 5 : 0,
+                        IsActive = true, CreatedAt = DateTime.UtcNow
+                    },
+
+                    // Tuần 4 – hướng tới cuối tháng
+                    new DailyLoginReward { DayNumber = 22, RewardType = "Gold",   RewardValue = 1100, IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 23, RewardType = "Energy", RewardValue = 60,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 24, RewardType = "Gems",   RewardValue = 30,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 25, RewardType = "Gold",   RewardValue = 1200, IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 26, RewardType = "Gems",   RewardValue = 35,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 27, RewardType = "Energy", RewardValue = 70,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward
+                    {
+                        DayNumber = 28, RewardType = "Item", RewardValue = 0,
+                        RewardItemId = sword?.ItemId, RewardItemQuantity = sword != null ? 1 : 0,
+                        IsActive = true, CreatedAt = DateTime.UtcNow
+                    },
+
+                    // Ngày 29–30 – phần thưởng lớn cuối tháng
+                    new DailyLoginReward { DayNumber = 29, RewardType = "Gems",   RewardValue = 50,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                    new DailyLoginReward { DayNumber = 30, RewardType = "Gold",   RewardValue = 2000, IsActive = true, CreatedAt = DateTime.UtcNow },
+                };
+
+                _ctx.DailyLoginRewards.AddRange(rewards);
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"Seed {rewards.Count} daily login rewards thành công!",
+                    Data = new
+                    {
+                        totalDays = rewards.Count,
+                        itemRewardDays = new[] { 7, 14, 21, 28 },
+                        itemsUsed = new
+                        {
+                            potion = potion != null ? $"{potion.Name} (Id={potion.ItemId})" : "Không tìm thấy – ngày Item sẽ có Quantity=0",
+                            helm   = helm   != null ? $"{helm.Name} (Id={helm.ItemId})"     : "Không tìm thấy",
+                            sword  = sword  != null ? $"{sword.Name} (Id={sword.ItemId})"   : "Không tìm thấy",
+                        },
+                        tip = "Chạy POST /api/seed/inventory trước để có item [SEED] rồi mới seed daily login."
+                    }
+                });
             }
             catch (Exception ex)
             {
