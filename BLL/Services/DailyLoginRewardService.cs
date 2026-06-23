@@ -77,5 +77,45 @@ namespace BLL.Services
             var dtos = items.Select(MapToResponseDto).ToList();
             return new PagedResultDto<DailyLoginRewardResponseDto>(totalCount, dtos);
         }
+
+        /// <summary>
+        /// Trả về reward cho tất cả các ngày trong tháng hiện tại.
+        /// Ngày nào chưa có trong DB sẽ được fill bằng placeholder IsActive=false.
+        /// </summary>
+        public async Task<List<DailyLoginRewardResponseDto>> GetCurrentMonthRewards()
+        {
+            var now = DateTime.UtcNow;
+            int daysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+
+            // Lấy tất cả reward từ DB (không phân trang)
+            var (_, allItems) = await _repository.GetDailyLoginRewardsPaged(1, 400);
+            var byDay = allItems
+                .Where(r => r.DayNumber >= 1 && r.DayNumber <= daysInMonth)
+                .ToDictionary(r => r.DayNumber);
+
+            var result = new List<DailyLoginRewardResponseDto>(daysInMonth);
+            for (int day = 1; day <= daysInMonth; day++)
+            {
+                if (byDay.TryGetValue(day, out var reward))
+                {
+                    result.Add(MapToResponseDto(reward));
+                }
+                else
+                {
+                    // Placeholder - ngày chưa được cấu hình reward
+                    result.Add(new DailyLoginRewardResponseDto
+                    {
+                        DailyLoginRewardId = 0,
+                        DayNumber = day,
+                        RewardType = "None",
+                        RewardValue = 0,
+                        IsActive = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            return result;
+        }
     }
 }

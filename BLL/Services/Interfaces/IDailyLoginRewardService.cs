@@ -8,5 +8,6 @@ namespace BLL.Services.Interfaces
     {
         Task<DailyLoginRewardResponseDto> CreateDailyLoginReward(CreateDailyLoginRewardRequestDto request);
         Task<PagedResultDto<DailyLoginRewardResponseDto>> GetDailyLoginRewardsPaged(int page, int pageSize);
+        Task<List<DailyLoginRewardResponseDto>> GetCurrentMonthRewards();
     }
 }

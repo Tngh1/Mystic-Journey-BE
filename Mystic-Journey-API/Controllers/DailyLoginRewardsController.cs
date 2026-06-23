@@ -30,5 +30,16 @@ namespace Mystic_Journey_API.Controllers
             var result = await _dailyLoginRewardService.GetDailyLoginRewardsPaged(page, pageSize);
             return Ok(new ApiResponse<PagedResultDto<DailyLoginRewardResponseDto>> { Success = true, Data = result });
         }
+
+        /// <summary>
+        /// Trả về danh sách reward cho tất cả ngày trong tháng hiện tại.
+        /// Ngày chưa có reward sẽ có IsActive=false (placeholder).
+        /// </summary>
+        [HttpGet("current-month")]
+        public async Task<IActionResult> GetCurrentMonth()
+        {
+            var result = await _dailyLoginRewardService.GetCurrentMonthRewards();
+            return Ok(new ApiResponse<List<DailyLoginRewardResponseDto>> { Success = true, Data = result });
+        }
     }
 }
