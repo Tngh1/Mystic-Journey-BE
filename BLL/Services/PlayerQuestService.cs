@@ -220,6 +220,34 @@ namespace BLL.Services
 
                     await _skillRepo.CreatePlayerSkill(newPlayerSkill);
                 }
+
+                // Additionally, when the tutorial Gather White Flowers is claimed,
+                // grant the three starter skills with ids 1,2,3 to the player
+                // (if they don't already own them). Using explicit ids ensures
+                // consistent assignment with client-side assets.
+                if (quest.Title != null && quest.Title.Contains("Gather White Flowers"))
+                {
+                    var grantIds = new[] { 1, 2, 3 };
+                    foreach (var sid in grantIds)
+                    {
+                        if (owned.Any(ps => ps.SkillId == sid))
+                            continue;
+
+                        var skill = await _skillRepo.GetSkillById(sid);
+                        if (skill == null)
+                            continue; // skip missing skill ids
+
+                        await _skillRepo.CreatePlayerSkill(new PlayerSkill
+                        {
+                            PlayerProfileId = playerProfileId,
+                            SkillId = sid,
+                            Level = 1,
+                            Experience = 0,
+                            EquippedSlot = null,
+                            UnlockedAt = DateTime.UtcNow
+                        });
+                    }
+                }
             }
 
             return MapToDto(pq);

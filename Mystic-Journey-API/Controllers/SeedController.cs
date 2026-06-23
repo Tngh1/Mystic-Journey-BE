@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Mystic_Journey_API.Extensions;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Mystic_Journey_API.Controllers
 {
@@ -457,81 +459,116 @@ namespace Mystic_Journey_API.Controllers
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
             {
-                var seedNames = new[]
+                // Ensure five skill records exist. Use explicit SkillId values so external
+                // client assets that expect stable ids (1..5) can reference them.
+                var skillList = new List<Skill>
                 {
-                    "[SEED] AP Skill",
-                    "[SEED] Adrenaline",
-                    "[SEED] Knight Slash"
+                    new Skill
+                    {
+                        SkillId = 1,
+                        Name = "AP_Skill",
+                        Description = "AP system skill (area/magic example).",
+                        Type = "Active",
+                        DamageType = "Magical",
+                        TargetType = "Area",
+                        ClassRequirement = "Mage",
+                        CooldownSeconds = 8,
+                        BaseDamage = 120.0,
+                        DamagePerLevel = 15.0,
+                        DamageGrowthPercent = 5.0,
+                        UnlockLevel = 1,
+                        IsActive = true
+                    },
+                    new Skill
+                    {
+                        SkillId = 2,
+                        Name = "Adrenaline",
+                        Description = "Temporary buff that increases damage output.",
+                        Type = "Buff",
+                        DamageType = "TrueDamage",
+                        TargetType = "Self",
+                        ClassRequirement = "All",
+                        CooldownSeconds = 30,
+                        BaseDamage = 0.0,
+                        DamagePerLevel = 0.0,
+                        DamageGrowthPercent = 0.0,
+                        UnlockLevel = 1,
+                        IsActive = true
+                    },
+                    new Skill
+                    {
+                        SkillId = 3,
+                        Name = "Knight_Slash",
+                        Description = "Basic knight melee slash (single target physical).",
+                        Type = "Active",
+                        DamageType = "Physical",
+                        TargetType = "SingleTarget",
+                        ClassRequirement = "Knight",
+                        CooldownSeconds = 5,
+                        BaseDamage = 90.0,
+                        DamagePerLevel = 12.0,
+                        DamageGrowthPercent = 3.0,
+                        UnlockLevel = 1,
+                        IsActive = true
+                    },
+                    new Skill
+                    {
+                        SkillId = 4,
+                        Name = "Multi_Arrow",
+                        Description = "Archer multi-arrow attack hitting several targets.",
+                        Type = "Active",
+                        DamageType = "Physical",
+                        TargetType = "MultiTarget",
+                        ClassRequirement = "Archer",
+                        CooldownSeconds = 7,
+                        BaseDamage = 75.0,
+                        DamagePerLevel = 10.0,
+                        DamageGrowthPercent = 2.5,
+                        UnlockLevel = 1,
+                        IsActive = true
+                    },
+                    new Skill
+                    {
+                        SkillId = 5,
+                        Name = "Light_Explosion",
+                        Description = "Mage light explosion skill (aoe).",
+                        Type = "Active",
+                        DamageType = "Magical",
+                        TargetType = "Area",
+                        ClassRequirement = "Mage",
+                        CooldownSeconds = 10,
+                        BaseDamage = 140.0,
+                        DamagePerLevel = 18.0,
+                        DamageGrowthPercent = 6.0,
+                        UnlockLevel = 1,
+                        IsActive = true
+                    }
                 };
 
-                var existing = await _ctx.Skills.Where(s => seedNames.Contains(s.Name)).ToListAsync();
-
-                Skill UpsertSkill(string name, string description, string type, string damageType, string targetType, string classReq, int cooldown, double baseDamage, double damagePerLevel, double damageGrowthPercent, int unlockLevel)
+                foreach (var s in skillList)
                 {
-                    var sk = existing.FirstOrDefault(x => x.Name == name);
-                    if (sk == null)
+                    var existing = await _ctx.Skills.FirstOrDefaultAsync(x => x.SkillId == s.SkillId || x.Name == s.Name);
+                    if (existing == null)
                     {
-                        sk = new Skill { Name = name };
-                        _ctx.Skills.Add(sk);
-                        existing.Add(sk);
+                        // Insert with explicit SkillId (identity column allows explicit values)
+                        _ctx.Skills.Add(s);
                     }
-
-                    sk.Description = description;
-                    sk.Type = type;
-                    sk.DamageType = damageType;
-                    sk.TargetType = targetType;
-                    sk.ClassRequirement = classReq;
-                    sk.CooldownSeconds = cooldown;
-                    sk.BaseDamage = baseDamage;
-                    sk.DamagePerLevel = damagePerLevel;
-                    sk.DamageGrowthPercent = damageGrowthPercent;
-                    sk.UnlockLevel = unlockLevel;
-                    sk.IsActive = true;
-
-                    return sk;
+                    else
+                    {
+                        existing.Name = s.Name;
+                        existing.Description = s.Description;
+                        existing.Type = s.Type;
+                        existing.DamageType = s.DamageType;
+                        existing.TargetType = s.TargetType;
+                        existing.ClassRequirement = s.ClassRequirement;
+                        existing.CooldownSeconds = s.CooldownSeconds;
+                        existing.BaseDamage = s.BaseDamage;
+                        existing.DamagePerLevel = s.DamagePerLevel;
+                        existing.DamageGrowthPercent = s.DamageGrowthPercent;
+                        existing.UnlockLevel = s.UnlockLevel;
+                        existing.IsActive = s.IsActive;
+                    }
                 }
-
-                var s1 = UpsertSkill(
-                    "[SEED] AP Skill",
-                    "Kỹ năng hệ thống mẫu AP (ví dụ: hiệu ứng phép/aoe).",
-                    "Active",
-                    "Magical",
-                    "Area",
-                    "Mage",
-                    8,
-                    120.0,
-                    15.0,
-                    5.0,
-                    1
-                );
-
-                var s2 = UpsertSkill(
-                    "[SEED] Adrenaline",
-                    "Kỹ năng tăng sức mạnh tạm thời (buff).",
-                    "Buff",
-                    "TrueDamage",
-                    "Self",
-                    "All",
-                    30,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1
-                );
-
-                var s3 = UpsertSkill(
-                    "[SEED] Knight Slash",
-                    "Đòn chém của hiệp sĩ, sát thương vật lý cận chiến lên 1 mục tiêu.",
-                    "Active",
-                    "Physical",
-                    "SingleTarget",
-                    "Knight",
-                    5,
-                    90.0,
-                    12.0,
-                    3.0,
-                    1
-                );
 
                 await _ctx.SaveChangesAsync();
                 await tx.CommitAsync();
@@ -539,16 +576,8 @@ namespace Mystic_Journey_API.Controllers
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Seed skills thành công",
-                    Data = new
-                    {
-                        skills = new[]
-                        {
-                            new { name = s1.Name, id = s1.SkillId },
-                            new { name = s2.Name, id = s2.SkillId },
-                            new { name = s3.Name, id = s3.SkillId }
-                        }
-                    }
+                    Message = "Seed 5 skills thành công",
+                    Data = new { seededSkillIds = skillList.Select(x => x.SkillId).ToArray() }
                 });
             }
             catch (Exception ex)
