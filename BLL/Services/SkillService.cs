@@ -163,5 +163,33 @@ namespace BLL.Services
                 throw;
             }
         }
+
+        public async Task<PlayerSkillResponseDto> UnlockPlayerSkill(int actorPlayerProfileId, UnlockPlayerSkillRequestDto request)
+        {
+            var skill = await _repository.GetSkillById(request.SkillId)
+                ?? throw new KeyNotFoundException("Skill not found.");
+
+            var owned = await _repository.GetPlayerSkillsByPlayerId(actorPlayerProfileId);
+            if (owned.Any(ps => ps.SkillId == request.SkillId))
+                throw new InvalidOperationException("Player already owns this skill.");
+
+            var newPlayerSkill = new PlayerSkill
+            {
+                PlayerProfileId = actorPlayerProfileId,
+                SkillId = request.SkillId,
+                Level = 1,
+                Experience = 0,
+                EquippedSlot = null,
+                UnlockedAt = DateTime.UtcNow
+            };
+
+            var created = await _repository.CreatePlayerSkill(newPlayerSkill);
+            var dto = _mapper.Map<PlayerSkillResponseDto>(created);
+            dto.CooldownSeconds = skill.CooldownSeconds;
+            dto.BaseDamage = skill.BaseDamage;
+            dto.EffectiveDamage = skill.BaseDamage;
+            dto.UnlockLevel = skill.UnlockLevel;
+            return dto;
+        }
     }
 }

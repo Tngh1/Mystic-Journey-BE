@@ -119,4 +119,10 @@ namespace BLL.DTOs
         // Slot index 0..2 (null when not equipping)
         public int? SlotIndex { get; set; }
     }
+
+    public class UnlockPlayerSkillRequestDto
+    {
+        [Required]
+        public int SkillId { get; set; }
+    }
 }

@@ -57,5 +57,20 @@ namespace Mystic_Journey_API.Controllers
             var updated = await _skillService.EquipPlayerSkill(playerProfileId, request);
             return Ok(new ApiResponse<PlayerSkillResponseDto> { Success = true, Data = updated });
         }
+
+        [Authorize]
+        [HttpPost("unlock")]
+        public async Task<IActionResult> Unlock([FromBody] UnlockPlayerSkillRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var playerProfileId = await GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var created = await _skillService.UnlockPlayerSkill(playerProfileId, request);
+            return Ok(new ApiResponse<PlayerSkillResponseDto> { Success = true, Data = created });
+        }
     }
 }
