@@ -98,6 +98,22 @@ namespace BLL.Services
             if (ps.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("PlayerSkill does not belong to actor.");
 
+            // Enforce class requirement: player cannot equip skills not matching their selected class
+            var playerProfile = await _context.PlayerProfiles.FindAsync(actorPlayerProfileId);
+            var skillDef = ps.Skill ?? await _repository.GetSkillById(ps.SkillId);
+            if (playerProfile != null && skillDef != null)
+            {
+                if (!string.IsNullOrWhiteSpace(skillDef.ClassRequirement) && !string.IsNullOrWhiteSpace(playerProfile.Class))
+                {
+                    // 👇 ĐÃ SỬA: Cho phép vượt qua nếu yêu cầu là "All"
+                    if (!skillDef.ClassRequirement.Equals("All", StringComparison.OrdinalIgnoreCase) && 
+                        !skillDef.ClassRequirement.Equals(playerProfile.Class, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException($"Cannot equip skill: requires class {skillDef.ClassRequirement}.");
+                    }
+                }
+            }
+
             using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -162,6 +178,67 @@ namespace BLL.Services
                 await tx.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<PlayerSkillResponseDto?> DismantlePlayerSkill(int actorPlayerProfileId, DismantlePlayerSkillRequestDto request)
+        {
+            var ps = await _repository.GetPlayerSkillById(request.PlayerSkillId)
+                ?? throw new KeyNotFoundException("PlayerSkill not found.");
+
+            if (ps.PlayerProfileId != actorPlayerProfileId)
+                throw new UnauthorizedAccessException("PlayerSkill does not belong to actor.");
+
+            // Do not allow dismantling an equipped skill
+            if (ps.EquippedSlot.HasValue)
+                throw new InvalidOperationException("Cannot dismantle an equipped skill. Please unequip it first.");
+
+            // XP granted formula: base 100 * level
+            int xpGranted = 100 * Math.Max(1, ps.Level);
+
+            PlayerSkill? target = null;
+            if (request.TargetPlayerSkillId.HasValue)
+            {
+                target = await _repository.GetPlayerSkillById(request.TargetPlayerSkillId.Value)
+                    ?? throw new KeyNotFoundException("Target PlayerSkill not found.");
+
+                if (target.PlayerProfileId != actorPlayerProfileId)
+                    throw new UnauthorizedAccessException("Target PlayerSkill does not belong to actor.");
+
+                // ensure target skill is compatible with player's class
+                var playerProfile = await _context.PlayerProfiles.FindAsync(actorPlayerProfileId);
+                var targetSkillDef = target.Skill ?? await _repository.GetSkillById(target.SkillId);
+                if (playerProfile != null && targetSkillDef != null && !string.IsNullOrWhiteSpace(targetSkillDef.ClassRequirement))
+                {
+                    if (!targetSkillDef.ClassRequirement.Equals(playerProfile.Class, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("Target skill is not usable by player's class.");
+                }
+
+                // Apply XP and handle level ups (simple threshold: 100 * currentLevel)
+                target.Experience += xpGranted;
+                while (target.Experience >= 100 * target.Level)
+                {
+                    target.Experience -= 100 * target.Level;
+                    target.Level += 1;
+                }
+
+                await _repository.UpdatePlayerSkill(target);
+            }
+
+            // Remove the dismantled skill
+            await _repository.DeletePlayerSkill(ps);
+
+            // Return updated target DTO if present, else null
+            if (target != null)
+            {
+                var dto = _mapper.Map<PlayerSkillResponseDto>(target);
+                dto.CooldownSeconds = target.Skill?.CooldownSeconds ?? 0;
+                dto.BaseDamage = target.Skill?.BaseDamage ?? 0.0;
+                dto.EffectiveDamage = (target.Skill?.BaseDamage ?? 0.0) * (1 + (target.Skill?.DamageGrowthPercent ?? 0.0) / 100.0 * (target.Level - 1))
+                    + (target.Skill?.DamagePerLevel ?? 0.0) * (target.Level - 1);
+                return dto;
+            }
+
+            return null;
         }
 
         public async Task<PlayerSkillResponseDto> UnlockPlayerSkill(int actorPlayerProfileId, UnlockPlayerSkillRequestDto request)

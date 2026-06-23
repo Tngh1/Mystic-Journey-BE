@@ -534,6 +534,40 @@ namespace Mystic_Journey_API.Controllers
                 );
 
                 await _ctx.SaveChangesAsync();
+                // Add three class-default skills (one per class)
+                var defaultNames = new[] { "[SEED] Knight Default", "[SEED] Archer Default", "[SEED] Mage Default" };
+                var existingDefaults = await _ctx.Skills.Where(s => defaultNames.Contains(s.Name)).ToListAsync();
+
+                Skill UpsertDefault(string name, string classReq, double baseDamage)
+                {
+                    var sk = existingDefaults.FirstOrDefault(x => x.Name == name);
+                    if (sk == null)
+                    {
+                        sk = new Skill { Name = name };
+                        _ctx.Skills.Add(sk);
+                        existingDefaults.Add(sk);
+                    }
+
+                    sk.Description = name + " - default class skill.";
+                    sk.Type = "Active";
+                    sk.DamageType = "Physical";
+                    sk.TargetType = "SingleTarget";
+                    sk.ClassRequirement = classReq;
+                    sk.CooldownSeconds = 6;
+                    sk.BaseDamage = baseDamage;
+                    sk.DamagePerLevel = baseDamage * 0.2;
+                    sk.DamageGrowthPercent = 2.0;
+                    sk.UnlockLevel = 1;
+                    sk.IsActive = true;
+
+                    return sk;
+                }
+
+                var d1 = UpsertDefault("[SEED] Knight Default", "Knight", 80.0);
+                var d2 = UpsertDefault("[SEED] Archer Default", "Archer", 70.0);
+                var d3 = UpsertDefault("[SEED] Mage Default", "Mage", 90.0);
+
+                await _ctx.SaveChangesAsync();
                 await tx.CommitAsync();
 
                 return Ok(new ApiResponse<object>
