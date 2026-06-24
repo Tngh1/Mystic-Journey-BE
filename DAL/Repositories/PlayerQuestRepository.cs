@@ -22,6 +22,8 @@ namespace DAL.Repositories
             return await _context.PlayerQuests
                 .Include(pq => pq.Quest)
                     .ThenInclude(q => q!.RewardItem)
+                .Include(pq => pq.Quest)
+                    .ThenInclude(q => q!.RewardSkill)
                 .Where(pq => pq.PlayerProfileId == playerProfileId)
                 .OrderByDescending(pq => pq.AcceptedAt)
                 .ToListAsync();
@@ -32,6 +34,8 @@ namespace DAL.Repositories
             return await _context.PlayerQuests
                 .Include(pq => pq.Quest)
                     .ThenInclude(q => q!.RewardItem)
+                .Include(pq => pq.Quest)
+                    .ThenInclude(q => q!.RewardSkill)
                 .Where(pq =>
                     pq.PlayerProfileId == playerProfileId &&
                     pq.Quest != null &&
@@ -46,6 +50,8 @@ namespace DAL.Repositories
             return await _context.PlayerQuests
                 .Include(pq => pq.Quest)
                     .ThenInclude(q => q!.RewardItem)
+                .Include(pq => pq.Quest)
+                    .ThenInclude(q => q!.RewardSkill)
                 .FirstOrDefaultAsync(pq =>
                     pq.PlayerProfileId == playerProfileId &&
                     pq.QuestId == questId);
@@ -56,6 +62,8 @@ namespace DAL.Repositories
             return await _context.PlayerQuests
                 .Include(pq => pq.Quest)
                     .ThenInclude(q => q!.RewardItem)
+                .Include(pq => pq.Quest)
+                    .ThenInclude(q => q!.RewardSkill)
                 .Where(pq => pq.PlayerProfileId == playerProfileId && questIds.Contains(pq.QuestId))
                 .ToListAsync();
         }

@@ -94,5 +94,16 @@ namespace Mystic_Journey_API.Controllers
             var result = await _worldService.ClaimDailyLoginReward(profileId);
             return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Success = true, Data = result });
         }
+
+        [HttpPost("daily-login/retro-claim")]
+        public async Task<IActionResult> RetroactiveClaimDailyLoginReward([FromBody] RetroClaimRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.RetroactiveClaimDailyLoginReward(profileId, request.DayNumber);
+            return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Success = true, Data = result });
+        }
     }
 }

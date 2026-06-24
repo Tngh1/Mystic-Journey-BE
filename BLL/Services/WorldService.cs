@@ -165,6 +165,13 @@ namespace BLL.Services
             {
                 playerQuest.TargetValue = targetAmount;
                 playerQuest.Progress = Math.Min(targetAmount, playerQuest.Progress + progressDelta);
+                
+                if (playerQuest.Progress >= targetAmount)
+                {
+                    playerQuest.Status = "Completed";
+                    playerQuest.CompletedAt ??= DateTime.UtcNow;
+                }
+
                 _context.PlayerQuests.Update(playerQuest);
                 await _context.SaveChangesAsync();
 
@@ -427,11 +434,20 @@ namespace BLL.Services
             try
             {
                 var profile = await GetProfile(playerProfileId);
-                var today = DateTime.UtcNow.Date;
+                var today = DateTime.UtcNow;
                 var dailyLogin = await _context.PlayerDailyLogins
                     .FirstOrDefaultAsync(x => x.PlayerProfileId == playerProfileId);
 
-                if (dailyLogin != null && dailyLogin.LastClaimedAt?.Date == today)
+                dailyLogin ??= new PlayerDailyLogin { PlayerProfileId = playerProfileId, CurrentYear = today.Year, CurrentMonth = today.Month };
+
+                if (dailyLogin.CurrentYear != today.Year || dailyLogin.CurrentMonth != today.Month)
+                {
+                    dailyLogin.CurrentYear = today.Year;
+                    dailyLogin.CurrentMonth = today.Month;
+                    dailyLogin.ClaimedDaysStr = string.Empty;
+                }
+
+                if (dailyLogin.ClaimedDays.Contains(today.Day))
                 {
                     return new ClaimDailyRewardResponseDto
                     {
@@ -442,28 +458,18 @@ namespace BLL.Services
                     };
                 }
 
-                dailyLogin ??= new PlayerDailyLogin { PlayerProfileId = playerProfileId };
-
-                var yesterday = today.AddDays(-1);
-                var nextStreak = dailyLogin.LastClaimedAt?.Date == yesterday
-                    ? dailyLogin.CurrentStreak + 1
-                    : 1;
-
-                var rewards = await _context.DailyLoginRewards
+                var rewardDay = today.Day;
+                var reward = await _context.DailyLoginRewards
                     .Include(r => r.RewardItem)
-                    .Where(r => r.IsActive)
-                    .OrderBy(r => r.DayNumber)
-                    .ToListAsync();
-
-                var maxDay = Math.Max(1, rewards.Count == 0 ? 1 : rewards.Max(r => r.DayNumber));
-                var rewardDay = ((nextStreak - 1) % maxDay) + 1;
-                var reward = rewards.FirstOrDefault(r => r.DayNumber == rewardDay)
-                    ?? rewards.FirstOrDefault();
+                    .FirstOrDefaultAsync(r => r.DayNumber == rewardDay && r.IsActive);
 
                 if (reward != null)
                     await ApplyDailyReward(profile, reward);
 
-                dailyLogin.CurrentStreak = nextStreak;
+                var claimed = dailyLogin.ClaimedDays;
+                claimed.Add(rewardDay);
+                dailyLogin.ClaimedDays = claimed;
+                
                 dailyLogin.TotalDaysClaimed += 1;
                 dailyLogin.LastClaimedAt = DateTime.UtcNow;
                 dailyLogin.IsClaimedToday = true;
@@ -472,6 +478,137 @@ namespace BLL.Services
                     await _context.PlayerDailyLogins.AddAsync(dailyLogin);
                 else
                     _context.PlayerDailyLogins.Update(dailyLogin);
+
+                _context.PlayerProfiles.Update(profile);
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return new ClaimDailyRewardResponseDto
+                {
+                    Success = true,
+                    Message = "Daily login reward claimed.",
+                    CurrentStreak = dailyLogin.CurrentStreak,
+                    TotalDaysClaimed = dailyLogin.TotalDaysClaimed,
+                    RewardType = reward?.RewardType ?? string.Empty,
+                    RewardValue = reward?.RewardValue ?? 0,
+                    RewardItemId = reward?.RewardItemId,
+                    RewardItemName = reward?.RewardItem?.Name,
+                    RewardItemQuantity = reward?.RewardItemQuantity ?? 0
+                };
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                throw new Exception("Error claiming daily reward: " + ex.Message, ex);
+            }
+        }
+
+        public async Task<ClaimDailyRewardResponseDto> RetroactiveClaimDailyLoginReward(int playerProfileId, int dayToClaim)
+        {
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var profile = await GetProfile(playerProfileId);
+                var today = DateTime.UtcNow;
+                
+                if (dayToClaim >= today.Day)
+                {
+                    return new ClaimDailyRewardResponseDto
+                    {
+                        Success = false,
+                        Message = "Cannot retro-claim current or future days."
+                    };
+                }
+
+                var dailyLogin = await _context.PlayerDailyLogins
+                    .FirstOrDefaultAsync(x => x.PlayerProfileId == playerProfileId);
+
+                dailyLogin ??= new PlayerDailyLogin { PlayerProfileId = playerProfileId, CurrentYear = today.Year, CurrentMonth = today.Month };
+
+                if (dailyLogin.CurrentYear != today.Year || dailyLogin.CurrentMonth != today.Month)
+                {
+                    dailyLogin.CurrentYear = today.Year;
+                    dailyLogin.CurrentMonth = today.Month;
+                    dailyLogin.ClaimedDaysStr = string.Empty;
+                }
+
+                if (dailyLogin.ClaimedDays.Contains(dayToClaim))
+                {
+                    return new ClaimDailyRewardResponseDto
+                    {
+                        Success = false,
+                        Message = "This day is already claimed."
+                    };
+                }
+
+                // Chi phí điểm danh bù là 20 Gems
+                if (profile.Gems < 20)
+                {
+                    return new ClaimDailyRewardResponseDto
+                    {
+                        Success = false,
+                        Message = "Not enough Gems to retro-claim."
+                    };
+                }
+                
+                // Giới hạn 5 lần/tháng
+                if (dailyLogin.RetroClaimCount >= 5)
+                {
+                    return new ClaimDailyRewardResponseDto
+                    {
+                        Success = false,
+                        Message = "You have reached the maximum of 5 retro-claims this month."
+                    };
+                }
+
+                // Kiểm tra phải bù ngày gần nhất bị lỡ
+                var claimedSet = dailyLogin.ClaimedDays.ToHashSet();
+                int maxMissedDay = -1;
+                for (int d = today.Day - 1; d >= 1; d--)
+                {
+                    if (!claimedSet.Contains(d))
+                    {
+                        maxMissedDay = d;
+                        break;
+                    }
+                }
+
+                if (dayToClaim != maxMissedDay)
+                {
+                    return new ClaimDailyRewardResponseDto
+                    {
+                        Success = false,
+                        Message = "You must retro-claim the most recent missed day first."
+                    };
+                }
+
+                profile.Gems -= 20;
+                dailyLogin.RetroClaimCount += 1;
+
+                var reward = await _context.DailyLoginRewards
+                    .Include(r => r.RewardItem)
+                    .FirstOrDefaultAsync(r => r.DayNumber == dayToClaim && r.IsActive);
+
+                if (reward != null)
+                    await ApplyDailyReward(profile, reward);
+
+                var claimed = dailyLogin.ClaimedDays;
+                claimed.Add(dayToClaim);
+                dailyLogin.ClaimedDays = claimed;
+                
+                dailyLogin.TotalDaysClaimed += 1;
+
+                if (dailyLogin.PlayerDailyLoginId == 0)
+                {
+                    await _context.PlayerDailyLogins.AddAsync(dailyLogin);
+                }
+                else
+                {
+                    var entry = _context.Entry(dailyLogin);
+                    entry.Property(x => x.ClaimedDaysStr).IsModified = true;
+                    entry.Property(x => x.RetroClaimCount).IsModified = true;
+                    entry.Property(x => x.TotalDaysClaimed).IsModified = true;
+                }
 
                 _context.PlayerProfiles.Update(profile);
                 await _context.SaveChangesAsync();
@@ -663,7 +800,16 @@ namespace BLL.Services
             if (dailyLogin == null)
                 return null;
 
-            var isClaimedToday = dailyLogin.LastClaimedAt?.Date == DateTime.UtcNow.Date;
+            // Reset month tracking if needed
+            var today = DateTime.UtcNow;
+            if (dailyLogin.CurrentYear != today.Year || dailyLogin.CurrentMonth != today.Month)
+            {
+                dailyLogin.CurrentYear = today.Year;
+                dailyLogin.CurrentMonth = today.Month;
+                dailyLogin.ClaimedDaysStr = string.Empty;
+                // We just return the cleared state (will be saved when they claim something)
+            }
+
             return new PlayerDailyLoginResponseDto
             {
                 PlayerDailyLoginId = dailyLogin.PlayerDailyLoginId,
@@ -671,7 +817,11 @@ namespace BLL.Services
                 CurrentStreak = dailyLogin.CurrentStreak,
                 TotalDaysClaimed = dailyLogin.TotalDaysClaimed,
                 LastClaimedAt = dailyLogin.LastClaimedAt,
-                IsClaimedToday = isClaimedToday
+                IsClaimedToday = dailyLogin.ClaimedDays.Contains(today.Day),
+                CurrentYear = dailyLogin.CurrentYear,
+                CurrentMonth = dailyLogin.CurrentMonth,
+                RetroClaimCount = dailyLogin.RetroClaimCount,
+                ClaimedDays = dailyLogin.ClaimedDays
             };
         }
 
