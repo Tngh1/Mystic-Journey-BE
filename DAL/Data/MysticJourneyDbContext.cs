@@ -24,6 +24,7 @@ namespace DAL.Data
         public DbSet<NPC> NPCs => Set<NPC>();
         public DbSet<NPCDialogue> NPCDialogues => Set<NPCDialogue>();
         public DbSet<Monster> Monsters => Set<Monster>();
+        public DbSet<MonsterSpawn> MonsterSpawns => Set<MonsterSpawn>();
         public DbSet<PurchaseHistory> PurchaseHistories => Set<PurchaseHistory>();
         public DbSet<PlayerCurrencyLog> PlayerCurrencyLogs => Set<PlayerCurrencyLog>();
         public DbSet<ShopItem> ShopItems => Set<ShopItem>();
@@ -37,6 +38,8 @@ namespace DAL.Data
         public DbSet<DungeonConfig> DungeonConfigs => Set<DungeonConfig>();
         public DbSet<DungeonSession> DungeonSessions => Set<DungeonSession>();
         public DbSet<DungeonProgress> DungeonProgresses => Set<DungeonProgress>();
+        public DbSet<Dungeon> Dungeons => Set<Dungeon>();
+        public DbSet<PlayerMonsterDiscovery> PlayerMonsterDiscoveries => Set<PlayerMonsterDiscovery>();
         public DbSet<Achievement> Achievements => Set<Achievement>();
         public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
         public DbSet<Guild> Guilds => Set<Guild>();
@@ -63,6 +66,40 @@ namespace DAL.Data
             new Role { RoleId = 1, Name = "Player" },
             new Role { RoleId = 2, Name = "Admin" },
             new Role { RoleId = 3, Name = "SuperAdmin" });
+
+            modelBuilder.Entity<PlayerMonsterDiscovery>()
+                .HasIndex(d => new { d.PlayerProfileId, d.MonsterId })
+                .IsUnique();
+
+            modelBuilder.Entity<PlayerMonsterDiscovery>()
+                .HasOne(d => d.PlayerProfile)
+                .WithMany()
+                .HasForeignKey(d => d.PlayerProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PlayerMonsterDiscovery>()
+                .HasOne(d => d.Monster)
+                .WithMany()
+                .HasForeignKey(d => d.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MonsterSpawn>()
+                .HasOne(s => s.Monster)
+                .WithMany()
+                .HasForeignKey(s => s.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MonsterSpawn>()
+                .HasOne(s => s.Dungeon)
+                .WithMany(d => d.Spawns)
+                .HasForeignKey(s => s.DungeonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Quest>()
+                .HasOne(q => q.BossMonster)
+                .WithMany()
+                .HasForeignKey(q => q.BossMonsterId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

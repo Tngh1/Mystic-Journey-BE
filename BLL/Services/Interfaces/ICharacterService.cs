@@ -20,5 +20,10 @@ namespace BLL.Services.Interfaces
         /// Skill Points are granted on level-up (handled externally when XP thresholds are crossed).
         /// </summary>
         Task<UpgradeAttributeResponseDto> UpgradeAttribute(int playerProfileId, UpgradeAttributeRequestDto request);
+
+        /// <summary>
+        /// Syncs the player's current HP directly from the client.
+        /// </summary>
+        Task UpdateHp(int playerProfileId, int currentHp);
     }
 }

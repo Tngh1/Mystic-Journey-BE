@@ -110,6 +110,39 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ── PUT /api/characters/hp ────────────────────────────────────────────────────
+        /// <summary>
+        /// Update HP — syncs the player's current health point from the client.
+        /// 
+        /// Requires: JWT access token.
+        /// </summary>
+        [HttpPut("hp")]
+        public async Task<IActionResult> UpdateHp([FromBody] UpdateHpRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var profileId = GetPlayerProfileId();
+                await _characterService.UpdateHp(profileId, request.CurrentHp);
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "HP updated successfully."
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "PROFILE_NOT_FOUND", Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
+            }
+        }
+
         // ── POST /api/characters/upgrade ─────────────────────────────────────────────
         /// <summary>
         /// Upgrade Character — spends Skill Points to permanently increase one attribute.

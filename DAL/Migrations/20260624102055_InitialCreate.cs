@@ -52,6 +52,21 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Dungeons",
+                columns: table => new
+                {
+                    DungeonId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    IsRepeatable = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Dungeons", x => x.DungeonId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GachaBanners",
                 columns: table => new
                 {
@@ -472,6 +487,38 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MonsterSpawns",
+                columns: table => new
+                {
+                    MonsterSpawnId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MonsterId = table.Column<int>(type: "integer", nullable: false),
+                    MapName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    RegionName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Location = table.Column<string>(type: "text", nullable: true),
+                    SpawnCount = table.Column<int>(type: "integer", nullable: false),
+                    RespawnSeconds = table.Column<int>(type: "integer", nullable: false),
+                    DungeonId = table.Column<int>(type: "integer", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonsterSpawns", x => x.MonsterSpawnId);
+                    table.ForeignKey(
+                        name: "FK_MonsterSpawns_Dungeons_DungeonId",
+                        column: x => x.DungeonId,
+                        principalTable: "Dungeons",
+                        principalColumn: "DungeonId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_MonsterSpawns_Monsters_MonsterId",
+                        column: x => x.MonsterId,
+                        principalTable: "Monsters",
+                        principalColumn: "MonsterId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Accounts",
                 columns: table => new
                 {
@@ -522,7 +569,8 @@ namespace DAL.Migrations
                     RewardGems = table.Column<decimal>(type: "numeric", nullable: false),
                     RewardItemId = table.Column<int>(type: "integer", nullable: true),
                     RewardSkillId = table.Column<int>(type: "integer", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    BossMonsterId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -532,6 +580,12 @@ namespace DAL.Migrations
                         column: x => x.RewardItemId,
                         principalTable: "Items",
                         principalColumn: "ItemId");
+                    table.ForeignKey(
+                        name: "FK_Quests_Monsters_BossMonsterId",
+                        column: x => x.BossMonsterId,
+                        principalTable: "Monsters",
+                        principalColumn: "MonsterId",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Quests_Skills_RewardSkillId",
                         column: x => x.RewardSkillId,
@@ -624,7 +678,9 @@ namespace DAL.Migrations
                     ExperiencePoints = table.Column<int>(type: "integer", nullable: false),
                     Gold = table.Column<decimal>(type: "numeric", nullable: false),
                     Gems = table.Column<decimal>(type: "numeric", nullable: false),
-                    Energy = table.Column<int>(type: "integer", nullable: false),
+                    CurrentEnergy = table.Column<int>(type: "integer", nullable: false),
+                    MaxEnergy = table.Column<int>(type: "integer", nullable: false),
+                    LastEnergyUpdateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     TotalDungeonClears = table.Column<int>(type: "integer", nullable: false),
@@ -1052,13 +1108,46 @@ namespace DAL.Migrations
                     CurrentStreak = table.Column<int>(type: "integer", nullable: false),
                     TotalDaysClaimed = table.Column<int>(type: "integer", nullable: false),
                     LastClaimedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsClaimedToday = table.Column<bool>(type: "boolean", nullable: false)
+                    IsClaimedToday = table.Column<bool>(type: "boolean", nullable: false),
+                    CurrentYear = table.Column<int>(type: "integer", nullable: false),
+                    CurrentMonth = table.Column<int>(type: "integer", nullable: false),
+                    RetroClaimCount = table.Column<int>(type: "integer", nullable: false),
+                    ClaimedDaysStr = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PlayerDailyLogins", x => x.PlayerDailyLoginId);
                     table.ForeignKey(
                         name: "FK_PlayerDailyLogins_PlayerProfiles_PlayerProfileId",
+                        column: x => x.PlayerProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlayerMonsterDiscoveries",
+                columns: table => new
+                {
+                    PlayerMonsterDiscoveryId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
+                    MonsterId = table.Column<int>(type: "integer", nullable: false),
+                    IsDiscovered = table.Column<bool>(type: "boolean", nullable: false),
+                    DiscoveredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TimesDefeated = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayerMonsterDiscoveries", x => x.PlayerMonsterDiscoveryId);
+                    table.ForeignKey(
+                        name: "FK_PlayerMonsterDiscoveries_Monsters_MonsterId",
+                        column: x => x.MonsterId,
+                        principalTable: "Monsters",
+                        principalColumn: "MonsterId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlayerMonsterDiscoveries_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
                         principalColumn: "PlayerProfileId",
@@ -1539,6 +1628,16 @@ namespace DAL.Migrations
                 column: "MonsterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MonsterSpawns_DungeonId",
+                table: "MonsterSpawns",
+                column: "DungeonId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MonsterSpawns_MonsterId",
+                table: "MonsterSpawns",
+                column: "MonsterId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_NPCDialogues_LinkedQuestId",
                 table: "NPCDialogues",
                 column: "LinkedQuestId");
@@ -1592,6 +1691,17 @@ namespace DAL.Migrations
                 name: "IX_PlayerDailyLogins_PlayerProfileId",
                 table: "PlayerDailyLogins",
                 column: "PlayerProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerMonsterDiscoveries_MonsterId",
+                table: "PlayerMonsterDiscoveries",
+                column: "MonsterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerMonsterDiscoveries_PlayerProfileId_MonsterId",
+                table: "PlayerMonsterDiscoveries",
+                columns: new[] { "PlayerProfileId", "MonsterId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerProfiles_AccountId",
@@ -1649,6 +1759,11 @@ namespace DAL.Migrations
                 name: "IX_PurchaseHistories_ShopItemId",
                 table: "PurchaseHistories",
                 column: "ShopItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Quests_BossMonsterId",
+                table: "Quests",
+                column: "BossMonsterId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Quests_RewardItemId",
@@ -1720,6 +1835,9 @@ namespace DAL.Migrations
                 name: "MonsterDrops");
 
             migrationBuilder.DropTable(
+                name: "MonsterSpawns");
+
+            migrationBuilder.DropTable(
                 name: "NPCDialogues");
 
             migrationBuilder.DropTable(
@@ -1736,6 +1854,9 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "PlayerDailyLogins");
+
+            migrationBuilder.DropTable(
+                name: "PlayerMonsterDiscoveries");
 
             migrationBuilder.DropTable(
                 name: "PlayerQuests");
@@ -1768,7 +1889,7 @@ namespace DAL.Migrations
                 name: "Guilds");
 
             migrationBuilder.DropTable(
-                name: "Monsters");
+                name: "Dungeons");
 
             migrationBuilder.DropTable(
                 name: "NPCs");
@@ -1796,6 +1917,9 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "PlayerProfiles");
+
+            migrationBuilder.DropTable(
+                name: "Monsters");
 
             migrationBuilder.DropTable(
                 name: "Skills");
