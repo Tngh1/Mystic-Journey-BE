@@ -55,7 +55,9 @@ namespace BLL.Services
                     ExperiencePoints = 0,
                     Gold = 0,
                     Gems = 0,
-                    Energy = 100,
+                    CurrentEnergy = 100,
+                    MaxEnergy = 100,
+                    LastEnergyUpdateTime = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
                 };
             }

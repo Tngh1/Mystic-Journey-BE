@@ -20,11 +20,48 @@ namespace BLL.Services
             _mapper = mapper;
         }
 
+        public bool RecalculateEnergy(PlayerProfile profile)
+        {
+            if (profile.CurrentEnergy >= profile.MaxEnergy)
+            {
+                profile.LastEnergyUpdateTime = DateTime.UtcNow;
+                return false;
+            }
+
+            var now = DateTime.UtcNow;
+            var timeElapsed = now - profile.LastEnergyUpdateTime;
+            if (timeElapsed.TotalMinutes >= 6)
+            {
+                int energyToRegen = (int)(timeElapsed.TotalMinutes / 6);
+                if (energyToRegen > 0)
+                {
+                    int newEnergy = profile.CurrentEnergy + energyToRegen;
+                    if (newEnergy >= profile.MaxEnergy)
+                    {
+                        profile.CurrentEnergy = profile.MaxEnergy;
+                        profile.LastEnergyUpdateTime = now;
+                    }
+                    else
+                    {
+                        profile.CurrentEnergy = newEnergy;
+                        profile.LastEnergyUpdateTime = profile.LastEnergyUpdateTime.AddMinutes(energyToRegen * 6);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public async Task<PlayerProfileDetailResponseDto?> GetProfileById(int id)
         {
             var profile = await _repository.GetPlayerProfileByIdWithStats(id);
             if (profile == null)
                 return null;
+
+            if (RecalculateEnergy(profile))
+            {
+                await _repository.UpdatePlayerProfile(profile);
+            }
 
             return MapToDetailResponseDto(profile);
         }
@@ -55,8 +92,14 @@ namespace BLL.Services
             if (request.Gems >= 0)
                 profile.Gems = request.Gems;
 
+            // Recalculate energy first before updating
+            RecalculateEnergy(profile);
+
             if (request.Energy >= 0)
-                profile.Energy = request.Energy;
+                profile.CurrentEnergy = request.Energy;
+
+            if (request.MaxEnergy > 0)
+                profile.MaxEnergy = request.MaxEnergy;
 
             profile.UpdatedAt = DateTime.UtcNow;
 
@@ -232,7 +275,9 @@ namespace BLL.Services
                 ExperiencePoints = profile.ExperiencePoints,
                 Gold = profile.Gold,
                 Gems = profile.Gems,
-                Energy = profile.Energy,
+                Energy = profile.CurrentEnergy,
+                MaxEnergy = profile.MaxEnergy,
+                LastEnergyUpdateTime = profile.LastEnergyUpdateTime,
                 CreatedAt = profile.CreatedAt,
                 UpdatedAt = profile.UpdatedAt
             };
@@ -252,7 +297,9 @@ namespace BLL.Services
                 ExperiencePoints = profile.ExperiencePoints,
                 Gold = profile.Gold,
                 Gems = profile.Gems,
-                Energy = profile.Energy,
+                Energy = profile.CurrentEnergy,
+                MaxEnergy = profile.MaxEnergy,
+                LastEnergyUpdateTime = profile.LastEnergyUpdateTime,
                 CreatedAt = profile.CreatedAt,
                 UpdatedAt = profile.UpdatedAt,
                 Stats = profile.PlayerStats != null ? new PlayerStatsResponseDto

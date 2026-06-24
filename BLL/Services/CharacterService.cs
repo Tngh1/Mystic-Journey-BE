@@ -12,6 +12,7 @@ namespace BLL.Services
 
         private readonly IPlayerProfileRepository _profileRepository;
         private readonly IPlayerStatRepository _statRepository;
+        private readonly IPlayerProfileService _playerProfileService;
 
         // ── Base stats seeded on character creation, keyed by class name ─────────────
         private static readonly Dictionary<string, PlayerStat> BaseStats = new(StringComparer.OrdinalIgnoreCase)
@@ -44,10 +45,12 @@ namespace BLL.Services
 
         public CharacterService(
             IPlayerProfileRepository profileRepository,
-            IPlayerStatRepository statRepository)
+            IPlayerStatRepository statRepository,
+            IPlayerProfileService playerProfileService)
         {
             _profileRepository = profileRepository;
             _statRepository = statRepository;
+            _playerProfileService = playerProfileService;
         }
 
         // ── 1. Create Character ────────────────────────────────────────────────────────
@@ -66,6 +69,7 @@ namespace BLL.Services
             profile.DisplayName = request.CharacterName.Trim();
             profile.Class = request.SelectedClass;
             profile.UpdatedAt = DateTime.UtcNow;
+            _playerProfileService.RecalculateEnergy(profile);
             await _profileRepository.UpdatePlayerProfile(profile);
 
             // Seed class-appropriate base stats.
@@ -206,7 +210,9 @@ namespace BLL.Services
                 ExperiencePoints = profile.ExperiencePoints,
                 Gold            = profile.Gold,
                 Gems            = profile.Gems,
-                Energy          = profile.Energy,
+                Energy          = profile.CurrentEnergy,
+                MaxEnergy       = profile.MaxEnergy,
+                LastEnergyUpdateTime = profile.LastEnergyUpdateTime,
                 CreatedAt       = profile.CreatedAt,
                 Stats           = MapToStatsDto(stat)
             };

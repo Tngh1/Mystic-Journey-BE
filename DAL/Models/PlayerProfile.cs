@@ -22,7 +22,9 @@ namespace DAL.Models
 
         public decimal Gold { get; set; } = 0;
         public decimal Gems { get; set; } = 0;
-        public int Energy { get; set; } = 100;
+        public int CurrentEnergy { get; set; } = 100;
+        public int MaxEnergy { get; set; } = 100;
+        public DateTime LastEnergyUpdateTime { get; set; } = DateTime.UtcNow;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

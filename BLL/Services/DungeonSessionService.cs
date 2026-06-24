@@ -14,19 +14,22 @@ namespace BLL.Services
         private readonly IDungeonSessionRepository _sessionRepository;
         private readonly IDungeonProgressRepository _progressRepository;
         private readonly IPlayerProfileRepository _profileRepository;
+        private readonly IPlayerProfileService _playerProfileService;
 
         public DungeonSessionService(
             MysticJourneyDbContext context,
             IDungeonConfigRepository dungeonConfigRepository,
             IDungeonSessionRepository sessionRepository,
             IDungeonProgressRepository progressRepository,
-            IPlayerProfileRepository profileRepository)
+            IPlayerProfileRepository profileRepository,
+            IPlayerProfileService playerProfileService)
         {
             _context = context;
             _dungeonConfigRepository = dungeonConfigRepository;
             _sessionRepository = sessionRepository;
             _progressRepository = progressRepository;
             _profileRepository = profileRepository;
+            _playerProfileService = playerProfileService;
         }
 
         // ── 1. Enter Dungeon ─────────────────────────────────────────────────────────
@@ -37,14 +40,18 @@ namespace BLL.Services
             var profile = await _profileRepository.GetPlayerProfileById(playerProfileId)
                 ?? throw new KeyNotFoundException($"Player profile {playerProfileId} not found.");
 
+            // Recalculate energy first
+            _playerProfileService.RecalculateEnergy(profile);
+            await _profileRepository.UpdatePlayerProfile(profile);
+
             // BR-02: Dungeon must exist and be active
             var dungeon = await _dungeonConfigRepository.GetByIdWithChest(dungeonConfigId)
                 ?? throw new KeyNotFoundException($"Dungeon {dungeonConfigId} not found or is not active.");
 
             // BR-03: Energy must be sufficient (NOT consumed here — BR-04/05)
-            if (profile.Energy < dungeon.EnergyCost)
+            if (profile.CurrentEnergy < dungeon.EnergyCost)
                 throw new InvalidOperationException(
-                    $"Insufficient energy. Required: {dungeon.EnergyCost}, Current: {profile.Energy}.");
+                    $"Insufficient energy. Required: {dungeon.EnergyCost}, Current: {profile.CurrentEnergy}.");
 
             // Prevent duplicate concurrent active sessions for the same dungeon
             var existing = await _sessionRepository.GetActiveSession(playerProfileId, dungeonConfigId);
@@ -80,7 +87,7 @@ namespace BLL.Services
                 DungeonConfigId = dungeonConfigId,
                 DungeonName = dungeon.Name,
                 EnergyCost = dungeon.EnergyCost,
-                PlayerCurrentEnergy = profile.Energy,
+                PlayerCurrentEnergy = profile.CurrentEnergy,
                 EnterTime = session.EnterTime,
                 Status = session.Status
             };
@@ -202,20 +209,23 @@ namespace BLL.Services
             var profile = await _profileRepository.GetPlayerProfileById(playerProfileId)
                 ?? throw new KeyNotFoundException($"Player profile {playerProfileId} not found.");
 
+            // Recalculate energy first
+            _playerProfileService.RecalculateEnergy(profile);
+
             // BR-10: Re-validate energy before consuming
             var dungeon = session.DungeonConfig
                 ?? throw new InvalidOperationException("Dungeon configuration is missing from session.");
 
-            if (profile.Energy < dungeon.EnergyCost)
+            if (profile.CurrentEnergy < dungeon.EnergyCost)
                 throw new InvalidOperationException(
-                    $"Insufficient energy to claim reward. Required: {dungeon.EnergyCost}, Current: {profile.Energy}.");
+                    $"Insufficient energy to claim reward. Required: {dungeon.EnergyCost}, Current: {profile.CurrentEnergy}.");
 
             // ── BEGIN TRANSACTION ────────────────────────────────────────────────────
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
                 // Step 1 — Consume energy
-                profile.Energy -= dungeon.EnergyCost;
+                profile.CurrentEnergy -= dungeon.EnergyCost;
                 profile.TotalDungeonClears += 1;
 
                 // Step 2 — Roll gold reward

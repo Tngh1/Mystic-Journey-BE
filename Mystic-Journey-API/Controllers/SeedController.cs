@@ -298,7 +298,9 @@ namespace Mystic_Journey_API.Controllers
                     ExperiencePoints = 0,
                     Gold         = 1500,
                     Gems         = 200,
-                    Energy       = 100,
+                    CurrentEnergy = 100,
+                    MaxEnergy    = 100,
+                    LastEnergyUpdateTime = DateTime.UtcNow,
                     LastMapName  = "ElfForest",
                     PositionX    = 11.9,
                     PositionY    = 17.8,
@@ -1155,8 +1157,9 @@ namespace Mystic_Journey_API.Controllers
                     profile.Level = 1;
                     profile.ExperiencePoints = 0;
                     profile.Gold = 100;
-                    profile.Gems = 10;
-                    profile.Energy = 100;
+                    profile.CurrentEnergy = 100;
+                    profile.MaxEnergy = 100;
+                    profile.LastEnergyUpdateTime = DateTime.UtcNow;
                     profile.LastMapName = "ElfForest";
                     profile.PositionX = 11.9;
                     profile.PositionY = 17.8;
