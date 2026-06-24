@@ -116,4 +116,92 @@ namespace BLL.DTOs
         public bool IsGuaranteed { get; set; }
         public bool IsActive { get; set; } = true;
     }
+
+    // ============ Spawn ============
+    public class MonsterSpawnResponseDto
+    {
+        public int MonsterSpawnId { get; set; }
+        public int MonsterId { get; set; }
+        public string MonsterName { get; set; } = string.Empty;
+        public string MonsterType { get; set; } = string.Empty;
+        public string MapName { get; set; } = string.Empty;
+        public string? RegionName { get; set; }
+        public string? Location { get; set; }
+        public int SpawnCount { get; set; }
+        public int RespawnSeconds { get; set; }
+        public int? DungeonId { get; set; }
+        public string? DungeonName { get; set; }
+        public bool IsDungeonRepeatable { get; set; }
+        public bool IsActive { get; set; }
+        public MonsterResponseDto Monster { get; set; } = new();
+    }
+
+    public class CreateMonsterSpawnRequestDto
+    {
+        [Required]
+        public int MonsterId { get; set; }
+
+        [Required, StringLength(100)]
+        public string MapName { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? RegionName { get; set; }
+
+        public string? Location { get; set; }
+
+        [Range(1, 50)]
+        public int SpawnCount { get; set; } = 1;
+
+        [Range(0, 86400)]
+        public int RespawnSeconds { get; set; } = 60;
+
+        public int? DungeonId { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    // ============ Player catalog / bestiary ============
+    public class PlayerMonsterCatalogItemDto
+    {
+        public int MonsterId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int Level { get; set; }
+        public int MaxHp { get; set; }
+        public int Atk { get; set; }
+        public int Def { get; set; }
+        public int ExperienceReward { get; set; }
+        public decimal GoldReward { get; set; }
+        public string? ImageUrl { get; set; }
+        public bool IsDiscovered { get; set; }
+        public int TimesDefeated { get; set; }
+    }
+
+    // ============ Defeat / rewards ============
+    public class MonsterDefeatRequestDto
+    {
+        public int? MonsterSpawnId { get; set; }
+        public int? DungeonSessionId { get; set; }
+    }
+
+    public class MonsterDroppedItemDto
+    {
+        public int ItemId { get; set; }
+        public string ItemName { get; set; } = string.Empty;
+        public string? ItemIconUrl { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    public class MonsterDefeatResponseDto
+    {
+        public int MonsterId { get; set; }
+        public string MonsterName { get; set; } = string.Empty;
+        public bool WasDiscovered { get; set; }
+        public int ExperienceEarned { get; set; }
+        public decimal GoldEarned { get; set; }
+        public int PlayerLevel { get; set; }
+        public int PlayerExperience { get; set; }
+        public decimal PlayerGold { get; set; }
+        public List<MonsterDroppedItemDto> DroppedItems { get; set; } = new();
+    }
 }

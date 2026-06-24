@@ -1052,7 +1052,11 @@ namespace DAL.Migrations
                     CurrentStreak = table.Column<int>(type: "integer", nullable: false),
                     TotalDaysClaimed = table.Column<int>(type: "integer", nullable: false),
                     LastClaimedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsClaimedToday = table.Column<bool>(type: "boolean", nullable: false)
+                    IsClaimedToday = table.Column<bool>(type: "boolean", nullable: false),
+                    CurrentYear = table.Column<int>(type: "integer", nullable: false),
+                    CurrentMonth = table.Column<int>(type: "integer", nullable: false),
+                    RetroClaimCount = table.Column<int>(type: "integer", nullable: false),
+                    ClaimedDaysStr = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {

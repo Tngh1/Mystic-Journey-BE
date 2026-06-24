@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260623170455_CalendarDailyLogin")]
-    partial class CalendarDailyLogin
+    [Migration("20260624012842_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1450,6 +1450,9 @@ namespace DAL.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("PlayerProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RetroClaimCount")
                         .HasColumnType("integer");
 
                     b.Property<int>("TotalDaysClaimed")

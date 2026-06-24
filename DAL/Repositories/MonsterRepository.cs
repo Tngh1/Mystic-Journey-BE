@@ -53,6 +53,110 @@ _context.Monsters.Update(monster);
             return drop;
         }
 
+        public async Task<PlayerMonsterDiscovery?> GetPlayerDiscovery(int playerProfileId, int monsterId)
+        {
+            return await _context.PlayerMonsterDiscoveries
+                .FirstOrDefaultAsync(d => d.PlayerProfileId == playerProfileId && d.MonsterId == monsterId);
+        }
+
+        public async Task<PlayerMonsterDiscovery> CreateOrUpdatePlayerDiscovery(PlayerMonsterDiscovery discovery)
+        {
+            var existing = await GetPlayerDiscovery(discovery.PlayerProfileId, discovery.MonsterId);
+            if (existing == null)
+            {
+                await _context.AddAsync(discovery);
+            }
+            else
+            {
+                existing.IsDiscovered = discovery.IsDiscovered || existing.IsDiscovered;
+                existing.TimesDefeated = discovery.TimesDefeated > 0
+                    ? discovery.TimesDefeated
+                    : existing.TimesDefeated;
+                if (discovery.DiscoveredAt.HasValue)
+                    existing.DiscoveredAt = discovery.DiscoveredAt;
+            }
+            await _context.SaveChangesAsync();
+            return existing ?? discovery;
+        }
+
+        public async Task<HashSet<int>> GetCompletedQuestBossMonsterIds(int playerProfileId)
+        {
+            var bossIds = await _context.Quests
+                .AsNoTracking()
+                .Where(q => q.BossMonsterId.HasValue && q.IsActive)
+                .Select(q => new { q.QuestId, q.BossMonsterId })
+                .ToListAsync();
+
+            if (bossIds.Count == 0)
+                return new HashSet<int>();
+
+            var completedQuestIds = await _context.PlayerQuests
+                .AsNoTracking()
+                .Where(pq => pq.PlayerProfileId == playerProfileId &&
+                             (pq.Status == "Completed" || pq.Status == "Claimed"))
+                .Select(pq => pq.QuestId)
+                .ToListAsync();
+
+            return bossIds
+                .Where(q => completedQuestIds.Contains(q.QuestId))
+                .Select(q => q.BossMonsterId!.Value)
+                .ToHashSet();
+        }
+
+        public async Task<List<MonsterSpawn>> GetActiveSpawns(string mapName, string? regionName, int? dungeonId)
+        {
+            var query = _context.MonsterSpawns
+                .Include(s => s.Monster)
+                .Include(s => s.Dungeon)
+                .Where(s => s.IsActive && s.Monster != null && s.Monster.IsActive);
+
+            if (dungeonId.HasValue)
+            {
+                query = query.Where(s => s.DungeonId == dungeonId.Value);
+            }
+            else
+            {
+                query = query.Where(s => s.MapName == mapName && s.DungeonId == null);
+                if (!string.IsNullOrWhiteSpace(regionName))
+                    query = query.Where(s => s.RegionName == regionName);
+            }
+
+            return await query
+                .OrderBy(s => s.MonsterSpawnId)
+                .ToListAsync();
+        }
+
+        public async Task<HashSet<int>> GetDiscoveredMonsterIds(int playerProfileId)
+        {
+            return await _context.PlayerMonsterDiscoveries
+                .AsNoTracking()
+                .Where(d => d.PlayerProfileId == playerProfileId && d.IsDiscovered)
+                .Select(d => d.MonsterId)
+                .ToHashSetAsync();
+        }
+
+        public async Task<List<MonsterDrop>> GetActiveDropsByMonsterId(int monsterId)
+        {
+            return await _context.MonsterDrops
+                .Include(d => d.Item)
+                .Where(d => d.MonsterId == monsterId && d.IsActive)
+                .ToListAsync();
+        }
+
+        public async Task<List<MonsterSpawn>> GetSpawnsByMonsterId(int monsterId)
+        {
+            return await _context.MonsterSpawns
+                .Where(s => s.MonsterId == monsterId && s.IsActive)
+                .ToListAsync();
+        }
+
+        public async Task<MonsterSpawn> CreateSpawn(MonsterSpawn spawn)
+        {
+            await _context.MonsterSpawns.AddAsync(spawn);
+            await _context.SaveChangesAsync();
+            return spawn;
+        }
+
         public async Task<List<MonsterDrop>> GetDropsByMonsterId(int monsterId)
         {
             return await _context.MonsterDrops

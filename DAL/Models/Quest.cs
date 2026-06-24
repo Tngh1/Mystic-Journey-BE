@@ -43,6 +43,12 @@ namespace DAL.Models
 
         public bool IsActive { get; set; } = true;
 
+        // Optional: boss monster associated with this quest. When the quest is completed,
+        // the game's spawn system should ensure this boss no longer appears for players
+        // who have completed the quest or if the quest is globally completed.
+        public int? BossMonsterId { get; set; }
+        public Monster? BossMonster { get; set; }
+
         public ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();
     }
 }
