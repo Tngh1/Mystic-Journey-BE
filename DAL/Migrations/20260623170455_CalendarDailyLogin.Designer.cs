@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260623034302_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260623170455_CalendarDailyLogin")]
+    partial class CalendarDailyLogin
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1430,7 +1430,17 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerDailyLoginId"));
 
+                    b.Property<string>("ClaimedDaysStr")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("CurrentMonth")
+                        .HasColumnType("integer");
+
                     b.Property<int>("CurrentStreak")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CurrentYear")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsClaimedToday")

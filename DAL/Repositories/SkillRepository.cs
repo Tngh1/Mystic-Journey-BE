@@ -96,5 +96,19 @@ namespace DAL.Repositories
                 .Where(s => names.Contains(s.Name))
                 .ToListAsync();
         }
+
+        public async Task<Skill?> GetSkillByName(string name)
+        {
+            return await _context.Skills
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Name == name);
+        }
+
+        public async Task<List<Skill>> GetAllSkillsAsync()
+        {
+            return await _context.Skills
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

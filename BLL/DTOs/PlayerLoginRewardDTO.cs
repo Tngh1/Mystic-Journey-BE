@@ -9,6 +9,15 @@ namespace BLL.DTOs
         public int TotalDaysClaimed { get; set; }
         public DateTime? LastClaimedAt { get; set; }
         public bool IsClaimedToday { get; set; }
+        public int CurrentYear { get; set; }
+        public int CurrentMonth { get; set; }
+        public int RetroClaimCount { get; set; }
+        public List<int> ClaimedDays { get; set; } = new List<int>();
+    }
+
+    public class RetroClaimRequestDto
+    {
+        public int DayNumber { get; set; }
     }
 
     public class DailyLoginRewardInfoDto

@@ -41,28 +41,77 @@ namespace BLL.Services
 
             var mapName = NormalizeMapName(profile.LastMapName);
             var activeMapQuests = (await _questRepo.GetActiveQuests())
-                .Where(q => q.MapName == mapName && q.RequiredLevel <= profile.Level)
+                .Where(q => string.Equals(q.MapName, mapName, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(q => q.RequiredLevel)
+                .ThenBy(q => q.QuestId)
                 .ToList();
 
             var records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
-            var existingQuestIds = records.Select(pq => pq.QuestId).ToHashSet();
+            var existingMap = records
+                .GroupBy(pq => pq.QuestId)
+                .ToDictionary(g => g.Key, g => g.First());
+            var createdAny = false;
 
-            foreach (var quest in activeMapQuests.Where(q => !existingQuestIds.Contains(q.QuestId)))
+            foreach (var quest in activeMapQuests.Where(q => !IsMainQuest(q) && q.RequiredLevel <= profile.Level))
             {
-                await _playerQuestRepo.Create(new PlayerQuest
-                {
-                    PlayerProfileId = playerProfileId,
-                    QuestId = quest.QuestId,
-                    Status = quest.DefaultStatus == "InProgress" ? "InProgress" : "NotStarted",
-                    Progress = 0,
-                    TargetValue = Math.Max(1, quest.TargetAmount),
-                    AcceptedAt = DateTime.UtcNow
-                });
+                if (existingMap.ContainsKey(quest.QuestId))
+                    continue;
+
+                var created = await _playerQuestRepo.Create(CreateInitialQuestRecord(playerProfileId, quest));
+                existingMap[quest.QuestId] = created;
+                createdAny = true;
             }
 
-            records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
-            return records
-                .Where(pq => pq.Quest == null || pq.Quest.RequiredLevel <= profile.Level || pq.Status != "NotStarted")
+            var mainChain = activeMapQuests
+                .Where(IsMainQuest)
+                .OrderBy(q => q.QuestId)
+                .ToList();
+
+            for (var i = 0; i < mainChain.Count; i++)
+            {
+                var quest = mainChain[i];
+                if (quest.RequiredLevel > profile.Level)
+                    continue;
+                if (!IsMainQuestUnlocked(mainChain, i, existingMap))
+                    continue;
+                if (existingMap.ContainsKey(quest.QuestId))
+                    continue;
+
+                var created = await _playerQuestRepo.Create(CreateInitialQuestRecord(playerProfileId, quest));
+                existingMap[quest.QuestId] = created;
+                createdAny = true;
+            }
+
+            if (createdAny)
+                records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
+
+            existingMap = records
+                .GroupBy(pq => pq.QuestId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var visible = new List<PlayerQuest>();
+            for (var i = 0; i < mainChain.Count; i++)
+            {
+                var quest = mainChain[i];
+                if (quest.RequiredLevel > profile.Level)
+                    continue;
+                if (!existingMap.TryGetValue(quest.QuestId, out var record))
+                    continue;
+                if (!IsMainQuestUnlocked(mainChain, i, existingMap))
+                    continue;
+
+                visible.Add(record);
+            }
+
+            visible.AddRange(records.Where(pq =>
+                !IsMainQuest(pq.Quest) &&
+                (pq.Quest == null || pq.Quest.RequiredLevel <= profile.Level || !IsStatus(pq, "NotStarted"))));
+
+            return visible
+                .GroupBy(pq => pq.QuestId)
+                .Select(g => g.First())
+                .OrderBy(pq => pq.Quest?.RequiredLevel ?? 1)
+                .ThenBy(pq => pq.QuestId)
                 .Select(MapToDto)
                 .ToList();
         }
@@ -85,11 +134,14 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
 
             var currentMap = NormalizeMapName(profile.LastMapName);
-            if (quest.MapName != currentMap)
+            if (!string.Equals(quest.MapName, currentMap, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException($"Quest {request.QuestId} belongs to map {quest.MapName}, but player is currently in {currentMap}.");
 
             if (profile.Level < quest.RequiredLevel)
                 throw new InvalidOperationException($"Quest {request.QuestId} requires level {quest.RequiredLevel}.");
+
+            if (IsMainQuest(quest) && !await IsMainQuestUnlocked(playerProfileId, quest))
+                throw new InvalidOperationException($"Quest {request.QuestId} is locked until the previous main quest is claimed.");
 
             var existing = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId);
             if (existing != null)
@@ -104,21 +156,21 @@ namespace BLL.Services
                     existing.ClaimedAt = null;
                     existing = await _playerQuestRepo.Update(existing);
                 }
+
+                if (IsStatus(existing, "InProgress"))
+                    existing = await CompleteQuestIfAlreadySatisfied(playerProfileId, existing);
+
                 return MapToDto(existing);
             }
 
-            var targetAmount = Math.Max(1, quest.TargetAmount);
-            var playerQuest = new PlayerQuest
-            {
-                PlayerProfileId = playerProfileId,
-                QuestId = request.QuestId,
-                Status = "InProgress",
-                Progress = 0,
-                TargetValue = targetAmount,
-                AcceptedAt = DateTime.UtcNow,
-            };
+            var playerQuest = CreateInitialQuestRecord(playerProfileId, quest);
+            playerQuest.Status = "InProgress";
+            playerQuest.Progress = 0;
+            playerQuest.AcceptedAt = DateTime.UtcNow;
 
             var created = await _playerQuestRepo.Create(playerQuest);
+            created.Quest = quest;
+            created = await CompleteQuestIfAlreadySatisfied(playerProfileId, created);
             return MapToDto(created);
         }
 
@@ -144,7 +196,7 @@ namespace BLL.Services
                 if (pq.Status != "InProgress")
                     continue;
 
-                var targetAmount = Math.Max(1, pq.TargetValue);
+                var targetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue);
                 if (pq.TargetValue != targetAmount)
                     pq.TargetValue = targetAmount;
 
@@ -161,7 +213,7 @@ namespace BLL.Services
                 if (pq.Progress >= targetAmount)
                 {
                     pq.Status = "Completed";
-                    pq.CompletedAt = DateTime.UtcNow;
+                    pq.CompletedAt ??= DateTime.UtcNow;
                 }
 
                 toUpdate.Add(pq);
@@ -202,46 +254,45 @@ namespace BLL.Services
             if (quest.RewardItemId.HasValue)
                 await AddItemToInventory(playerProfileId, quest.RewardItemId.Value, 1);
 
-            // If quest grants a skill, add it to player's skills (if not already owned)
-            if (quest.RewardSkillId.HasValue)
+            // If quest grants a skill, add it to player's skills (if not already owned).
+            var owned = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
+            if (quest.RewardSkillId.HasValue && !owned.Any(ps => ps.SkillId == quest.RewardSkillId.Value))
             {
-                var owned = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
-                if (!owned.Any(ps => ps.SkillId == quest.RewardSkillId.Value))
+                var newPlayerSkill = await _skillRepo.CreatePlayerSkill(new PlayerSkill
                 {
-                    var newPlayerSkill = new PlayerSkill
-                    {
-                        PlayerProfileId = playerProfileId,
-                        SkillId = quest.RewardSkillId.Value,
-                        Level = 1,
-                        Experience = 0,
-                        EquippedSlot = null,
-                        UnlockedAt = DateTime.UtcNow
-                    };
+                    PlayerProfileId = playerProfileId,
+                    SkillId = quest.RewardSkillId.Value,
+                    Level = 1,
+                    Experience = 0,
+                    EquippedSlot = null,
+                    UnlockedAt = DateTime.UtcNow
+                });
 
-                    await _skillRepo.CreatePlayerSkill(newPlayerSkill);
-                }
+                owned.Add(newPlayerSkill);
+            }
 
-                // Additionally, when the tutorial Gather White Flowers is claimed,
-                // also grant the three class-default starter skills to the player
-                // if they don't already own them. This helps ensure each player
-                // receives a default skill per class for testing and tutorial flow.
-                if (quest.Title != null && quest.Title.Contains("Gather White Flowers"))
+            // Tutorial Gather White Flowers: Grant all available skills in the DB 
+            // so that the player can see them in the UI (since UI filters by Class/ID).
+            if (quest.Title != null && quest.Title.Contains("Gather White Flowers", StringComparison.OrdinalIgnoreCase))
+            {
+                var allSkills = await _skillRepo.GetAllSkillsAsync(); // Cần có hàm này, nếu chưa có thì dùng LINQ
+                if (allSkills != null)
                 {
-                    var defaults = await _skillRepo.GetSkillsByNames(new[] { "[SEED] Knight Default", "[SEED] Archer Default", "[SEED] Mage Default" });
-                    foreach (var def in defaults)
+                    foreach (var skill in allSkills)
                     {
-                        if (!owned.Any(ps => ps.SkillId == def.SkillId))
+                        if (owned.Any(ps => ps.SkillId == skill.SkillId))
+                            continue;
+
+                        var createdSkill = await _skillRepo.CreatePlayerSkill(new PlayerSkill
                         {
-                            await _skillRepo.CreatePlayerSkill(new PlayerSkill
-                            {
-                                PlayerProfileId = playerProfileId,
-                                SkillId = def.SkillId,
-                                Level = 1,
-                                Experience = 0,
-                                EquippedSlot = null,
-                                UnlockedAt = DateTime.UtcNow
-                            });
-                        }
+                            PlayerProfileId = playerProfileId,
+                            SkillId         = skill.SkillId,
+                            Level           = 1,
+                            Experience      = 0,
+                            EquippedSlot    = null,
+                            UnlockedAt      = DateTime.UtcNow
+                        });
+                        owned.Add(createdSkill);
                     }
                 }
             }
@@ -254,14 +305,22 @@ namespace BLL.Services
             var pq = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId)
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
 
-            if (pq.Status == "Claimed")
+            if (pq.Status == "Claimed" || pq.Status == "Completed")
                 return MapToDto(pq);
 
-            if (pq.Status != "InProgress" && pq.Status != "Completed")
+            if (pq.Status != "InProgress")
                 throw new InvalidOperationException($"Quest {request.QuestId} is not in progress.");
 
             var targetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue);
             pq.TargetValue = targetAmount;
+
+            var canComplete = pq.Progress >= targetAmount ||
+                IsTalkQuest(pq.Quest) ||
+                (IsEquipSkillQuest(pq.Quest) && await HasEquippedSkill(playerProfileId));
+
+            if (!canComplete)
+                throw new InvalidOperationException("Quest objective is not complete yet.");
+
             pq.Progress = targetAmount;
             pq.Status = "Completed";
             pq.CompletedAt ??= DateTime.UtcNow;
@@ -293,6 +352,81 @@ namespace BLL.Services
             }
         }
 
+        private static PlayerQuest CreateInitialQuestRecord(int playerProfileId, Quest quest)
+        {
+            var targetAmount = Math.Max(1, quest.TargetAmount);
+            return new PlayerQuest
+            {
+                PlayerProfileId = playerProfileId,
+                QuestId = quest.QuestId,
+                Status = string.Equals(quest.DefaultStatus, "InProgress", StringComparison.OrdinalIgnoreCase)
+                    ? "InProgress"
+                    : "NotStarted",
+                Progress = 0,
+                TargetValue = targetAmount,
+                AcceptedAt = DateTime.UtcNow
+            };
+        }
+
+        private async Task<PlayerQuest> CompleteQuestIfAlreadySatisfied(int playerProfileId, PlayerQuest pq)
+        {
+            if (!IsEquipSkillQuest(pq.Quest) || !await HasEquippedSkill(playerProfileId))
+                return pq;
+
+            var targetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue);
+            pq.TargetValue = targetAmount;
+            pq.Progress = targetAmount;
+            pq.Status = "Completed";
+            pq.CompletedAt ??= DateTime.UtcNow;
+            return await _playerQuestRepo.Update(pq);
+        }
+
+        private async Task<bool> IsMainQuestUnlocked(int playerProfileId, Quest quest)
+        {
+            var mainChain = (await _questRepo.GetActiveQuests())
+                .Where(q => string.Equals(q.MapName, quest.MapName, StringComparison.OrdinalIgnoreCase) && IsMainQuest(q))
+                .OrderBy(q => q.QuestId)
+                .ToList();
+
+            var index = mainChain.FindIndex(q => q.QuestId == quest.QuestId);
+            if (index < 0)
+                return false;
+            if (index == 0)
+                return true;
+
+            var previousQuestId = mainChain[index - 1].QuestId;
+            var previousRecord = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, previousQuestId);
+            return IsStatus(previousRecord, "Claimed");
+        }
+
+        private static bool IsMainQuestUnlocked(List<Quest> mainChain, int index, IReadOnlyDictionary<int, PlayerQuest> existingMap)
+        {
+            if (index <= 0)
+                return index == 0;
+
+            var previousQuestId = mainChain[index - 1].QuestId;
+            return existingMap.TryGetValue(previousQuestId, out var previousRecord) &&
+                IsStatus(previousRecord, "Claimed");
+        }
+
+        private async Task<bool> HasEquippedSkill(int playerProfileId)
+        {
+            var skills = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
+            return skills.Any(ps => ps.EquippedSlot.HasValue);
+        }
+
+        private static bool IsMainQuest(Quest? quest)
+            => string.Equals(quest?.Type, "Main", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsTalkQuest(Quest? quest)
+            => string.Equals(quest?.ObjectiveType, "Talk", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsEquipSkillQuest(Quest? quest)
+            => string.Equals(quest?.ObjectiveType, "EquipSkill", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsStatus(PlayerQuest? pq, string status)
+            => string.Equals(pq?.Status, status, StringComparison.OrdinalIgnoreCase);
+
         private static string NormalizeMapName(string? mapName)
         {
             if (string.IsNullOrWhiteSpace(mapName))
@@ -318,6 +452,7 @@ namespace BLL.Services
         private static PlayerQuestResponseDto MapToDto(PlayerQuest pq) => new()
         {
             PlayerQuestId = pq.PlayerQuestId,
+            PlayerProfileId = pq.PlayerProfileId,
             QuestId = pq.QuestId,
             QuestTitle = pq.Quest?.Title ?? string.Empty,
             QuestDescription = pq.Quest?.Description,
@@ -330,6 +465,7 @@ namespace BLL.Services
             QuestGiverName = pq.Quest?.QuestGiverName,
             Status = pq.Status,
             Progress = pq.Progress,
+            TargetValue = Math.Max(1, pq.TargetValue),
             TargetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue),
             RequiredLevel = pq.Quest?.RequiredLevel ?? 1,
             RewardExperience = pq.Quest?.RewardExperience ?? 0,
@@ -337,6 +473,8 @@ namespace BLL.Services
             RewardGems = pq.Quest?.RewardGems ?? 0,
             RewardItemId = pq.Quest?.RewardItemId,
             RewardItemName = pq.Quest?.RewardItem?.Name,
+            RewardSkillId = pq.Quest?.RewardSkillId,
+            RewardSkillName = pq.Quest?.RewardSkill?.Name,
             AcceptedAt = pq.AcceptedAt,
             CompletedAt = pq.CompletedAt,
             ClaimedAt = pq.ClaimedAt,

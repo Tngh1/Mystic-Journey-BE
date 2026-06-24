@@ -12,5 +12,6 @@ namespace BLL.Services.Interfaces
         Task<TurnInQuestItemResponseDto> TurnInQuestItem(int playerProfileId, TurnInQuestItemRequestDto request);
         Task<PlayerDailyLoginResponseDto?> GetDailyLoginStatus(int playerProfileId);
         Task<ClaimDailyRewardResponseDto> ClaimDailyLoginReward(int playerProfileId);
+        Task<ClaimDailyRewardResponseDto> RetroactiveClaimDailyLoginReward(int playerProfileId, int dayToClaim);
     }
 }
