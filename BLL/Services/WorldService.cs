@@ -17,15 +17,18 @@ namespace BLL.Services
         private readonly MysticJourneyDbContext _context;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IPlayerQuestService _playerQuestService;
+        private readonly IPlayerProfileService _playerProfileService;
 
         public WorldService(
             MysticJourneyDbContext context,
             IPlayerProfileRepository playerProfileRepository,
-            IPlayerQuestService playerQuestService)
+            IPlayerQuestService playerQuestService,
+            IPlayerProfileService playerProfileService)
         {
             _context = context;
             _playerProfileRepository = playerProfileRepository;
             _playerQuestService = playerQuestService;
+            _playerProfileService = playerProfileService;
         }
 
         public async Task<WorldStateResponseDto> GetWorldState(int playerProfileId)
@@ -645,7 +648,12 @@ namespace BLL.Services
                     profile.Gems += reward.RewardValue;
                     break;
                 case "Energy":
-                    profile.Energy += (int)reward.RewardValue;
+                    _playerProfileService.RecalculateEnergy(profile);
+                    profile.CurrentEnergy = Math.Min(profile.MaxEnergy, profile.CurrentEnergy + (int)reward.RewardValue);
+                    if (profile.CurrentEnergy >= profile.MaxEnergy)
+                    {
+                        profile.LastEnergyUpdateTime = DateTime.UtcNow;
+                    }
                     break;
                 case "Item":
                     if (reward.RewardItemId.HasValue)
@@ -768,8 +776,15 @@ namespace BLL.Services
 
         private async Task<PlayerProfile> GetProfile(int playerProfileId)
         {
-            return await _playerProfileRepository.GetPlayerProfileById(playerProfileId)
+            var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId)
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
+
+            if (_playerProfileService.RecalculateEnergy(profile))
+            {
+                await _playerProfileRepository.UpdatePlayerProfile(profile);
+            }
+
+            return profile;
         }
 
         private async Task EnsureTutorialSpawn(PlayerProfile profile)
