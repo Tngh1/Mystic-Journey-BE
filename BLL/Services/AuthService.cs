@@ -24,6 +24,7 @@ namespace BLL.Services
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
+        private readonly IPlayerProfileService _playerProfileService;
 
         private const string OTP_CACHE_PREFIX = "otp:";
         private const string VERIFIED_CACHE_PREFIX = "verified:";
@@ -40,12 +41,14 @@ namespace BLL.Services
             IAuthRepository repository,
             IMapper mapper,
             IConfiguration configuration,
-            IMemoryCache cache)
+            IMemoryCache cache,
+            IPlayerProfileService playerProfileService)
         {
             _repository = repository;
             _mapper = mapper;
             _configuration = configuration;
             _cache = cache;
+            _playerProfileService = playerProfileService;
         }
 
         private static string HashRefreshToken(string token)
@@ -74,6 +77,10 @@ namespace BLL.Services
             account.RefreshTokenExpiresAt = refreshExpiry;
             account.LastLogin = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
+            if (account.PlayerProfile != null)
+            {
+                _playerProfileService.RecalculateEnergy(account.PlayerProfile);
+            }
             await _repository.UpdateAccount(account);
 
             var hasCharacter = account.PlayerProfile != null;
@@ -197,6 +204,10 @@ namespace BLL.Services
             account.RefreshToken = HashRefreshToken(newRefreshToken);
             account.RefreshTokenExpiresAt = newRefreshExpiry;
             account.UpdatedAt = DateTime.UtcNow;
+            if (account.PlayerProfile != null)
+            {
+                _playerProfileService.RecalculateEnergy(account.PlayerProfile);
+            }
             await _repository.UpdateAccount(account);
 
             var hasCharacter = account.PlayerProfile != null;
@@ -237,6 +248,15 @@ namespace BLL.Services
         {
             var account = await _repository.GetAccountById(accountId)
                 ?? throw new KeyNotFoundException("Account not found.");
+
+            if (account.PlayerProfile != null)
+            {
+                if (_playerProfileService.RecalculateEnergy(account.PlayerProfile))
+                {
+                    await _repository.UpdateAccount(account);
+                }
+            }
+
             return new MeResponseDto
             {
                 AccountId = account.AccountId,
