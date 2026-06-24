@@ -207,6 +207,7 @@ namespace Mystic_Journey_API.Controllers
                         Description       = "Khám phá khu rừng cổ đại và tiêu diệt quái vật đầu tiên. (Map 1)",
                         Type              = "Main",
                         DefaultStatus     = "NotStarted",
+                        MapName           = "Map1",
                         RequiredLevel     = 1,
                         TargetAmount      = 5,
                         RewardExperience  = 200,
@@ -220,6 +221,7 @@ namespace Mystic_Journey_API.Controllers
                         Description       = "Thâm nhập hang động tối tăm đầy bẫy và quái vật. (Map 2)",
                         Type              = "Main",
                         DefaultStatus     = "NotStarted",
+                        MapName           = "Map2",
                         RequiredLevel     = 2,
                         TargetAmount      = 3,
                         RewardExperience  = 150,
@@ -232,6 +234,7 @@ namespace Mystic_Journey_API.Controllers
                         Description       = "Đối mặt với Rồng Thủ Lĩnh trong hang ổ của nó. (Map 3)",
                         Type              = "Main",
                         DefaultStatus     = "NotStarted",
+                        MapName           = "Map3",
                         RequiredLevel     = 3,
                         TargetAmount      = 10,
                         RewardExperience  = 400,
@@ -848,10 +851,12 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
 
                 // 3d. Add a quest tied to the Sprout King boss
+                // We will create the object here and add it to the 'quests' list at the END so it gets the highest QuestId.
+                Quest bossQuest = null;
                 var existingBossQuest = await _ctx.Quests.FirstOrDefaultAsync(q => q.Title == "[ELFFOREST] Defeat Sprout King");
                 if (existingBossQuest == null)
                 {
-                    var bossQuest = new Quest
+                    bossQuest = new Quest
                     {
                         Title = "[ELFFOREST] Defeat Sprout King",
                         Description = "Defeat the Sprout King guarding the Old Willow Clearing.",
@@ -873,8 +878,6 @@ namespace Mystic_Journey_API.Controllers
                         IsActive = true,
                         BossMonsterId = sproutKing.MonsterId
                     };
-                    _ctx.Quests.Add(bossQuest);
-                    await _ctx.SaveChangesAsync();
                 }
 
                 // 3e. (Optional) seed discovery entries for test players (leave undiscovered by default)
@@ -991,6 +994,12 @@ namespace Mystic_Journey_API.Controllers
                         IsActive = true,
                     }
                 };
+
+                if (bossQuest != null)
+                {
+                    quests.Add(bossQuest);
+                }
+
                 _ctx.Quests.AddRange(quests);
                 await _ctx.SaveChangesAsync();
 
@@ -1441,6 +1450,109 @@ namespace Mystic_Journey_API.Controllers
                 await tx.CommitAsync();
 
                 return Ok(new ApiResponse<object> { Success = true, Message = "Xoá seed data thành công." });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/monsters -> Seed various monsters and their spawns
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("monsters")]
+        public async Task<IActionResult> SeedMonsters()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var monsterNames = new[] { "Slime", "SkeletonMelee", "GoblinSpear", "GoblinWarrior", "Ogre", "Dragon", "DragonForest", "Demon" };
+                var existingMonsters = await _ctx.Monsters.Where(m => monsterNames.Contains(m.Name)).ToListAsync();
+
+                Monster UpsertMonster(string name, string type, string description, int level, int maxHp, int atk, int def, int moveSpeed, int attackSpeed, int critRate, int critDamage, int expReward, decimal goldReward)
+                {
+                    var m = existingMonsters.FirstOrDefault(x => x.Name == name);
+                    if (m == null)
+                    {
+                        m = new Monster { Name = name };
+                        _ctx.Monsters.Add(m);
+                        existingMonsters.Add(m);
+                    }
+                    m.Type = type;
+                    m.Description = description;
+                    m.Level = level;
+                    m.MaxHp = maxHp;
+                    m.Atk = atk;
+                    m.Def = def;
+                    m.MoveSpeed = moveSpeed;
+                    m.AttackSpeed = attackSpeed;
+                    m.CritRate = critRate;
+                    m.CritDamage = critDamage;
+                    m.ExperienceReward = expReward;
+                    m.GoldReward = goldReward;
+                    m.IsActive = true;
+                    return m;
+                }
+
+                var slime = UpsertMonster("Slime", "Normal", "A normal slime monster found outside.", 3, 200, 15, 5, 100, 100, 5, 150, 20, 10);
+                var skeleton = UpsertMonster("SkeletonMelee", "Normal", "A skeleton warrior from the dark dungeon.", 5, 350, 25, 10, 110, 100, 5, 150, 40, 25);
+                var goblinSpear = UpsertMonster("GoblinSpear", "Normal", "A goblin with a spear.", 4, 300, 20, 8, 115, 100, 5, 150, 30, 20);
+                var goblinWarrior = UpsertMonster("GoblinWarrior", "Normal", "A tough goblin warrior.", 6, 400, 30, 15, 105, 100, 5, 150, 45, 30);
+                var ogre = UpsertMonster("Ogre", "Boss", "The brutal boss of the dungeon.", 10, 2500, 100, 40, 80, 80, 10, 200, 1000, 500);
+                var dragon = UpsertMonster("Dragon", "Normal", "A fearsome dragon.", 15, 5000, 150, 60, 120, 90, 15, 200, 2500, 1000);
+                var dragonForest = UpsertMonster("DragonForest", "Normal", "A dragon from the deep forest.", 12, 4000, 120, 50, 110, 90, 10, 200, 1800, 800);
+                var demon = UpsertMonster("Demon", "Normal", "A terrifying demon from the underworld.", 20, 8000, 200, 80, 130, 100, 20, 250, 4000, 2000);
+
+                await _ctx.SaveChangesAsync();
+
+                // Setup Dungeon
+                var dungeon = await _ctx.Dungeons.FirstOrDefaultAsync(d => d.Name == "Goblin Dungeon");
+                if (dungeon == null)
+                {
+                    dungeon = new Dungeon { Name = "Goblin Dungeon", Description = "A dark dungeon filled with goblins and skeletons.", IsRepeatable = true };
+                    _ctx.Dungeons.Add(dungeon);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                var monsterIds = existingMonsters.Select(m => m.MonsterId).ToList();
+                var existingSpawns = await _ctx.MonsterSpawns.Where(s => monsterIds.Contains(s.MonsterId)).ToListAsync();
+
+                MonsterSpawn UpsertSpawn(Monster m, string mapName, string region, string location, int count, int respawn, int? dungeonId)
+                {
+                    var ex = existingSpawns.FirstOrDefault(x => x.MonsterId == m.MonsterId && x.MapName == mapName && x.RegionName == region);
+                    if (ex == null)
+                    {
+                        ex = new MonsterSpawn { MonsterId = m.MonsterId, MapName = mapName, RegionName = region };
+                        _ctx.MonsterSpawns.Add(ex);
+                        existingSpawns.Add(ex);
+                    }
+                    ex.Location = location;
+                    ex.SpawnCount = count;
+                    ex.RespawnSeconds = respawn;
+                    ex.DungeonId = dungeonId;
+                    ex.IsActive = true;
+                    return ex;
+                }
+
+                // Slime: normal monster outside, related to quest
+                UpsertSpawn(slime, "Map1", "Slime Field", "Slime Field", 5, 30, null);
+                
+                // Dungeon Monsters
+                UpsertSpawn(skeleton, "Dungeon_Goblin", "Skeleton Zone", "Skeleton Zone", 3, 45, dungeon.DungeonId);
+                UpsertSpawn(goblinSpear, "Dungeon_Goblin", "Goblin Camp", "Goblin Camp", 3, 45, dungeon.DungeonId);
+                UpsertSpawn(goblinWarrior, "Dungeon_Goblin", "Goblin Camp", "Goblin Camp", 2, 45, dungeon.DungeonId);
+                UpsertSpawn(ogre, "Dungeon_Goblin", "Ogre Lair", "Ogre Lair", 1, 300, dungeon.DungeonId);
+                
+                // Other normal monsters outside
+                UpsertSpawn(dragon, "Map3", "Dragon Peak", "Dragon Peak", 1, 300, null);
+                UpsertSpawn(dragonForest, "Map2", "Deep Forest", "Deep Forest", 1, 300, null);
+                UpsertSpawn(demon, "Map4", "Underworld", "Underworld", 1, 300, null);
+
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed Monsters completed", Data = existingMonsters.Select(m => m.Name) });
             }
             catch (Exception ex)
             {

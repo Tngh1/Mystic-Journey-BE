@@ -177,6 +177,22 @@ namespace BLL.Services
             }
         }
 
+        public async Task UpdateHp(int playerProfileId, int currentHp)
+        {
+            var stat = await _statRepository.GetByPlayerProfileId(playerProfileId);
+
+            if (stat == null)
+            {
+                throw new KeyNotFoundException("PlayerStats not found for the specified profile.");
+            }
+
+            // Ensure currentHp doesn't exceed maxHp
+            stat.CurrentHp = Math.Min(currentHp, stat.MaxHp);
+            stat.UpdatedAt = DateTime.UtcNow;
+
+            await _statRepository.Update(stat);
+        }
+
         private static PlayerStatsResponseDto MapToStatsDto(PlayerStat stat)
         {
             return new PlayerStatsResponseDto

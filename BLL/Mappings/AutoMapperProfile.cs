@@ -17,6 +17,8 @@ namespace BLL.Mappings
             CreateMap<UpdateItemRequestDto, Item>();
 
             CreateMap<Monster, MonsterResponseDto>();
+            CreateMap<Monster, MonsterDetailResponseDto>()
+                .IncludeBase<Monster, MonsterResponseDto>();
             CreateMap<CreateMonsterRequestDto, Monster>();
             CreateMap<UpdateMonsterRequestDto, Monster>();
 

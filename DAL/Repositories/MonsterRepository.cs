@@ -128,11 +128,12 @@ _context.Monsters.Update(monster);
 
         public async Task<HashSet<int>> GetDiscoveredMonsterIds(int playerProfileId)
         {
-            return await _context.PlayerMonsterDiscoveries
+            var ids = await _context.PlayerMonsterDiscoveries
                 .AsNoTracking()
                 .Where(d => d.PlayerProfileId == playerProfileId && d.IsDiscovered)
                 .Select(d => d.MonsterId)
-                .ToHashSetAsync();
+                .ToListAsync();
+            return ids.ToHashSet();
         }
 
         public async Task<List<MonsterDrop>> GetActiveDropsByMonsterId(int monsterId)
