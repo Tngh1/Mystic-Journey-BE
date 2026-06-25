@@ -63,6 +63,7 @@ namespace BLL.DTOs
         public int TotalSkins { get; set; }
         public List<InventoryItemResponseDto> EquippedItems { get; set; } = new();
         public List<InventoryItemResponseDto> BagItems { get; set; } = new();
+        public List<PlayerSkinResponseDto> PlayerSkins { get; set; } = new();
         public int BagCapacity { get; set; }
     }
 

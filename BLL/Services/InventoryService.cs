@@ -49,7 +49,27 @@ namespace BLL.Services
                 BagCapacity = 200
             };
 
-            summary.TotalSkins = (await _inventoryRepository.GetPlayerSkinsByPlayerId(playerProfileId)).Count;
+            var playerSkins = await _inventoryRepository.GetPlayerSkinsByPlayerId(playerProfileId);
+            summary.TotalSkins = playerSkins.Count;
+            
+            var allSkins = await _context.Skins.Where(s => s.IsActive).ToListAsync();
+            summary.PlayerSkins = allSkins.Select(skin => {
+                var ps = playerSkins.FirstOrDefault(x => x.SkinId == skin.SkinId);
+                return new PlayerSkinResponseDto
+                {
+                    PlayerSkinId = ps?.PlayerSkinId ?? 0,
+                    PlayerProfileId = playerProfileId,
+                    SkinId = skin.SkinId,
+                    SkinName = skin.Name,
+                    SkinDescription = skin.Description,
+                    SkinType = skin.Type,
+                    SkinRarity = skin.Rarity,
+                    IconUrl = skin.IconUrl,
+                    PreviewUrl = skin.PreviewUrl,
+                    IsEquipped = ps?.IsEquipped ?? false,
+                    UnlockedAt = ps?.UnlockedAt ?? default
+                };
+            }).ToList();
             return summary;
         }
 
@@ -284,6 +304,18 @@ namespace BLL.Services
             {
                 skin.IsEquipped = false;
                 await _inventoryRepository.UpdatePlayerSkin(skin);
+
+                // Tự động mặc lại skin Default nếu có
+                var defaultSkin = await _context.PlayerSkins
+                    .Include(ps => ps.Skin)
+                    .FirstOrDefaultAsync(ps => ps.PlayerProfileId == actorPlayerProfileId && ps.Skin != null && ps.Skin.Name.Contains("Default"));
+
+                if (defaultSkin != null && defaultSkin.PlayerSkinId != request.PlayerSkinId)
+                {
+                    defaultSkin.IsEquipped = true;
+                    await _inventoryRepository.UpdatePlayerSkin(defaultSkin);
+                }
+
                 await tx.CommitAsync();
             }
             catch
