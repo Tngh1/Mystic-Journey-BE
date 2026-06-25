@@ -17,6 +17,8 @@ namespace BLL.Mappings
             CreateMap<UpdateItemRequestDto, Item>();
 
             CreateMap<Monster, MonsterResponseDto>();
+            CreateMap<Monster, MonsterDetailResponseDto>()
+                .IncludeBase<Monster, MonsterResponseDto>();
             CreateMap<CreateMonsterRequestDto, Monster>();
             CreateMap<UpdateMonsterRequestDto, Monster>();
 
@@ -59,9 +61,12 @@ namespace BLL.Mappings
 
             CreateMap<Mail, MailResponseDto>();
 
-            CreateMap<PlayerProfile, PlayerProfileResponseDto>();
-            CreateMap<PlayerProfile, PlayerProfileDetailResponseDto>();
-            CreateMap<UpdatePlayerProfileRequestDto, PlayerProfile>();
+            CreateMap<PlayerProfile, PlayerProfileResponseDto>()
+                .ForMember(dest => dest.Energy, opt => opt.MapFrom(src => src.CurrentEnergy));
+            CreateMap<PlayerProfile, PlayerProfileDetailResponseDto>()
+                .IncludeBase<PlayerProfile, PlayerProfileResponseDto>();
+            CreateMap<UpdatePlayerProfileRequestDto, PlayerProfile>()
+                .ForMember(dest => dest.CurrentEnergy, opt => opt.MapFrom(src => src.Energy));
 
             CreateMap<PlayerStat, PlayerStatsResponseDto>();
 

@@ -18,6 +18,8 @@ namespace BLL.DTOs
         public decimal Gold { get; set; }
         public decimal Gems { get; set; }
         public int Energy { get; set; }
+        public int MaxEnergy { get; set; }
+        public DateTime LastEnergyUpdateTime { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }
@@ -55,6 +57,7 @@ namespace BLL.DTOs
         public decimal Gold { get; set; }
         public decimal Gems { get; set; }
         public int Energy { get; set; }
+        public int MaxEnergy { get; set; }
     }
 
     // ============ PlayerProfile API Response ============
@@ -98,6 +101,8 @@ namespace BLL.DTOs
         public decimal Gold { get; set; }
         public decimal Gems { get; set; }
         public int Energy { get; set; }
+        public int MaxEnergy { get; set; }
+        public DateTime LastEnergyUpdateTime { get; set; }
         public DateTime CreatedAt { get; set; }
         public PlayerStatsResponseDto Stats { get; set; } = new();
     }
@@ -149,6 +154,8 @@ namespace BLL.DTOs
         public decimal Gold { get; set; }
         public decimal Gems { get; set; }
         public int Energy { get; set; }
+        public int MaxEnergy { get; set; }
+        public DateTime LastEnergyUpdateTime { get; set; }
 
         // Position
         public string LastMapName { get; set; } = string.Empty;
