@@ -8,7 +8,7 @@ namespace BLL.Services.Interfaces
         /// BR-01..05: Validates player + dungeon exist, checks energy (does NOT consume it),
         /// creates a DungeonSession with Status="Active", and seeds an empty DungeonProgress.
         /// </summary>
-        Task<EnterDungeonResponseDto> EnterDungeon(int playerProfileId, int dungeonConfigId);
+        Task<EnterDungeonResponseDto> EnterDungeon(int playerProfileId, int dungeonConfigId, List<string>? partyMembers = null);
 
         /// <summary>
         /// BR-06..07: Updates MonstersKilled, BossKilled, CompletionPercentage for an active session.

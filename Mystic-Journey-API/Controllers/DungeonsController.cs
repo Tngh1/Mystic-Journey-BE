@@ -79,12 +79,12 @@ namespace Mystic_Journey_API.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("{dungeonId}/enter")]
-        public async Task<IActionResult> Enter(int dungeonId)
+        public async Task<IActionResult> Enter(int dungeonId, [FromBody] EnterDungeonRequestDto? request = null)
         {
             try
             {
                 var profileId = GetPlayerProfileId();
-                var result = await _dungeonSessionService.EnterDungeon(profileId, dungeonId);
+                var result = await _dungeonSessionService.EnterDungeon(profileId, dungeonId, request?.PartyMembers);
                 return Ok(new ApiResponse<EnterDungeonResponseDto>
                 {
                     Success = true,

@@ -18,5 +18,6 @@ namespace DAL.Repositories.Interfaces
         Task<List<PlayerProfile>> Search(string? keyword = null, string? playerClass = null);
         Task<int> GetTotalPlayerProfilesCount();
         Task<(int TotalCount, List<PlayerProfile> Items)> GetProfilesPaged(int page, int pageSize, string? search, int? level);
+        Task<List<PlayerProfile>> GetFriends(int playerProfileId);
     }
 }

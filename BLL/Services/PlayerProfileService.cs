@@ -321,5 +321,11 @@ namespace BLL.Services
                 } : null
             };
         }
+
+        public async Task<List<PlayerProfileResponseDto>> GetFriends(int playerProfileId)
+        {
+            var friends = await _repository.GetFriends(playerProfileId);
+            return friends.Select(MapToResponseDto).ToList();
+        }
     }
 }

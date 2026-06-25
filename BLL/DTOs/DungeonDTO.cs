@@ -54,6 +54,11 @@ namespace BLL.DTOs
 
     // ============ Dungeon Session ============
 
+    public class EnterDungeonRequestDto
+    {
+        public List<string>? PartyMembers { get; set; }
+    }
+
     /// <summary>Returned after successfully entering a dungeon (no energy consumed).</summary>
     public class EnterDungeonResponseDto
     {
@@ -66,6 +71,7 @@ namespace BLL.DTOs
         public DateTime EnterTime { get; set; }
         /// <summary>Always "Active" on enter.</summary>
         public string Status { get; set; } = "Active";
+        public List<string> PartyMembers { get; set; } = new();
     }
 
     // ============ Dungeon Progress ============
