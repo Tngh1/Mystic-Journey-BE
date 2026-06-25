@@ -34,7 +34,7 @@ namespace BLL.Services
 
         // ── 1. Enter Dungeon ─────────────────────────────────────────────────────────
 
-        public async Task<EnterDungeonResponseDto> EnterDungeon(int playerProfileId, int dungeonConfigId)
+        public async Task<EnterDungeonResponseDto> EnterDungeon(int playerProfileId, int dungeonConfigId, List<string>? partyMembers = null)
         {
             // BR-01: Character must exist
             var profile = await _profileRepository.GetPlayerProfileById(playerProfileId)
@@ -53,6 +53,11 @@ namespace BLL.Services
                 throw new InvalidOperationException(
                     $"Insufficient energy. Required: {dungeon.EnergyCost}, Current: {profile.CurrentEnergy}.");
 
+            // Validate party data - total party members (including host) must not exceed MaxMembers
+            int totalMembersCount = 1 + (partyMembers?.Count ?? 0);
+            if (totalMembersCount > dungeon.MaxMembers)
+                throw new InvalidOperationException($"Party exceeds maximum allowed size of {dungeon.MaxMembers}.");
+
             // Prevent duplicate concurrent active sessions for the same dungeon
             var existing = await _sessionRepository.GetActiveSession(playerProfileId, dungeonConfigId);
             if (existing != null)
@@ -66,7 +71,8 @@ namespace BLL.Services
                 DungeonConfigId = dungeonConfigId,
                 EnterTime = DateTime.UtcNow,
                 Status = "Active",
-                IsRewardClaimed = false
+                IsRewardClaimed = false,
+                PartyMembers = partyMembers != null ? string.Join(",", partyMembers) : string.Empty
             };
             await _sessionRepository.Create(session);
 
@@ -89,7 +95,8 @@ namespace BLL.Services
                 EnergyCost = dungeon.EnergyCost,
                 PlayerCurrentEnergy = profile.CurrentEnergy,
                 EnterTime = session.EnterTime,
-                Status = session.Status
+                Status = session.Status,
+                PartyMembers = partyMembers ?? new List<string>()
             };
         }
 

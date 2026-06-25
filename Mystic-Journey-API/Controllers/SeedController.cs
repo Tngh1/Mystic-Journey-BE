@@ -250,7 +250,34 @@ namespace Mystic_Journey_API.Controllers
                 const string TEST_EMAIL    = "testplayer@mystic.test";
                 const string TEST_USERNAME = "testplayer";
 
-                // Xoá nếu đã tồn tại
+                // Clean up any existing friend relationships first
+                _ctx.Friends.RemoveRange(_ctx.Friends);
+                await _ctx.SaveChangesAsync();
+
+                // Xoá friend accounts nếu đã tồn tại
+                var friendEmails = new[] { "friend1@mystic.test", "friend2@mystic.test", "friend3@mystic.test" };
+                var existingFriends = await _ctx.Accounts
+                    .Include(a => a.PlayerProfile)
+                    .Where(a => friendEmails.Contains(a.Email))
+                    .ToListAsync();
+                foreach (var acc in existingFriends)
+                {
+                    var pp = acc.PlayerProfile;
+                    if (pp != null)
+                    {
+                        _ctx.InventoryItems.RemoveRange(_ctx.InventoryItems.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        await _ctx.SaveChangesAsync();
+                        _ctx.PlayerProfiles.Remove(pp);
+                    }
+                    _ctx.Accounts.Remove(acc);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // Xoá nếu đã tồn tại testplayer
                 var existingAcc = await _ctx.Accounts
                     .Include(a => a.PlayerProfile)
                     .FirstOrDefaultAsync(a => a.Email == TEST_EMAIL);
@@ -312,9 +339,31 @@ namespace Mystic_Journey_API.Controllers
                 _ctx.PlayerProfiles.Add(profile);
                 await _ctx.SaveChangesAsync();
 
-                int pid = profile.PlayerProfileId;
+                 int pid = profile.PlayerProfileId;
 
-                // Tạo PlayerStats (base stats lv 3)
+                 // Tạo friend accounts
+                 var f1Account = new Account { UserName = "friend1", Email = "friend1@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
+                 var f2Account = new Account { UserName = "friend2", Email = "friend2@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
+                 var f3Account = new Account { UserName = "friend3", Email = "friend3@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
+                 _ctx.Accounts.AddRange(f1Account, f2Account, f3Account);
+                 await _ctx.SaveChangesAsync();
+
+                 // Tạo friend profiles
+                 var f1Profile = new PlayerProfile { AccountId = f1Account.AccountId, DisplayName = "Arthur", Class = "Knight", Level = 10, Gold = 1000, Gems = 100, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
+                 var f2Profile = new PlayerProfile { AccountId = f2Account.AccountId, DisplayName = "Gwen", Class = "Archer", Level = 12, Gold = 1200, Gems = 150, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
+                 var f3Profile = new PlayerProfile { AccountId = f3Account.AccountId, DisplayName = "Merlin", Class = "Mage", Level = 15, Gold = 2000, Gems = 200, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
+                 _ctx.PlayerProfiles.AddRange(f1Profile, f2Profile, f3Profile);
+                 await _ctx.SaveChangesAsync();
+
+                 // Thiết lập quan hệ bạn bè (Accepted) với testplayer
+                 _ctx.Friends.AddRange(
+                     new Friend { RequesterId = pid, AddresseeId = f1Profile.PlayerProfileId, Status = "Accepted", CreatedAt = DateTime.UtcNow },
+                     new Friend { RequesterId = pid, AddresseeId = f2Profile.PlayerProfileId, Status = "Accepted", CreatedAt = DateTime.UtcNow },
+                     new Friend { RequesterId = f3Profile.PlayerProfileId, AddresseeId = pid, Status = "Accepted", CreatedAt = DateTime.UtcNow }
+                 );
+                 await _ctx.SaveChangesAsync();
+
+                 // Tạo PlayerStats (base stats lv 3)
                 _ctx.PlayerStats.Add(new PlayerStat
                 {
                     PlayerProfileId = pid,
