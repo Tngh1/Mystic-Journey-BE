@@ -723,7 +723,13 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
 
                 // 2. Upsert skins, same reason as items: player skin ownership can reference them.
-                var skinNames = new[] { "[ELF] ElfForest Default", "[ELF] Ranger Cloak" };
+                var skinNames = new[] { 
+                    "[ELF] ElfForest Default", 
+                    "[ELF] Ranger Cloak",
+                    "[ELF] Elven Blade",
+                    "[ELF] Leaf Crown",
+                    "[ELF] Guardian Plate"
+                };
                 var existingSkins = await _ctx.Skins
                     .Where(s => skinNames.Contains(s.Name))
                     .ToListAsync();
@@ -747,6 +753,9 @@ namespace Mystic_Journey_API.Controllers
 
                 var skinDefault = UpsertSkin("[ELF] ElfForest Default", "Default outfit for the ElfForest tutorial area.", "FullSet", "Common");
                 var skinAlt = UpsertSkin("[ELF] Ranger Cloak", "A cloak worn by forest rangers.", "Cloak", "Rare");
+                var skinSword = UpsertSkin("[ELF] Elven Blade", "A beautiful blade glowing with forest magic.", "Weapon", "Epic");
+                var skinHelm = UpsertSkin("[ELF] Leaf Crown", "A crown made of mystical leaves.", "Helmet", "Uncommon");
+                var skinArmor = UpsertSkin("[ELF] Guardian Plate", "Sturdy plate armor worn by the forest guardians.", "Armor", "Rare");
                 await _ctx.SaveChangesAsync();
 
                 // 3. Reset ElfForest quests and dependent records in FK-safe order.
