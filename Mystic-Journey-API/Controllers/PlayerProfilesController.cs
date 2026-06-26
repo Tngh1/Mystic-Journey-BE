@@ -4,6 +4,7 @@ using DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mystic_Journey_API.Extensions;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -13,13 +14,16 @@ namespace Mystic_Journey_API.Controllers
     public class PlayerProfilesController : ControllerBase
     {
         private readonly IPlayerProfileService _playerProfileService;
+        private readonly IMailService _mailService;
         private readonly IAuthRepository _authRepository;
 
         public PlayerProfilesController(
             IPlayerProfileService playerProfileService,
+            IMailService mailService,
             IAuthRepository authRepository)
         {
             _playerProfileService = playerProfileService;
+            _mailService = mailService;
             _authRepository = authRepository;
         }
 
@@ -117,6 +121,18 @@ namespace Mystic_Journey_API.Controllers
 
             var result = await _playerProfileService.GetFriends(playerProfileId);
             return Ok(new ApiResponse<List<PlayerProfileResponseDto>> { Success = true, Data = result });
+        }
+
+        [Authorize]
+        [HttpGet("me/mails")]
+        public async Task<IActionResult> GetMyMails()
+        {
+            var playerProfileId = await GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var result = await _mailService.GetMeMails(playerProfileId);
+            return Ok(new ApiResponse<PlayerMeMailsResponseDto> { Success = true, Data = result });
         }
     }
 }

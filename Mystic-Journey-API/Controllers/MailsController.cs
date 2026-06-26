@@ -118,16 +118,5 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PagedResultDto<MailResponseDto>> { Success = true, Data = result });
         }
 
-        [Authorize]
-        [HttpGet("me")]
-        public async Task<IActionResult> GetMyMails()
-        {
-            var playerProfileId = await GetCurrentPlayerProfileId();
-            if (playerProfileId == 0)
-                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
-
-            var result = await _mailService.GetMeMails(playerProfileId);
-            return Ok(new ApiResponse<PlayerMeMailsResponseDto> { Success = true, Data = result });
-        }
     }
 }
