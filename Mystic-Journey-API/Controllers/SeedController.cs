@@ -1313,6 +1313,9 @@ namespace Mystic_Journey_API.Controllers
                     await _ctx.SaveChangesAsync();
 
                     // Unlock 3 skills rewarded from the Gather White Flowers quest
+                    // [DA UPDATE] Đã comment đoạn này lại để testplayer KHÔNG có sẵn skill,
+                    // giúp test tính năng: Làm xong Quest nhận thưởng mới được mở khóa skill.
+                    /*
                     foreach (var skill in new[] { tutorialSkill, tutorialSkill2, tutorialSkill3 })
                     {
                         var alreadyHas = await _ctx.PlayerSkills.AnyAsync(
@@ -1331,6 +1334,7 @@ namespace Mystic_Journey_API.Controllers
                         }
                     }
                     await _ctx.SaveChangesAsync();
+                    */
 
                     return pid;
                 }
@@ -1564,12 +1568,42 @@ namespace Mystic_Journey_API.Controllers
 
                 await _ctx.SaveChangesAsync();
 
-                // Setup Dungeon
-                var dungeon = await _ctx.Dungeons.FirstOrDefaultAsync(d => d.Name == "Goblin Dungeon");
+                // Setup DungeonConfig
+                var dungeonConfig = await _ctx.DungeonConfigs.FirstOrDefaultAsync(d => d.Name == "Abandoned Mines" || d.Name == "Goblin Dungeon");
+                if (dungeonConfig == null)
+                {
+                    dungeonConfig = new DungeonConfig 
+                    { 
+                        Name = "Abandoned Mines", 
+                        Description = "A dark dungeon filled with goblins and skeletons.", 
+                        LevelRequirement = 5,
+                        EnergyCost = 20,
+                        Type = "Normal",
+                        IsActive = true
+                    };
+                    _ctx.DungeonConfigs.Add(dungeonConfig);
+                    await _ctx.SaveChangesAsync();
+                }
+                else
+                {
+                    dungeonConfig.Name = "Abandoned Mines";
+                    dungeonConfig.EnergyCost = 20;
+                    _ctx.DungeonConfigs.Update(dungeonConfig);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // Setup Dungeon (for Monster Spawns)
+                var dungeon = await _ctx.Dungeons.FirstOrDefaultAsync(d => d.Name == "Goblin Dungeon" || d.Name == "Abandoned Mines");
                 if (dungeon == null)
                 {
-                    dungeon = new Dungeon { Name = "Goblin Dungeon", Description = "A dark dungeon filled with goblins and skeletons.", IsRepeatable = true };
+                    dungeon = new Dungeon { Name = "Abandoned Mines", Description = "A dark dungeon filled with goblins and skeletons.", IsRepeatable = true };
                     _ctx.Dungeons.Add(dungeon);
+                    await _ctx.SaveChangesAsync();
+                }
+                else
+                {
+                    dungeon.Name = "Abandoned Mines";
+                    _ctx.Dungeons.Update(dungeon);
                     await _ctx.SaveChangesAsync();
                 }
 

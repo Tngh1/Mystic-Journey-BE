@@ -248,6 +248,20 @@ namespace BLL.Services
                     await _inventoryRepository.UpdateItem(inv);
                 }
 
+                // Apply consumable effects (e.g., Health Potion)
+                if (inv.Item != null && inv.Item.Name != null && inv.Item.Name.Contains("Health Potion", StringComparison.OrdinalIgnoreCase))
+                {
+                    var stat = await _context.PlayerStats.FirstOrDefaultAsync(s => s.PlayerProfileId == actorPlayerProfileId);
+                    if (stat != null)
+                    {
+                        int healAmount = 150 * request.Quantity;
+                        stat.CurrentHp = Math.Min(stat.CurrentHp + healAmount, stat.MaxHp);
+                        stat.UpdatedAt = DateTime.UtcNow;
+                        _context.PlayerStats.Update(stat);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
                 await tx.CommitAsync();
             }
             catch
