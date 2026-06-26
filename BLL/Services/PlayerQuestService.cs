@@ -183,7 +183,7 @@ namespace BLL.Services
 
             var questIds = request.Updates.Select(u => u.QuestId).Distinct().ToList();
             var existingList = await _playerQuestRepo.GetByPlayerAndQuestIds(playerProfileId, questIds);
-            var existingMap = existingList.ToDictionary(pq => pq.QuestId);
+            var existingMap = existingList.GroupBy(pq => pq.QuestId).ToDictionary(g => g.Key, g => g.First());
 
             var toUpdate = new List<PlayerQuest>();
             var results = new List<PlayerQuestResponseDto>();
@@ -251,6 +251,7 @@ namespace BLL.Services
 
             await _playerProfileRepo.UpdatePlayerProfile(profile);
 
+            // Quest items are now consumed in CompleteQuest
             if (quest.RewardItemId.HasValue)
                 await AddItemToInventory(playerProfileId, quest.RewardItemId.Value, 1);
 
@@ -271,11 +272,10 @@ namespace BLL.Services
                 owned.Add(newPlayerSkill);
             }
 
-            // Tutorial Gather White Flowers: Grant all available skills in the DB 
-            // so that the player can see them in the UI (since UI filters by Class/ID).
+            // [HACK] Tutorial: Nhận đủ 3 skill cơ bản khi xong Quest Hái Hoa
             if (quest.Title != null && quest.Title.Contains("Gather White Flowers", StringComparison.OrdinalIgnoreCase))
             {
-                var allSkills = await _skillRepo.GetAllSkillsAsync(); // Cần có hàm này, nếu chưa có thì dùng LINQ
+                var allSkills = await _skillRepo.GetAllSkillsAsync();
                 if (allSkills != null)
                 {
                     foreach (var skill in allSkills)
@@ -321,12 +321,65 @@ namespace BLL.Services
             if (!canComplete)
                 throw new InvalidOperationException("Quest objective is not complete yet.");
 
+            await ConsumeQuestTurnInItemsIfNeeded(playerProfileId, pq.Quest);
+
             pq.Progress = targetAmount;
             pq.Status = "Completed";
             pq.CompletedAt ??= DateTime.UtcNow;
 
+            // Quest turn-in items, if any, were consumed before marking the quest complete.
             var updated = await _playerQuestRepo.Update(pq);
             return MapToDto(updated);
+        }
+
+        private async Task ConsumeQuestTurnInItemsIfNeeded(int playerProfileId, Quest? quest)
+        {
+            var requirement = ResolveQuestTurnInRequirement(quest);
+            if (requirement == null)
+                return;
+
+            var (itemName, quantity) = requirement.Value;
+            var invItems = await _inventoryRepo.GetByPlayerId(playerProfileId);
+            var targetItem = invItems.FirstOrDefault(i =>
+                i.Item != null &&
+                string.Equals(i.Item.Type, "QuestItem", StringComparison.OrdinalIgnoreCase) &&
+                Contains(i.Item.Name, itemName));
+
+            var available = targetItem?.Quantity ?? 0;
+            var consumedQuantity = Math.Min(available, quantity);
+            if (targetItem == null || consumedQuantity <= 0)
+                return;
+
+            if (targetItem.Quantity <= consumedQuantity)
+                await _inventoryRepo.DeleteItem(targetItem.InventoryItemId);
+            else
+            {
+                targetItem.Quantity -= consumedQuantity;
+                await _inventoryRepo.UpdateItem(targetItem);
+            }
+        }
+
+        private static (string itemName, int quantity)? ResolveQuestTurnInRequirement(Quest? quest)
+        {
+            var text = $"{quest?.Title} {quest?.Description} {quest?.ObjectiveTarget} {quest?.ObjectiveLocation}";
+            var isTurnInQuest = Contains(text, "Report") || Contains(text, "Return") || Contains(text, "Hand over") || Contains(text, "Handed over");
+            if (!isTurnInQuest)
+                return null;
+
+            if (Contains(text, "White Flower") || Contains(text, "White Flowers"))
+                return ("White Flower", 3);
+
+            if (Contains(text, "Old Willow Branch") || Contains(text, "Willow Branch"))
+                return ("Old Willow Branch", Math.Max(1, quest?.TargetAmount ?? 1));
+
+            return null;
+        }
+
+        private static bool Contains(string? source, string value)
+        {
+            return !string.IsNullOrWhiteSpace(source) &&
+                   !string.IsNullOrWhiteSpace(value) &&
+                   source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
@@ -420,6 +473,7 @@ namespace BLL.Services
 
         private static bool IsTalkQuest(Quest? quest)
             => string.Equals(quest?.ObjectiveType, "Talk", StringComparison.OrdinalIgnoreCase);
+
 
         private static bool IsEquipSkillQuest(Quest? quest)
             => string.Equals(quest?.ObjectiveType, "EquipSkill", StringComparison.OrdinalIgnoreCase);

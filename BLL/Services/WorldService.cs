@@ -251,6 +251,21 @@ namespace BLL.Services
                 };
             }
 
+            if (playerQuest.Status == "Completed")
+            {
+                var completedQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
+                return new TurnInQuestItemResponseDto
+                {
+                    Success = true,
+                    Message = "Quest item already handed over.",
+                    Quest = completedQuest,
+                    ConsumedQuantity = 0
+                };
+            }
+
+            if (playerQuest.Status != "InProgress")
+                throw new InvalidOperationException($"Quest {request.QuestId} is not in progress (status={playerQuest.Status}).");
+
             var targetAmount = Math.Max(1, playerQuest.Quest?.TargetAmount ?? playerQuest.TargetValue);
             var item = await ResolveQuestItem(
                 new InteractObjectRequestDto
@@ -293,19 +308,15 @@ namespace BLL.Services
                         _context.InventoryItems.Update(inventoryItem);
                 }
 
+                playerQuest.TargetValue = targetAmount;
+                playerQuest.Progress = targetAmount;
+                playerQuest.Status = "Completed";
+                playerQuest.CompletedAt ??= DateTime.UtcNow;
+                _context.PlayerQuests.Update(playerQuest);
+
                 await _context.SaveChangesAsync();
 
-                PlayerQuestResponseDto? completedQuest;
-                if (playerQuest.Status == "Completed")
-                {
-                    completedQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
-                }
-                else
-                {
-                    completedQuest = await _playerQuestService.CompleteQuest(
-                        playerProfileId,
-                        new CompleteQuestRequestDto { QuestId = request.QuestId });
-                }
+                var completedQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
 
                 await tx.CommitAsync();
                 return new TurnInQuestItemResponseDto
