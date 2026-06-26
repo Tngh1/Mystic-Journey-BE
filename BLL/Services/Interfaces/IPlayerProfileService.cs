@@ -14,5 +14,6 @@ namespace BLL.Services.Interfaces
         Task<PlayerMeSkillsResponseDto> GetMeSkills(int playerProfileId);
         Task<PlayerMeQuestsResponseDto> GetMeQuests(int playerProfileId);
         Task<PlayerMeAchievementsResponseDto> GetMeAchievements(int playerProfileId);
+        Task<List<PlayerProfileResponseDto>> GetFriends(int playerProfileId);
     }
 }

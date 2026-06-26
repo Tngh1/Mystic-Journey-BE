@@ -130,5 +130,16 @@ namespace DAL.Repositories
 
             return (totalCount, items);
         }
+
+        public async Task<List<PlayerProfile>> GetFriends(int playerProfileId)
+        {
+            return await _context.Friends
+                .Where(f => (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) && f.Status == "Accepted")
+                .Include(f => f.Requester)
+                .Include(f => f.Addressee)
+                .Select(f => f.RequesterId == playerProfileId ? f.Addressee! : f.Requester!)
+                .Where(p => p != null)
+                .ToListAsync();
+        }
     }
 }

@@ -106,5 +106,17 @@ namespace Mystic_Journey_API.Controllers
             var result = await _playerProfileService.GetMeAchievements(playerProfileId);
             return Ok(new ApiResponse<PlayerMeAchievementsResponseDto> { Success = true, Data = result });
         }
+
+        [Authorize]
+        [HttpGet("me/friends")]
+        public async Task<IActionResult> GetMyFriends()
+        {
+            var playerProfileId = await GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var result = await _playerProfileService.GetFriends(playerProfileId);
+            return Ok(new ApiResponse<List<PlayerProfileResponseDto>> { Success = true, Data = result });
+        }
     }
 }
