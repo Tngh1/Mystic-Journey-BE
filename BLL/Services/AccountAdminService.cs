@@ -1,3 +1,4 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
@@ -9,10 +10,12 @@ namespace BLL.Services
     public class AccountAdminService : IAccountAdminService
     {
         private readonly IAuthRepository _authRepository;
+        private readonly IMapper _mapper;
 
-        public AccountAdminService(IAuthRepository authRepository)
+        public AccountAdminService(IAuthRepository authRepository, IMapper mapper)
         {
             _authRepository = authRepository;
+            _mapper = mapper;
         }
 
         public async Task<AccountAdminResponseDto?> GetAccountById(int id)
@@ -21,7 +24,7 @@ namespace BLL.Services
             if (account == null)
                 return null;
 
-            return MapToResponseDto(account);
+            return _mapper.Map<AccountAdminResponseDto>(account);
         }
 
         public async Task<AccountAdminResponseDto> CreateAccount(CreateAccountAdminRequestDto request)
@@ -65,7 +68,7 @@ namespace BLL.Services
             await _authRepository.CreateAccount(account);
 
             var created = await _authRepository.GetAccountById(account.AccountId);
-            return MapToResponseDto(created!);
+            return _mapper.Map<AccountAdminResponseDto>(created!);
         }
 
         public async Task<AccountAdminResponseDto> UpdateAccount(int id, UpdateAccountAdminRequestDto request)
@@ -105,14 +108,14 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.UtcNow;
             await _authRepository.UpdateAccount(account);
 
-            return MapToResponseDto(account);
+            return _mapper.Map<AccountAdminResponseDto>(account);
         }
 
         public async Task<PagedResultDto<AccountAdminResponseDto>> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName)
         {
             var (totalCount, items) = await _authRepository.GetAccountsPaged(page, pageSize, search, isActive, roleName);
 
-            var dtos = items.Select(MapToResponseDto).ToList();
+            var dtos = _mapper.Map<List<AccountAdminResponseDto>>(items);
             return new PagedResultDto<AccountAdminResponseDto>(totalCount, dtos);
         }
 
@@ -123,7 +126,7 @@ namespace BLL.Services
             account.IsActive = false;
             account.UpdatedAt = DateTime.UtcNow;
             await _authRepository.UpdateAccount(account);
-            return MapToResponseDto(account);
+            return _mapper.Map<AccountAdminResponseDto>(account);
         }
 
         public async Task<AccountAdminResponseDto> UnbanAccount(int accountId)
@@ -133,23 +136,9 @@ namespace BLL.Services
             account.IsActive = true;
             account.UpdatedAt = DateTime.UtcNow;
             await _authRepository.UpdateAccount(account);
-            return MapToResponseDto(account);
+            return _mapper.Map<AccountAdminResponseDto>(account);
         }
 
-        private static AccountAdminResponseDto MapToResponseDto(Account account)
-        {
-            return new AccountAdminResponseDto
-            {
-                AccountId = account.AccountId,
-                UserName = account.UserName,
-                Email = account.Email,
-                RoleName = account.Role?.Name ?? "Unknown",
-                IsActive = account.IsActive,
-                CreatedAt = account.CreatedAt,
-                LastLogin = account.LastLogin,
-                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
-                PlayerDisplayName = account.PlayerProfile?.DisplayName
-            };
-        }
+
     }
 }

@@ -109,4 +109,12 @@ namespace BLL.DTOs
         public InventoryItemResponseDto? Item { get; set; }
         public PlayerStatsResponseDto? PlayerStats { get; set; }
     }
+
+    // ============ Player Me Inventory (GET /api/inventory/me/full) ============
+    public class PlayerMeInventoryResponseDto
+    {
+        public int PlayerProfileId { get; set; }
+        public List<InventoryItemResponseDto> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+    }
 }

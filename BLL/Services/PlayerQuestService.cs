@@ -1,3 +1,4 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
@@ -20,18 +21,22 @@ namespace BLL.Services
         // Anti-cheat: max progress delta per batch call.
         private const int MaxProgressDeltaPerCall = 50;
 
+        private readonly IMapper _mapper;
+
         public PlayerQuestService(
             IPlayerQuestRepository playerQuestRepo,
             IPlayerProfileRepository playerProfileRepo,
             IQuestRepository questRepo,
             IInventoryRepository inventoryRepo,
-            ISkillRepository skillRepo)
+            ISkillRepository skillRepo,
+            IMapper mapper)
         {
             _playerQuestRepo = playerQuestRepo;
             _playerProfileRepo = playerProfileRepo;
             _questRepo = questRepo;
             _inventoryRepo = inventoryRepo;
             _skillRepo = skillRepo;
+            _mapper = mapper;
         }
 
         public async Task<List<PlayerQuestResponseDto>> GetMyQuests(int playerProfileId)
@@ -107,13 +112,14 @@ namespace BLL.Services
                 !IsMainQuest(pq.Quest) &&
                 (pq.Quest == null || pq.Quest.RequiredLevel <= profile.Level || !IsStatus(pq, "NotStarted"))));
 
-            return visible
+            var sortedVisible = visible
                 .GroupBy(pq => pq.QuestId)
                 .Select(g => g.First())
                 .OrderBy(pq => pq.Quest?.RequiredLevel ?? 1)
                 .ThenBy(pq => pq.QuestId)
-                .Select(MapToDto)
                 .ToList();
+
+            return _mapper.Map<List<PlayerQuestResponseDto>>(sortedVisible);
         }
 
         public async Task<PlayerQuestResponseDto?> GetMyQuestDetail(int playerProfileId, int questId)
@@ -160,7 +166,7 @@ namespace BLL.Services
                 if (IsStatus(existing, "InProgress"))
                     existing = await CompleteQuestIfAlreadySatisfied(playerProfileId, existing);
 
-                return MapToDto(existing);
+                return _mapper.Map<PlayerQuestResponseDto>(existing);
             }
 
             var playerQuest = CreateInitialQuestRecord(playerProfileId, quest);
@@ -171,7 +177,7 @@ namespace BLL.Services
             var created = await _playerQuestRepo.Create(playerQuest);
             created.Quest = quest;
             created = await CompleteQuestIfAlreadySatisfied(playerProfileId, created);
-            return MapToDto(created);
+            return _mapper.Map<PlayerQuestResponseDto>(created);
         }
 
         public async Task<List<PlayerQuestResponseDto>> BatchUpdateProgress(
@@ -217,7 +223,7 @@ namespace BLL.Services
                 }
 
                 toUpdate.Add(pq);
-                results.Add(MapToDto(pq));
+                results.Add(_mapper.Map<PlayerQuestResponseDto>(pq));
             }
 
             if (toUpdate.Count > 0)
@@ -297,7 +303,7 @@ namespace BLL.Services
                 }
             }
 
-            return MapToDto(pq);
+            return _mapper.Map<PlayerQuestResponseDto>(pq);
         }
 
         public async Task<PlayerQuestResponseDto> CompleteQuest(int playerProfileId, CompleteQuestRequestDto request)
@@ -306,7 +312,7 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
 
             if (pq.Status == "Claimed" || pq.Status == "Completed")
-                return MapToDto(pq);
+                return _mapper.Map<PlayerQuestResponseDto>(pq);
 
             if (pq.Status != "InProgress")
                 throw new InvalidOperationException($"Quest {request.QuestId} is not in progress.");
@@ -329,7 +335,7 @@ namespace BLL.Services
 
             // Quest turn-in items, if any, were consumed before marking the quest complete.
             var updated = await _playerQuestRepo.Update(pq);
-            return MapToDto(updated);
+            return _mapper.Map<PlayerQuestResponseDto>(updated);
         }
 
         private async Task ConsumeQuestTurnInItemsIfNeeded(int playerProfileId, Quest? quest)
@@ -503,35 +509,6 @@ namespace BLL.Services
         private static int RequiredTotalExperienceForLevel(int level)
             => Math.Max(0, (level - 1) * 100);
 
-        private static PlayerQuestResponseDto MapToDto(PlayerQuest pq) => new()
-        {
-            PlayerQuestId = pq.PlayerQuestId,
-            PlayerProfileId = pq.PlayerProfileId,
-            QuestId = pq.QuestId,
-            QuestTitle = pq.Quest?.Title ?? string.Empty,
-            QuestDescription = pq.Quest?.Description,
-            QuestType = pq.Quest?.Type ?? "Main",
-            MapName = pq.Quest?.MapName ?? "ElfForest",
-            RegionName = pq.Quest?.RegionName,
-            ObjectiveType = pq.Quest?.ObjectiveType ?? "Explore",
-            ObjectiveTarget = pq.Quest?.ObjectiveTarget,
-            ObjectiveLocation = pq.Quest?.ObjectiveLocation,
-            QuestGiverName = pq.Quest?.QuestGiverName,
-            Status = pq.Status,
-            Progress = pq.Progress,
-            TargetValue = Math.Max(1, pq.TargetValue),
-            TargetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue),
-            RequiredLevel = pq.Quest?.RequiredLevel ?? 1,
-            RewardExperience = pq.Quest?.RewardExperience ?? 0,
-            RewardGold = pq.Quest?.RewardGold ?? 0,
-            RewardGems = pq.Quest?.RewardGems ?? 0,
-            RewardItemId = pq.Quest?.RewardItemId,
-            RewardItemName = pq.Quest?.RewardItem?.Name,
-            RewardSkillId = pq.Quest?.RewardSkillId,
-            RewardSkillName = pq.Quest?.RewardSkill?.Name,
-            AcceptedAt = pq.AcceptedAt,
-            CompletedAt = pq.CompletedAt,
-            ClaimedAt = pq.ClaimedAt,
-        };
+
     }
 }

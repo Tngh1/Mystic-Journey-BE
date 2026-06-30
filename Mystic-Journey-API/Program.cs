@@ -23,6 +23,9 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
+// Transaction Manager
+builder.Services.AddScoped<ITransactionManager, TransactionManager>();
+
 // Auth Services
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -57,6 +60,7 @@ builder.Services.AddScoped<IQuestRepository, QuestRepository>();
 builder.Services.AddScoped<IQuestService, QuestService>();
 builder.Services.AddScoped<IPlayerQuestRepository, PlayerQuestRepository>();
 builder.Services.AddScoped<IPlayerQuestService, PlayerQuestService>();
+builder.Services.AddScoped<IWorldRepository, WorldRepository>();
 builder.Services.AddScoped<IWorldService, WorldService>();
 
 // Achievement Services
@@ -86,6 +90,7 @@ builder.Services.AddScoped<ISkillService, SkillService>();
 // PlayerProfile Services
 builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
 builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
+builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 
 // Character Services
 builder.Services.AddScoped<IPlayerStatRepository, PlayerStatRepository>();
@@ -98,7 +103,11 @@ builder.Services.AddScoped<IAccountAdminService, AccountAdminService>();
 builder.Services.AddScoped<IPlayerAchievementRepository, PlayerAchievementRepository>();
 
 // Purchase History Services
+builder.Services.AddScoped<IPurchaseHistoryRepository, PurchaseHistoryRepository>();
 builder.Services.AddScoped<IPurchaseHistoryService, PurchaseHistoryService>();
+
+// Sale Services
+builder.Services.AddScoped<ISaleService, SaleService>();
 
 // Dashboard Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();

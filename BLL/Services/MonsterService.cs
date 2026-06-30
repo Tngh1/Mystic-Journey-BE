@@ -5,7 +5,6 @@ using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 
@@ -15,19 +14,25 @@ namespace BLL.Services
     {
         private readonly IMonsterRepository _repository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
-        private readonly MysticJourneyDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ITransactionManager _transactionManager;
+        private readonly IDungeonConfigRepository _dungeonConfigRepository;
+        private readonly IInventoryRepository _inventoryRepository;
 
         public MonsterService(
             IMonsterRepository repository,
             IPlayerProfileRepository playerProfileRepository,
-            MysticJourneyDbContext context,
-            IMapper mapper)
+            IMapper mapper,
+            ITransactionManager transactionManager,
+            IDungeonConfigRepository dungeonConfigRepository,
+            IInventoryRepository inventoryRepository)
         {
             _repository = repository;
             _playerProfileRepository = playerProfileRepository;
-            _context = context;
             _mapper = mapper;
+            _transactionManager = transactionManager;
+            _dungeonConfigRepository = dungeonConfigRepository;
+            _inventoryRepository = inventoryRepository;
         }
 
         public async Task<MonsterDetailResponseDto?> GetMonsterById(int id)
@@ -40,21 +45,7 @@ namespace BLL.Services
 
             if (monster.MonsterDrops != null && monster.MonsterDrops.Any())
             {
-                dto.MonsterDrops = monster.MonsterDrops
-                    .Where(d => d.IsActive)
-                    .Select(d => new MonsterDropResponseDto
-                    {
-                        MonsterDropId = d.MonsterDropId,
-                        MonsterId = d.MonsterId,
-                        ItemId = d.ItemId,
-                        ItemName = d.Item?.Name,
-                        DropRate = d.DropRate,
-                        MinQuantity = d.MinQuantity,
-                        MaxQuantity = d.MaxQuantity,
-                        IsGuaranteed = d.IsGuaranteed,
-                        IsActive = d.IsActive
-                    })
-                    .ToList();
+                dto.MonsterDrops = _mapper.Map<List<MonsterDropResponseDto>>(monster.MonsterDrops.Where(d => d.IsActive));
             }
 
             return dto;
@@ -112,17 +103,7 @@ namespace BLL.Services
 
             var created = await _repository.CreateDrop(drop);
 
-            return new MonsterDropResponseDto
-            {
-                MonsterDropId = created.MonsterDropId,
-                MonsterId = created.MonsterId,
-                ItemId = created.ItemId,
-                DropRate = created.DropRate,
-                MinQuantity = created.MinQuantity,
-                MaxQuantity = created.MaxQuantity,
-                IsGuaranteed = created.IsGuaranteed,
-                IsActive = created.IsActive
-            };
+            return _mapper.Map<MonsterDropResponseDto>(created);
         }
 
         public async Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
@@ -136,18 +117,7 @@ namespace BLL.Services
         {
             var (totalCount, items) = await _repository.GetMonsterDropsPaged(page, pageSize);
 
-            var dtos = items.Select(d => new MonsterDropResponseDto
-            {
-                MonsterDropId = d.MonsterDropId,
-                MonsterId = d.MonsterId,
-                ItemId = d.ItemId,
-                ItemName = d.Item?.Name,
-                DropRate = d.DropRate,
-                MinQuantity = d.MinQuantity,
-                MaxQuantity = d.MaxQuantity,
-                IsGuaranteed = d.IsGuaranteed,
-                IsActive = d.IsActive
-            }).ToList();
+            var dtos = _mapper.Map<List<MonsterDropResponseDto>>(items);
 
             return new PagedResultDto<MonsterDropResponseDto>(totalCount, dtos);
         }
@@ -193,21 +163,7 @@ namespace BLL.Services
             // Otherwise return full detail including drops
             if (monster.MonsterDrops != null && monster.MonsterDrops.Any())
             {
-                dto.MonsterDrops = monster.MonsterDrops
-                    .Where(d => d.IsActive)
-                    .Select(d => new MonsterDropResponseDto
-                    {
-                        MonsterDropId = d.MonsterDropId,
-                        MonsterId = d.MonsterId,
-                        ItemId = d.ItemId,
-                        ItemName = d.Item?.Name,
-                        DropRate = d.DropRate,
-                        MinQuantity = d.MinQuantity,
-                        MaxQuantity = d.MaxQuantity,
-                        IsGuaranteed = d.IsGuaranteed,
-                        IsActive = d.IsActive
-                    })
-                    .ToList();
+                dto.MonsterDrops = _mapper.Map<List<MonsterDropResponseDto>>(monster.MonsterDrops.Where(d => d.IsActive));
             }
 
             return dto;
@@ -218,10 +174,7 @@ namespace BLL.Services
         {
             var (totalCount, monsters) = await _repository.GetMonstersPaged(page, pageSize, search, type, true);
             var discoveredIds = await _repository.GetDiscoveredMonsterIds(playerProfileId);
-            var discoveries = await _context.PlayerMonsterDiscoveries
-                .AsNoTracking()
-                .Where(d => d.PlayerProfileId == playerProfileId)
-                .ToDictionaryAsync(d => d.MonsterId);
+            var discoveries = await _repository.GetPlayerDiscoveriesDict(playerProfileId);
 
             var items = monsters.Select(m =>
             {
@@ -278,7 +231,7 @@ namespace BLL.Services
 
             return spawns
                 .Where(s => s.Monster != null && !suppressedBossIds.Contains(s.MonsterId))
-                .Select(MapSpawn)
+                .Select(s => _mapper.Map<MonsterSpawnResponseDto>(s))
                 .ToList();
         }
 
@@ -289,7 +242,7 @@ namespace BLL.Services
 
             if (request.DungeonId.HasValue)
             {
-                var dungeonExists = await _context.Dungeons.AnyAsync(d => d.DungeonId == request.DungeonId.Value);
+                var dungeonExists = await _dungeonConfigRepository.DungeonExists(request.DungeonId.Value);
                 if (!dungeonExists)
                     throw new KeyNotFoundException($"Dungeon with id {request.DungeonId.Value} not found.");
             }
@@ -308,7 +261,7 @@ namespace BLL.Services
 
             var created = await _repository.CreateSpawn(spawn);
             created.Monster = monster;
-            return MapSpawn(created);
+            return _mapper.Map<MonsterSpawnResponseDto>(created);
         }
 
         public async Task<List<MonsterSpawnResponseDto>> GetSpawnsByMonsterId(int monsterId)
@@ -319,7 +272,7 @@ namespace BLL.Services
             return spawns.Select(s =>
             {
                 s.Monster ??= monster;
-                return MapSpawn(s);
+                return _mapper.Map<MonsterSpawnResponseDto>(s);
             }).ToList();
         }
 
@@ -376,8 +329,7 @@ namespace BLL.Services
             var drops = await _repository.GetActiveDropsByMonsterId(monsterId);
             var rolledItems = RollDrops(drops);
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 profile.ExperiencePoints += monster.ExperienceReward;
                 profile.Gold += monster.GoldReward;
@@ -395,15 +347,8 @@ namespace BLL.Services
                     TimesDefeated = (existingDiscovery?.TimesDefeated ?? 0) + 1
                 });
 
-                _context.PlayerProfiles.Update(profile);
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+                await _playerProfileRepository.UpdatePlayerProfile(profile);
+            });
 
             return new MonsterDefeatResponseDto
             {
@@ -419,46 +364,7 @@ namespace BLL.Services
             };
         }
 
-        private static MonsterSpawnResponseDto MapSpawn(MonsterSpawn spawn)
-        {
-            return new MonsterSpawnResponseDto
-            {
-                MonsterSpawnId = spawn.MonsterSpawnId,
-                MonsterId = spawn.MonsterId,
-                MonsterName = spawn.Monster?.Name ?? string.Empty,
-                MonsterType = spawn.Monster?.Type ?? string.Empty,
-                MapName = spawn.MapName,
-                RegionName = spawn.RegionName,
-                Location = spawn.Location,
-                SpawnCount = spawn.SpawnCount,
-                RespawnSeconds = spawn.RespawnSeconds,
-                DungeonId = spawn.DungeonId,
-                DungeonName = spawn.Dungeon?.Name,
-                IsDungeonRepeatable = spawn.Dungeon?.IsRepeatable ?? true,
-                IsActive = spawn.IsActive,
-                Monster = spawn.Monster == null
-                    ? new MonsterResponseDto()
-                    : new MonsterResponseDto
-                    {
-                        MonsterId = spawn.Monster.MonsterId,
-                        Name = spawn.Monster.Name,
-                        Type = spawn.Monster.Type,
-                        Description = spawn.Monster.Description,
-                        Level = spawn.Monster.Level,
-                        MaxHp = spawn.Monster.MaxHp,
-                        Atk = spawn.Monster.Atk,
-                        Def = spawn.Monster.Def,
-                        MoveSpeed = spawn.Monster.MoveSpeed,
-                        AttackSpeed = spawn.Monster.AttackSpeed,
-                        CritRate = spawn.Monster.CritRate,
-                        CritDamage = spawn.Monster.CritDamage,
-                        ExperienceReward = spawn.Monster.ExperienceReward,
-                        GoldReward = spawn.Monster.GoldReward,
-                        ImageUrl = spawn.Monster.ImageUrl,
-                        IsActive = spawn.Monster.IsActive
-                    }
-            };
-        }
+
 
         private static List<MonsterDroppedItemDto> RollDrops(IEnumerable<MonsterDrop> drops)
         {
@@ -491,17 +397,16 @@ namespace BLL.Services
 
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
         {
-            var existing = await _context.InventoryItems
-                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);
+            var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
 
             if (existing != null)
             {
                 existing.Quantity += quantity;
-                _context.InventoryItems.Update(existing);
+                await _inventoryRepository.UpdateItem(existing);
             }
             else
             {
-                await _context.InventoryItems.AddAsync(new InventoryItem
+                await _inventoryRepository.AddItem(new InventoryItem
                 {
                     PlayerProfileId = playerProfileId,
                     ItemId = itemId,
@@ -511,8 +416,6 @@ namespace BLL.Services
                     EnhancementLevel = 0
                 });
             }
-
-            await _context.SaveChangesAsync();
         }
 
         private static string NormalizeMapName(string? mapName)

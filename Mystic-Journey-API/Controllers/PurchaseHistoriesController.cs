@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý lịch sử mua hàng (purchase histories).
+    // Game APIs: Xem lịch sử mua của player.
+    // Admin APIs: Xem tất cả lịch sử mua.
     [Route("api/[controller]")]
     [ApiController]
     public class PurchaseHistoriesController : ControllerBase
@@ -18,6 +21,12 @@ namespace Mystic_Journey_API.Controllers
             _purchaseHistoryService = purchaseHistoryService;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/purchasehistories/player/{playerProfileId} ────────────
+        // Lấy lịch sử mua của player.
         [Microsoft.AspNetCore.Authorization.Authorize]
         [HttpGet("player/{playerProfileId}")]
         public async Task<IActionResult> GetByPlayerId(int playerProfileId)
@@ -26,6 +35,13 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<List<PurchaseHistoryResponseDto>> { Success = true, Data = result });
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/purchasehistories ────────────────────────────────
+        // Lấy tất cả lịch sử mua có phân trang và lọc.
+        // Query: page, pageSize, search.
         [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)

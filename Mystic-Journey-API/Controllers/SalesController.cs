@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý lịch sử bán (sales).
+    // Game APIs: Xem lịch sử bán của player.
     [Route("api/[controller]")]
     [ApiController]
     public class SalesController : ControllerBase
@@ -18,6 +20,12 @@ namespace Mystic_Journey_API.Controllers
             _saleService = saleService;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/sales/player/{playerProfileId} ─────────────────
+        // Lấy lịch sử bán của player.
         [Authorize]
         [HttpGet("player/{playerProfileId}")]
         public async Task<IActionResult> GetByPlayerId(int playerProfileId)

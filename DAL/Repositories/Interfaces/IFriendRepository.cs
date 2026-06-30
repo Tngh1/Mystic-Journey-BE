@@ -1,22 +1,18 @@
 using DAL.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
 {
-    // Quản lý tiến độ dungeon.
-    // Game APIs: Xem, tạo, cập nhật tiến độ dungeon.
-    public interface IDungeonProgressRepository
+    // Quản lý mối quan hệ kết bạn.
+    // Game APIs: Xem danh sách bạn bè.
+    public interface IFriendRepository
     {
         // ═══════════════════════════════════════════════════════════════════════
         // GAME APIs (Người chơi)
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Lấy bản ghi tiến độ của một phiên chơi, trả về null nếu chưa tồn tại.
-        Task<DungeonProgress?> GetBySessionId(int sessionId);
-
-        // Tạo bản ghi tiến độ dungeon mới.
-        Task<DungeonProgress> Create(DungeonProgress progress);
-
-        // Cập nhật tiến độ dungeon.
-        Task<DungeonProgress> Update(DungeonProgress progress);
+        // Lấy danh sách bạn bè của người chơi (đã chấp nhận lời mời).
+        Task<List<PlayerProfile>> GetFriends(int playerProfileId);
     }
 }

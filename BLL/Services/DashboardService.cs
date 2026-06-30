@@ -14,36 +14,35 @@ namespace BLL.Services
 {
     public class DashboardService : IDashboardService
     {
-        private readonly MysticJourneyDbContext _context;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IAuthRepository _authRepository;
         private readonly IItemRepository _itemRepository;
         private readonly IMonsterRepository _monsterRepository;
+        private readonly IPurchaseHistoryRepository _purchaseHistoryRepository;
 
         public DashboardService(
-            MysticJourneyDbContext context,
             IPlayerProfileRepository playerProfileRepository,
             IAuthRepository authRepository,
             IItemRepository itemRepository,
-            IMonsterRepository monsterRepository)
+            IMonsterRepository monsterRepository,
+            IPurchaseHistoryRepository purchaseHistoryRepository)
         {
-            _context = context;
             _playerProfileRepository = playerProfileRepository;
             _authRepository = authRepository;
             _itemRepository = itemRepository;
             _monsterRepository = monsterRepository;
+            _purchaseHistoryRepository = purchaseHistoryRepository;
         }
 
         public async Task<DashboardStatsDto> GetDashboardStats()
         {
             var totalPlayers = await _playerProfileRepository.GetTotalPlayerProfilesCount();
             var totalAccounts = await _authRepository.GetTotalAccountsCount();
-            var totalItems = await _context.Items.CountAsync();
-            var totalMonsters = await _context.Monsters.CountAsync();
-            var totalTransactions = await _context.PurchaseHistories.CountAsync();
+            var totalItems = await _itemRepository.GetTotalItemsCount();
+            var totalMonsters = await _monsterRepository.GetTotalMonstersCount();
+            var totalTransactions = await _purchaseHistoryRepository.GetTotalTransactionsCount();
 
-            var totalRevenue = await _context.PurchaseHistories
-                .SumAsync(p => p.TotalPrice);
+            var totalRevenue = await _purchaseHistoryRepository.GetTotalRevenue();
 
             var monthlyStats = await GetMonthlyStatsAsync();
 
@@ -63,9 +62,7 @@ namespace BLL.Services
         {
             var twelveMonthsAgo = DateTime.UtcNow.AddMonths(-12);
 
-            var purchases = await _context.PurchaseHistories
-                .Where(p => p.PurchasedAt >= twelveMonthsAgo)
-                .ToListAsync();
+            var purchases = await _purchaseHistoryRepository.GetPurchasesSince(twelveMonthsAgo);
 
             var groupedStats = purchases
                 .GroupBy(p => new { p.PurchasedAt.Year, p.PurchasedAt.Month })

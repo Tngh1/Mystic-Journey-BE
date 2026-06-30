@@ -2,12 +2,15 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Mystic_Journey_API.Extensions;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý dungeons (danh sach và phó bản) và dungeon session (phiên chơi).
+    // Game APIs: Vào dungeon, cập nhật tiến trình, hoàn thành, nhận thưởng.
+    // Admin APIs: Tạo, cập nhật, xem danh sách dungeons.
     [Route("api/[controller]")]
     [ApiController]
     public class DungeonsController : ControllerBase
@@ -23,8 +26,12 @@ namespace Mystic_Journey_API.Controllers
             _dungeonSessionService = dungeonSessionService;
         }
 
-        // ── Existing Admin / Read Endpoints ─────────────────────────────────────────
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
 
+        // ── GET /api/dungeons/{id} ───────────────────────────────────────────
+        // Lấy thông tin dungeon theo ID.
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -32,6 +39,7 @@ namespace Mystic_Journey_API.Controllers
             var dungeon = await _dungeonConfigService.GetDungeonById(id);
             if (dungeon == null)
             {
+                // Fallback: nếu id=1 không tìm thấy, lấy dungeon đầu tiên đang active.
                 if (id == 1)
                 {
                     var fallback = await _dungeonConfigService.GetDungeonsPaged(1, 1, null, null, true);
@@ -46,28 +54,9 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
         }
 
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateDungeonConfigRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var dungeon = await _dungeonConfigService.CreateDungeon(request);
-            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
-        }
-
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateDungeonConfigRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var dungeon = await _dungeonConfigService.UpdateDungeon(id, request);
-            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
-        }
-
+        // ── GET /api/dungeons ───────────────────────────────────────────────
+        // Lấy danh sách tất cả dungeons có phân trang và lọc.
+        // Query: page, pageSize, search, type, isActive.
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
@@ -80,13 +69,9 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PagedResultDto<DungeonConfigResponseDto>> { Success = true, Data = result });
         }
 
-        // ── Dungeon Session Endpoints ─────────────────────────────────────────────────
-
-        /// <summary>
-        /// POST /api/dungeons/{dungeonId}/enter
-        /// Validates player + dungeon, checks energy (does NOT consume it), creates a session.
-        /// BR-01 to BR-05.
-        /// </summary>
+        // ── POST /api/dungeons/{dungeonId}/enter ──────────────────────────────
+        // Vào dungeon. Kiểm tra player và dungeon, tạo phiên chơi mới.
+        // Chưa trừ energy - sẽ trừ khi nhận thưởng.
         [Authorize]
         [HttpPost("{dungeonId}/enter")]
         public async Task<IActionResult> Enter(int dungeonId, [FromBody] EnterDungeonRequestDto? request = null)
@@ -120,11 +105,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        /// <summary>
-        /// POST /api/dungeons/session/{sessionId}/progress
-        /// Updates combat progress (monsters killed, boss killed, completion %).
-        /// BR-06, BR-07.
-        /// </summary>
+        // ── POST /api/dungeons/session/{sessionId}/progress ──────────────────
+        // Cập nhật tiến trình chiến đấu (quái đã giết, boss, % hoàn thành).
         [Authorize]
         [HttpPost("session/{sessionId}/progress")]
         public async Task<IActionResult> Progress(int sessionId, [FromBody] UpdateDungeonProgressRequestDto request)
@@ -161,11 +143,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        /// <summary>
-        /// POST /api/dungeons/session/{sessionId}/complete
-        /// Validates boss is defeated, marks session Completed, returns chest preview.
-        /// Energy and rewards are NOT granted yet (BR-08, BR-09).
-        /// </summary>
+        // ── POST /api/dungeons/session/{sessionId}/complete ──────────────────
+        // Hoàn thành dungeon. Kiểm tra boss đã bị đánh bại, trả về preview rương.
+        // Chưa cấp thưởng - phải gọi claim-reward sau.
         [Authorize]
         [HttpPost("session/{sessionId}/complete")]
         public async Task<IActionResult> Complete(int sessionId)
@@ -199,12 +179,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        /// <summary>
-        /// POST /api/dungeons/session/{sessionId}/claim-reward
-        /// Validates session is completed + unclaimed + player still has energy.
-        /// Transactionally: consumes energy, rolls + saves rewards, marks session RewardClaimed.
-        /// BR-10. Full rollback on any failure.
-        /// </summary>
+        // ── POST /api/dungeons/session/{sessionId}/claim-reward ───────────────
+        // Nhận thưởng dungeon. Kiểm tra session đã hoàn thành và chưa nhận.
+        // Trừ energy, tạo thưởng, lưu inventory (transactional - rollback nếu lỗi).
         [Authorize]
         [HttpPost("session/{sessionId}/claim-reward")]
         public async Task<IActionResult> ClaimReward(int sessionId)
@@ -238,12 +215,38 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── Helper ────────────────────────────────────────────────────────────────────
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Reads the playerProfileId custom claim embedded in the JWT by AccountService.
-        /// Throws UnauthorizedAccessException if the claim is missing or invalid.
-        /// </summary>
+        // ── POST /api/dungeons ───────────────────────────────────────────────
+        // Tạo dungeon mới.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateDungeonConfigRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var dungeon = await _dungeonConfigService.CreateDungeon(request);
+            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
+        }
+
+        // ── PUT /api/dungeons/{id} ───────────────────────────────────────────
+        // Cập nhật dungeon hiện có.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateDungeonConfigRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var dungeon = await _dungeonConfigService.UpdateDungeon(id, request);
+            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
+        }
+
+        // ── Helper ────────────────────────────────────────────────────────────
+        // Đọc playerProfileId từ JWT token.
         private int GetPlayerProfileId()
         {
             var claim = User.FindFirstValue("playerProfileId");

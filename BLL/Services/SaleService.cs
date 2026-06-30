@@ -1,7 +1,7 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
-using DAL.Data;
-using Microsoft.EntityFrameworkCore;
+using DAL.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,52 +10,29 @@ namespace BLL.Services
 {
     public class SaleService : ISaleService
     {
-        private readonly MysticJourneyDbContext _context;
+        private readonly IPurchaseHistoryRepository _repository;
+        private readonly IMapper _mapper;
 
-        public SaleService(MysticJourneyDbContext context)
+        public SaleService(IPurchaseHistoryRepository repository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
+            _mapper = mapper;
         }
 
         public async Task<List<PurchaseHistoryResponseDto>> GetAllSales()
         {
-            var purchases = await _context.PurchaseHistories
-                .Include(p => p.PlayerProfile)
-                .Include(p => p.ShopItem)
-                    .ThenInclude(s => s!.Item)
-                .OrderByDescending(p => p.PurchasedAt)
-                .ToListAsync();
+            var purchases = await _repository.GetAllPurchaseHistories();
 
-            return purchases.Select(MapToResponseDto).ToList();
+            return _mapper.Map<List<PurchaseHistoryResponseDto>>(purchases);
         }
 
         public async Task<List<PurchaseHistoryResponseDto>> GetSalesByPlayerId(int playerProfileId)
         {
-            var purchases = await _context.PurchaseHistories
-                .Include(p => p.PlayerProfile)
-                .Include(p => p.ShopItem)
-                    .ThenInclude(s => s!.Item)
-                .Where(p => p.PlayerProfileId == playerProfileId)
-                .OrderByDescending(p => p.PurchasedAt)
-                .ToListAsync();
+            var purchases = await _repository.GetPurchasesByPlayerId(playerProfileId);
 
-            return purchases.Select(MapToResponseDto).ToList();
+            return _mapper.Map<List<PurchaseHistoryResponseDto>>(purchases);
         }
 
-        private static PurchaseHistoryResponseDto MapToResponseDto(DAL.Models.PurchaseHistory purchase)
-        {
-            return new PurchaseHistoryResponseDto
-            {
-                PurchaseHistoryId = purchase.PurchaseHistoryId,
-                PlayerProfileId = purchase.PlayerProfileId,
-                PlayerName = purchase.PlayerProfile?.DisplayName ?? "",
-                ShopItemId = purchase.ShopItemId,
-                ItemName = purchase.ShopItem?.Item?.Name ?? "",
-                Quantity = purchase.Quantity,
-                TotalPrice = purchase.TotalPrice,
-                Currency = purchase.ShopItem?.Currency ?? "Unknown",
-                PurchasedAt = purchase.PurchasedAt
-            };
-        }
+
     }
 }

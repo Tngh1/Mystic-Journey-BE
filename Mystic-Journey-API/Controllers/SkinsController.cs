@@ -8,6 +8,8 @@ using DAL.Repositories.Interfaces;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý skins (áo) của người chơi.
+    // Cho phép trang bị và gỡ skin.
     [Route("api/[controller]")]
     [ApiController]
     public class SkinsController : ControllerBase
@@ -21,6 +23,12 @@ namespace Mystic_Journey_API.Controllers
             _playerProfileRepository = playerProfileRepository;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── POST /api/skins/equip ─────────────────────────────────────
+        // Trang bị skin cho nhân vật.
         [Authorize]
         [HttpPost("equip")]
         public async Task<IActionResult> EquipSkin([FromBody] EquipSkinRequestDto request)
@@ -37,6 +45,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PlayerSkinResponseDto> { Success = true, Data = updated });
         }
 
+        // ── POST /api/skins/unequip ────────────────────────────────────
+        // Gỡ skin đang trang bị.
         [Authorize]
         [HttpPost("unequip")]
         public async Task<IActionResult> UnequipSkin([FromBody] UnequipSkinRequestDto request)

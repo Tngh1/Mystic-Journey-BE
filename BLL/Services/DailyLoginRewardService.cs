@@ -51,30 +51,16 @@ namespace BLL.Services
                 reward.RewardItem = item;
             }
 
-            return MapToResponseDto(reward);
+            return _mapper.Map<DailyLoginRewardResponseDto>(reward);
         }
 
-        private static DailyLoginRewardResponseDto MapToResponseDto(DailyLoginReward reward)
-        {
-            return new DailyLoginRewardResponseDto
-            {
-                DailyLoginRewardId = reward.DailyLoginRewardId,
-                DayNumber = reward.DayNumber,
-                RewardType = reward.RewardType,
-                RewardValue = reward.RewardValue,
-                RewardItemId = reward.RewardItemId,
-                RewardItemName = reward.RewardItem?.Name,
-                RewardItemQuantity = reward.RewardItemQuantity,
-                IsActive = reward.IsActive,
-                CreatedAt = reward.CreatedAt
-            };
-        }
+
 
         public async Task<PagedResultDto<DailyLoginRewardResponseDto>> GetDailyLoginRewardsPaged(int page, int pageSize)
         {
             var (totalCount, items) = await _repository.GetDailyLoginRewardsPaged(page, pageSize);
 
-            var dtos = items.Select(MapToResponseDto).ToList();
+            var dtos = _mapper.Map<List<DailyLoginRewardResponseDto>>(items);
             return new PagedResultDto<DailyLoginRewardResponseDto>(totalCount, dtos);
         }
 
@@ -98,7 +84,7 @@ namespace BLL.Services
             {
                 if (byDay.TryGetValue(day, out var reward))
                 {
-                    result.Add(MapToResponseDto(reward));
+                    result.Add(_mapper.Map<DailyLoginRewardResponseDto>(reward));
                 }
                 else
                 {

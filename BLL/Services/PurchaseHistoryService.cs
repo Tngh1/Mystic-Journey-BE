@@ -3,7 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Models;
-using Microsoft.EntityFrameworkCore;
+using DAL.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,81 +13,34 @@ namespace BLL.Services
 {
     public class PurchaseHistoryService : IPurchaseHistoryService
     {
-        private readonly MysticJourneyDbContext _context;
+        private readonly IPurchaseHistoryRepository _repository;
         private readonly IMapper _mapper;
 
-        public PurchaseHistoryService(MysticJourneyDbContext context, IMapper mapper)
+        public PurchaseHistoryService(IPurchaseHistoryRepository repository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
             _mapper = mapper;
         }
 
         public async Task<List<PurchaseHistoryResponseDto>> GetAllPurchaseHistories()
         {
-            var purchases = await _context.PurchaseHistories
-                .Include(p => p.PlayerProfile)
-                .Include(p => p.ShopItem)
-                    .ThenInclude(s => s!.Item)
-                .OrderByDescending(p => p.PurchasedAt)
-                .ToListAsync();
-
-            return purchases.Select(MapToResponseDto).ToList();
+            var purchases = await _repository.GetAllPurchaseHistories();
+            return _mapper.Map<List<PurchaseHistoryResponseDto>>(purchases);
         }
 
         public async Task<List<PurchaseHistoryResponseDto>> GetPurchasesByPlayerId(int playerProfileId)
         {
-            var purchases = await _context.PurchaseHistories
-                .Include(p => p.PlayerProfile)
-                .Include(p => p.ShopItem)
-                    .ThenInclude(s => s!.Item)
-                .Where(p => p.PlayerProfileId == playerProfileId)
-                .OrderByDescending(p => p.PurchasedAt)
-                .ToListAsync();
-
-            return purchases.Select(MapToResponseDto).ToList();
+            var purchases = await _repository.GetPurchasesByPlayerId(playerProfileId);
+            return _mapper.Map<List<PurchaseHistoryResponseDto>>(purchases);
         }
 
-        private static PurchaseHistoryResponseDto MapToResponseDto(PurchaseHistory purchase)
-        {
-            return new PurchaseHistoryResponseDto
-            {
-                PurchaseHistoryId = purchase.PurchaseHistoryId,
-                PlayerProfileId = purchase.PlayerProfileId,
-                PlayerName = purchase.PlayerProfile?.DisplayName,
-                ShopItemId = purchase.ShopItemId,
-                ItemName = purchase.ShopItem?.Item?.Name,
-                Quantity = purchase.Quantity,
-                TotalPrice = purchase.TotalPrice,
-                Currency = purchase.ShopItem?.Currency ?? "Unknown",
-                PurchasedAt = purchase.PurchasedAt
-            };
-        }
+
 
         public async Task<PagedResultDto<PurchaseHistoryResponseDto>> GetPurchaseHistoriesPaged(int page, int pageSize, string? search = null)
         {
-            var query = _context.PurchaseHistories
-                .Include(p => p.PlayerProfile)
-                .Include(p => p.ShopItem)
-                    .ThenInclude(s => s!.Item)
-                .AsNoTracking();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(p =>
-                    (p.PlayerProfile != null && p.PlayerProfile.DisplayName.Contains(search)) ||
-                    (p.ShopItem != null && p.ShopItem.Item != null && p.ShopItem.Item.Name.Contains(search)) ||
-                    (p.ShopItem != null && p.ShopItem.Currency.Contains(search)));
-            }
-
-            int totalCount = await query.CountAsync();
-            var items = await query
-                .OrderByDescending(p => p.PurchasedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var dtos = items.Select(MapToResponseDto).ToList();
-            return new PagedResultDto<PurchaseHistoryResponseDto>(totalCount, dtos);
+            var result = await _repository.GetPurchaseHistoriesPaged(page, pageSize, search);
+            var dtos = _mapper.Map<List<PurchaseHistoryResponseDto>>(result.Histories);
+            return new PagedResultDto<PurchaseHistoryResponseDto>(result.TotalCount, dtos);
         }
     }
 }

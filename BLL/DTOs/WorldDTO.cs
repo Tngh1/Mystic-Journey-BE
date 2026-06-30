@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-
 namespace BLL.DTOs
 {
     public class PlayerWorldPositionDto
@@ -44,8 +43,10 @@ namespace BLL.DTOs
         public int NPCId { get; set; }
     }
 
+ 
     public class TalkToNpcResponseDto
     {
+
         public NPCResponseDto Npc { get; set; } = new();
         public List<PlayerQuestResponseDto> LinkedQuests { get; set; } = new();
     }
@@ -96,6 +97,7 @@ namespace BLL.DTOs
         public string? ConsumedItemName { get; set; }
         public int ConsumedQuantity { get; set; }
     }
+
     public class OpenWorldChestRequestDto
     {
         public int? ChestId { get; set; }

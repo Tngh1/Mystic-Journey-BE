@@ -2,18 +2,14 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Mystic_Journey_API.Extensions;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    /// <summary>
-    /// Handles character lifecycle: creation, stat viewing, and attribute upgrades.
-    ///
-    /// NOTE — Save Character Position is handled by a dedicated endpoint:
-    ///   PUT /api/world/position  (see WorldController)
-    /// That endpoint already persists MapName, PositionX, and PositionY on the
-    /// PlayerProfile row and is the canonical way to save in-game position.
-    /// </summary>
+    // Quản lý nhân vật (character) của người chơi.
+    // Cho phép tạo, xem chỉ số, cập nhật HP và nâng cấp thuộc tính.
     [Route("api/characters")]
     [ApiController]
     [Authorize]
@@ -26,14 +22,14 @@ namespace Mystic_Journey_API.Controllers
             _characterService = characterService;
         }
 
-        // ── POST /api/characters ─────────────────────────────────────────────────────
-        /// <summary>
-        /// Create Character — sets the display name and class for a newly registered
-        /// player and seeds their base stats. Can only be called once per account.
-        ///
-        /// Requires: JWT access token.
-        /// Body: { "characterName": "...", "selectedClass": "Knight|Archer|Mage" }
-        /// </summary>
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── POST /api/characters ────────────────────────────────────
+        // Tạo nhân vật mới cho tài khoản.
+        // Thiết lập display name và class cho player mới đăng ký.
+        // Chỉ được gọi một lần cho mỗi tài khoản.
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCharacterRequestDto request)
         {
@@ -74,14 +70,10 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── GET /api/characters/stats ─────────────────────────────────────────────────
-        /// <summary>
-        /// View Attribute List — returns all player stats for the authenticated player:
-        /// CurrentHp, MaxHp, Atk, Def, MoveSpeed, AttackSpeed, CritRate, CritDamage,
-        /// DamageBonus, SkillPoints, TotalWins, TotalLosses, TotalKills, TotalDeaths.
-        ///
-        /// Requires: JWT access token.
-        /// </summary>
+        // ── GET /api/characters/stats ─────────────────────────────
+        // Lấy danh sách chỉ số của nhân vật.
+        // Bao gồm: CurrentHp, MaxHp, Atk, Def, MoveSpeed, AttackSpeed, CritRate, CritDamage,
+        // DamageBonus, SkillPoints, TotalWins, TotalLosses, TotalKills, TotalDeaths.
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
@@ -110,12 +102,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── PUT /api/characters/hp ────────────────────────────────────────────────────
-        /// <summary>
-        /// Update HP — syncs the player's current health point from the client.
-        /// 
-        /// Requires: JWT access token.
-        /// </summary>
+        // ── PUT /api/characters/hp ────────────────────────────────
+        // Cập nhật HP hiện tại của nhân vật (đồng bộ từ client).
         [HttpPut("hp")]
         public async Task<IActionResult> UpdateHp([FromBody] UpdateHpRequestDto request)
         {
@@ -143,16 +131,10 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── POST /api/characters/upgrade ─────────────────────────────────────────────
-        /// <summary>
-        /// Upgrade Character — spends Skill Points to permanently increase one attribute.
-        ///
-        /// Requires: JWT access token.
-        /// Body: { "attributeName": "Atk|Def|MaxHp|MoveSpeed|AttackSpeed|CritRate|CritDamage|DamageBonus",
-        ///         "amount": 1 }
-        ///
-        /// Skill Points are granted automatically on level-up (3 points per level).
-        /// </summary>
+        // ── POST /api/characters/upgrade ──────────────────────────
+        // Nâng cấp thuộc tính nhân vật bằng Skill Points.
+        // Body: attributeName (Atk|Def|MaxHp|MoveSpeed|AttackSpeed|CritRate|CritDamage|DamageBonus), amount.
+        // Skill Points được cấp tự động khi lên level (3 điểm mỗi level).
         [HttpPost("upgrade")]
         public async Task<IActionResult> Upgrade([FromBody] UpgradeAttributeRequestDto request)
         {
@@ -193,11 +175,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── Helper ───────────────────────────────────────────────────────────────────
-        /// <summary>
-        /// Reads the playerProfileId custom claim embedded in the JWT by AccountService.
-        /// Throws UnauthorizedAccessException if the claim is missing or invalid.
-        /// </summary>
+        // ── Helper ─────────────────────────────────────────────────
+        // Đọc playerProfileId từ JWT token.
         private int GetPlayerProfileId()
         {
             var claim = User.FindFirstValue("playerProfileId");

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
+    /// <summary>
+    /// Triển khai các thao tác truy cập dữ liệu cho quái vật và vật phẩm rơi sử dụng Entity Framework.
+    /// </summary>
     public class MonsterRepository : IMonsterRepository
     {
         private readonly MysticJourneyDbContext _context;
@@ -17,12 +20,24 @@ namespace DAL.Repositories
             _context = context;
         }
 
+        // ── Thống kê ──
+
+        /// <summary>Đếm tổng số quái vật trong hệ thống.</summary>
+        public async Task<int> GetTotalMonstersCount()
+        {
+            return await _context.Monsters.CountAsync();
+        }
+
+        // ── Query ──
+
+        /// <summary>Tìm quái vật theo mã định danh.</summary>
         public async Task<Monster?> GetMonsterById(int id)
         {
             return await _context.Monsters
                 .FirstOrDefaultAsync(m => m.MonsterId == id);
         }
 
+        /// <summary>Lấy quái vật kèm danh sách vật phẩm rơi.</summary>
         public async Task<Monster?> GetMonsterByIdWithDrops(int id)
         {
             return await _context.Monsters
@@ -31,54 +46,26 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(m => m.MonsterId == id);
         }
 
-        public async Task<Monster> CreateMonster(Monster monster)
-        {
-            await _context.Monsters.AddAsync(monster);
-            await _context.SaveChangesAsync();
-            return monster;
-        }
-
-        public async Task<Monster> UpdateMonster(Monster monster)
-        {
-_context.Monsters.Update(monster);
-            await _context.SaveChangesAsync();
-            return monster;
-        }
-
-
-        public async Task<MonsterDrop> CreateDrop(MonsterDrop drop)
-        {
-            await _context.MonsterDrops.AddAsync(drop);
-            await _context.SaveChangesAsync();
-            return drop;
-        }
-
+        /// <summary>Lấy thông tin khám phá quái vật của người chơi.</summary>
         public async Task<PlayerMonsterDiscovery?> GetPlayerDiscovery(int playerProfileId, int monsterId)
         {
             return await _context.PlayerMonsterDiscoveries
                 .FirstOrDefaultAsync(d => d.PlayerProfileId == playerProfileId && d.MonsterId == monsterId);
         }
 
-        public async Task<PlayerMonsterDiscovery> CreateOrUpdatePlayerDiscovery(PlayerMonsterDiscovery discovery)
+        /// <summary>Lấy dictionary khám phá quái vật của người chơi (key: monsterId).</summary>
+        public async Task<Dictionary<int, PlayerMonsterDiscovery>> GetPlayerDiscoveriesDict(int playerProfileId)
         {
-            var existing = await GetPlayerDiscovery(discovery.PlayerProfileId, discovery.MonsterId);
-            if (existing == null)
-            {
-                await _context.AddAsync(discovery);
-            }
-            else
-            {
-                existing.IsDiscovered = discovery.IsDiscovered || existing.IsDiscovered;
-                existing.TimesDefeated = discovery.TimesDefeated > 0
-                    ? discovery.TimesDefeated
-                    : existing.TimesDefeated;
-                if (discovery.DiscoveredAt.HasValue)
-                    existing.DiscoveredAt = discovery.DiscoveredAt;
-            }
-            await _context.SaveChangesAsync();
-            return existing ?? discovery;
+            return await _context.PlayerMonsterDiscoveries
+                .AsNoTracking()
+                .Where(d => d.PlayerProfileId == playerProfileId)
+                .ToDictionaryAsync(d => d.MonsterId);
         }
 
+        /// <summary>
+        /// Lấy danh sách mã quái vật boss thuộc nhiệm vụ đã hoàn thành.
+        /// So sánh các nhiệm vụ có boss với danh sách nhiệm vụ đã hoàn thành của người chơi.
+        /// </summary>
         public async Task<HashSet<int>> GetCompletedQuestBossMonsterIds(int playerProfileId)
         {
             var bossIds = await _context.Quests
@@ -103,6 +90,10 @@ _context.Monsters.Update(monster);
                 .ToHashSet();
         }
 
+        /// <summary>
+        /// Lấy các điểm spawn đang hoạt động.
+        /// Nếu có dungeonId thì lọc theo dungeon, ngược lại lọc theo bản đồ và vùng (region).
+        /// </summary>
         public async Task<List<MonsterSpawn>> GetActiveSpawns(string mapName, string? regionName, int? dungeonId)
         {
             var query = _context.MonsterSpawns
@@ -126,6 +117,7 @@ _context.Monsters.Update(monster);
                 .ToListAsync();
         }
 
+        /// <summary>Lấy danh sách mã quái vật đã được khám phá bởi người chơi.</summary>
         public async Task<HashSet<int>> GetDiscoveredMonsterIds(int playerProfileId)
         {
             var ids = await _context.PlayerMonsterDiscoveries
@@ -136,6 +128,7 @@ _context.Monsters.Update(monster);
             return ids.ToHashSet();
         }
 
+        /// <summary>Lấy các vật phẩm rơi đang hoạt động của quái vật.</summary>
         public async Task<List<MonsterDrop>> GetActiveDropsByMonsterId(int monsterId)
         {
             return await _context.MonsterDrops
@@ -144,20 +137,7 @@ _context.Monsters.Update(monster);
                 .ToListAsync();
         }
 
-        public async Task<List<MonsterSpawn>> GetSpawnsByMonsterId(int monsterId)
-        {
-            return await _context.MonsterSpawns
-                .Where(s => s.MonsterId == monsterId && s.IsActive)
-                .ToListAsync();
-        }
-
-        public async Task<MonsterSpawn> CreateSpawn(MonsterSpawn spawn)
-        {
-            await _context.MonsterSpawns.AddAsync(spawn);
-            await _context.SaveChangesAsync();
-            return spawn;
-        }
-
+        /// <summary>Lấy tất cả vật phẩm rơi của quái vật (kể cả không hoạt động).</summary>
         public async Task<List<MonsterDrop>> GetDropsByMonsterId(int monsterId)
         {
             return await _context.MonsterDrops
@@ -166,6 +146,75 @@ _context.Monsters.Update(monster);
                 .ToListAsync();
         }
 
+        /// <summary>Lấy các điểm spawn của quái vật theo mã.</summary>
+        public async Task<List<MonsterSpawn>> GetSpawnsByMonsterId(int monsterId)
+        {
+            return await _context.MonsterSpawns
+                .Where(s => s.MonsterId == monsterId && s.IsActive)
+                .ToListAsync();
+        }
+
+        // ── CRUD ──
+
+        /// <summary>Tạo quái vật mới trong hệ thống.</summary>
+        public async Task<Monster> CreateMonster(Monster monster)
+        {
+            await _context.Monsters.AddAsync(monster);
+            await _context.SaveChangesAsync();
+            return monster;
+        }
+
+        /// <summary>Cập nhật thông tin quái vật.</summary>
+        public async Task<Monster> UpdateMonster(Monster monster)
+        {
+            _context.Monsters.Update(monster);
+            await _context.SaveChangesAsync();
+            return monster;
+        }
+
+        /// <summary>Thêm vật phẩm rơi cho quái vật.</summary>
+        public async Task<MonsterDrop> CreateDrop(MonsterDrop drop)
+        {
+            await _context.MonsterDrops.AddAsync(drop);
+            await _context.SaveChangesAsync();
+            return drop;
+        }
+
+        /// <summary>
+        /// Tạo hoặc cập nhật trạng thái khám phá quái vật.
+        /// Nếu đã tồn tại thì cập nhật, ngược lại tạo mới.
+        /// </summary>
+        public async Task<PlayerMonsterDiscovery> CreateOrUpdatePlayerDiscovery(PlayerMonsterDiscovery discovery)
+        {
+            var existing = await _context.PlayerMonsterDiscoveries
+                .FirstOrDefaultAsync(d => d.PlayerProfileId == discovery.PlayerProfileId && d.MonsterId == discovery.MonsterId);
+
+            if (existing != null)
+            {
+                existing.IsDiscovered = discovery.IsDiscovered;
+                existing.DiscoveredAt = discovery.DiscoveredAt;
+                existing.TimesDefeated = discovery.TimesDefeated;
+                _context.PlayerMonsterDiscoveries.Update(existing);
+            }
+            else
+            {
+                await _context.PlayerMonsterDiscoveries.AddAsync(discovery);
+            }
+            await _context.SaveChangesAsync();
+            return discovery;
+        }
+
+        /// <summary>Tạo điểm spawn mới cho quái vật.</summary>
+        public async Task<MonsterSpawn> CreateSpawn(MonsterSpawn spawn)
+        {
+            await _context.MonsterSpawns.AddAsync(spawn);
+            await _context.SaveChangesAsync();
+            return spawn;
+        }
+
+        // ── Phân trang ──
+
+        /// <summary>Lấy danh sách quái vật có phân trang, lọc theo tìm kiếm (tên), loại và trạng thái hoạt động.</summary>
         public async Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
             var query = _context.Monsters
@@ -192,6 +241,7 @@ _context.Monsters.Update(monster);
             return (totalCount, items);
         }
 
+        /// <summary>Lấy danh sách vật phẩm rơi đang hoạt động có phân trang.</summary>
         public async Task<(int TotalCount, List<MonsterDrop> Items)> GetMonsterDropsPaged(int page, int pageSize)
         {
             var query = _context.MonsterDrops

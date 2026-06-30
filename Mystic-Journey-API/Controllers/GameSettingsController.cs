@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý cài đặt game (game settings).
+    // Game APIs: Xem danh sách, xem theo ID, xem theo key.
+    // Admin APIs: Cập nhật setting.
     [Route("api/[controller]")]
     [ApiController]
     public class GameSettingsController : ControllerBase
@@ -18,6 +21,22 @@ namespace Mystic_Journey_API.Controllers
             _gameSettingService = gameSettingService;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/gamesettings ──────────────────────────────────
+        // Lấy danh sách tất cả game settings có phân trang.
+        // Query: page, pageSize, search.
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
+        {
+            var result = await _gameSettingService.GetSettingsPaged(page, pageSize, search);
+            return Ok(new ApiResponse<PagedResultDto<GameSettingResponseDto>> { Success = true, Data = result });
+        }
+
+        // ── GET /api/gamesettings/{id} ────────────────────────────
+        // Lấy game setting theo ID.
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -29,6 +48,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<GameSettingResponseDto> { Success = true, Data = setting });
         }
 
+        // ── GET /api/gamesettings/key/{key} ───────────────────────
+        // Lấy game setting theo key.
         [AllowAnonymous]
         [HttpGet("key/{key}")]
         public async Task<IActionResult> GetByKey(string key)
@@ -40,19 +61,18 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<GameSettingResponseDto> { Success = true, Data = setting });
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── PUT /api/gamesettings/key/{key} ───────────────────────
+        // Cập nhật game setting theo key.
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("key/{key}")]
         public async Task<IActionResult> Update(string key, [FromBody] UpdateGameSettingRequestDto request)
         {
             var setting = await _gameSettingService.UpdateSetting(key, request);
             return Ok(new ApiResponse<GameSettingResponseDto> { Success = true, Data = setting });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
-        {
-            var result = await _gameSettingService.GetSettingsPaged(page, pageSize, search);
-            return Ok(new ApiResponse<PagedResultDto<GameSettingResponseDto>> { Success = true, Data = result });
         }
     }
 }

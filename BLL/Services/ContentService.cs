@@ -1,3 +1,4 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
@@ -13,10 +14,12 @@ namespace BLL.Services
     public class ContentService : IContentService
     {
         private readonly IContentRepository _repository;
+        private readonly IMapper _mapper;
 
-        public ContentService(IContentRepository repository)
+        public ContentService(IContentRepository repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
 
         public async Task<ContentDetailResponseDto?> GetContentById(int id)
@@ -25,7 +28,7 @@ namespace BLL.Services
             if (content == null)
                 return null;
 
-            return MapToDetailResponseDto(content);
+            return _mapper.Map<ContentDetailResponseDto>(content);
         }
 
         public async Task<ContentDetailResponseDto?> GetContentBySlug(string slug)
@@ -34,7 +37,7 @@ namespace BLL.Services
             if (content == null)
                 return null;
 
-            return MapToDetailResponseDto(content);
+            return _mapper.Map<ContentDetailResponseDto>(content);
         }
 
         public async Task<ContentDetailResponseDto> CreateContentWithBlocksAsync(CreateContentWithBlocksRequestDto request)
@@ -83,7 +86,7 @@ namespace BLL.Services
 
             var created = await _repository.CreateContentWithBlocksAsync(content, blocks);
             created.BlockContents = blocks;
-            return MapToDetailResponseDto(created);
+            return _mapper.Map<ContentDetailResponseDto>(created);
         }
 
         public async Task<ContentResponseDto> UpdateContent(int id, UpdateContentRequestDto request)
@@ -118,7 +121,7 @@ namespace BLL.Services
             }
 
             var updated = await _repository.UpdateContent(content);
-            return MapToResponseDto(updated);
+            return _mapper.Map<ContentResponseDto>(updated);
         }
 
         public async Task<ContentResponseDto> PublishContent(int id)
@@ -144,7 +147,7 @@ namespace BLL.Services
             content.UpdatedAt = DateTime.UtcNow;
 
             var updated = await _repository.UpdateContent(content);
-            return MapToResponseDto(updated);
+            return _mapper.Map<ContentResponseDto>(updated);
         }
 
         public async Task<CategoryContentResponseDto> CreateCategory(CreateCategoryContentRequestDto request)
@@ -161,46 +164,19 @@ namespace BLL.Services
 
             var created = await _repository.CreateCategory(category);
 
-            return new CategoryContentResponseDto
-            {
-                CategoryContentId = created.CategoryContentId,
-                Name = created.Name,
-                Slug = created.Slug,
-                Description = created.Description,
-                IconUrl = created.IconUrl,
-                IsActive = created.IsActive,
-                CreatedAt = created.CreatedAt
-            };
+            return _mapper.Map<CategoryContentResponseDto>(created);
         }
 
         public async Task<List<CategoryContentResponseDto>> GetAllCategories(string? search = null, bool? isActive = null)
         {
             var categories = await _repository.GetAllCategories(search, isActive);
-            return categories.Select(c => new CategoryContentResponseDto
-            {
-                CategoryContentId = c.CategoryContentId,
-                Name = c.Name,
-                Slug = c.Slug,
-                Description = c.Description,
-                IconUrl = c.IconUrl,
-                IsActive = c.IsActive,
-                CreatedAt = c.CreatedAt
-            }).ToList();
+            return _mapper.Map<List<CategoryContentResponseDto>>(categories);
         }
 
         public async Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize, string? search = null, bool? isActive = null)
         {
             var (totalCount, items) = await _repository.GetCategoriesPaged(page, pageSize, search, isActive);
-            var dtos = items.Select(c => new CategoryContentResponseDto
-            {
-                CategoryContentId = c.CategoryContentId,
-                Name = c.Name,
-                Slug = c.Slug,
-                Description = c.Description,
-                IconUrl = c.IconUrl,
-                IsActive = c.IsActive,
-                CreatedAt = c.CreatedAt
-            }).ToList();
+            var dtos = _mapper.Map<List<CategoryContentResponseDto>>(items);
             return new PagedResultDto<CategoryContentResponseDto>(totalCount, dtos);
         }
 
@@ -226,16 +202,7 @@ namespace BLL.Services
                 await _repository.UnpublishByCategoryIdAsync(id);
             }
 
-            return new CategoryContentResponseDto
-            {
-                CategoryContentId = updated.CategoryContentId,
-                Name = updated.Name,
-                Slug = updated.Slug,
-                Description = updated.Description,
-                IconUrl = updated.IconUrl,
-                IsActive = updated.IsActive,
-                CreatedAt = updated.CreatedAt
-            };
+            return _mapper.Map<CategoryContentResponseDto>(updated);
         }
 
         public async Task<BlockContentResponseDto> CreateBlock(CreateBlockContentRequestDto request)
@@ -254,19 +221,7 @@ namespace BLL.Services
 
             var created = await _repository.CreateBlock(block);
 
-            return new BlockContentResponseDto
-            {
-                BlockContentId = created.Id,
-                ContentId = created.ContentId,
-                ContentData = created.ContentData,
-                MediaUrl = created.MediaUrl,
-                Caption = created.Caption,
-                BlockType = created.BlockType,
-                SortOrder = created.SortOrder,
-                IsActive = created.IsActive,
-                CreatedAt = created.CreatedAt,
-                UpdatedAt = created.UpdatedAt
-            };
+            return _mapper.Map<BlockContentResponseDto>(created);
         }
 
         public async Task<BlockContentResponseDto> UpdateBlock(int id, UpdateBlockContentRequestDto request)
@@ -284,19 +239,7 @@ namespace BLL.Services
 
             var updated = await _repository.UpdateBlock(block);
 
-            return new BlockContentResponseDto
-            {
-                BlockContentId = updated.Id,
-                ContentId = updated.ContentId,
-                ContentData = updated.ContentData,
-                MediaUrl = updated.MediaUrl,
-                Caption = updated.Caption,
-                BlockType = updated.BlockType,
-                SortOrder = updated.SortOrder,
-                IsActive = updated.IsActive,
-                CreatedAt = updated.CreatedAt,
-                UpdatedAt = updated.UpdatedAt
-            };
+            return _mapper.Map<BlockContentResponseDto>(updated);
         }
 
         public async Task RemoveBlock(int id)
@@ -311,60 +254,11 @@ namespace BLL.Services
         {
             var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished);
 
-            var dtos = items.Select(MapToResponseDto).ToList();
+            var dtos = _mapper.Map<List<ContentResponseDto>>(items);
             return new PagedResultDto<ContentResponseDto>(totalCount, dtos);
         }
 
-        private static ContentResponseDto MapToResponseDto(Content content)
-        {
-            return new ContentResponseDto
-            {
-                ContentId = content.ContentId,
-                Title = content.Title,
-                Slug = content.Slug,
-                Summary = content.Summary,
-                ThumbnailUrl = content.ThumbnailUrl,
-                CategoryId = content.CategoryContentId,
-                CategoryName = content.CategoryContent?.Name,
-                IsPublished = content.IsPublished,
-                CreatedByName = content.CreatedByAccount?.UserName ?? string.Empty,
-                CreatedAt = content.CreatedAt,
-                UpdatedAt = content.UpdatedAt,
-                PublishedAt = content.PublishedAt
-            };
-        }
 
-        private static ContentDetailResponseDto MapToDetailResponseDto(Content content)
-        {
-            return new ContentDetailResponseDto
-            {
-                ContentId = content.ContentId,
-                Title = content.Title,
-                Slug = content.Slug,
-                Summary = content.Summary,
-                ThumbnailUrl = content.ThumbnailUrl,
-                CategoryId = content.CategoryContentId,
-                CategoryName = content.CategoryContent?.Name,
-                IsPublished = content.IsPublished,
-                CreatedByName = content.CreatedByAccount?.UserName ?? string.Empty,
-                CreatedAt = content.CreatedAt,
-                UpdatedAt = content.UpdatedAt,
-                PublishedAt = content.PublishedAt,
-                Blocks = content.BlockContents?.Select(b => new BlockContentResponseDto
-                {
-                    BlockContentId = b.Id,
-                    ContentId = b.ContentId,
-                    ContentData = b.ContentData,
-                    MediaUrl = b.MediaUrl,
-                    Caption = b.Caption,
-                    BlockType = b.BlockType,
-                    SortOrder = b.SortOrder,
-                    IsActive = b.IsActive,
-                    CreatedAt = b.CreatedAt,
-                    UpdatedAt = b.UpdatedAt
-                }).ToList() ?? new List<BlockContentResponseDto>()
-            };
-        }
 
         private static string GenerateSlug(string text)
         {
