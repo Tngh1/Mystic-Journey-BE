@@ -493,9 +493,13 @@ namespace BLL.Services
                 return "ElfForest";
 
             var normalized = mapName.Trim();
-            return string.Equals(normalized, "ElfLand", StringComparison.OrdinalIgnoreCase)
-                ? "ElfForest"
-                : normalized;
+            return string.Equals(normalized, "ElfForest", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(normalized, "ElfLand", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(normalized, "Map1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(normalized, "Chapter1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(normalized, "Chapter 1", StringComparison.OrdinalIgnoreCase)
+                    ? "ElfForest"
+                    : normalized;
         }
 
         private static void ApplyExperience(PlayerProfile profile, int rewardExperience)
