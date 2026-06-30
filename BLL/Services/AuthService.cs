@@ -333,14 +333,9 @@ namespace BLL.Services
                 new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
                 new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.Email),
-                new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player")
+                new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player"),
+                new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0")
             };
-
-            if (account.PlayerProfile != null)
-            {
-                claims.Add(new Claim("playerProfileId", account.PlayerProfile.PlayerProfileId.ToString()));
-                claims.Add(new Claim("playerLevel", account.PlayerProfile.Level.ToString()));
-            }
 
             var token = new JwtSecurityToken(
                 jwt["Issuer"], jwt["Audience"], claims,

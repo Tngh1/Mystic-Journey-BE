@@ -134,4 +134,12 @@ namespace BLL.DTOs
         // Optional: apply resulting XP to this owned PlayerSkill
         public int? TargetPlayerSkillId { get; set; }
     }
+
+    // ============ Player Me Skills (GET /api/player-skills/me) ============
+    public class PlayerMeSkillsResponseDto
+    {
+        public int PlayerProfileId { get; set; }
+        public List<PlayerSkillResponseDto> Skills { get; set; } = new();
+        public int TotalCount { get; set; }
+    }
 }

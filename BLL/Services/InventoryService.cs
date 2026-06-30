@@ -6,7 +6,6 @@ using DAL.Repositories.Interfaces;
 using DAL.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using System;
 using BLL.Utils;
 
@@ -16,7 +15,8 @@ namespace BLL.Services
     {
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IMapper _mapper;
-        private readonly MysticJourneyDbContext _context;
+        private readonly IPlayerStatRepository _statRepository;
+        private readonly ITransactionManager _transactionManager;
 
         // enhancement scaling per level (unscaled integers for HP/Atk/Def)
         private const int HP_ENHANCEMENT_PER_LEVEL = 10;
@@ -29,17 +29,22 @@ namespace BLL.Services
         private const int ATTACK_SPEED_ENH_PER_LEVEL_SCALED = 0;
         private const int DAMAGEBONUS_ENH_PER_LEVEL_SCALED = 0;
 
-        public InventoryService(IInventoryRepository inventoryRepository, IMapper mapper, MysticJourneyDbContext context)
+        public InventoryService(
+            IInventoryRepository inventoryRepository, 
+            IMapper mapper, 
+            IPlayerStatRepository statRepository, 
+            ITransactionManager transactionManager)
         {
             _inventoryRepository = inventoryRepository;
             _mapper = mapper;
-            _context = context;
+            _statRepository = statRepository;
+            _transactionManager = transactionManager;
         }
 
         public async Task<InventorySummaryDto> GetInventory(int playerProfileId)
         {
             var items = await _inventoryRepository.GetByPlayerId(playerProfileId);
-            var dtos = items.Select(i => MapToResponseDto(i)).ToList();
+            var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);
 
             var summary = new InventorySummaryDto
             {
@@ -49,7 +54,27 @@ namespace BLL.Services
                 BagCapacity = 200
             };
 
-            summary.TotalSkins = (await _inventoryRepository.GetPlayerSkinsByPlayerId(playerProfileId)).Count;
+            var playerSkins = await _inventoryRepository.GetPlayerSkinsByPlayerId(playerProfileId);
+            summary.TotalSkins = playerSkins.Count;
+            
+            var allSkins = await _inventoryRepository.GetAllActiveSkins();
+            summary.PlayerSkins = allSkins.Select(skin => {
+                var ps = playerSkins.FirstOrDefault(x => x.SkinId == skin.SkinId);
+                return new PlayerSkinResponseDto
+                {
+                    PlayerSkinId = ps?.PlayerSkinId ?? 0,
+                    PlayerProfileId = playerProfileId,
+                    SkinId = skin.SkinId,
+                    SkinName = skin.Name,
+                    SkinDescription = skin.Description,
+                    SkinType = skin.Type,
+                    SkinRarity = skin.Rarity,
+                    IconUrl = skin.IconUrl,
+                    PreviewUrl = skin.PreviewUrl,
+                    IsEquipped = ps?.IsEquipped ?? false,
+                    UnlockedAt = ps?.UnlockedAt ?? default
+                };
+            }).ToList();
             return summary;
         }
 
@@ -63,8 +88,7 @@ namespace BLL.Services
 
             var slot = inv.Item?.Slot ?? inv.EquippedSlot;
 
-            using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 if (!string.IsNullOrEmpty(slot))
                 {
@@ -104,11 +128,12 @@ namespace BLL.Services
                 int totalCritDamage = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritDamage ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED);
 
                 // persist snapshot into PlayerStatsSnapshots table
-                var snapshot = await _context.PlayerStatsSnapshots.FirstOrDefaultAsync(s => s.PlayerProfileId == actorPlayerProfileId);
+                var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
+                bool isNewSnapshot = false;
                 if (snapshot == null)
                 {
                     snapshot = new PlayerStatsSnapshot { PlayerProfileId = actorPlayerProfileId };
-                    await _context.PlayerStatsSnapshots.AddAsync(snapshot);
+                    isNewSnapshot = true;
                 }
 
                 snapshot.MaxHp = totalBaseHp + totalBonusHp + totalEnhHp;
@@ -123,16 +148,17 @@ namespace BLL.Services
                 snapshot.DamageBonus = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDamageBonus ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * DAMAGEBONUS_ENH_PER_LEVEL_SCALED);
                 snapshot.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                if (isNewSnapshot)
+                {
+                    await _statRepository.CreateSnapshot(snapshot);
+                }
+                else
+                {
+                    await _statRepository.UpdateSnapshot(snapshot);
+                }
 
-                await tx.CommitAsync();
-                return MapToResponseDto(updated);
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+                return _mapper.Map<InventoryItemResponseDto>(updated);
+            });
         }
 
         public async Task<InventoryItemResponseDto> UnequipItem(int actorPlayerProfileId, UnequipItemRequestDto request)
@@ -143,8 +169,7 @@ namespace BLL.Services
             if (inv.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("Item does not belong to player.");
 
-            using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 inv.IsEquipped = false;
                 inv.EquippedSlot = null;
@@ -169,11 +194,12 @@ namespace BLL.Services
                 int totalCritRate = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritRate ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * CRITRATE_ENHANCEMENT_PER_LEVEL_SCALED);
                 int totalCritDamage = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritDamage ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED);
 
-                var snapshot = await _context.PlayerStatsSnapshots.FirstOrDefaultAsync(s => s.PlayerProfileId == actorPlayerProfileId);
+                var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
+                bool isNewSnapshot = false;
                 if (snapshot == null)
                 {
                     snapshot = new PlayerStatsSnapshot { PlayerProfileId = actorPlayerProfileId };
-                    await _context.PlayerStatsSnapshots.AddAsync(snapshot);
+                    isNewSnapshot = true;
                 }
 
                 snapshot.MaxHp = totalBaseHp + totalBonusHp + totalEnhHp;
@@ -186,16 +212,17 @@ namespace BLL.Services
                 snapshot.DamageBonus = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDamageBonus ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * DAMAGEBONUS_ENH_PER_LEVEL_SCALED);
                 snapshot.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                if (isNewSnapshot)
+                {
+                    await _statRepository.CreateSnapshot(snapshot);
+                }
+                else
+                {
+                    await _statRepository.UpdateSnapshot(snapshot);
+                }
 
-                await tx.CommitAsync();
-                return MapToResponseDto(updated);
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+                return _mapper.Map<InventoryItemResponseDto>(updated);
+            });
         }
 
         public async Task ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request)
@@ -212,8 +239,7 @@ namespace BLL.Services
             if (request.Quantity <= 0)
                 throw new ArgumentException("Quantity must be at least 1.");
 
-            using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 if (inv.Quantity < request.Quantity)
                     throw new InvalidOperationException("Not enough quantity to consume.");
@@ -228,13 +254,19 @@ namespace BLL.Services
                     await _inventoryRepository.UpdateItem(inv);
                 }
 
-                await tx.CommitAsync();
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+                // Apply consumable effects (e.g., Health Potion)
+                if (inv.Item != null && inv.Item.Name != null && inv.Item.Name.Contains("Health Potion", StringComparison.OrdinalIgnoreCase))
+                {
+                    var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
+                    if (stat != null)
+                    {
+                        int healAmount = 150 * request.Quantity;
+                        stat.CurrentHp = Math.Min(stat.CurrentHp + healAmount, stat.MaxHp);
+                        stat.UpdatedAt = DateTime.UtcNow;
+                        await _statRepository.Update(stat);
+                    }
+                }
+            });
         }
 
         public async Task<PlayerSkinResponseDto> EquipSkin(int actorPlayerProfileId, BLL.DTOs.EquipSkinRequestDto request)
@@ -245,8 +277,7 @@ namespace BLL.Services
             if (skin.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("Skin does not belong to player.");
 
-            using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 var playerSkins = await _inventoryRepository.GetPlayerSkinsByPlayerId(actorPlayerProfileId);
                 foreach (var ps in playerSkins)
@@ -260,14 +291,8 @@ namespace BLL.Services
 
                 skin.IsEquipped = request.IsEquipped;
                 var updated = await _inventoryRepository.UpdatePlayerSkin(skin);
-                await tx.CommitAsync();
                 return _mapper.Map<PlayerSkinResponseDto>(updated);
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+            });
         }
 
         public async Task UnequipSkin(int actorPlayerProfileId, BLL.DTOs.UnequipSkinRequestDto request)
@@ -279,18 +304,20 @@ namespace BLL.Services
             if (skin.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("Skin does not belong to player.");
 
-            using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 skin.IsEquipped = false;
                 await _inventoryRepository.UpdatePlayerSkin(skin);
-                await tx.CommitAsync();
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+
+                // Tự động mặc lại skin Default nếu có
+                var defaultSkin = playerSkins.FirstOrDefault(ps => ps.Skin != null && ps.Skin.Name.Contains("Default"));
+
+                if (defaultSkin != null && defaultSkin.PlayerSkinId != request.PlayerSkinId)
+                {
+                    defaultSkin.IsEquipped = true;
+                    await _inventoryRepository.UpdatePlayerSkin(defaultSkin);
+                }
+            });
         }
 
         public async Task<InventoryItemResponseDto> AddItemToInventory(int playerProfileId, int itemId, int quantity)
@@ -301,7 +328,7 @@ namespace BLL.Services
             {
                 existing.Quantity += quantity;
                 var updated = await _inventoryRepository.UpdateItem(existing);
-                return MapToResponseDto(updated);
+                return _mapper.Map<InventoryItemResponseDto>(updated);
             }
 
             var newItem = new InventoryItem
@@ -315,28 +342,20 @@ namespace BLL.Services
             };
 
             var created = await _inventoryRepository.AddItem(newItem);
-            return MapToResponseDto(created);
+            return _mapper.Map<InventoryItemResponseDto>(created);
         }
 
-        private InventoryItemResponseDto MapToResponseDto(InventoryItem item)
+
+
+        public async Task<PlayerMeInventoryResponseDto> GetMeInventory(int playerProfileId)
         {
-                return new InventoryItemResponseDto
+            var items = await _inventoryRepository.GetByPlayerId(playerProfileId);
+            var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);
+            return new PlayerMeInventoryResponseDto
             {
-                InventoryItemId = item.InventoryItemId,
-                PlayerProfileId = item.PlayerProfileId,
-                ItemId = item.ItemId,
-                ItemName = item.Item?.Name ?? string.Empty,
-                ItemDescription = item.Item?.Description,
-                ItemType = item.Item?.Type ?? string.Empty,
-                ItemRarity = item.Item?.Rarity ?? string.Empty,
-                ItemSlot = item.Item?.Slot ?? "None",
-                IconUrl = item.Item?.IconUrl,
-                Quantity = item.Quantity,
-                IsEquipped = item.IsEquipped,
-                IsSkin = item.IsSkin,
-                EquippedSlot = item.EquippedSlot,
-                EnhancementLevel = item.EnhancementLevel,
-                CreatedAt = item.CreatedAt
+                PlayerProfileId = playerProfileId,
+                Items = dtos,
+                TotalCount = dtos.Count
             };
         }
     }

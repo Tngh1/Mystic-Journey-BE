@@ -8,6 +8,8 @@ using System.Security.Claims;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý xác thực (authentication) và quản lý tài khoản.
+    // Cho phép đăng nhập, đăng ký, đổi mật khẩu, xác thực email.
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -55,6 +57,13 @@ namespace Mystic_Journey_API.Controllers
             Response.Cookies.Delete("refresh_token", options);
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── POST /api/auth/login ─────────────────────────────────────
+        // Đăng nhập bằng email và mật khẩu.
+        // Trả về access token và refresh token.
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
@@ -67,6 +76,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<AuthResponseDto> { Success = true, Data = result });
         }
 
+        // ── POST /api/auth/register ─────────────────────────────────
+        // Đăng ký tài khoản mới.
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
@@ -76,6 +87,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<AuthResponseDto> { Success = true, Data = result });
         }
 
+        // ── GET /api/auth/me ────────────────────────────────────────
+        // Lấy thông tin tài khoản hiện tại.
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> Me()
@@ -85,6 +98,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<MeResponseDto> { Success = true, Data = result });
         }
 
+        // ── POST /api/auth/change-password ──────────────────────────
+        // Đổi mật khẩu.
         [Authorize]
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
@@ -94,6 +109,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<object> { Success = true, Message = "Password changed successfully." });
         }
 
+        // ── POST /api/auth/logout ───────────────────────────────────
+        // Đăng xuất.
         [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
@@ -104,22 +121,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<object> { Success = true, Message = "Logged out successfully." });
         }
 
-        [AllowAnonymous]
-        [HttpPost("send-verification-code")]
-        public async Task<IActionResult> SendVerificationCode([FromBody] SendVerificationCodeRequestDto request)
-        {
-            await _authService.SendVerificationCode(request.Email);
-            return Ok(new ApiResponse<object> { Success = true, Message = $"Verification code sent to {request.Email}." });
-        }
-
-        [AllowAnonymous]
-        [HttpPost("verify-email")]
-        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDto request)
-        {
-            await _authService.VerifyEmail(request);
-            return Ok(new ApiResponse<object> { Success = true, Message = "Email verified successfully." });
-        }
-
+        // ── POST /api/auth/refresh-token ────────────────────────────
+        // Làm mới access token bằng refresh token.
         [AllowAnonymous]
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken()
@@ -142,6 +145,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ── POST /api/auth/forgot-password ──────────────────────────
+        // Gửi mã đặt lại mật khẩu qua email.
         [AllowAnonymous]
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
@@ -150,6 +155,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<object> { Success = true, Message = $"Reset code sent to {request.Email}." });
         }
 
+        // ── POST /api/auth/reset-password ────────────────────────────
+        // Đặt lại mật khẩu bằng mã xác thực.
         [AllowAnonymous]
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
@@ -160,6 +167,26 @@ namespace Mystic_Journey_API.Controllers
                 request.NewPassword,
                 request.ConfirmPassword);
             return Ok(new ApiResponse<object> { Success = true, Message = "Password reset successfully." });
+        }
+
+        // ── POST /api/auth/send-verification-code ───────────────────
+        // Gửi mã xác thực email.
+        [AllowAnonymous]
+        [HttpPost("send-verification-code")]
+        public async Task<IActionResult> SendVerificationCode([FromBody] SendVerificationCodeRequestDto request)
+        {
+            await _authService.SendVerificationCode(request.Email);
+            return Ok(new ApiResponse<object> { Success = true, Message = $"Verification code sent to {request.Email}." });
+        }
+
+        // ── POST /api/auth/verify-email ─────────────────────────────
+        // Xác thực email bằng mã.
+        [AllowAnonymous]
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDto request)
+        {
+            await _authService.VerifyEmail(request);
+            return Ok(new ApiResponse<object> { Success = true, Message = "Email verified successfully." });
         }
     }
 }

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
+    /// <summary>
+    /// Triển khai các thao tác truy cập dữ liệu cho cấu hình dungeon sử dụng Entity Framework.
+    /// </summary>
     public class DungeonConfigRepository : IDungeonConfigRepository
     {
         private readonly MysticJourneyDbContext _context;
@@ -17,12 +20,19 @@ namespace DAL.Repositories
             _context = context;
         }
 
+        // ── Query ──
+
+        /// <summary>Tìm cấu hình dungeon theo mã định danh.</summary>
         public async Task<DungeonConfig?> GetDungeonConfigById(int id)
         {
             return await _context.DungeonConfigs
                 .FirstOrDefaultAsync(d => d.DungeonConfigId == id);
         }
 
+        /// <summary>
+        /// Lấy cấu hình dungeon kèm rương và vật phẩm trong rương.
+        /// Dùng để kiểm tra năng lượng và xem trước phần thưởng.
+        /// </summary>
         public async Task<DungeonConfig?> GetByIdWithChest(int id)
         {
             return await _context.DungeonConfigs
@@ -32,17 +42,29 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(d => d.DungeonConfigId == id && d.IsActive);
         }
 
+        /// <summary>Lấy tất cả cấu hình dungeon.</summary>
         public async Task<List<DungeonConfig>> GetAllDungeonConfigs()
         {
             return await _context.DungeonConfigs.ToListAsync();
         }
 
+        /// <summary>Lấy các dungeon đang hoạt động.</summary>
         public async Task<List<DungeonConfig>> GetActiveDungeonConfigs()
         {
             return await _context.DungeonConfigs
                 .Where(d => d.IsActive)
                 .ToListAsync();
         }
+
+        /// <summary>Kiểm tra dungeon có tồn tại hay không theo mã.</summary>
+        public async Task<bool> DungeonExists(int dungeonId)
+        {
+            return await _context.DungeonConfigs.AnyAsync(d => d.DungeonConfigId == dungeonId);
+        }
+
+        // ── CRUD ──
+
+        /// <summary>Tạo cấu hình dungeon mới.</summary>
         public async Task<DungeonConfig> CreateDungeonConfig(DungeonConfig dungeon)
         {
             await _context.DungeonConfigs.AddAsync(dungeon);
@@ -50,14 +72,17 @@ namespace DAL.Repositories
             return dungeon;
         }
 
+        /// <summary>Cập nhật cấu hình dungeon.</summary>
         public async Task<DungeonConfig> UpdateDungeonConfig(DungeonConfig dungeon)
         {
-_context.DungeonConfigs.Update(dungeon);
+            _context.DungeonConfigs.Update(dungeon);
             await _context.SaveChangesAsync();
             return dungeon;
         }
 
+        // ── Phân trang ──
 
+        /// <summary>Lấy danh sách dungeon có phân trang, lọc theo tìm kiếm (tên), loại và trạng thái hoạt động.</summary>
         public async Task<(int TotalCount, List<DungeonConfig> Items)> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
             var query = _context.DungeonConfigs.AsNoTracking();

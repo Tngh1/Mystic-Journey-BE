@@ -527,6 +527,9 @@ namespace DAL.Migrations
                     b.Property<bool>("IsRewardClaimed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("PartyMembers")
+                        .HasColumnType("text");
+
                     b.Property<int>("PlayerProfileId")
                         .HasColumnType("integer");
 

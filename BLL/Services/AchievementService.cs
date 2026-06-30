@@ -12,11 +12,19 @@ namespace BLL.Services
     {
         private readonly IAchievementRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IPlayerProfileRepository _playerProfileRepository;
+        private readonly IPlayerAchievementRepository _playerAchievementRepository;
 
-        public AchievementService(IAchievementRepository repository, IMapper mapper)
+        public AchievementService(
+            IAchievementRepository repository,
+            IMapper mapper,
+            IPlayerProfileRepository playerProfileRepository,
+            IPlayerAchievementRepository playerAchievementRepository)
         {
             _repository = repository;
             _mapper = mapper;
+            _playerProfileRepository = playerProfileRepository;
+            _playerAchievementRepository = playerAchievementRepository;
         }
 
         public async Task<AchievementResponseDto?> GetAchievementById(int id)
@@ -25,7 +33,7 @@ namespace BLL.Services
             if (achievement == null)
                 return null;
 
-            return MapToResponseDto(achievement);
+            return _mapper.Map<AchievementResponseDto>(achievement);
         }
 
         public async Task<AchievementResponseDto> CreateAchievement(CreateAchievementRequestDto request)
@@ -56,35 +64,31 @@ namespace BLL.Services
             achievement.Point = request.Point;
 
             var updated = await _repository.UpdateAchievement(achievement);
-            return MapToResponseDto(updated);
+            return _mapper.Map<AchievementResponseDto>(updated);
         }
 
         public async Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
             var (totalCount, items) = await _repository.GetAchievementsPaged(page, pageSize, search, type, isActive);
 
-            var dtos = items.Select(MapToResponseDto).ToList();
+            var dtos = _mapper.Map<List<AchievementResponseDto>>(items);
             return new PagedResultDto<AchievementResponseDto>(totalCount, dtos);
         }
 
-        private static AchievementResponseDto MapToResponseDto(Achievement achievement)
+
+
+        public async Task<PlayerMeAchievementsResponseDto> GetMeAchievements(int playerProfileId)
         {
-            return new AchievementResponseDto
+            var achievements = await _playerAchievementRepository.GetByPlayerProfileId(playerProfileId);
+
+            var dtos = _mapper.Map<List<PlayerAchievementResponseDto>>(achievements);
+
+            return new PlayerMeAchievementsResponseDto
             {
-                AchievementId = achievement.AchievementId,
-                Name = achievement.Name,
-                Description = achievement.Description,
-                Type = achievement.Type,
-                IconUrl = achievement.IconUrl,
-                RequiredValue = achievement.RequiredValue,
-                IsActive = achievement.IsActive,
-                CreatedAt = achievement.CreatedAt,
-                RewardItemId = achievement.RewardItemId,
-                RewardItemName = achievement.RewardItem?.Name,
-                RewardQuantity = achievement.RewardQuantity,
-                RewardGold = achievement.RewardGold,
-                RewardGem = achievement.RewardGem,
-                Point = achievement.Point
+                PlayerProfileId = playerProfileId,
+                Achievements = dtos,
+                TotalCount = dtos.Count,
+                CompletedCount = dtos.Count(a => a.IsCompleted)
             };
         }
     }

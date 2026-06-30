@@ -26,4 +26,13 @@ namespace BLL.DTOs
     {
         public int PlayerAchievementId { get; set; }
     }
+
+    // ============ Player Me Achievements (GET /api/achievements/me) ============
+    public class PlayerMeAchievementsResponseDto
+    {
+        public int PlayerProfileId { get; set; }
+        public List<PlayerAchievementResponseDto> Achievements { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int CompletedCount { get; set; }
+    }
 }

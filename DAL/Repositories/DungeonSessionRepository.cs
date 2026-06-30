@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositories
 {
+    /// <summary>
+    /// Triển khai các thao tác truy cập dữ liệu cho phiên chơi dungeon sử dụng Entity Framework.
+    /// </summary>
     public class DungeonSessionRepository : IDungeonSessionRepository
     {
         private readonly MysticJourneyDbContext _context;
@@ -14,6 +17,11 @@ namespace DAL.Repositories
             _context = context;
         }
 
+        // ── Query ──
+
+        /// <summary>
+        /// Tìm phiên chơi dungeon theo mã, kèm cấu hình dungeon, rương phần thưởng và tiến độ chơi.
+        /// </summary>
         public async Task<DungeonSession?> GetById(int sessionId)
         {
             return await _context.DungeonSessions
@@ -25,7 +33,8 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(s => s.DungeonSessionId == sessionId);
         }
 
-        public async Task<List<DungeonSession>> GetByPlayerProfileId(int playerProfileId)
+        /// <summary>Lấy tất cả phiên chơi của người chơi, sắp xếp theo thời gian vào giảm dần.</summary>
+        public async Task<System.Collections.Generic.List<DungeonSession>> GetByPlayerProfileId(int playerProfileId)
         {
             return await _context.DungeonSessions
                 .Include(s => s.DungeonConfig)
@@ -35,6 +44,10 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Tìm phiên chơi đang hoạt động của người chơi trong dungeon cụ thể.
+        /// Dùng để ngăn chặn chạy nhiều phiên cùng lúc.
+        /// </summary>
         public async Task<DungeonSession?> GetActiveSession(int playerProfileId, int dungeonConfigId)
         {
             return await _context.DungeonSessions
@@ -44,6 +57,9 @@ namespace DAL.Repositories
                     s.Status == "Active");
         }
 
+        // ── CRUD ──
+
+        /// <summary>Tạo phiên chơi dungeon mới (tự động ghi nhận thời gian tạo).</summary>
         public async Task<DungeonSession> Create(DungeonSession session)
         {
             session.CreatedAt = DateTime.UtcNow;
@@ -52,6 +68,7 @@ namespace DAL.Repositories
             return session;
         }
 
+        /// <summary>Cập nhật phiên chơi dungeon (trạng thái, thời gian ra vào...).</summary>
         public async Task<DungeonSession> Update(DungeonSession session)
         {
             session.UpdatedAt = DateTime.UtcNow;

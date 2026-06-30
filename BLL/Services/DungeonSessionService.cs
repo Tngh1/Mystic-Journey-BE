@@ -1,40 +1,46 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
     public class DungeonSessionService : IDungeonSessionService
     {
-        private readonly MysticJourneyDbContext _context;
         private readonly IDungeonConfigRepository _dungeonConfigRepository;
         private readonly IDungeonSessionRepository _sessionRepository;
         private readonly IDungeonProgressRepository _progressRepository;
         private readonly IPlayerProfileRepository _profileRepository;
         private readonly IPlayerProfileService _playerProfileService;
+        private readonly ITransactionManager _transactionManager;
+        private readonly IInventoryRepository _inventoryRepository;
+        private readonly IMapper _mapper;
 
         public DungeonSessionService(
-            MysticJourneyDbContext context,
             IDungeonConfigRepository dungeonConfigRepository,
             IDungeonSessionRepository sessionRepository,
             IDungeonProgressRepository progressRepository,
             IPlayerProfileRepository profileRepository,
-            IPlayerProfileService playerProfileService)
+            IPlayerProfileService playerProfileService,
+            ITransactionManager transactionManager,
+            IInventoryRepository inventoryRepository,
+            IMapper mapper)
         {
-            _context = context;
             _dungeonConfigRepository = dungeonConfigRepository;
             _sessionRepository = sessionRepository;
             _progressRepository = progressRepository;
             _profileRepository = profileRepository;
             _playerProfileService = playerProfileService;
+            _transactionManager = transactionManager;
+            _inventoryRepository = inventoryRepository;
+            _mapper = mapper;
         }
 
         // ── 1. Enter Dungeon ─────────────────────────────────────────────────────────
 
-        public async Task<EnterDungeonResponseDto> EnterDungeon(int playerProfileId, int dungeonConfigId)
+        public async Task<EnterDungeonResponseDto> EnterDungeon(int playerProfileId, int dungeonConfigId, List<string>? partyMembers = null)
         {
             // BR-01: Character must exist
             var profile = await _profileRepository.GetPlayerProfileById(playerProfileId)
@@ -53,6 +59,11 @@ namespace BLL.Services
                 throw new InvalidOperationException(
                     $"Insufficient energy. Required: {dungeon.EnergyCost}, Current: {profile.CurrentEnergy}.");
 
+            // Validate party data - total party members (including host) must not exceed MaxMembers
+            int totalMembersCount = 1 + (partyMembers?.Count ?? 0);
+            if (totalMembersCount > dungeon.MaxMembers)
+                throw new InvalidOperationException($"Party exceeds maximum allowed size of {dungeon.MaxMembers}.");
+
             // Prevent duplicate concurrent active sessions for the same dungeon
             var existing = await _sessionRepository.GetActiveSession(playerProfileId, dungeonConfigId);
             if (existing != null)
@@ -66,7 +77,8 @@ namespace BLL.Services
                 DungeonConfigId = dungeonConfigId,
                 EnterTime = DateTime.UtcNow,
                 Status = "Active",
-                IsRewardClaimed = false
+                IsRewardClaimed = false,
+                PartyMembers = partyMembers != null ? string.Join(",", partyMembers) : string.Empty
             };
             await _sessionRepository.Create(session);
 
@@ -89,7 +101,8 @@ namespace BLL.Services
                 EnergyCost = dungeon.EnergyCost,
                 PlayerCurrentEnergy = profile.CurrentEnergy,
                 EnterTime = session.EnterTime,
-                Status = session.Status
+                Status = session.Status,
+                PartyMembers = partyMembers ?? new List<string>()
             };
         }
 
@@ -173,7 +186,7 @@ namespace BLL.Services
             // Build chest preview DTO (items visible to player before claiming)
             ChestResponseDto? chestDto = null;
             if (session.DungeonConfig?.Chest != null)
-                chestDto = MapChestToDto(session.DungeonConfig.Chest);
+                chestDto = _mapper.Map<ChestResponseDto>(session.DungeonConfig.Chest);
 
             return new CompleteDungeonResponseDto
             {
@@ -220,9 +233,7 @@ namespace BLL.Services
                 throw new InvalidOperationException(
                     $"Insufficient energy to claim reward. Required: {dungeon.EnergyCost}, Current: {profile.CurrentEnergy}.");
 
-            // ── BEGIN TRANSACTION ────────────────────────────────────────────────────
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 // Step 1 — Consume energy
                 profile.CurrentEnergy -= dungeon.EnergyCost;
@@ -275,17 +286,13 @@ namespace BLL.Services
                 profile.Gold += goldEarned;
                 profile.ExperiencePoints += experienceEarned;
                 profile.UpdatedAt = DateTime.UtcNow;
-                _context.PlayerProfiles.Update(profile);
+                await _profileRepository.UpdatePlayerProfile(profile);
 
                 // Step 6 — Mark session as RewardClaimed
                 session.IsRewardClaimed = true;
                 session.Status = "RewardClaimed";
                 session.UpdatedAt = DateTime.UtcNow;
-                _context.DungeonSessions.Update(session);
-
-                // Commit all changes atomically
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
+                await _sessionRepository.Update(session);
 
                 return new ClaimDungeonRewardResponseDto
                 {
@@ -297,13 +304,7 @@ namespace BLL.Services
                     ExperienceEarned = experienceEarned,
                     Items = rewardItems
                 };
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
-            // ── END TRANSACTION ──────────────────────────────────────────────────────
+            });
         }
 
         // ── Private Helpers ───────────────────────────────────────────────────────────
@@ -315,17 +316,16 @@ namespace BLL.Services
         /// </summary>
         private async Task UpsertInventoryItem(int playerProfileId, int itemId, int quantity)
         {
-            var existing = await _context.InventoryItems
-                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);
+            var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
 
             if (existing != null)
             {
                 existing.Quantity += quantity;
-                _context.InventoryItems.Update(existing);
+                await _inventoryRepository.UpdateItem(existing);
             }
             else
             {
-                await _context.InventoryItems.AddAsync(new InventoryItem
+                await _inventoryRepository.AddItem(new InventoryItem
                 {
                     PlayerProfileId = playerProfileId,
                     ItemId = itemId,
@@ -336,36 +336,8 @@ namespace BLL.Services
                     CreatedAt = DateTime.UtcNow
                 });
             }
-            // Note: SaveChanges is called once at the end of the transaction — not here.
         }
 
-        /// <summary>Maps a Chest entity to its response DTO for chest preview.</summary>
-        private static ChestResponseDto MapChestToDto(Chest chest)
-        {
-            return new ChestResponseDto
-            {
-                ChestId = chest.ChestId,
-                Name = chest.Name,
-                Description = chest.Description,
-                Type = chest.Type,
-                GoldMinReward = chest.GoldMinReward,
-                GoldMaxReward = chest.GoldMaxReward,
-                ExperienceReward = chest.ExperienceReward,
-                IsActive = chest.IsActive,
-                ChestItems = chest.ChestItems.Select(ci => new ChestItemResponseDto
-                {
-                    ChestItemId = ci.ChestItemId,
-                    ChestId = ci.ChestId,
-                    ItemId = ci.ItemId,
-                    ItemName = ci.Item?.Name,
-                    ItemIconUrl = ci.Item?.IconUrl,
-                    ItemRarity = ci.Item?.Rarity,
-                    QuantityMin = ci.QuantityMin,
-                    QuantityMax = ci.QuantityMax,
-                    DropRate = ci.DropRate,
-                    IsGuaranteed = ci.IsGuaranteed
-                }).ToList()
-            };
-        }
+
     }
 }

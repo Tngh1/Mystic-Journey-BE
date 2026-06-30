@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BLL.DTOs
 {
-    // ============ Account (Admin) ============
+    // ============ AccountAdminDto ============
     public class AccountAdminResponseDto
     {
         public int AccountId { get; set; }

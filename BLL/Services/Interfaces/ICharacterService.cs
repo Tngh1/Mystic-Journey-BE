@@ -2,28 +2,29 @@ using BLL.DTOs;
 
 namespace BLL.Services.Interfaces
 {
+    // Quản lý nhân vật (character) của người chơi.
+    // Cho phép tạo, xem chỉ số, cập nhật HP và nâng cấp thuộc tính.
     public interface ICharacterService
     {
-        /// <summary>
-        /// Sets the character name and class for a newly registered player,
-        /// and seeds their base PlayerStat row. Can only be called once per profile.
-        /// </summary>
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // Tạo nhân vật mới cho tài khoản.
+        // Thiết lập display name và class cho player mới đăng ký.
+        // Chỉ được gọi một lần cho mỗi tài khoản.
         Task<CharacterResponseDto> CreateCharacter(int playerProfileId, CreateCharacterRequestDto request);
 
-        /// <summary>
-        /// Returns all current player stats (HP, ATK, DEF, speeds, crits, Skill Points, etc.).
-        /// </summary>
+        // Lấy danh sách chỉ số của nhân vật.
+        // Bao gồm: CurrentHp, MaxHp, Atk, Def, MoveSpeed, AttackSpeed, CritRate, CritDamage,
+        // DamageBonus, SkillPoints, TotalWins, TotalLosses, TotalKills, TotalDeaths.
         Task<PlayerStatsResponseDto> GetStats(int playerProfileId);
 
-        /// <summary>
-        /// Spends Skill Points to increase a chosen attribute.
-        /// Skill Points are granted on level-up (handled externally when XP thresholds are crossed).
-        /// </summary>
-        Task<UpgradeAttributeResponseDto> UpgradeAttribute(int playerProfileId, UpgradeAttributeRequestDto request);
-
-        /// <summary>
-        /// Syncs the player's current HP directly from the client.
-        /// </summary>
+        // Cập nhật HP hiện tại của nhân vật (đồng bộ từ client).
         Task UpdateHp(int playerProfileId, int currentHp);
+
+        // Nâng cấp thuộc tính nhân vật bằng Skill Points.
+        // Skill Points được cấp tự động khi lên level (3 điểm mỗi level).
+        Task<UpgradeAttributeResponseDto> UpgradeAttribute(int playerProfileId, UpgradeAttributeRequestDto request);
     }
 }

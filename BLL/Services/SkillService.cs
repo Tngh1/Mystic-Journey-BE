@@ -3,10 +3,10 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using DAL.Data;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using System;
 
 namespace BLL.Services
@@ -15,13 +15,19 @@ namespace BLL.Services
     {
         private readonly ISkillRepository _repository;
         private readonly IMapper _mapper;
-        private readonly MysticJourneyDbContext _context;
+        private readonly IPlayerProfileRepository _playerProfileRepository;
+        private readonly ITransactionManager _transactionManager;
 
-        public SkillService(ISkillRepository repository, IMapper mapper, MysticJourneyDbContext context)
+        public SkillService(
+            ISkillRepository repository,
+            IMapper mapper,
+            IPlayerProfileRepository playerProfileRepository,
+            ITransactionManager transactionManager)
         {
             _repository = repository;
             _mapper = mapper;
-            _context = context;
+            _playerProfileRepository = playerProfileRepository;
+            _transactionManager = transactionManager;
         }
 
         public async Task<SkillResponseDto?> GetSkillById(int id)
@@ -81,13 +87,7 @@ namespace BLL.Services
 
             var updated = await _repository.UpdatePlayerSkill(ps);
 
-            var dto = _mapper.Map<PlayerSkillResponseDto>(updated);
-            dto.CooldownSeconds = updated.Skill?.CooldownSeconds ?? 0;
-            dto.BaseDamage = updated.Skill?.BaseDamage ?? 0.0;
-            dto.EffectiveDamage = (updated.Skill?.BaseDamage ?? 0.0) * (1 + (updated.Skill?.DamageGrowthPercent ?? 0.0) / 100.0 * (updated.Level - 1))
-                + (updated.Skill?.DamagePerLevel ?? 0.0) * (updated.Level - 1);
-
-            return dto;
+            return _mapper.Map<PlayerSkillResponseDto>(updated);
         }
 
         public async Task<PlayerSkillResponseDto> EquipPlayerSkill(int actorPlayerProfileId, EquipSkillRequestDto request)
@@ -99,7 +99,7 @@ namespace BLL.Services
                 throw new UnauthorizedAccessException("PlayerSkill does not belong to actor.");
 
             // Enforce class requirement: player cannot equip skills not matching their selected class
-            var playerProfile = await _context.PlayerProfiles.FindAsync(actorPlayerProfileId);
+            var playerProfile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
             var skillDef = ps.Skill ?? await _repository.GetSkillById(ps.SkillId);
             if (playerProfile != null && skillDef != null)
             {
@@ -114,8 +114,7 @@ namespace BLL.Services
                 }
             }
 
-            using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 if (request.IsEquipped)
                 {
@@ -158,26 +157,8 @@ namespace BLL.Services
 
                 var updated = await _repository.UpdatePlayerSkill(ps);
 
-                // =================================================================
-                // QUAN TRỌNG NHẤT: Bắt buộc gọi SaveChangesAsync để tạo lệnh UPDATE 
-                // xuống SQL Database TRƯỚC KHI gọi Commit Transaction!
-                // =================================================================
-                await _context.SaveChangesAsync(); 
-
-                await tx.CommitAsync();
-
-                var dto = _mapper.Map<PlayerSkillResponseDto>(updated);
-                dto.CooldownSeconds = updated.Skill?.CooldownSeconds ?? 0;
-                dto.BaseDamage = updated.Skill?.BaseDamage ?? 0.0;
-                dto.EffectiveDamage = (updated.Skill?.BaseDamage ?? 0.0) * (1 + (updated.Skill?.DamageGrowthPercent ?? 0.0) / 100.0 * (updated.Level - 1))
-                    + (updated.Skill?.DamagePerLevel ?? 0.0) * (updated.Level - 1);
-                return dto;
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+                return _mapper.Map<PlayerSkillResponseDto>(updated);
+            });
         }
 
         public async Task<PlayerSkillResponseDto?> DismantlePlayerSkill(int actorPlayerProfileId, DismantlePlayerSkillRequestDto request)
@@ -205,7 +186,7 @@ namespace BLL.Services
                     throw new UnauthorizedAccessException("Target PlayerSkill does not belong to actor.");
 
                 // ensure target skill is compatible with player's class
-                var playerProfile = await _context.PlayerProfiles.FindAsync(actorPlayerProfileId);
+                var playerProfile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
                 var targetSkillDef = target.Skill ?? await _repository.GetSkillById(target.SkillId);
                 if (playerProfile != null && targetSkillDef != null && !string.IsNullOrWhiteSpace(targetSkillDef.ClassRequirement))
                 {
@@ -230,12 +211,7 @@ namespace BLL.Services
             // Return updated target DTO if present, else null
             if (target != null)
             {
-                var dto = _mapper.Map<PlayerSkillResponseDto>(target);
-                dto.CooldownSeconds = target.Skill?.CooldownSeconds ?? 0;
-                dto.BaseDamage = target.Skill?.BaseDamage ?? 0.0;
-                dto.EffectiveDamage = (target.Skill?.BaseDamage ?? 0.0) * (1 + (target.Skill?.DamageGrowthPercent ?? 0.0) / 100.0 * (target.Level - 1))
-                    + (target.Skill?.DamagePerLevel ?? 0.0) * (target.Level - 1);
-                return dto;
+                return _mapper.Map<PlayerSkillResponseDto>(target);
             }
 
             return null;
@@ -261,12 +237,22 @@ namespace BLL.Services
             };
 
             var created = await _repository.CreatePlayerSkill(newPlayerSkill);
-            var dto = _mapper.Map<PlayerSkillResponseDto>(created);
-            dto.CooldownSeconds = skill.CooldownSeconds;
-            dto.BaseDamage = skill.BaseDamage;
-            dto.EffectiveDamage = skill.BaseDamage;
-            dto.UnlockLevel = skill.UnlockLevel;
-            return dto;
+            created.Skill = skill; // Attach the skill so mapping gets effective damage and base info
+            return _mapper.Map<PlayerSkillResponseDto>(created);
+        }
+
+        public async Task<PlayerMeSkillsResponseDto> GetMeSkills(int playerProfileId)
+        {
+            var skillsList = await _repository.GetPlayerSkillsByPlayerId(playerProfileId);
+
+            var skills = _mapper.Map<List<PlayerSkillResponseDto>>(skillsList);
+
+            return new PlayerMeSkillsResponseDto
+            {
+                PlayerProfileId = playerProfileId,
+                Skills = skills,
+                TotalCount = skills.Count
+            };
         }
     }
 }

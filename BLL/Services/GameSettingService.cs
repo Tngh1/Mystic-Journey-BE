@@ -25,7 +25,7 @@ namespace BLL.Services
             if (setting == null)
                 return null;
 
-            return MapToResponseDto(setting);
+            return _mapper.Map<GameSettingResponseDto>(setting);
         }
 
         public async Task<GameSettingResponseDto?> GetSettingByKey(string key)
@@ -34,7 +34,7 @@ namespace BLL.Services
             if (setting == null)
                 return null;
 
-            return MapToResponseDto(setting);
+            return _mapper.Map<GameSettingResponseDto>(setting);
         }
 
         public async Task<GameSettingResponseDto> UpdateSetting(string key, UpdateGameSettingRequestDto request, Guid? updatedByAccountId = null)
@@ -53,30 +53,17 @@ namespace BLL.Services
             setting.UpdatedByAccountId = updatedByAccountId;
 
             var updated = await _repository.UpdateGameSetting(setting);
-            return MapToResponseDto(updated);
+            return _mapper.Map<GameSettingResponseDto>(updated);
         }
 
         public async Task<PagedResultDto<GameSettingResponseDto>> GetSettingsPaged(int page, int pageSize, string? search)
         {
             var (totalCount, items) = await _repository.GetSettingsPaged(page, pageSize, search);
 
-            var dtos = items.Select(MapToResponseDto).ToList();
+            var dtos = _mapper.Map<List<GameSettingResponseDto>>(items);
             return new PagedResultDto<GameSettingResponseDto>(totalCount, dtos);
         }
 
-        private static GameSettingResponseDto MapToResponseDto(GameSetting setting)
-        {
-            return new GameSettingResponseDto
-            {
-                GameSettingId = setting.GameSettingId,
-                Key = setting.Name,
-                Value = setting.Value,
-                Description = setting.Description,
-                IsActive = setting.IsActive,
-                CreatedAt = setting.CreatedAt,
-                UpdatedAt = setting.UpdatedAt,
-                UpdatedBy = setting.UpdatedByAccount?.UserName
-            };
-        }
+
     }
 }
