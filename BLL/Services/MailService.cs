@@ -91,12 +91,16 @@ namespace BLL.Services
             if (mail.AttachedGems > 0)
                 playerProfile.Gems += mail.AttachedGems;
 
-            if (mail.AttachedItemId.HasValue && mail.AttachedItemQuantity > 0)
+            // Xử lý items
+            if (mail.AttachedItems != null && mail.AttachedItems.Any())
             {
-                await _inventoryService.AddItemToInventory(
-                    mail.PlayerProfileId,
-                    mail.AttachedItemId.Value,
-                    mail.AttachedItemQuantity);
+                foreach (var rewardItem in mail.AttachedItems)
+                {
+                    await _inventoryService.AddItemToInventory(
+                        mail.PlayerProfileId,
+                        rewardItem.ItemId,
+                        rewardItem.Quantity);
+                }
             }
 
             playerProfile.UpdatedAt = DateTime.UtcNow;
@@ -135,7 +139,7 @@ namespace BLL.Services
             return new PagedResultDto<MailDetailDto>(totalCount, dtos);
         }
 
-        // Admin: gửi mail đến danh sách player.
+            // Admin: gửi mail đến danh sách player.
         public async Task SendMailByListId(SendMailByListIdDto request)
         {
             if (request.PlayerProfileIds == null || request.PlayerProfileIds.Count == 0)
@@ -147,10 +151,11 @@ namespace BLL.Services
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
-                AttachedGold = request.AttachedGold,
-                AttachedGems = request.AttachedGems,
-                AttachedItemId = request.AttachedItemId,
-                AttachedItemQuantity = request.AttachedItemQuantity,
+                AttachedItems = request.AttachedItems?.Select(item => new MailRewardItem
+                {
+                    ItemId = item.ItemId,
+                    Quantity = item.Quantity
+                }).ToList() ?? new List<MailRewardItem>(),
                 IsRead = false,
                 IsClaimed = false,
                 SentAt = DateTime.UtcNow,
@@ -173,10 +178,11 @@ namespace BLL.Services
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
-                AttachedGold = request.AttachedGold,
-                AttachedGems = request.AttachedGems,
-                AttachedItemId = request.AttachedItemId,
-                AttachedItemQuantity = request.AttachedItemQuantity,
+                AttachedItems = request.AttachedItems?.Select(item => new MailRewardItem
+                {
+                    ItemId = item.ItemId,
+                    Quantity = item.Quantity
+                }).ToList() ?? new List<MailRewardItem>(),
                 IsRead = false,
                 IsClaimed = false,
                 SentAt = DateTime.UtcNow,

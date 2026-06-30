@@ -39,7 +39,7 @@ namespace BLL.DTOs
         public bool IsClaimed { get; set; }
         public decimal AttachedGold { get; set; }
         public decimal AttachedGems { get; set; }
-        public MailRewardItemDto? AttachedItem { get; set; }
+        public List<MailRewardItemDto> AttachedItems { get; set; } = new();
         public DateTime SentAt { get; set; }
         public DateTime? ExpiredAt { get; set; }
     }
@@ -48,7 +48,7 @@ namespace BLL.DTOs
     public class MailRewardItemDto
     {
         public int ItemId { get; set; }
-        public string ItemName { get; set; } = string.Empty;
+        public string? ItemName { get; set; }
         public string? IconUrl { get; set; }
         public int Quantity { get; set; }
     }
@@ -67,11 +67,17 @@ namespace BLL.DTOs
         public string Content { get; set; } = string.Empty;
 
         public string Type { get; set; } = "System";
-        public decimal AttachedGold { get; set; }
-        public decimal AttachedGems { get; set; }
-        public int? AttachedItemId { get; set; }
-        public int AttachedItemQuantity { get; set; }
+        public List<SendMailRewardItemDto> AttachedItems { get; set; } = new();
         public DateTime? ExpiredAt { get; set; }
+    }
+
+    public class SendMailRewardItemDto
+    {
+        [Required]
+        public int ItemId { get; set; } // 1 = Gold, 2 = Gems, >2 = Item
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int Quantity { get; set; }
     }
 
     public class SendMailToAllDto
@@ -84,10 +90,7 @@ namespace BLL.DTOs
         public string Content { get; set; } = string.Empty;
 
         public string Type { get; set; } = "System";
-        public decimal AttachedGold { get; set; }
-        public decimal AttachedGems { get; set; }
-        public int? AttachedItemId { get; set; }
-        public int AttachedItemQuantity { get; set; }
+        public List<SendMailRewardItemDto> AttachedItems { get; set; } = new();
         public DateTime? ExpiredAt { get; set; }
     }
 }
