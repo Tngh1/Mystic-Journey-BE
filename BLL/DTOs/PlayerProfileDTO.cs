@@ -169,46 +169,4 @@ namespace BLL.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }
-
-    // ============ Player Me Inventory ============
-    public class PlayerMeInventoryResponseDto
-    {
-        public int PlayerProfileId { get; set; }
-        public List<InventoryItemResponseDto> Items { get; set; } = new();
-        public int TotalCount { get; set; }
-    }
-
-    // ============ Player Me Skills ============
-    public class PlayerMeSkillsResponseDto
-    {
-        public int PlayerProfileId { get; set; }
-        public List<PlayerSkillResponseDto> Skills { get; set; } = new();
-        public int TotalCount { get; set; }
-    }
-
-    // ============ Player Me Quests ============
-    public class PlayerMeQuestsResponseDto
-    {
-        public int PlayerProfileId { get; set; }
-        public List<PlayerQuestResponseDto> Quests { get; set; } = new();
-        public int TotalCount { get; set; }
-    }
-
-    // ============ Player Me Mails ============
-    public class PlayerMeMailsResponseDto
-    {
-        public int PlayerProfileId { get; set; }
-        public List<MailResponseDto> Mails { get; set; } = new();
-        public int TotalCount { get; set; }
-        public int UnreadCount { get; set; }
-    }
-
-    // ============ Player Me Achievements ============
-    public class PlayerMeAchievementsResponseDto
-    {
-        public int PlayerProfileId { get; set; }
-        public List<PlayerAchievementResponseDto> Achievements { get; set; } = new();
-        public int TotalCount { get; set; }
-        public int CompletedCount { get; set; }
-    }
 }

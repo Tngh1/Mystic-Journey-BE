@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý dashboard (bảng điều khiển) cho admin.
+    // Admin APIs: Xem thống kê dashboard.
     [Route("api/[controller]")]
     [ApiController]
     public class DashboardController : ControllerBase
@@ -17,6 +19,12 @@ namespace Mystic_Journey_API.Controllers
             _dashboardService = dashboardService;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/dashboard/stats ────────────────────────────────
+        // Lấy thống kê dashboard (tổng quan hệ thống).
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()

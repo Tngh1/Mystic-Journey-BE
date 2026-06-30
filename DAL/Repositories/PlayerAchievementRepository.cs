@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
+    /// <summary>
+    /// Triển khai các thao tác truy cập dữ liệu cho thành tích người chơi sử dụng Entity Framework.
+    /// </summary>
     public class PlayerAchievementRepository : IPlayerAchievementRepository
     {
         private readonly MysticJourneyDbContext _context;
@@ -16,6 +19,7 @@ namespace DAL.Repositories
             _context = context;
         }
 
+        /// <summary>Lấy danh sách thành tích đã đạt được của người chơi, kèm thông tin thành tích.</summary>
         public async Task<List<PlayerAchievement>> GetByPlayerProfileId(int playerProfileId)
         {
             return await _context.PlayerAchievements

@@ -23,6 +23,27 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(i => i.ItemId == id);
         }
 
+        public async Task<int> GetTotalItemsCount()
+        {
+            return await _context.Items.CountAsync();
+        }
+
+        public async Task<List<Item>> GetQuestItems()
+        {
+            return await _context.Items
+                .Where(i => i.IsActive && i.Type == "QuestItem")
+                .OrderBy(i => i.ItemId)
+                .ToListAsync();
+        }
+
+        public async Task<Item?> GetQuestItemByNames(params string[] names)
+        {
+            return await _context.Items
+                .Where(i => i.IsActive && i.Type == "QuestItem" && names.Contains(i.Name))
+                .OrderBy(i => i.ItemId)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Item?> GetItemByIdWithStats(int id)
         {
             return await _context.Items

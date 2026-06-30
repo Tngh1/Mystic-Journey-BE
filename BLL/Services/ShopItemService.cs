@@ -24,7 +24,7 @@ namespace BLL.Services
             if (shopItem == null)
                 return null;
 
-            return MapToResponseDto(shopItem);
+            return _mapper.Map<ShopItemResponseDto>(shopItem);
         }
 
         public async Task<ShopItemResponseDto> CreateShopItem(CreateShopItemRequestDto request)
@@ -42,19 +42,8 @@ namespace BLL.Services
             };
 
             var created = await _repository.CreateShopItem(shopItem);
-            return await GetShopItemById(created.ShopItemId)
-                ?? new ShopItemResponseDto
-                {
-                    ShopItemId = created.ShopItemId,
-                    ItemId = created.ItemId,
-                    Currency = created.Currency,
-                    Price = created.Price,
-                    Stock = created.Stock,
-                    DailyPurchaseLimit = created.DailyPurchaseLimit,
-                    IsActive = created.IsActive,
-                    AvailableFrom = created.AvailableFrom,
-                    AvailableTo = created.AvailableTo
-                };
+            var createdDto = await GetShopItemById(created.ShopItemId);
+            return createdDto ?? _mapper.Map<ShopItemResponseDto>(created);
         }
 
         public async Task<ShopItemResponseDto> UpdateShopItem(int id, UpdateShopItemRequestDto request)
@@ -72,33 +61,16 @@ namespace BLL.Services
             shopItem.AvailableTo = request.AvailableTo;
 
             var updated = await _repository.UpdateShopItem(shopItem);
-            return MapToResponseDto(updated);
+            return _mapper.Map<ShopItemResponseDto>(updated);
         }
 
         public async Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive)
         {
             var (totalCount, items) = await _repository.GetShopItemsPaged(page, pageSize, search, currency, isActive);
-            var dtos = items.Select(MapToResponseDto).ToList();
+            var dtos = _mapper.Map<List<ShopItemResponseDto>>(items);
             return new PagedResultDto<ShopItemResponseDto>(totalCount, dtos);
         }
 
-        private static ShopItemResponseDto MapToResponseDto(ShopItem shopItem)
-        {
-            return new ShopItemResponseDto
-            {
-                ShopItemId = shopItem.ShopItemId,
-                ItemId = shopItem.ItemId,
-                ItemName = shopItem.Item?.Name,
-                ItemIconUrl = shopItem.Item?.IconUrl,
-                ItemType = shopItem.Item?.Type,
-                Currency = shopItem.Currency,
-                Price = shopItem.Price,
-                Stock = shopItem.Stock,
-                DailyPurchaseLimit = shopItem.DailyPurchaseLimit,
-                IsActive = shopItem.IsActive,
-                AvailableFrom = shopItem.AvailableFrom,
-                AvailableTo = shopItem.AvailableTo
-            };
-        }
+
     }
 }

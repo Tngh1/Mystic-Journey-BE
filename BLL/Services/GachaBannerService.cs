@@ -26,23 +26,7 @@ namespace BLL.Services
             if (banner == null)
                 return null;
 
-            var dto = _mapper.Map<GachaBannerDetailResponseDto>(banner);
-
-            if (banner.BannerItems != null && banner.BannerItems.Any())
-            {
-                dto.BannerItems = banner.BannerItems.Select(bi => new GachaBannerItemResponseDto
-                {
-                    GachaBannerItemId = bi.GachaBannerItemId,
-                    ItemId = bi.ItemId,
-                    ItemName = bi.Item?.Name,
-                    ItemIconUrl = bi.Item?.IconUrl,
-                    ItemRarity = bi.Item?.Rarity,
-                    DropRate = bi.DropRate,
-                    IsFeatured = bi.IsFeatured
-                }).ToList();
-            }
-
-            return dto;
+            return _mapper.Map<GachaBannerDetailResponseDto>(banner);
         }
 
         public async Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request)
@@ -85,30 +69,14 @@ namespace BLL.Services
 
             var created = await _repository.CreateBannerItem(item);
 
-            return new GachaBannerItemResponseDto
-            {
-                GachaBannerItemId = created.GachaBannerItemId,
-                ItemId = created.ItemId,
-                DropRate = created.DropRate,
-                IsFeatured = created.IsFeatured
-            };
+            return _mapper.Map<GachaBannerItemResponseDto>(created);
         }
 
         public async Task<PagedResultDto<GachaBannerResponseDto>> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
         {
             var (totalCount, items) = await _repository.GetBannersPaged(page, pageSize, search, type, isActive);
 
-            var dtos = items.Select(b => new GachaBannerResponseDto
-            {
-                GachaBannerId = b.GachaBannerId,
-                Name = b.Name,
-                Type = b.Type,
-                PullCost = b.PullCost,
-                PityLimit = b.PityLimit,
-                IsActive = b.IsActive,
-                StartAt = b.StartAt,
-                EndAt = b.EndAt
-            }).ToList();
+            var dtos = _mapper.Map<List<GachaBannerResponseDto>>(items);
 
             return new PagedResultDto<GachaBannerResponseDto>(totalCount, dtos);
         }
@@ -117,16 +85,7 @@ namespace BLL.Services
         {
             var (totalCount, items) = await _repository.GetBannerItemsPaged(page, pageSize);
 
-            var dtos = items.Select(bi => new GachaBannerItemResponseDto
-            {
-                GachaBannerItemId = bi.GachaBannerItemId,
-                ItemId = bi.ItemId,
-                ItemName = bi.Item?.Name,
-                ItemIconUrl = bi.Item?.IconUrl,
-                ItemRarity = bi.Item?.Rarity,
-                DropRate = bi.DropRate,
-                IsFeatured = bi.IsFeatured
-            }).ToList();
+            var dtos = _mapper.Map<List<GachaBannerItemResponseDto>>(items);
 
             return new PagedResultDto<GachaBannerItemResponseDto>(totalCount, dtos);
         }

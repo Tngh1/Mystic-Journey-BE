@@ -1,9 +1,9 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -14,21 +14,39 @@ namespace BLL.Services
         private const double TutorialSpawnX = 11.9;
         private const double TutorialSpawnY = 17.8;
 
-        private readonly MysticJourneyDbContext _context;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IPlayerQuestService _playerQuestService;
         private readonly IPlayerProfileService _playerProfileService;
+        private readonly IWorldRepository _worldRepository;
+        private readonly IItemRepository _itemRepository;
+        private readonly IInventoryRepository _inventoryRepository;
+        private readonly ITransactionManager _transactionManager;
+        private readonly IPlayerQuestRepository _playerQuestRepository;
+        private readonly IQuestRepository _questRepository;
+        private readonly IMapper _mapper;
 
         public WorldService(
-            MysticJourneyDbContext context,
             IPlayerProfileRepository playerProfileRepository,
             IPlayerQuestService playerQuestService,
-            IPlayerProfileService playerProfileService)
+            IPlayerProfileService playerProfileService,
+            IWorldRepository worldRepository,
+            IItemRepository itemRepository,
+            IInventoryRepository inventoryRepository,
+            ITransactionManager transactionManager,
+            IPlayerQuestRepository playerQuestRepository,
+            IQuestRepository questRepository,
+            IMapper mapper)
         {
-            _context = context;
             _playerProfileRepository = playerProfileRepository;
             _playerQuestService = playerQuestService;
             _playerProfileService = playerProfileService;
+            _worldRepository = worldRepository;
+            _itemRepository = itemRepository;
+            _inventoryRepository = inventoryRepository;
+            _transactionManager = transactionManager;
+            _playerQuestRepository = playerQuestRepository;
+            _questRepository = questRepository;
+            _mapper = mapper;
         }
 
         public async Task<WorldStateResponseDto> GetWorldState(int playerProfileId)
@@ -37,16 +55,7 @@ namespace BLL.Services
             await EnsureTutorialSpawn(profile);
             var mapName = NormalizeMapName(profile.LastMapName);
 
-            var npcs = await _context.NPCs
-                .Include(n => n.Dialogues.Where(d => d.IsActive))
-                    .ThenInclude(d => d.LinkedQuest)
-                .Include(n => n.Dialogues.Where(d => d.IsActive))
-                    .ThenInclude(d => d.LinkedShopItem)
-                        .ThenInclude(si => si!.Item)
-                .Where(n => n.IsActive && n.MapName == mapName)
-                .OrderBy(n => n.NPCId)
-                .Take(MaxNpcsPerMap)
-                .ToListAsync();
+            var npcs = await _worldRepository.GetNpcsByMapName(mapName, MaxNpcsPerMap);
 
             var quests = await _playerQuestService.GetMyQuests(playerProfileId);
             var dailyLogin = await GetDailyLogin(playerProfileId);
@@ -61,7 +70,7 @@ namespace BLL.Services
                     PositionY = profile.PositionY
                 },
                 Maps = await BuildMapProgress(playerProfileId, mapName),
-                Npcs = npcs.Select(MapNpc).ToList(),
+                Npcs = _mapper.Map<List<NPCResponseDto>>(npcs),
                 Quests = quests,
                 ActiveQuest = quests.FirstOrDefault(q => q.Status == "InProgress")
                     ?? quests.FirstOrDefault(q => q.Status == "Completed")
@@ -91,13 +100,7 @@ namespace BLL.Services
             var profile = await GetProfile(playerProfileId);
             var mapName = NormalizeMapName(profile.LastMapName);
 
-            var npc = await _context.NPCs
-                .Include(n => n.Dialogues.Where(d => d.IsActive))
-                    .ThenInclude(d => d.LinkedQuest)
-                .Include(n => n.Dialogues.Where(d => d.IsActive))
-                    .ThenInclude(d => d.LinkedShopItem)
-                        .ThenInclude(si => si!.Item)
-                .FirstOrDefaultAsync(n => n.NPCId == request.NPCId && n.IsActive)
+            var npc = await _worldRepository.GetNpcById(request.NPCId)
                 ?? throw new KeyNotFoundException($"NPC {request.NPCId} not found.");
 
             if (npc.MapName != mapName)
@@ -113,7 +116,7 @@ namespace BLL.Services
 
             return new TalkToNpcResponseDto
             {
-                Npc = MapNpc(npc),
+                Npc = _mapper.Map<NPCResponseDto>(npc),
                 LinkedQuests = linkedQuests
             };
         }
@@ -144,9 +147,7 @@ namespace BLL.Services
                 };
             }
 
-            var playerQuest = await _context.PlayerQuests
-                .Include(pq => pq.Quest)
-                .FirstOrDefaultAsync(pq => pq.PlayerProfileId == playerProfileId && pq.QuestId == request.QuestId.Value)
+            var playerQuest = await _playerQuestRepository.GetByPlayerAndQuest(playerProfileId, request.QuestId.Value)
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId.Value}.");
 
             if (playerQuest.Quest?.MapName != mapName)
@@ -175,8 +176,7 @@ namespace BLL.Services
                     playerQuest.CompletedAt ??= DateTime.UtcNow;
                 }
 
-                _context.PlayerQuests.Update(playerQuest);
-                await _context.SaveChangesAsync();
+                await _playerQuestRepository.Update(playerQuest);
 
                 var collectQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId.Value);
                 return new InteractObjectResponseDto
@@ -216,22 +216,17 @@ namespace BLL.Services
             var profile = await GetProfile(playerProfileId);
             var mapName = NormalizeMapName(profile.LastMapName);
 
-            var npc = await _context.NPCs
-                .AsNoTracking()
-                .FirstOrDefaultAsync(n => n.NPCId == request.NPCId && n.IsActive)
+            var npc = await _worldRepository.GetNpcById(request.NPCId)
                 ?? throw new KeyNotFoundException($"NPC {request.NPCId} not found.");
 
             if (npc.MapName != mapName)
                 throw new InvalidOperationException($"NPC {request.NPCId} is on map {npc.MapName}, but player is currently in {mapName}.");
 
-            var linkedToNpc = await _context.NPCDialogues
-                .AnyAsync(d => d.NPCId == request.NPCId && d.LinkedQuestId == request.QuestId && d.IsActive);
+            var linkedToNpc = await _worldRepository.IsQuestLinkedToNpc(request.NPCId, request.QuestId);
             if (!linkedToNpc)
                 throw new InvalidOperationException($"Quest {request.QuestId} is not linked to NPC {request.NPCId}.");
 
-            var playerQuest = await _context.PlayerQuests
-                .Include(pq => pq.Quest)
-                .FirstOrDefaultAsync(pq => pq.PlayerProfileId == playerProfileId && pq.QuestId == request.QuestId)
+            var playerQuest = await _playerQuestRepository.GetByPlayerAndQuest(playerProfileId, request.QuestId)
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
 
             if (playerQuest.Quest?.MapName != mapName)
@@ -279,8 +274,7 @@ namespace BLL.Services
                 playerQuest.Quest)
                 ?? throw new KeyNotFoundException($"Quest item for questId={request.QuestId} was not found.");
 
-            var inventoryItem = await _context.InventoryItems
-                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == item.ItemId);
+            var inventoryItem = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, item.ItemId);
             var available = inventoryItem?.Quantity ?? 0;
             if (available < targetAmount)
             {
@@ -296,29 +290,25 @@ namespace BLL.Services
                 };
             }
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 if (inventoryItem != null)
                 {
                     inventoryItem.Quantity -= targetAmount;
                     if (inventoryItem.Quantity <= 0)
-                        _context.InventoryItems.Remove(inventoryItem);
+                        await _inventoryRepository.DeleteItem(inventoryItem.InventoryItemId);
                     else
-                        _context.InventoryItems.Update(inventoryItem);
+                        await _inventoryRepository.UpdateItem(inventoryItem);
                 }
 
                 playerQuest.TargetValue = targetAmount;
                 playerQuest.Progress = targetAmount;
                 playerQuest.Status = "Completed";
                 playerQuest.CompletedAt ??= DateTime.UtcNow;
-                _context.PlayerQuests.Update(playerQuest);
-
-                await _context.SaveChangesAsync();
+                await _playerQuestRepository.Update(playerQuest);
 
                 var completedQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
 
-                await tx.CommitAsync();
                 return new TurnInQuestItemResponseDto
                 {
                     Success = true,
@@ -328,12 +318,7 @@ namespace BLL.Services
                     ConsumedItemName = item.Name,
                     ConsumedQuantity = targetAmount
                 };
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+            });
         }
 
         public async Task<OpenChestResponseDto> OpenChest(int playerProfileId, OpenWorldChestRequestDto request)
@@ -341,21 +326,14 @@ namespace BLL.Services
             if (!request.ChestId.HasValue && !request.PlayerChestId.HasValue)
                 throw new ArgumentException("ChestId or PlayerChestId is required.");
 
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 PlayerChest? playerChest = null;
                 Chest? chest = null;
 
                 if (request.PlayerChestId.HasValue)
                 {
-                    playerChest = await _context.PlayerChests
-                        .Include(pc => pc.Chest)
-                            .ThenInclude(c => c!.ChestItems)
-                                .ThenInclude(ci => ci.Item)
-                        .FirstOrDefaultAsync(pc =>
-                            pc.PlayerChestId == request.PlayerChestId.Value &&
-                            pc.PlayerProfileId == playerProfileId)
+                    playerChest = await _worldRepository.GetPlayerChest(request.PlayerChestId.Value, playerProfileId)
                         ?? throw new KeyNotFoundException($"PlayerChest {request.PlayerChestId.Value} not found.");
 
                     if (playerChest.IsOpened)
@@ -365,10 +343,7 @@ namespace BLL.Services
                 }
                 else
                 {
-                    chest = await _context.Chests
-                        .Include(c => c.ChestItems)
-                            .ThenInclude(ci => ci.Item)
-                        .FirstOrDefaultAsync(c => c.ChestId == request.ChestId!.Value && c.IsActive)
+                    chest = await _worldRepository.GetChestById(request.ChestId!.Value)
                         ?? throw new KeyNotFoundException($"Chest {request.ChestId!.Value} not found.");
 
                     playerChest = new PlayerChest
@@ -378,8 +353,7 @@ namespace BLL.Services
                         IsOpened = false,
                         ReceivedAt = DateTime.UtcNow
                     };
-                    await _context.PlayerChests.AddAsync(playerChest);
-                    await _context.SaveChangesAsync();
+                    await _worldRepository.CreatePlayerChest(playerChest);
                 }
 
                 if (chest == null)
@@ -416,10 +390,8 @@ namespace BLL.Services
 
                 playerChest.IsOpened = true;
                 playerChest.OpenedAt = DateTime.UtcNow;
-                _context.PlayerChests.Update(playerChest);
-                _context.PlayerProfiles.Update(profile);
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
+                await _worldRepository.UpdatePlayerChest(playerChest);
+                await _playerProfileRepository.UpdatePlayerProfile(profile);
 
                 return new OpenChestResponseDto
                 {
@@ -428,12 +400,7 @@ namespace BLL.Services
                     ExperienceEarned = chest.ExperienceReward,
                     Items = openedItems
                 };
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+            });
         }
 
         public async Task<PlayerDailyLoginResponseDto?> GetDailyLoginStatus(int playerProfileId)
@@ -444,13 +411,11 @@ namespace BLL.Services
 
         public async Task<ClaimDailyRewardResponseDto> ClaimDailyLoginReward(int playerProfileId)
         {
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 var profile = await GetProfile(playerProfileId);
                 var today = DateTime.UtcNow;
-                var dailyLogin = await _context.PlayerDailyLogins
-                    .FirstOrDefaultAsync(x => x.PlayerProfileId == playerProfileId);
+                var dailyLogin = await _worldRepository.GetPlayerDailyLogin(playerProfileId);
 
                 dailyLogin ??= new PlayerDailyLogin { PlayerProfileId = playerProfileId, CurrentYear = today.Year, CurrentMonth = today.Month };
 
@@ -473,9 +438,7 @@ namespace BLL.Services
                 }
 
                 var rewardDay = today.Day;
-                var reward = await _context.DailyLoginRewards
-                    .Include(r => r.RewardItem)
-                    .FirstOrDefaultAsync(r => r.DayNumber == rewardDay && r.IsActive);
+                var reward = await _worldRepository.GetDailyLoginReward(rewardDay);
 
                 if (reward != null)
                     await ApplyDailyReward(profile, reward);
@@ -489,13 +452,11 @@ namespace BLL.Services
                 dailyLogin.IsClaimedToday = true;
 
                 if (dailyLogin.PlayerDailyLoginId == 0)
-                    await _context.PlayerDailyLogins.AddAsync(dailyLogin);
+                    await _worldRepository.CreatePlayerDailyLogin(dailyLogin);
                 else
-                    _context.PlayerDailyLogins.Update(dailyLogin);
+                    await _worldRepository.UpdatePlayerDailyLogin(dailyLogin);
 
-                _context.PlayerProfiles.Update(profile);
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
+                await _playerProfileRepository.UpdatePlayerProfile(profile);
 
                 return new ClaimDailyRewardResponseDto
                 {
@@ -509,18 +470,12 @@ namespace BLL.Services
                     RewardItemName = reward?.RewardItem?.Name,
                     RewardItemQuantity = reward?.RewardItemQuantity ?? 0
                 };
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                throw new Exception("Error claiming daily reward: " + ex.Message, ex);
-            }
+            });
         }
 
         public async Task<ClaimDailyRewardResponseDto> RetroactiveClaimDailyLoginReward(int playerProfileId, int dayToClaim)
         {
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 var profile = await GetProfile(playerProfileId);
                 var today = DateTime.UtcNow;
@@ -534,8 +489,7 @@ namespace BLL.Services
                     };
                 }
 
-                var dailyLogin = await _context.PlayerDailyLogins
-                    .FirstOrDefaultAsync(x => x.PlayerProfileId == playerProfileId);
+                var dailyLogin = await _worldRepository.GetPlayerDailyLogin(playerProfileId);
 
                 dailyLogin ??= new PlayerDailyLogin { PlayerProfileId = playerProfileId, CurrentYear = today.Year, CurrentMonth = today.Month };
 
@@ -599,9 +553,7 @@ namespace BLL.Services
                 profile.Gems -= 20;
                 dailyLogin.RetroClaimCount += 1;
 
-                var reward = await _context.DailyLoginRewards
-                    .Include(r => r.RewardItem)
-                    .FirstOrDefaultAsync(r => r.DayNumber == dayToClaim && r.IsActive);
+                var reward = await _worldRepository.GetDailyLoginReward(dayToClaim);
 
                 if (reward != null)
                     await ApplyDailyReward(profile, reward);
@@ -614,19 +566,14 @@ namespace BLL.Services
 
                 if (dailyLogin.PlayerDailyLoginId == 0)
                 {
-                    await _context.PlayerDailyLogins.AddAsync(dailyLogin);
+                    await _worldRepository.CreatePlayerDailyLogin(dailyLogin);
                 }
                 else
                 {
-                    var entry = _context.Entry(dailyLogin);
-                    entry.Property(x => x.ClaimedDaysStr).IsModified = true;
-                    entry.Property(x => x.RetroClaimCount).IsModified = true;
-                    entry.Property(x => x.TotalDaysClaimed).IsModified = true;
+                    await _worldRepository.UpdatePlayerDailyLogin(dailyLogin);
                 }
 
-                _context.PlayerProfiles.Update(profile);
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
+                await _playerProfileRepository.UpdatePlayerProfile(profile);
 
                 return new ClaimDailyRewardResponseDto
                 {
@@ -640,12 +587,7 @@ namespace BLL.Services
                     RewardItemName = reward?.RewardItem?.Name,
                     RewardItemQuantity = reward?.RewardItemQuantity ?? 0
                 };
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
+            });
         }
 
         private async Task ApplyDailyReward(PlayerProfile profile, DailyLoginReward reward)
@@ -675,17 +617,16 @@ namespace BLL.Services
 
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
         {
-            var existing = await _context.InventoryItems
-                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);
+            var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
 
             if (existing != null)
             {
                 existing.Quantity += quantity;
-                _context.InventoryItems.Update(existing);
+                await _inventoryRepository.UpdateItem(existing);
             }
             else
             {
-                await _context.InventoryItems.AddAsync(new InventoryItem
+                await _inventoryRepository.AddItem(new InventoryItem
                 {
                     PlayerProfileId = playerProfileId,
                     ItemId = itemId,
@@ -695,8 +636,6 @@ namespace BLL.Services
                     EnhancementLevel = 0
                 });
             }
-
-            await _context.SaveChangesAsync();
         }
 
 
@@ -724,20 +663,14 @@ namespace BLL.Services
                 return await FindQuestItemByNames("[ELF] Old Willow Branch", "Old Willow Branch");
 
             var normalizedSearch = NormalizeToken(searchText);
-            var questItems = await _context.Items
-                .Where(i => i.IsActive && i.Type == "QuestItem")
-                .OrderBy(i => i.ItemId)
-                .ToListAsync();
+            var questItems = await _itemRepository.GetQuestItems();
 
             return questItems.FirstOrDefault(i => normalizedSearch.Contains(NormalizeToken(i.Name)));
         }
 
         private async Task<Item?> FindQuestItemByNames(params string[] names)
         {
-            return await _context.Items
-                .Where(i => i.IsActive && i.Type == "QuestItem" && names.Contains(i.Name))
-                .OrderBy(i => i.ItemId)
-                .FirstOrDefaultAsync();
+            return await _itemRepository.GetQuestItemByNames(names);
         }
 
         private static bool IsQuestItemInteraction(InteractObjectRequestDto request, Quest? quest)
@@ -819,9 +752,7 @@ namespace BLL.Services
 
         private async Task<PlayerDailyLoginResponseDto?> GetDailyLogin(int playerProfileId)
         {
-            var dailyLogin = await _context.PlayerDailyLogins
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.PlayerProfileId == playerProfileId);
+            var dailyLogin = await _worldRepository.GetPlayerDailyLogin(playerProfileId);
 
             if (dailyLogin == null)
                 return null;
@@ -853,25 +784,15 @@ namespace BLL.Services
 
         private async Task<List<WorldMapProgressDto>> BuildMapProgress(int playerProfileId, string currentMapName)
         {
-            var activeQuests = await _context.Quests
-                .AsNoTracking()
-                .Where(q => q.IsActive)
-                .Select(q => new { q.QuestId, q.MapName })
-                .ToListAsync();
+            var activeQuests = await _questRepository.GetActiveQuests();
+            var activeQuestProjections = activeQuests.Select(q => new { q.QuestId, q.MapName }).ToList();
 
-            var npcMapNames = await _context.NPCs
-                .AsNoTracking()
-                .Where(n => n.IsActive)
-                .Select(n => n.MapName)
-                .ToListAsync();
+            var npcMapNames = await _worldRepository.GetAllNpcMapNames();
 
-            var playerQuestStates = await _context.PlayerQuests
-                .AsNoTracking()
-                .Include(pq => pq.Quest)
-                .Where(pq => pq.PlayerProfileId == playerProfileId && pq.Quest != null && pq.Quest.IsActive)
-                .ToListAsync();
+            var playerQuestStates = await _playerQuestRepository.GetByPlayerId(playerProfileId);
+            var activePlayerQuestStates = playerQuestStates.Where(pq => pq.Quest != null && pq.Quest.IsActive).ToList();
 
-            var mapNames = activeQuests
+            var mapNames = activeQuestProjections
                 .Select(q => NormalizeMapName(q.MapName))
                 .Concat(npcMapNames.Select(NormalizeMapName))
                 .Append(NormalizeMapName(currentMapName))
@@ -899,7 +820,7 @@ namespace BLL.Services
                 {
                     MapName = mapName,
                     DisplayName = ToDisplayMapName(mapName),
-                    IsUnlocked = string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
+                    IsUnlocked = string.Equals(mapName, TutorialMapName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(mapName, currentMapName, StringComparison.OrdinalIgnoreCase)
                         || hasAnyPlayerState,
                     ExplorationPercent = total == 0 ? 0 : (int)Math.Round(completed * 100.0 / total)
@@ -907,39 +828,7 @@ namespace BLL.Services
             }).ToList();
         }
 
-        private static NPCResponseDto MapNpc(NPC npc)
-        {
-            return new NPCResponseDto
-            {
-                NPCId = npc.NPCId,
-                Name = npc.Name,
-                Description = npc.Description,
-                Type = npc.Type,
-                MapName = npc.MapName,
-                PositionX = npc.PositionX,
-                PositionY = npc.PositionY,
-                InteractionRadius = npc.InteractionRadius,
-                IconUrl = npc.IconUrl,
-                IsActive = npc.IsActive,
-                Dialogues = npc.Dialogues
-                    .OrderBy(d => d.DisplayOrder)
-                    .Select(d => new NPCDialogueResponseDto
-                    {
-                        NPCDialogueId = d.NPCDialogueId,
-                        NPCId = d.NPCId,
-                        NPCName = npc.Name,
-                        Content = d.Content,
-                        ResponseType = d.ResponseType,
-                        LinkedQuestId = d.LinkedQuestId,
-                        LinkedQuestTitle = d.LinkedQuest?.Title,
-                        LinkedShopItemId = d.LinkedShopItemId,
-                        LinkedShopItemName = d.LinkedShopItem?.Item?.Name,
-                        DisplayOrder = d.DisplayOrder,
-                        IsActive = d.IsActive
-                    })
-                    .ToList()
-            };
-        }
+
 
         private static string NormalizeMapName(string? mapName)
         {
@@ -947,9 +836,17 @@ namespace BLL.Services
                 return TutorialMapName;
 
             var normalized = mapName.Trim();
-            return string.Equals(normalized, "ElfLand", StringComparison.OrdinalIgnoreCase)
-                ? TutorialMapName
-                : normalized;
+            return IsTutorialMapAlias(normalized) ? TutorialMapName : normalized;
+        }
+
+        private static bool IsTutorialMapAlias(string mapName)
+        {
+            return string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "ElfLand", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Map1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter 1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, TutorialMapName, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ToDisplayMapName(string mapName)

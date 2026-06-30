@@ -7,6 +7,8 @@ using System.Security.Claims;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý quests của người chơi (nhiệm vụ đang thực hiện).
+    // Cho phép xem, nhận, cập nhật tiến độ, hoàn thành và nhận thưởng quest.
     [Route("api/playerquests")]
     [ApiController]
     [Authorize]
@@ -27,6 +29,12 @@ namespace Mystic_Journey_API.Controllers
             return id;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/playerquests/me ───────────────────────────────────
+        // Lấy danh sách quests của player đang đăng nhập.
         [HttpGet("me")]
         public async Task<IActionResult> GetMyQuests()
         {
@@ -34,6 +42,9 @@ namespace Mystic_Journey_API.Controllers
             var result = await _service.GetMyQuests(profileId);
             return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });
         }
+
+        // ── GET /api/playerquests/{questId} ─────────────────────────────
+        // Lấy chi tiết quest cụ thể của player.
         [HttpGet("{questId:int}")]
         public async Task<IActionResult> GetMyQuestDetail(int questId)
         {
@@ -45,6 +56,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
         }
 
+        // ── POST /api/playerquests/accept ────────────────────────────────
+        // Nhận quest mới.
         [HttpPost("accept")]
         public async Task<IActionResult> AcceptQuest([FromBody] AcceptQuestRequestDto request)
         {
@@ -56,6 +69,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
         }
 
+        // ── PUT /api/playerquests/batch-progress ─────────────────────────
+        // Cập nhật tiến độ nhiều quests cùng lúc.
         [HttpPut("batch-progress")]
         public async Task<IActionResult> BatchUpdateProgress([FromBody] BatchProgressRequestDto request)
         {
@@ -67,6 +82,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });
         }
 
+        // ── POST /api/playerquests/complete ──────────────────────────────
+        // Hoàn thành quest (sau khi đã đạt đủ điều kiện).
         [HttpPost("complete")]
         public async Task<IActionResult> CompleteQuest([FromBody] CompleteQuestRequestDto request)
         {
@@ -78,6 +95,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
         }
 
+        // ── POST /api/playerquests/claim ─────────────────────────────────
+        // Nhận thưởng quest.
         [HttpPost("claim")]
         public async Task<IActionResult> ClaimReward([FromBody] ClaimQuestRequestDto request)
         {

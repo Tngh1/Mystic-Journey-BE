@@ -333,14 +333,9 @@ namespace BLL.Services
                 new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
                 new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.Email),
-                new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player")
+                new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player"),
+                new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0")
             };
-
-            if (account.PlayerProfile != null)
-            {
-                claims.Add(new Claim("playerProfileId", account.PlayerProfile.PlayerProfileId.ToString()));
-                claims.Add(new Claim("playerLevel", account.PlayerProfile.Level.ToString()));
-            }
 
             var token = new JwtSecurityToken(
                 jwt["Issuer"], jwt["Audience"], claims,
@@ -350,7 +345,23 @@ namespace BLL.Services
         }
 
         private static string NormalizeMapName(string? mapName)
-            => string.IsNullOrWhiteSpace(mapName) ? DefaultMapName : mapName.Trim();
+        {
+            if (string.IsNullOrWhiteSpace(mapName))
+                return DefaultMapName;
+
+            var normalized = mapName.Trim();
+            return IsDefaultMapAlias(normalized) ? DefaultMapName : normalized;
+        }
+
+        private static bool IsDefaultMapAlias(string mapName)
+        {
+            return string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "ElfLand", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Map1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter 1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, DefaultMapName, StringComparison.OrdinalIgnoreCase);
+        }
 
         private static string? NormalizePlayerClass(string? playerClass)
             => string.IsNullOrWhiteSpace(playerClass) ? null : playerClass.Trim();

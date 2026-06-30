@@ -805,6 +805,7 @@ namespace DAL.Migrations
                     CompletedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
                     IsRewardClaimed = table.Column<bool>(type: "boolean", nullable: false),
+                    PartyMembers = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -961,8 +962,6 @@ namespace DAL.Migrations
                     Type = table.Column<string>(type: "text", nullable: false),
                     AttachedGold = table.Column<decimal>(type: "numeric", nullable: false),
                     AttachedGems = table.Column<decimal>(type: "numeric", nullable: false),
-                    AttachedItemId = table.Column<int>(type: "integer", nullable: true),
-                    AttachedItemQuantity = table.Column<int>(type: "integer", nullable: false),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     IsClaimed = table.Column<bool>(type: "boolean", nullable: false),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -973,11 +972,6 @@ namespace DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Mails", x => x.MailId);
-                    table.ForeignKey(
-                        name: "FK_Mails_Items_AttachedItemId",
-                        column: x => x.AttachedItemId,
-                        principalTable: "Items",
-                        principalColumn: "ItemId");
                     table.ForeignKey(
                         name: "FK_Mails_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
@@ -1430,6 +1424,33 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "MailRewardItem",
+                columns: table => new
+                {
+                    MailRewardItemId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MailId = table.Column<int>(type: "integer", nullable: false),
+                    ItemId = table.Column<int>(type: "integer", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MailRewardItem", x => x.MailRewardItemId);
+                    table.ForeignKey(
+                        name: "FK_MailRewardItem_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MailRewardItem_Mails_MailId",
+                        column: x => x.MailId,
+                        principalTable: "Mails",
+                        principalColumn: "MailId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "RoleId", "Name" },
@@ -1608,9 +1629,14 @@ namespace DAL.Migrations
                 column: "PlayerProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Mails_AttachedItemId",
-                table: "Mails",
-                column: "AttachedItemId");
+                name: "IX_MailRewardItem_ItemId",
+                table: "MailRewardItem",
+                column: "ItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MailRewardItem_MailId",
+                table: "MailRewardItem",
+                column: "MailId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mails_PlayerProfileId",
@@ -1829,7 +1855,7 @@ namespace DAL.Migrations
                 name: "InventoryItems");
 
             migrationBuilder.DropTable(
-                name: "Mails");
+                name: "MailRewardItem");
 
             migrationBuilder.DropTable(
                 name: "MonsterDrops");
@@ -1887,6 +1913,9 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Guilds");
+
+            migrationBuilder.DropTable(
+                name: "Mails");
 
             migrationBuilder.DropTable(
                 name: "Dungeons");

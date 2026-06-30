@@ -3,10 +3,14 @@ using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mystic_Journey_API.Extensions;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
+    // Quản lý monsters (quái vật) và monster spawns (vị trí spawn).
+    // Game APIs: Khám phá, đánh bại, xem catalog, xem spawns.
+    // Admin APIs: Tạo, cập nhật monster và spawns.
     [Route("api/[controller]")]
     [ApiController]
     public class MonstersController : ControllerBase
@@ -18,6 +22,12 @@ namespace Mystic_Journey_API.Controllers
             _monsterService = monsterService;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/monsters/{id} ─────────────────────────────────────────
+        // Lấy thông tin monster theo ID.
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -29,6 +39,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<MonsterDetailResponseDto> { Success = true, Data = monster });
         }
 
+        // ── GET /api/monsters/{id}/me ───────────────────────────────────────
+        // Lấy thông tin monster cho player cụ thể (có trạng thái khám phá).
         [Authorize]
         [HttpGet("{id}/me")]
         public async Task<IActionResult> GetByIdForPlayer(int id)
@@ -48,39 +60,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateMonsterRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var monster = await _monsterService.CreateMonster(request);
-            return Ok(new ApiResponse<MonsterResponseDto> { Success = true, Data = monster });
-        }
-
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateMonsterRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var monster = await _monsterService.UpdateMonster(id, request);
-            return Ok(new ApiResponse<MonsterResponseDto> { Success = true, Data = monster });
-        }
-
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost("{id}/drops")]
-        public async Task<IActionResult> AddDrop(int id, [FromBody] CreateMonsterDropRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var drop = await _monsterService.AddMonsterDrop(id, request);
-            return Ok(new ApiResponse<MonsterDropResponseDto> { Success = true, Data = drop });
-        }
-
+        // ── GET /api/monsters ───────────────────────────────────────────────
+        // Lấy danh sách tất cả monsters có phân trang và lọc.
+        // Query: page, pageSize, search, type, isActive.
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
         {
@@ -88,13 +70,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PagedResultDto<MonsterResponseDto>> { Success = true, Data = result });
         }
 
-        [HttpGet("drops")]
-        public async Task<IActionResult> GetAllDrops([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-        {
-            var result = await _monsterService.GetMonsterDropsPaged(page, pageSize);
-            return Ok(new ApiResponse<PagedResultDto<MonsterDropResponseDto>> { Success = true, Data = result });
-        }
-
+        // ── GET /api/monsters/me/catalog ───────────────────────────────────
+        // Lấy catalog monsters đã khám phá của player.
         [Authorize]
         [HttpGet("me/catalog")]
         public async Task<IActionResult> GetCatalogForPlayer(
@@ -115,6 +92,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ── GET /api/monsters/spawns ────────────────────────────────────────
+        // Lấy danh sách vị trí spawn monsters theo map.
+        // Query: mapName, regionName, dungeonId.
         [Authorize]
         [HttpGet("spawns")]
         public async Task<IActionResult> GetSpawnsForPlayer(
@@ -134,6 +114,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ── POST /api/monsters/{id}/discover ────────────────────────────────
+        // Khám phá monster (thêm vào catalog của player).
         [Authorize]
         [HttpPost("{id}/discover")]
         public async Task<IActionResult> Discover(int id)
@@ -154,6 +136,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ── POST /api/monsters/{id}/defeat ─────────────────────────────────
+        // Đánh bại monster, nhận XP và gold.
         [Authorize]
         [HttpPost("{id}/defeat")]
         public async Task<IActionResult> Defeat(int id, [FromBody] MonsterDefeatRequestDto? request)
@@ -178,6 +162,60 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ── GET /api/monsters/drops ─────────────────────────────────────────
+        // Lấy danh sách monster drops có phân trang.
+        [HttpGet("drops")]
+        public async Task<IActionResult> GetAllDrops([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var result = await _monsterService.GetMonsterDropsPaged(page, pageSize);
+            return Ok(new ApiResponse<PagedResultDto<MonsterDropResponseDto>> { Success = true, Data = result });
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── POST /api/monsters ─────────────────────────────────────────────
+        // Tạo monster mới.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateMonsterRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var monster = await _monsterService.CreateMonster(request);
+            return Ok(new ApiResponse<MonsterResponseDto> { Success = true, Data = monster });
+        }
+
+        // ── PUT /api/monsters/{id} ─────────────────────────────────────────
+        // Cập nhật monster hiện có.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateMonsterRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var monster = await _monsterService.UpdateMonster(id, request);
+            return Ok(new ApiResponse<MonsterResponseDto> { Success = true, Data = monster });
+        }
+
+        // ── POST /api/monsters/{id}/drops ────────────────────────────────────
+        // Thêm drop cho monster.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost("{id}/drops")]
+        public async Task<IActionResult> AddDrop(int id, [FromBody] CreateMonsterDropRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var drop = await _monsterService.AddMonsterDrop(id, request);
+            return Ok(new ApiResponse<MonsterDropResponseDto> { Success = true, Data = drop });
+        }
+
+        // ── GET /api/monsters/{id}/spawns ───────────────────────────────────
+        // Lấy danh sách spawns của một monster (Admin).
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("{id}/spawns")]
         public async Task<IActionResult> GetSpawnsByMonster(int id)
@@ -186,6 +224,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<List<MonsterSpawnResponseDto>> { Success = true, Data = spawns });
         }
 
+        // ── POST /api/monsters/spawns ────────────────────────────────────────
+        // Tạo spawn mới cho monster.
         [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost("spawns")]
         public async Task<IActionResult> CreateSpawn([FromBody] CreateMonsterSpawnRequestDto request)
@@ -204,7 +244,8 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // Helper to read playerProfileId claim from JWT, mirrors other controllers.
+        // ── Helper ──────────────────────────────────────────────────────────
+        // Đọc playerProfileId từ JWT token.
         private int GetPlayerProfileId()
         {
             var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("playerProfileId")?.Value;

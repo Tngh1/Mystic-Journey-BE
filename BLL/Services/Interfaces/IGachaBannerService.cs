@@ -1,16 +1,37 @@
 using BLL.DTOs;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
+    // Quản lý gacha banners (banner gacha/quay thưởng).
+    // Game APIs: Xem danh sách, xem chi tiết banner.
+    // Admin APIs: Tạo, cập nhật banner và thêm items.
     public interface IGachaBannerService
     {
+        // ═══════════════════════════════════════════════════════════════════════
+        // GAME APIs (Người chơi)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // Lấy chi tiết gacha banner theo ID.
         Task<GachaBannerDetailResponseDto?> GetBannerById(int id);
-        Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request);
-        Task<GachaBannerResponseDto> UpdateBanner(int id, UpdateGachaBannerRequestDto request);
-        Task<GachaBannerItemResponseDto> AddBannerItem(int bannerId, CreateGachaBannerItemRequestDto request);
+
+        // Lấy danh sách tất cả gacha banners có phân trang và lọc.
         Task<PagedResultDto<GachaBannerResponseDto>> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+
+        // Lấy danh sách banner items có phân trang.
         Task<PagedResultDto<GachaBannerItemResponseDto>> GetBannerItemsPaged(int page, int pageSize);
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // Tạo gacha banner mới.
+        Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request);
+
+        // Cập nhật gacha banner hiện có.
+        Task<GachaBannerResponseDto> UpdateBanner(int id, UpdateGachaBannerRequestDto request);
+
+        // Thêm item vào banner.
+        Task<GachaBannerItemResponseDto> AddBannerItem(int bannerId, CreateGachaBannerItemRequestDto request);
     }
 }

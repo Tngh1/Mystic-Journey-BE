@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
+    /// <summary>
+    /// Triển khai các thao tác truy cập dữ liệu cho nhiệm vụ người chơi sử dụng Entity Framework.
+    /// </summary>
     public class PlayerQuestRepository : IPlayerQuestRepository
     {
         private readonly MysticJourneyDbContext _context;
@@ -17,6 +20,7 @@ namespace DAL.Repositories
             _context = context;
         }
 
+        /// <summary>Lấy tất cả nhiệm vụ của người chơi, kèm chi tiết nhiệm vụ và phần thưởng, sắp xếp theo thời gian nhận giảm dần.</summary>
         public async Task<List<PlayerQuest>> GetByPlayerId(int playerProfileId)
         {
             return await _context.PlayerQuests
@@ -29,6 +33,7 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>Lấy nhiệm vụ của người chơi trên một bản đồ cụ thể, sắp xếp theo cấp độ yêu cầu.</summary>
         public async Task<List<PlayerQuest>> GetByPlayerIdAndMap(int playerProfileId, string mapName)
         {
             return await _context.PlayerQuests
@@ -45,6 +50,7 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>Lấy một nhiệm vụ cụ thể của người chơi, kèm phần thưởng.</summary>
         public async Task<PlayerQuest?> GetByPlayerAndQuest(int playerProfileId, int questId)
         {
             return await _context.PlayerQuests
@@ -57,6 +63,7 @@ namespace DAL.Repositories
                     pq.QuestId == questId);
         }
 
+        /// <summary>Lấy nhiều nhiệm vụ của người chơi theo danh sách questId (dùng cho cập nhật tiến độ hàng loạt).</summary>
         public async Task<List<PlayerQuest>> GetByPlayerAndQuestIds(int playerProfileId, List<int> questIds)
         {
             return await _context.PlayerQuests
@@ -68,6 +75,7 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>Tạo mới nhiệm vụ cho người chơi (nhận nhiệm vụ).</summary>
         public async Task<PlayerQuest> Create(PlayerQuest entity)
         {
             _context.PlayerQuests.Add(entity);
@@ -75,6 +83,7 @@ namespace DAL.Repositories
             return entity;
         }
 
+        /// <summary>Cập nhật nhiệm vụ (tiến độ, trạng thái).</summary>
         public async Task<PlayerQuest> Update(PlayerQuest entity)
         {
             _context.PlayerQuests.Update(entity);
@@ -82,6 +91,7 @@ namespace DAL.Repositories
             return entity;
         }
 
+        /// <summary>Cập nhật nhiều nhiệm vụ cùng lúc (batch save).</summary>
         public async Task UpdateRange(List<PlayerQuest> entities)
         {
             _context.PlayerQuests.UpdateRange(entities);
