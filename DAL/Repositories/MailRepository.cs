@@ -28,7 +28,7 @@ namespace DAL.Repositories
         {
             return await _context.Mails
                 .Include(m => m.PlayerProfile)
-                .Include(m => m.AttachedItem)
+                .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .FirstOrDefaultAsync(m => m.MailId == id);
         }
 
@@ -37,7 +37,7 @@ namespace DAL.Repositories
         {
             return await _context.Mails
                 .Include(m => m.PlayerProfile)
-                .Include(m => m.AttachedItem)
+                .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .Where(m => m.PlayerProfileId == playerProfileId)
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();
@@ -48,7 +48,7 @@ namespace DAL.Repositories
         {
             return await _context.Mails
                 .Include(m => m.PlayerProfile)
-                .Include(m => m.AttachedItem)
+                .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .Where(m => m.PlayerProfileId == playerProfileId && !m.IsRead)
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();
@@ -104,7 +104,7 @@ namespace DAL.Repositories
         {
             var query = _context.Mails
                 .Include(m => m.PlayerProfile)
-                .Include(m => m.AttachedItem)
+                .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .Where(m => !m.IsDeleted)
                 .AsNoTracking();
 
@@ -132,7 +132,7 @@ namespace DAL.Repositories
         {
             var query = _context.Mails
                 .Include(m => m.PlayerProfile)
-                .Include(m => m.AttachedItem)
+                .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .Where(m => m.PlayerProfileId == playerProfileId && !m.IsDeleted)
                 .AsNoTracking();
 

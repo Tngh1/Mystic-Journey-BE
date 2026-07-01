@@ -345,7 +345,23 @@ namespace BLL.Services
         }
 
         private static string NormalizeMapName(string? mapName)
-            => string.IsNullOrWhiteSpace(mapName) ? DefaultMapName : mapName.Trim();
+        {
+            if (string.IsNullOrWhiteSpace(mapName))
+                return DefaultMapName;
+
+            var normalized = mapName.Trim();
+            return IsDefaultMapAlias(normalized) ? DefaultMapName : normalized;
+        }
+
+        private static bool IsDefaultMapAlias(string mapName)
+        {
+            return string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "ElfLand", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Map1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter 1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, DefaultMapName, StringComparison.OrdinalIgnoreCase);
+        }
 
         private static string? NormalizePlayerClass(string? playerClass)
             => string.IsNullOrWhiteSpace(playerClass) ? null : playerClass.Trim();

@@ -638,7 +638,7 @@ namespace Mystic_Journey_API.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -1349,7 +1349,7 @@ namespace Mystic_Journey_API.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -1467,7 +1467,7 @@ namespace Mystic_Journey_API.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -1516,7 +1516,7 @@ namespace Mystic_Journey_API.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -1649,7 +1649,7 @@ namespace Mystic_Journey_API.Controllers
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InternalError });
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
         }
 
@@ -1717,6 +1717,98 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
 ");
         }
         // ─────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/content -> Seed Content
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("content")]
+        public async Task<IActionResult> SeedContent()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var adminAcc = await _ctx.Accounts.FirstOrDefaultAsync(a => a.Email == "admin@mystic.test");
+                if (adminAcc == null)
+                {
+                    adminAcc = new Account
+                    {
+                        UserName = "admin_seed",
+                        Email = "admin@mystic.test",
+                        HashPassword = HashPassword("Abc@12345"),
+                        RoleId = 2,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _ctx.Accounts.Add(adminAcc);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                var existingContents = await _ctx.Contents.Where(c => c.Title.StartsWith("[SEED]")).ToListAsync();
+                if (existingContents.Any())
+                {
+                    _ctx.Contents.RemoveRange(existingContents);
+                    await _ctx.SaveChangesAsync();
+                }
+                
+                var existingCategories = await _ctx.CategoryContents.Where(c => c.Name.StartsWith("[SEED]")).ToListAsync();
+                if (existingCategories.Any())
+                {
+                    _ctx.CategoryContents.RemoveRange(existingCategories);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                var catNews = new CategoryContent { Name = "[SEED] News", Slug = "seed-news", Description = "Game News", IsActive = true };
+                var catGuides = new CategoryContent { Name = "[SEED] Guides", Slug = "seed-guides", Description = "Beginner Guides", IsActive = true };
+                _ctx.CategoryContents.AddRange(catNews, catGuides);
+                await _ctx.SaveChangesAsync();
+
+                var content1 = new Content
+                {
+                    Title = "[SEED] Welcome to Mystic Journey",
+                    Slug = "seed-welcome-to-mystic-journey",
+                    Summary = "Welcome to the world of Mystic Journey. Explore 4 mystical lands.",
+                    ThumbnailUrl = null,
+                    CategoryContentId = catNews.CategoryContentId,
+                    IsPublished = true,
+                    CreatedAt = DateTime.UtcNow,
+                    PublishedAt = DateTime.UtcNow,
+                    CreatedByAccountId = Guid.Empty,
+                    BlockContents = new List<BlockContent>
+                    {
+                        new BlockContent { Title = "Introduction", BlockType = "Text", ContentData = "Mystic Journey is an open-world RPG featuring 4 distinct lands...", SortOrder = 1 },
+                        new BlockContent { Title = "Lands", BlockType = "Text", ContentData = "Includes Elf Forest, Autumn Pumpkin, Frozen Mountains, and Vestige of an Era.", SortOrder = 2 }
+                    }
+                };
+                
+                var content2 = new Content
+                {
+                    Title = "[SEED] Beginner Guide - Chapter 1",
+                    Slug = "seed-beginner-guide",
+                    Summary = "A survival handbook in Elf Forest for beginners.",
+                    ThumbnailUrl = null,
+                    CategoryContentId = catGuides.CategoryContentId,
+                    IsPublished = true,
+                    CreatedAt = DateTime.UtcNow,
+                    PublishedAt = DateTime.UtcNow,
+                    CreatedByAccountId = Guid.Empty,
+                    BlockContents = new List<BlockContent>
+                    {
+                        new BlockContent { Title = "Combat Guide", BlockType = "Text", ContentData = "Use basic skills to defeat Shadow Sprout.", SortOrder = 1 }
+                    }
+                };
+
+                _ctx.Contents.AddRange(content1, content2);
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed content successfully." });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
         private static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);

@@ -209,21 +209,16 @@ namespace BLL.Mappings
             // THƯ (Mail)
             // ═══════════════════════════════════════════════════════════════════════
 
+            // Ánh xạ MailRewardItem sang DTO.
+            CreateMap<MailRewardItem, MailRewardItemDto>();
+
             // Ánh xạ thư sang chi tiết (kèm vật phẩm đính kèm).
             CreateMap<Mail, MailDetailDto>()
-                .ForMember(dest => dest.AttachedItem, opt => opt.MapFrom(src =>
-                    src.AttachedItemId.HasValue && src.AttachedItem != null
-                    ? new MailRewardItemDto
-                    {
-                        ItemId = src.AttachedItem.ItemId,
-                        ItemName = src.AttachedItem.Name,
-                        IconUrl = src.AttachedItem.IconUrl,
-                        Quantity = src.AttachedItemQuantity
-                    }
-                    : null));
+                .ForMember(dest => dest.AttachedItems, opt => opt.MapFrom(src => src.AttachedItems ?? new List<MailRewardItem>()));
+
             // Ánh xạ thư sang tóm tắt (kèm trạng thái nhận thưởng và thời gian hết hạn).
             CreateMap<Mail, MailSummaryDto>()
-                .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => (src.AttachedGold > 0 || src.AttachedGems > 0 || src.AttachedItemId.HasValue) && !src.IsClaimed))
+                .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => (src.AttachedItems != null && src.AttachedItems.Any()) && !src.IsClaimed))
                 .ForMember(dest => dest.RemainingDays, opt => opt.MapFrom(src => src.ExpiredAt.HasValue ? (int?)Math.Max(0, (int)(src.ExpiredAt.Value - DateTime.UtcNow).TotalDays) : null));
 
             // ═══════════════════════════════════════════════════════════════════════

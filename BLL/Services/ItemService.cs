@@ -1,6 +1,7 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using BLL.DTOs;
+using BLL.Utils;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
@@ -68,8 +69,8 @@ namespace BLL.Services
                     BonusHp = request.BonusHp ?? 0,
                     BonusAtk = request.BonusAtk ?? 0,
                     BonusDef = request.BonusDef ?? 0,
-                    BonusCritRate = request.BonusCritRate ?? 0,
-                    BonusCritDamage = request.BonusCritDamage ?? 0,
+                    BonusCritRate = StatHelper.ToScaledFromFloat(request.BonusCritRate ?? 0f, StatScale.CritRate),
+                    BonusCritDamage = StatHelper.ToScaledFromFloat(request.BonusCritDamage ?? 0f, StatScale.CritRate),
                     BonusMoveSpeed = 0,
                     BonusAttackSpeed = 0,
                     BonusDamageBonus = 0
@@ -111,8 +112,8 @@ namespace BLL.Services
                 item.EquipmentStats.BonusHp = request.BonusHp ?? 0;
                 item.EquipmentStats.BonusAtk = request.BonusAtk ?? 0;
                 item.EquipmentStats.BonusDef = request.BonusDef ?? 0;
-                item.EquipmentStats.BonusCritRate = request.BonusCritRate ?? 0;
-                item.EquipmentStats.BonusCritDamage = request.BonusCritDamage ?? 0;
+                item.EquipmentStats.BonusCritRate = StatHelper.ToScaledFromFloat(request.BonusCritRate ?? 0f, StatScale.CritRate);
+                item.EquipmentStats.BonusCritDamage = StatHelper.ToScaledFromFloat(request.BonusCritDamage ?? 0f, StatScale.CritRate);
             }
 
             var updated = await _repository.UpdateItem(item);

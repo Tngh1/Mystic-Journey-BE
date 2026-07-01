@@ -820,7 +820,7 @@ namespace BLL.Services
                 {
                     MapName = mapName,
                     DisplayName = ToDisplayMapName(mapName),
-                    IsUnlocked = string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
+                    IsUnlocked = string.Equals(mapName, TutorialMapName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(mapName, currentMapName, StringComparison.OrdinalIgnoreCase)
                         || hasAnyPlayerState,
                     ExplorationPercent = total == 0 ? 0 : (int)Math.Round(completed * 100.0 / total)
@@ -836,9 +836,17 @@ namespace BLL.Services
                 return TutorialMapName;
 
             var normalized = mapName.Trim();
-            return string.Equals(normalized, "ElfLand", StringComparison.OrdinalIgnoreCase)
-                ? TutorialMapName
-                : normalized;
+            return IsTutorialMapAlias(normalized) ? TutorialMapName : normalized;
+        }
+
+        private static bool IsTutorialMapAlias(string mapName)
+        {
+            return string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "ElfLand", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Map1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, "Chapter 1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(mapName, TutorialMapName, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ToDisplayMapName(string mapName)

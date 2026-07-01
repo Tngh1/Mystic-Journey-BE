@@ -17,11 +17,11 @@ namespace DAL.Models
         // Types: System, Reward, Event, Compensation
         public string Type { get; set; } = "System";
 
+        // Phần thưởng đính kèm (Gold, Gems, Item)
         public decimal AttachedGold { get; set; } = 0;
         public decimal AttachedGems { get; set; } = 0;
-        public int? AttachedItemId { get; set; }
-        public Item? AttachedItem { get; set; }
-        public int AttachedItemQuantity { get; set; } = 0;
+
+        public List<MailRewardItem> AttachedItems { get; set; } = new();
 
         public bool IsRead { get; set; } = false;
         public bool IsClaimed { get; set; } = false;

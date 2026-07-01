@@ -12,7 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
+<<<<<<<< HEAD:DAL/Migrations/20260630122925_InitialCreate.Designer.cs
     [Migration("20260630122925_InitialCreate")]
+========
+    [Migration("20260630142146_InitialCreate")]
+>>>>>>>> e58e19ac9e0ddc9f736c8043f2ea8566086d2364:DAL/Migrations/20260630142146_InitialCreate.Designer.cs
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1076,12 +1080,6 @@ namespace DAL.Migrations
                     b.Property<decimal>("AttachedGold")
                         .HasColumnType("numeric");
 
-                    b.Property<int?>("AttachedItemId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AttachedItemQuantity")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1118,11 +1116,35 @@ namespace DAL.Migrations
 
                     b.HasKey("MailId");
 
-                    b.HasIndex("AttachedItemId");
-
                     b.HasIndex("PlayerProfileId");
 
                     b.ToTable("Mails");
+                });
+
+            modelBuilder.Entity("DAL.Models.MailRewardItem", b =>
+                {
+                    b.Property<int>("MailRewardItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailRewardItemId"));
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MailId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MailRewardItemId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("MailId");
+
+                    b.ToTable("MailRewardItem");
                 });
 
             modelBuilder.Entity("DAL.Models.Monster", b =>
@@ -2508,19 +2530,32 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Models.Mail", b =>
                 {
-                    b.HasOne("DAL.Models.Item", "AttachedItem")
-                        .WithMany()
-                        .HasForeignKey("AttachedItemId");
-
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
                         .WithMany("Mails")
                         .HasForeignKey("PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AttachedItem");
-
                     b.Navigation("PlayerProfile");
+                });
+
+            modelBuilder.Entity("DAL.Models.MailRewardItem", b =>
+                {
+                    b.HasOne("DAL.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Models.Mail", "Mail")
+                        .WithMany("AttachedItems")
+                        .HasForeignKey("MailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Mail");
                 });
 
             modelBuilder.Entity("DAL.Models.MonsterDrop", b =>
@@ -2899,6 +2934,11 @@ namespace DAL.Migrations
                     b.Navigation("MonsterDrops");
 
                     b.Navigation("ShopItems");
+                });
+
+            modelBuilder.Entity("DAL.Models.Mail", b =>
+                {
+                    b.Navigation("AttachedItems");
                 });
 
             modelBuilder.Entity("DAL.Models.Monster", b =>

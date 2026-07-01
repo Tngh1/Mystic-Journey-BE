@@ -12,7 +12,7 @@ namespace DAL.Models
         [MaxLength(1000)]
         public string? Description { get; set; }
 
-        // Types: Weapon, Armor, Consumable, Material, Accessory, QuestItem
+        // Types: Weapon, Armor, Consumable, Material, QuestItem
         public string Type { get; set; } = "Weapon";
         // Rarities: Common, Uncommon, Rare, Epic, Legendary, Mythic
         public string Rarity { get; set; } = "Common";
