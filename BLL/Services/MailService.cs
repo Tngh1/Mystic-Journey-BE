@@ -151,11 +151,15 @@ namespace BLL.Services
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
-                AttachedItems = request.AttachedItems?.Select(item => new MailRewardItem
-                {
-                    ItemId = item.ItemId,
-                    Quantity = item.Quantity
-                }).ToList() ?? new List<MailRewardItem>(),
+                AttachedGold = request.AttachedGold,
+                AttachedGems = request.AttachedGems,
+                AttachedItems = (request.AttachedItems ?? new List<SendMailRewardItemDto>())
+                    .Where(i => i != null && i.ItemId > 0 && i.Quantity > 0)
+                    .Select(item => new MailRewardItem
+                    {
+                        ItemId = item.ItemId,
+                        Quantity = item.Quantity
+                    }).ToList(),
                 IsRead = false,
                 IsClaimed = false,
                 SentAt = DateTime.UtcNow,
@@ -178,11 +182,15 @@ namespace BLL.Services
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
-                AttachedItems = request.AttachedItems?.Select(item => new MailRewardItem
-                {
-                    ItemId = item.ItemId,
-                    Quantity = item.Quantity
-                }).ToList() ?? new List<MailRewardItem>(),
+                AttachedGold = request.AttachedGold,
+                AttachedGems = request.AttachedGems,
+                AttachedItems = (request.AttachedItems ?? new List<SendMailRewardItemDto>())
+                    .Where(i => i != null && i.ItemId > 0 && i.Quantity > 0)
+                    .Select(item => new MailRewardItem
+                    {
+                        ItemId = item.ItemId,
+                        Quantity = item.Quantity
+                    }).ToList(),
                 IsRead = false,
                 IsClaimed = false,
                 SentAt = DateTime.UtcNow,

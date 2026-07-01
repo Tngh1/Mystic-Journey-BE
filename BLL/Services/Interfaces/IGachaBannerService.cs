@@ -21,6 +21,12 @@ namespace BLL.Services.Interfaces
         // Lấy danh sách banner items có phân trang.
         Task<PagedResultDto<GachaBannerItemResponseDto>> GetBannerItemsPaged(int page, int pageSize);
 
+        // Quay gacha
+        Task<MultiPullResultDto> Pull(int playerProfileId, int bannerId, GachaPullRequestDto request);
+
+        // Lấy lịch sử quay
+        Task<PagedResultDto<GachaPullHistoryResponseDto>> GetHistoryPaged(int playerProfileId, int page, int pageSize);
+
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════

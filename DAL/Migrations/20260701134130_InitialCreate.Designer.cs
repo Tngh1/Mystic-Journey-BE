@@ -12,11 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-<<<<<<<< HEAD:DAL/Migrations/20260630122925_InitialCreate.Designer.cs
-    [Migration("20260630122925_InitialCreate")]
-========
-    [Migration("20260630142146_InitialCreate")]
->>>>>>>> e58e19ac9e0ddc9f736c8043f2ea8566086d2364:DAL/Migrations/20260630142146_InitialCreate.Designer.cs
+    [Migration("20260701134130_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -673,6 +669,9 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GachaBannerId"));
 
+                    b.Property<int?>("CostItemId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("EndAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1144,7 +1143,7 @@ namespace DAL.Migrations
 
                     b.HasIndex("MailId");
 
-                    b.ToTable("MailRewardItem");
+                    b.ToTable("MailRewardItems");
                 });
 
             modelBuilder.Entity("DAL.Models.Monster", b =>
@@ -1631,6 +1630,9 @@ namespace DAL.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<DateTime>("LastEnergyUpdateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastFreeGachaTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastMapName")

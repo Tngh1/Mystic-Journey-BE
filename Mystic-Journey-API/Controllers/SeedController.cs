@@ -339,9 +339,10 @@ namespace Mystic_Journey_API.Controllers
                 _ctx.PlayerProfiles.Add(profile);
                 await _ctx.SaveChangesAsync();
 
-                 int pid = profile.PlayerProfileId;
+                int pid = profile.PlayerProfileId;
+                var gachaSeed = await SeedGachaBaseDataAsync(TEST_EMAIL, 11);
 
-                 // Tạo friend accounts
+                // Tạo friend accounts
                  var f1Account = new Account { UserName = "friend1", Email = "friend1@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
                  var f2Account = new Account { UserName = "friend2", Email = "friend2@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
                  var f3Account = new Account { UserName = "friend3", Email = "friend3@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
@@ -492,6 +493,13 @@ namespace Mystic_Journey_API.Controllers
                             new { name = "[SEED] Health Potion", itemId = potion.ItemId },
                             new { name = "[SEED] Sword of Dawn", itemId = sword.ItemId  },
                             new { name = "[SEED] Iron Helm",     itemId = helm.ItemId   },
+                        },
+                        gacha = new
+                        {
+                            bannerId = gachaSeed.BannerId,
+                            ticketItemId = gachaSeed.TicketItemId,
+                            ticketCount = 11,
+                            targetEmail = TEST_EMAIL,
                         },
                     }
                 });
@@ -910,7 +918,7 @@ namespace Mystic_Journey_API.Controllers
 
                 // 3d. Add a quest tied to the Sprout King boss
                 // We will create the object here and add it to the 'quests' list at the END so it gets the highest QuestId.
-                Quest bossQuest = null;
+                Quest? bossQuest = null;
                 var existingBossQuest = await _ctx.Quests.FirstOrDefaultAsync(q => q.Title == "[ELFFOREST] Defeat Sprout King");
                 if (existingBossQuest == null)
                 {
@@ -1340,17 +1348,203 @@ namespace Mystic_Journey_API.Controllers
                 }
 
                 var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Knight 1", "Knight");
+                await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
 
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 } } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
                 return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
+        }
+
+        private async Task<(int BannerId, int TicketItemId)> SeedGachaBaseDataAsync(string? targetEmail = null, int ticketQuantity = 11)
+        {
+            var now = DateTime.UtcNow;
+
+            var existingBanner = await _ctx.GachaBanners
+                .FirstOrDefaultAsync(b => b.Name == "[SEED] Test Gacha Banner");
+
+            if (existingBanner != null)
+            {
+                _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(h => h.GachaBannerId == existingBanner.GachaBannerId));
+                _ctx.GachaBannerItems.RemoveRange(_ctx.GachaBannerItems.Where(i => i.GachaBannerId == existingBanner.GachaBannerId));
+                await _ctx.SaveChangesAsync();
+            }
+
+            var existingItems = await _ctx.Items
+                .Where(i => new[]
+                {
+                    "[GACHA] Lucky Ticket",
+                    "[GACHA] Celestial Blade",
+                    "[GACHA] Moonlit Cloak",
+                    "[GACHA] Forest Rune",
+                    "[GACHA] Iron Shard",
+                    "[GACHA] Health Potion",
+                    "Gold"
+                }.Contains(i.Name))
+                .ToListAsync();
+
+            Item UpsertItem(string name, string description, string type, string rarity, string slot, decimal baseValue, int maxStack)
+            {
+                var item = existingItems.FirstOrDefault(i => i.Name == name);
+                if (item == null)
+                {
+                    item = new Item { Name = name };
+                    _ctx.Items.Add(item);
+                    existingItems.Add(item);
+                }
+
+                item.Description = description;
+                item.Type = type;
+                item.Rarity = rarity;
+                item.Slot = slot;
+                item.BaseValue = baseValue;
+                item.MaxStack = maxStack;
+                item.IsActive = true;
+                return item;
+            }
+
+            var ticketItem = UpsertItem(
+                "[GACHA] Lucky Ticket",
+                "Vé quay dùng cho banner gacha thử nghiệm.",
+                "Consumable",
+                "Rare",
+                "None",
+                1,
+                99);
+
+            var featuredItem = UpsertItem(
+                "[GACHA] Celestial Blade",
+                "Vật phẩm hiếm nhất trong banner, tỷ lệ xuất hiện cực thấp.",
+                "Weapon",
+                "Legendary",
+                "Weapon",
+                1000,
+                1);
+
+            var cloakItem = UpsertItem(
+                "[GACHA] Moonlit Cloak",
+                "Áo choàng ánh trăng cho người may mắn.",
+                "Armor",
+                "Epic",
+                "Armor",
+                700,
+                1);
+
+            var runeItem = UpsertItem(
+                "[GACHA] Forest Rune",
+                "Ngọc rune từ khu rừng cổ.",
+                "Material",
+                "Rare",
+                "None",
+                300,
+                99);
+
+            var shardItem = UpsertItem(
+                "[GACHA] Iron Shard",
+                "Mảnh sắt dùng cho crafting.",
+                "Material",
+                "Uncommon",
+                "None",
+                150,
+                99);
+
+            var potionItem = UpsertItem(
+                "[GACHA] Health Potion",
+                "Bình máu nhỏ dùng trong gacha.",
+                "Consumable",
+                "Common",
+                "None",
+                100,
+                99);
+
+            var goldItem = UpsertItem(
+                "Gold",
+                "Tiền tệ trong game, rơi từ banner gacha.",
+                "Currency",
+                "Common",
+                "None",
+                100,
+                int.MaxValue);
+
+            await _ctx.SaveChangesAsync();
+
+            if (existingBanner == null)
+            {
+                existingBanner = new GachaBanner
+                {
+                    Name = "[SEED] Test Gacha Banner",
+                    Type = "Limited",
+                    PullCost = 1,
+                    CostItemId = ticketItem.ItemId,
+                    PityLimit = 90,
+                    IsActive = true,
+                    StartAt = now.AddDays(-1),
+                    EndAt = now.AddYears(1)
+                };
+                _ctx.GachaBanners.Add(existingBanner);
+                await _ctx.SaveChangesAsync();
+            }
+            else
+            {
+                existingBanner.Type = "Limited";
+                existingBanner.PullCost = 1;
+                existingBanner.CostItemId = ticketItem.ItemId;
+                existingBanner.PityLimit = 90;
+                existingBanner.IsActive = true;
+                existingBanner.StartAt = now.AddDays(-1);
+                existingBanner.EndAt = now.AddYears(1);
+                await _ctx.SaveChangesAsync();
+            }
+
+            _ctx.GachaBannerItems.AddRange(
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = featuredItem.ItemId, DropRate = 1m, IsFeatured = true },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = cloakItem.ItemId, DropRate = 15m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = runeItem.ItemId, DropRate = 20m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = shardItem.ItemId, DropRate = 20m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = potionItem.ItemId, DropRate = 24m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = goldItem.ItemId, DropRate = 20m, IsFeatured = false }
+            );
+            await _ctx.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(targetEmail))
+            {
+                var targetAccount = await _ctx.Accounts
+                    .Include(a => a.PlayerProfile)
+                    .FirstOrDefaultAsync(a => a.Email == targetEmail);
+
+                if (targetAccount?.PlayerProfile != null)
+                {
+                    var targetInventoryItem = await _ctx.InventoryItems
+                        .FirstOrDefaultAsync(x => x.PlayerProfileId == targetAccount.PlayerProfile.PlayerProfileId && x.ItemId == ticketItem.ItemId);
+
+                    if (targetInventoryItem != null)
+                    {
+                        targetInventoryItem.Quantity = ticketQuantity;
+                    }
+                    else
+                    {
+                        _ctx.InventoryItems.Add(new InventoryItem
+                        {
+                            PlayerProfileId = targetAccount.PlayerProfile.PlayerProfileId,
+                            ItemId = ticketItem.ItemId,
+                            Quantity = ticketQuantity,
+                            IsEquipped = false,
+                            IsSkin = false,
+                            EnhancementLevel = 0,
+                        });
+                    }
+
+                    await _ctx.SaveChangesAsync();
+                }
+            }
+
+            return (existingBanner.GachaBannerId, ticketItem.ItemId);
         }
 
         // ─────────────────────────────────────────────────────────────────────────
