@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260630142146_InitialCreate")]
+    [Migration("20260701051737_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1140,7 +1140,7 @@ namespace DAL.Migrations
 
                     b.HasIndex("MailId");
 
-                    b.ToTable("MailRewardItem");
+                    b.ToTable("MailRewardItems");
                 });
 
             modelBuilder.Entity("DAL.Models.Monster", b =>

@@ -1425,7 +1425,7 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MailRewardItem",
+                name: "MailRewardItems",
                 columns: table => new
                 {
                     MailRewardItemId = table.Column<int>(type: "integer", nullable: false)
@@ -1436,15 +1436,15 @@ namespace DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MailRewardItem", x => x.MailRewardItemId);
+                    table.PrimaryKey("PK_MailRewardItems", x => x.MailRewardItemId);
                     table.ForeignKey(
-                        name: "FK_MailRewardItem_Items_ItemId",
+                        name: "FK_MailRewardItems_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
                         principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_MailRewardItem_Mails_MailId",
+                        name: "FK_MailRewardItems_Mails_MailId",
                         column: x => x.MailId,
                         principalTable: "Mails",
                         principalColumn: "MailId",
@@ -1629,13 +1629,13 @@ namespace DAL.Migrations
                 column: "PlayerProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MailRewardItem_ItemId",
-                table: "MailRewardItem",
+                name: "IX_MailRewardItems_ItemId",
+                table: "MailRewardItems",
                 column: "ItemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MailRewardItem_MailId",
-                table: "MailRewardItem",
+                name: "IX_MailRewardItems_MailId",
+                table: "MailRewardItems",
                 column: "MailId");
 
             migrationBuilder.CreateIndex(
@@ -1855,7 +1855,7 @@ namespace DAL.Migrations
                 name: "InventoryItems");
 
             migrationBuilder.DropTable(
-                name: "MailRewardItem");
+                name: "MailRewardItems");
 
             migrationBuilder.DropTable(
                 name: "MonsterDrops");
