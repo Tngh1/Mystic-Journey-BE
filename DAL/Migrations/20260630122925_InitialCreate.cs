@@ -805,6 +805,7 @@ namespace DAL.Migrations
                     CompletedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
                     IsRewardClaimed = table.Column<bool>(type: "boolean", nullable: false),
+                    PartyMembers = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
