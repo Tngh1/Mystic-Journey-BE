@@ -209,8 +209,10 @@ namespace BLL.Mappings
             // THƯ (Mail)
             // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ MailRewardItem sang DTO.
-            CreateMap<MailRewardItem, MailRewardItemDto>();
+            // Ánh xạ MailRewardItem sang DTO (kèm tên item và icon từ navigation property).
+            CreateMap<MailRewardItem, MailRewardItemDto>()
+                .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
+                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null));
 
             // Ánh xạ thư sang chi tiết (kèm vật phẩm đính kèm).
             CreateMap<Mail, MailDetailDto>()

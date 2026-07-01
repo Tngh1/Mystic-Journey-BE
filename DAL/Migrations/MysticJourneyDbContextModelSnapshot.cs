@@ -1137,7 +1137,7 @@ namespace DAL.Migrations
 
                     b.HasIndex("MailId");
 
-                    b.ToTable("MailRewardItem");
+                    b.ToTable("MailRewardItems");
                 });
 
             modelBuilder.Entity("DAL.Models.Monster", b =>
