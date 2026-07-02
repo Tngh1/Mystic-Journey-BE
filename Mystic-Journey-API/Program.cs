@@ -21,6 +21,25 @@ builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
 
 builder.Services.AddMemoryCache();
 
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+if (string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+}
+
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = builder.Configuration["Redis:InstanceName"] ?? "MysticJourney:";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
 // Transaction Manager
@@ -91,6 +110,10 @@ builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
 builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
+
+// Chat Services
+builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 // Character Services
 builder.Services.AddScoped<IPlayerStatRepository, PlayerStatRepository>();

@@ -20,7 +20,7 @@ namespace DAL.Repositories.Interfaces
 
         // Lấy phiên chơi đang hoạt động của người chơi trong dungeon cụ thể.
         // Dùng để ngăn chặn chạy nhiều phiên cùng lúc.
-        Task<DungeonSession?> GetActiveSession(int playerProfileId, int dungeonConfigId);
+        Task<DungeonSession?> GetActiveSession(int playerProfileId, int? dungeonConfigId = null);
 
         // Tạo phiên chơi dungeon mới.
         Task<DungeonSession> Create(DungeonSession session);

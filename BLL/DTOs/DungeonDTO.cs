@@ -72,6 +72,8 @@ namespace BLL.DTOs
         /// <summary>Always "Active" on enter.</summary>
         public string Status { get; set; } = "Active";
         public List<string> PartyMembers { get; set; } = new();
+        
+        public DungeonProgressResponseDto? Progress { get; set; }
     }
 
     // ============ Dungeon Progress ============
@@ -92,6 +94,9 @@ namespace BLL.DTOs
         /// (e.g. floors cleared, buffs active).
         /// </summary>
         public string? ExtraData { get; set; }
+
+        public bool BossSpawned { get; set; } = false;
+        public int ElapsedTime { get; set; } = 0;
     }
 
     /// <summary>Current progress state returned by the progress endpoint.</summary>
@@ -103,9 +108,25 @@ namespace BLL.DTOs
         public bool BossKilled { get; set; }
         public int CompletionPercentage { get; set; }
         public string? ExtraData { get; set; }
+        public bool BossSpawned { get; set; }
+        public int ElapsedTime { get; set; }
         public DateTime? UpdatedAt { get; set; }
         /// <summary>Convenience field reflecting the parent session status.</summary>
         public string SessionStatus { get; set; } = string.Empty;
+    }
+
+    // ============ Dungeon History ============
+
+    public class DungeonHistoryResponseDto
+    {
+        public int DungeonSessionId { get; set; }
+        public string DungeonName { get; set; } = string.Empty;
+        public int Difficulty { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public int ElapsedTime { get; set; }
+        public int CompletionPercentage { get; set; }
+        public DateTime EnterTime { get; set; }
+        public DateTime? CompletedTime { get; set; }
     }
 
     // ============ Complete Dungeon ============
@@ -135,7 +156,25 @@ namespace BLL.DTOs
         public int EnergyConsumed { get; set; }
         public int GoldEarned { get; set; }
         public int ExperienceEarned { get; set; }
+        public float TimeTakenSeconds { get; set; }
         public List<DungeonRewardItemDto> Items { get; set; } = new();
+
+        public WalletDto? Wallet { get; set; }
+        public CharacterDto? Character { get; set; }
+    }
+
+    public class WalletDto
+    {
+        public decimal Gold { get; set; }
+        public decimal Gems { get; set; }
+    }
+
+    public class CharacterDto
+    {
+        public int Level { get; set; }
+        public int ExperiencePoints { get; set; }
+        public int Energy { get; set; }
+        public int MaxEnergy { get; set; }
     }
 
     /// <summary>A single item line in the claim-reward response.</summary>

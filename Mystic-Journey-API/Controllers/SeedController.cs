@@ -339,9 +339,10 @@ namespace Mystic_Journey_API.Controllers
                 _ctx.PlayerProfiles.Add(profile);
                 await _ctx.SaveChangesAsync();
 
-                 int pid = profile.PlayerProfileId;
+                int pid = profile.PlayerProfileId;
+                var gachaSeed = await SeedGachaBaseDataAsync(TEST_EMAIL, 11);
 
-                 // Tạo friend accounts
+                // Tạo friend accounts
                  var f1Account = new Account { UserName = "friend1", Email = "friend1@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
                  var f2Account = new Account { UserName = "friend2", Email = "friend2@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
                  var f3Account = new Account { UserName = "friend3", Email = "friend3@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
@@ -492,6 +493,13 @@ namespace Mystic_Journey_API.Controllers
                             new { name = "[SEED] Health Potion", itemId = potion.ItemId },
                             new { name = "[SEED] Sword of Dawn", itemId = sword.ItemId  },
                             new { name = "[SEED] Iron Helm",     itemId = helm.ItemId   },
+                        },
+                        gacha = new
+                        {
+                            bannerId = gachaSeed.BannerId,
+                            ticketItemId = gachaSeed.TicketItemId,
+                            ticketCount = 11,
+                            targetEmail = TEST_EMAIL,
                         },
                     }
                 });
@@ -910,7 +918,7 @@ namespace Mystic_Journey_API.Controllers
 
                 // 3d. Add a quest tied to the Sprout King boss
                 // We will create the object here and add it to the 'quests' list at the END so it gets the highest QuestId.
-                Quest bossQuest = null;
+                Quest? bossQuest = null;
                 var existingBossQuest = await _ctx.Quests.FirstOrDefaultAsync(q => q.Title == "[ELFFOREST] Defeat Sprout King");
                 if (existingBossQuest == null)
                 {
@@ -1340,17 +1348,203 @@ namespace Mystic_Journey_API.Controllers
                 }
 
                 var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Knight 1", "Knight");
+                await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
 
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 } } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
                 return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
+        }
+
+        private async Task<(int BannerId, int TicketItemId)> SeedGachaBaseDataAsync(string? targetEmail = null, int ticketQuantity = 11)
+        {
+            var now = DateTime.UtcNow;
+
+            var existingBanner = await _ctx.GachaBanners
+                .FirstOrDefaultAsync(b => b.Name == "[SEED] Test Gacha Banner");
+
+            if (existingBanner != null)
+            {
+                _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(h => h.GachaBannerId == existingBanner.GachaBannerId));
+                _ctx.GachaBannerItems.RemoveRange(_ctx.GachaBannerItems.Where(i => i.GachaBannerId == existingBanner.GachaBannerId));
+                await _ctx.SaveChangesAsync();
+            }
+
+            var existingItems = await _ctx.Items
+                .Where(i => new[]
+                {
+                    "[GACHA] Lucky Ticket",
+                    "[GACHA] Celestial Blade",
+                    "[GACHA] Moonlit Cloak",
+                    "[GACHA] Forest Rune",
+                    "[GACHA] Iron Shard",
+                    "[GACHA] Health Potion",
+                    "Gold"
+                }.Contains(i.Name))
+                .ToListAsync();
+
+            Item UpsertItem(string name, string description, string type, string rarity, string slot, decimal baseValue, int maxStack)
+            {
+                var item = existingItems.FirstOrDefault(i => i.Name == name);
+                if (item == null)
+                {
+                    item = new Item { Name = name };
+                    _ctx.Items.Add(item);
+                    existingItems.Add(item);
+                }
+
+                item.Description = description;
+                item.Type = type;
+                item.Rarity = rarity;
+                item.Slot = slot;
+                item.BaseValue = baseValue;
+                item.MaxStack = maxStack;
+                item.IsActive = true;
+                return item;
+            }
+
+            var ticketItem = UpsertItem(
+                "[GACHA] Lucky Ticket",
+                "Vé quay dùng cho banner gacha thử nghiệm.",
+                "Consumable",
+                "Rare",
+                "None",
+                1,
+                99);
+
+            var featuredItem = UpsertItem(
+                "[GACHA] Celestial Blade",
+                "Vật phẩm hiếm nhất trong banner, tỷ lệ xuất hiện cực thấp.",
+                "Weapon",
+                "Legendary",
+                "Weapon",
+                1000,
+                1);
+
+            var cloakItem = UpsertItem(
+                "[GACHA] Moonlit Cloak",
+                "Áo choàng ánh trăng cho người may mắn.",
+                "Armor",
+                "Epic",
+                "Armor",
+                700,
+                1);
+
+            var runeItem = UpsertItem(
+                "[GACHA] Forest Rune",
+                "Ngọc rune từ khu rừng cổ.",
+                "Material",
+                "Rare",
+                "None",
+                300,
+                99);
+
+            var shardItem = UpsertItem(
+                "[GACHA] Iron Shard",
+                "Mảnh sắt dùng cho crafting.",
+                "Material",
+                "Uncommon",
+                "None",
+                150,
+                99);
+
+            var potionItem = UpsertItem(
+                "[GACHA] Health Potion",
+                "Bình máu nhỏ dùng trong gacha.",
+                "Consumable",
+                "Common",
+                "None",
+                100,
+                99);
+
+            var goldItem = UpsertItem(
+                "Gold",
+                "Tiền tệ trong game, rơi từ banner gacha.",
+                "Currency",
+                "Common",
+                "None",
+                100,
+                int.MaxValue);
+
+            await _ctx.SaveChangesAsync();
+
+            if (existingBanner == null)
+            {
+                existingBanner = new GachaBanner
+                {
+                    Name = "[SEED] Test Gacha Banner",
+                    Type = "Limited",
+                    PullCost = 1,
+                    CostItemId = ticketItem.ItemId,
+                    PityLimit = 90,
+                    IsActive = true,
+                    StartAt = now.AddDays(-1),
+                    EndAt = now.AddYears(1)
+                };
+                _ctx.GachaBanners.Add(existingBanner);
+                await _ctx.SaveChangesAsync();
+            }
+            else
+            {
+                existingBanner.Type = "Limited";
+                existingBanner.PullCost = 1;
+                existingBanner.CostItemId = ticketItem.ItemId;
+                existingBanner.PityLimit = 90;
+                existingBanner.IsActive = true;
+                existingBanner.StartAt = now.AddDays(-1);
+                existingBanner.EndAt = now.AddYears(1);
+                await _ctx.SaveChangesAsync();
+            }
+
+            _ctx.GachaBannerItems.AddRange(
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = featuredItem.ItemId, DropRate = 1m, IsFeatured = true },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = cloakItem.ItemId, DropRate = 15m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = runeItem.ItemId, DropRate = 20m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = shardItem.ItemId, DropRate = 20m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = potionItem.ItemId, DropRate = 24m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerId = existingBanner.GachaBannerId, ItemId = goldItem.ItemId, DropRate = 20m, IsFeatured = false }
+            );
+            await _ctx.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(targetEmail))
+            {
+                var targetAccount = await _ctx.Accounts
+                    .Include(a => a.PlayerProfile)
+                    .FirstOrDefaultAsync(a => a.Email == targetEmail);
+
+                if (targetAccount?.PlayerProfile != null)
+                {
+                    var targetInventoryItem = await _ctx.InventoryItems
+                        .FirstOrDefaultAsync(x => x.PlayerProfileId == targetAccount.PlayerProfile.PlayerProfileId && x.ItemId == ticketItem.ItemId);
+
+                    if (targetInventoryItem != null)
+                    {
+                        targetInventoryItem.Quantity = ticketQuantity;
+                    }
+                    else
+                    {
+                        _ctx.InventoryItems.Add(new InventoryItem
+                        {
+                            PlayerProfileId = targetAccount.PlayerProfile.PlayerProfileId,
+                            ItemId = ticketItem.ItemId,
+                            Quantity = ticketQuantity,
+                            IsEquipped = false,
+                            IsSkin = false,
+                            EnhancementLevel = 0,
+                        });
+                    }
+
+                    await _ctx.SaveChangesAsync();
+                }
+            }
+
+            return (existingBanner.GachaBannerId, ticketItem.ItemId);
         }
 
         // ─────────────────────────────────────────────────────────────────────────
@@ -1568,6 +1762,48 @@ namespace Mystic_Journey_API.Controllers
 
                 await _ctx.SaveChangesAsync();
 
+                // Setup Dungeon Boss Chest
+                var bossChest = await _ctx.Chests.FirstOrDefaultAsync(c => c.Name == "Abandoned Mines Reward Chest");
+                if (bossChest == null)
+                {
+                    bossChest = new Chest
+                    {
+                        Name = "Abandoned Mines Reward Chest",
+                        GoldMinReward = 150,
+                        GoldMaxReward = 300,
+                        ExperienceReward = 200
+                    };
+                    _ctx.Chests.Add(bossChest);
+                    await _ctx.SaveChangesAsync();
+
+                    // Add some items to this chest
+                    var healthPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Health Potion");
+                    var basicSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Basic Sword");
+                    if (healthPotion != null)
+                    {
+                        _ctx.ChestItems.Add(new ChestItem
+                        {
+                            ChestId = bossChest.ChestId,
+                            ItemId = healthPotion.ItemId,
+                            DropRate = 1.0m,
+                            QuantityMin = 1,
+                            QuantityMax = 3
+                        });
+                    }
+                    if (basicSword != null)
+                    {
+                        _ctx.ChestItems.Add(new ChestItem
+                        {
+                            ChestId = bossChest.ChestId,
+                            ItemId = basicSword.ItemId,
+                            DropRate = 0.5m,
+                            QuantityMin = 1,
+                            QuantityMax = 1
+                        });
+                    }
+                    await _ctx.SaveChangesAsync();
+                }
+
                 // Setup DungeonConfig
                 var dungeonConfig = await _ctx.DungeonConfigs.FirstOrDefaultAsync(d => d.Name == "Abandoned Mines" || d.Name == "Goblin Dungeon");
                 if (dungeonConfig == null)
@@ -1579,7 +1815,8 @@ namespace Mystic_Journey_API.Controllers
                         LevelRequirement = 5,
                         EnergyCost = 20,
                         Type = "Normal",
-                        IsActive = true
+                        IsActive = true,
+                        ChestId = bossChest.ChestId
                     };
                     _ctx.DungeonConfigs.Add(dungeonConfig);
                     await _ctx.SaveChangesAsync();
@@ -1588,22 +1825,17 @@ namespace Mystic_Journey_API.Controllers
                 {
                     dungeonConfig.Name = "Abandoned Mines";
                     dungeonConfig.EnergyCost = 20;
+                    dungeonConfig.ChestId = bossChest.ChestId;
                     _ctx.DungeonConfigs.Update(dungeonConfig);
                     await _ctx.SaveChangesAsync();
                 }
 
                 // Setup Dungeon (for Monster Spawns)
-                var dungeon = await _ctx.Dungeons.FirstOrDefaultAsync(d => d.Name == "Goblin Dungeon" || d.Name == "Abandoned Mines");
+                var dungeon = await _ctx.Dungeons.FirstOrDefaultAsync(d => d.DungeonId == 1);
                 if (dungeon == null)
                 {
                     dungeon = new Dungeon { Name = "Abandoned Mines", Description = "A dark dungeon filled with goblins and skeletons.", IsRepeatable = true };
                     _ctx.Dungeons.Add(dungeon);
-                    await _ctx.SaveChangesAsync();
-                }
-                else
-                {
-                    dungeon.Name = "Abandoned Mines";
-                    _ctx.Dungeons.Update(dungeon);
                     await _ctx.SaveChangesAsync();
                 }
 
@@ -1716,6 +1948,75 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedQuestId"" ON ""NPCDialogues""
 CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogues"" (""LinkedShopItemId"");
 ");
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/dungeons → Tạo dữ liệu 3 Dungeon mẫu để test luồng Game
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("dungeons")]
+        public async Task<IActionResult> SeedDungeons()
+        {
+            try
+            {
+                // 1. Xoá dữ liệu cũ
+                var existingSpawns = await _ctx.MonsterSpawns.Where(ms => ms.DungeonId != null).ToListAsync();
+                _ctx.MonsterSpawns.RemoveRange(existingSpawns);
+
+                var existingDungeons = await _ctx.Dungeons.ToListAsync();
+                _ctx.Dungeons.RemoveRange(existingDungeons);
+                await _ctx.SaveChangesAsync();
+
+                // 2. Đảm bảo 3 con quái (Slime=4, Skeleton=5, Ogre Boss=8) tồn tại
+                var slime = await _ctx.Monsters.FindAsync(4);
+                if (slime == null) _ctx.Monsters.Add(new Monster { MonsterId = 4, Name = "Slime", Type = "Normal", MaxHp = 50, Atk = 5, Def = 2 });
+
+                var skeleton = await _ctx.Monsters.FindAsync(5);
+                if (skeleton == null) _ctx.Monsters.Add(new Monster { MonsterId = 5, Name = "SkeletonMelee", Type = "Normal", MaxHp = 100, Atk = 10, Def = 5 });
+
+                var ogre = await _ctx.Monsters.FindAsync(8);
+                if (ogre == null) _ctx.Monsters.Add(new Monster { MonsterId = 8, Name = "Ogre", Type = "Boss", MaxHp = 1000, Atk = 50, Def = 20 });
+
+                await _ctx.SaveChangesAsync();
+
+                // 3. Tạo 3 Dungeon mẫu (Ép ID = 1, 2, 3 để khớp với Unity config)
+                var dungeons = new List<Dungeon>
+                {
+                    new Dungeon { DungeonId = 1, Name = "Hầm ngục Slime (Dễ)", Description = "Nơi đầy rẫy Slime", IsRepeatable = true },
+                    new Dungeon { DungeonId = 2, Name = "Nghĩa địa Xương (Vừa)", Description = "Bộ xương khô khắp nơi", IsRepeatable = true },
+                    new Dungeon { DungeonId = 3, Name = "Sào huyệt Ogre (Khó)", Description = "Thử thách cực đại", IsRepeatable = true }
+                };
+                
+                // Set identity insert if needed, but in PG/EF Core usually works directly
+                _ctx.Dungeons.AddRange(dungeons);
+                await _ctx.SaveChangesAsync();
+
+                // 4. Tạo Spawns cho từng Dungeon (MapName là "HollowCryptDungeon" như Unity đã fix cứng)
+                string mapName = "HollowCryptDungeon";
+                var spawns = new List<MonsterSpawn>
+                {
+                    // Dungeon 1: 3 Slimes, 1 Boss Ogre
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 4, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                    // Dungeon 2: 5 Skeletons, 1 Boss Ogre
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 5, SpawnCount = 5, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                    // Dungeon 3: 3 Slimes, 3 Skeletons, 1 Boss Ogre
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 4, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 5, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true }
+                };
+                _ctx.MonsterSpawns.AddRange(spawns);
+                await _ctx.SaveChangesAsync();
+
+                return Ok(new { message = "Đã tạo 3 Dungeons mẫu (ID: 1, 2, 3) và MonsterSpawns thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi seed Dungeon: " + ex.Message, details = ex.InnerException?.Message });
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────────
         // ─────────────────────────────────────────────────────────────────────────
         // POST /api/seed/content -> Seed Content

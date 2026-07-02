@@ -15,8 +15,14 @@ namespace DAL.Models
         /// <summary>Total number of regular monsters killed in this run.</summary>
         public int MonstersKilled { get; set; } = 0;
 
+        /// <summary>True if the final boss has spawned.</summary>
+        public bool BossSpawned { get; set; } = false;
+
         /// <summary>True once the final boss of the dungeon is defeated.</summary>
         public bool BossKilled { get; set; } = false;
+
+        /// <summary>Time elapsed in seconds since dungeon start.</summary>
+        public int ElapsedTime { get; set; } = 0;
 
         /// <summary>Completion percentage (0–100). Drives the UI progress bar.</summary>
         public int CompletionPercentage { get; set; } = 0;

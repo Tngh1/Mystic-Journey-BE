@@ -40,5 +40,14 @@ namespace DAL.Repositories.Interfaces
 
         // Lấy danh sách banner có phân trang, lọc theo tìm kiếm, loại và trạng thái.
         Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+
+        // Lưu lịch sử quay
+        Task<GachaPullHistory> AddGachaPullHistory(GachaPullHistory history);
+
+        // Lấy lịch sử quay theo player và banner để tính pity
+        Task<List<GachaPullHistory>> GetPullHistoryByPlayerAndBanner(int playerProfileId, int bannerId);
+
+        // Lấy danh sách lịch sử quay của người chơi
+        Task<(int TotalCount, List<GachaPullHistory> Items)> GetGachaPullHistoryPaged(int playerProfileId, int page, int pageSize);
     }
 }

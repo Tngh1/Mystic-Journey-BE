@@ -20,6 +20,9 @@ namespace DAL.Models
         /// <summary>UTC timestamp when the dungeon was completed (boss defeated).</summary>
         public DateTime? CompletedTime { get; set; }
 
+        /// <summary>UTC timestamp when the rewards were claimed.</summary>
+        public DateTime? ClaimedAt { get; set; }
+
         /// <summary>
         /// Session state machine.
         /// Values: Active | Completed | Abandoned | RewardClaimed

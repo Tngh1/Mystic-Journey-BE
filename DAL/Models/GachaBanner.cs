@@ -13,6 +13,7 @@ namespace DAL.Models
         public string Type { get; set; } = "Weapon";
 
         public int PullCost { get; set; } = 100;
+        public int? CostItemId { get; set; }
         public int PityLimit { get; set; } = 90;
 
         public bool IsActive { get; set; } = true;

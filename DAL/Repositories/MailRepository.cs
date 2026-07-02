@@ -105,7 +105,6 @@ namespace DAL.Repositories
             var query = _context.Mails
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
-                .Where(m => !m.IsDeleted)
                 .AsNoTracking();
 
             if (!string.IsNullOrEmpty(search))

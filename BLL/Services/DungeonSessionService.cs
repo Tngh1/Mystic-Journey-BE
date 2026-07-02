@@ -65,10 +65,13 @@ namespace BLL.Services
                 throw new InvalidOperationException($"Party exceeds maximum allowed size of {dungeon.MaxMembers}.");
 
             // Prevent duplicate concurrent active sessions for the same dungeon
+            // By abandoning the old session and starting a new one.
             var existing = await _sessionRepository.GetActiveSession(playerProfileId, dungeonConfigId);
             if (existing != null)
-                throw new InvalidOperationException(
-                    $"You already have an active session (#{existing.DungeonSessionId}) for this dungeon. Complete or abandon it first.");
+            {
+                existing.Status = "Failed";
+                await _sessionRepository.Update(existing);
+            }
 
             // Create session — Status = "Active", energy untouched
             var session = new DungeonSession
@@ -132,6 +135,8 @@ namespace BLL.Services
                 progress.BossKilled = request.BossKilled;
                 progress.CompletionPercentage = request.CompletionPercentage;
                 progress.ExtraData = request.ExtraData;
+                progress.BossSpawned = request.BossSpawned;
+                progress.ElapsedTime = request.ElapsedTime;
                 await _progressRepository.Create(progress);
             }
             else
@@ -140,6 +145,8 @@ namespace BLL.Services
                 progress.BossKilled = request.BossKilled;
                 progress.CompletionPercentage = request.CompletionPercentage;
                 progress.ExtraData = request.ExtraData;
+                progress.BossSpawned = request.BossSpawned;
+                progress.ElapsedTime = request.ElapsedTime;
                 await _progressRepository.Update(progress);
             }
 
@@ -151,6 +158,8 @@ namespace BLL.Services
                 BossKilled = progress.BossKilled,
                 CompletionPercentage = progress.CompletionPercentage,
                 ExtraData = progress.ExtraData,
+                BossSpawned = progress.BossSpawned,
+                ElapsedTime = progress.ElapsedTime,
                 UpdatedAt = progress.UpdatedAt,
                 SessionStatus = session.Status
             };
@@ -209,14 +218,14 @@ namespace BLL.Services
             if (session.PlayerProfileId != playerProfileId)
                 throw new UnauthorizedAccessException("You do not own this dungeon session.");
 
+            // Guard against duplicate claims
+            if (session.IsRewardClaimed)
+                throw new InvalidOperationException("CONFLICT: Rewards have already been claimed for this session.");
+
             // BR-08: Session must be Completed
             if (session.Status != "Completed")
                 throw new InvalidOperationException(
                     $"Session {sessionId} cannot have rewards claimed (status: {session.Status}). Complete the dungeon first.");
-
-            // Guard against duplicate claims
-            if (session.IsRewardClaimed)
-                throw new InvalidOperationException("Rewards have already been claimed for this session.");
 
             // Load player profile (fresh, outside transaction to avoid stale reads)
             var profile = await _profileRepository.GetPlayerProfileById(playerProfileId)
@@ -265,7 +274,19 @@ namespace BLL.Services
                             : chestItem.QuantityMin;
 
                         // Step 4 — Upsert inventory
-                        await UpsertInventoryItem(playerProfileId, chestItem.ItemId, quantity);
+                        bool isEquipment = chestItem.Item?.Type?.Equals("Equipment", StringComparison.OrdinalIgnoreCase) == true;
+                        if (isEquipment)
+                        {
+                            // Add equipment as independent entries
+                            for (int i = 0; i < quantity; i++)
+                            {
+                                await UpsertInventoryItem(playerProfileId, chestItem.ItemId, 1, isEquipment);
+                            }
+                        }
+                        else
+                        {
+                            await UpsertInventoryItem(playerProfileId, chestItem.ItemId, quantity, isEquipment);
+                        }
 
                         if (chestItem.Item != null)
                         {
@@ -291,8 +312,13 @@ namespace BLL.Services
                 // Step 6 — Mark session as RewardClaimed
                 session.IsRewardClaimed = true;
                 session.Status = "RewardClaimed";
+                session.ClaimedAt = DateTime.UtcNow;
                 session.UpdatedAt = DateTime.UtcNow;
                 await _sessionRepository.Update(session);
+
+                var timeTakenSeconds = session.CompletedTime.HasValue 
+                    ? (float)(session.CompletedTime.Value - session.EnterTime).TotalSeconds 
+                    : 0f;
 
                 return new ClaimDungeonRewardResponseDto
                 {
@@ -302,40 +328,137 @@ namespace BLL.Services
                     EnergyConsumed = dungeon.EnergyCost,
                     GoldEarned = goldEarned,
                     ExperienceEarned = experienceEarned,
-                    Items = rewardItems
+                    TimeTakenSeconds = timeTakenSeconds,
+                    Items = rewardItems,
+                    Wallet = new WalletDto
+                    {
+                        Gold = profile.Gold,
+                        Gems = profile.Gems
+                    },
+                    Character = new CharacterDto
+                    {
+                        Level = profile.Level,
+                        ExperiencePoints = profile.ExperiencePoints,
+                        Energy = profile.CurrentEnergy,
+                        MaxEnergy = profile.MaxEnergy
+                    }
                 };
             });
+        }
+
+        // ── 5. Abandon Session ────────────────────────────────────────────────────────
+        
+        public async Task<bool> AbandonSession(int sessionId, int playerProfileId)
+        {
+            var session = await _sessionRepository.GetById(sessionId)
+                ?? throw new KeyNotFoundException($"Dungeon session {sessionId} not found.");
+
+            if (session.PlayerProfileId != playerProfileId)
+                throw new UnauthorizedAccessException("You do not own this dungeon session.");
+
+            if (session.Status != "Active")
+                throw new InvalidOperationException($"Session {sessionId} is not active. Status: {session.Status}");
+
+            session.Status = "Abandoned";
+            session.UpdatedAt = DateTime.UtcNow;
+            await _sessionRepository.Update(session);
+
+            return true;
+        }
+
+        // ── 6. Get Active Session ──────────────────────────────────────────────────────
+        
+        public async Task<EnterDungeonResponseDto?> GetActiveSession(int playerProfileId)
+        {
+            var session = await _sessionRepository.GetActiveSession(playerProfileId, null);
+            if (session == null) return null;
+
+            return new EnterDungeonResponseDto
+            {
+                DungeonSessionId = session.DungeonSessionId,
+                PlayerProfileId = playerProfileId,
+                DungeonConfigId = session.DungeonConfigId,
+                DungeonName = session.DungeonConfig?.Name ?? "Unknown",
+                EnergyCost = session.DungeonConfig?.EnergyCost ?? 0,
+                PlayerCurrentEnergy = 0, // Not critical for resume
+                EnterTime = session.EnterTime,
+                Status = session.Status,
+                PartyMembers = string.IsNullOrEmpty(session.PartyMembers) 
+                    ? new List<string>() 
+                    : session.PartyMembers.Split(',').ToList(),
+                Progress = session.Progress != null ? new DungeonProgressResponseDto
+                {
+                    DungeonProgressId = session.Progress.DungeonProgressId,
+                    DungeonSessionId = session.DungeonSessionId,
+                    MonstersKilled = session.Progress.MonstersKilled,
+                    BossSpawned = session.Progress.BossSpawned,
+                    BossKilled = session.Progress.BossKilled,
+                    ElapsedTime = session.Progress.ElapsedTime,
+                    CompletionPercentage = session.Progress.CompletionPercentage,
+                    ExtraData = session.Progress.ExtraData,
+                    UpdatedAt = session.Progress.UpdatedAt,
+                    SessionStatus = session.Status
+                } : null
+            };
+        }
+
+        // ── 7. Get History ───────────────────────────────────────────────────────────
+
+        public async Task<List<DungeonHistoryResponseDto>> GetHistory(int playerProfileId)
+        {
+            // Pull all sessions for the player, filter for completed ones
+            var allSessions = await _sessionRepository.GetByPlayerProfileId(playerProfileId);
+            
+            var history = allSessions
+                .Where(s => s.Status == "Completed" || s.Status == "RewardClaimed")
+                .Select(s => new DungeonHistoryResponseDto
+                {
+                    DungeonSessionId = s.DungeonSessionId,
+                    DungeonName = s.DungeonConfig?.Name ?? "Unknown",
+                    Difficulty = s.DungeonConfig?.Difficulty ?? 1,
+                    Status = s.Status,
+                    ElapsedTime = s.Progress?.ElapsedTime ?? 0,
+                    CompletionPercentage = s.Progress?.CompletionPercentage ?? 0,
+                    EnterTime = s.EnterTime,
+                    CompletedTime = s.CompletedTime ?? s.ClaimedAt ?? s.UpdatedAt
+                })
+                .ToList();
+
+            return history;
         }
 
         // ── Private Helpers ───────────────────────────────────────────────────────────
 
         /// <summary>
         /// Adds <paramref name="quantity"/> of <paramref name="itemId"/> to the player's inventory.
-        /// If the item already exists, increments Quantity. Otherwise creates a new row.
+        /// If the item already exists and is not equipment, increments Quantity. Otherwise creates a new row.
         /// Must be called within an active transaction.
         /// </summary>
-        private async Task UpsertInventoryItem(int playerProfileId, int itemId, int quantity)
+        private async Task UpsertInventoryItem(int playerProfileId, int itemId, int quantity, bool isEquipment)
         {
-            var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
+            if (!isEquipment)
+            {
+                var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
 
-            if (existing != null)
-            {
-                existing.Quantity += quantity;
-                await _inventoryRepository.UpdateItem(existing);
-            }
-            else
-            {
-                await _inventoryRepository.AddItem(new InventoryItem
+                if (existing != null)
                 {
-                    PlayerProfileId = playerProfileId,
-                    ItemId = itemId,
-                    Quantity = quantity,
-                    IsEquipped = false,
-                    IsSkin = false,
-                    EnhancementLevel = 0,
-                    CreatedAt = DateTime.UtcNow
-                });
+                    existing.Quantity += quantity;
+                    await _inventoryRepository.UpdateItem(existing);
+                    return;
+                }
             }
+
+            // Either it's equipment (always new row) or it's a new stackable item
+            await _inventoryRepository.AddItem(new InventoryItem
+            {
+                PlayerProfileId = playerProfileId,
+                ItemId = itemId,
+                Quantity = quantity,
+                IsEquipped = false,
+                IsSkin = false,
+                EnhancementLevel = 0,
+                CreatedAt = DateTime.UtcNow
+            });
         }
 
 

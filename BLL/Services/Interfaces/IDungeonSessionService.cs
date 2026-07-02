@@ -25,5 +25,14 @@ namespace BLL.Services.Interfaces
         // Nhận thưởng dungeon. Kiểm tra session đã hoàn thành và chưa nhận.
         // Trừ energy, tạo thưởng, lưu inventory (transactional - rollback nếu lỗi).
         Task<ClaimDungeonRewardResponseDto> ClaimReward(int sessionId, int playerProfileId);
+
+        // Hủy bỏ dungeon session. Đóng session, không nhận thưởng, không trừ energy.
+        Task<bool> AbandonSession(int sessionId, int playerProfileId);
+
+        // Lấy session đang active của người chơi.
+        Task<EnterDungeonResponseDto?> GetActiveSession(int playerProfileId);
+
+        // Lấy lịch sử tham gia dungeon (đã hoàn thành hoặc nhận thưởng).
+        Task<List<DungeonHistoryResponseDto>> GetHistory(int playerProfileId);
     }
 }
