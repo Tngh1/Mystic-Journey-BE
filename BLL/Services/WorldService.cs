@@ -784,15 +784,15 @@ namespace BLL.Services
 
         private async Task<List<WorldMapProgressDto>> BuildMapProgress(int playerProfileId, string currentMapName)
         {
+            // activeQuests dùng để tính ExplorationPercent và lấy danh sách map tự động
             var activeQuests = await _questRepository.GetActiveQuests();
-            var activeQuestProjections = activeQuests.Select(q => new { q.QuestId, q.MapName }).ToList();
 
             var npcMapNames = await _worldRepository.GetAllNpcMapNames();
 
             var playerQuestStates = await _playerQuestRepository.GetByPlayerId(playerProfileId);
-            var activePlayerQuestStates = playerQuestStates.Where(pq => pq.Quest != null && pq.Quest.IsActive).ToList();
 
-            var mapNames = activeQuestProjections
+            // Map list tự động từ quest + NPC + map hiện tại
+            var mapNames = activeQuests
                 .Select(q => NormalizeMapName(q.MapName))
                 .Concat(npcMapNames.Select(NormalizeMapName))
                 .Append(NormalizeMapName(currentMapName))
@@ -813,8 +813,13 @@ namespace BLL.Services
                     (pq.Status == "Completed" || pq.Status == "Claimed"));
 
                 var total = questIds.Count;
-                var hasAnyPlayerState = playerQuestStates.Any(pq =>
-                    string.Equals(NormalizeMapName(pq.Quest?.MapName), mapName, StringComparison.OrdinalIgnoreCase));
+
+                // IsUnlocked: tutorial và map hiện tại luôn mở.
+                // Các map khác: có ít nhất 1 quest trên map đó đã Claimed.
+                // (Unity dùng MapData.unlockQuestId + QuestManager để kiểm chính xác hơn)
+                var hasClaimedQuest = playerQuestStates.Any(pq =>
+                    string.Equals(NormalizeMapName(pq.Quest?.MapName), mapName, StringComparison.OrdinalIgnoreCase)
+                    && pq.Status == "Claimed");
 
                 return new WorldMapProgressDto
                 {
@@ -822,7 +827,7 @@ namespace BLL.Services
                     DisplayName = ToDisplayMapName(mapName),
                     IsUnlocked = string.Equals(mapName, TutorialMapName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(mapName, currentMapName, StringComparison.OrdinalIgnoreCase)
-                        || hasAnyPlayerState,
+                        || hasClaimedQuest,
                     ExplorationPercent = total == 0 ? 0 : (int)Math.Round(completed * 100.0 / total)
                 };
             }).ToList();

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260701051737_InitialCreate")]
+    [Migration("20260701134130_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -668,6 +668,9 @@ namespace DAL.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GachaBannerId"));
+
+                    b.Property<int?>("CostItemId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("EndAt")
                         .HasColumnType("timestamp with time zone");
@@ -1627,6 +1630,9 @@ namespace DAL.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<DateTime>("LastEnergyUpdateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastFreeGachaTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastMapName")

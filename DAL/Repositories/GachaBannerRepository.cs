@@ -99,5 +99,36 @@ _context.GachaBanners.Update(banner);
 
             return (totalCount, items);
         }
+
+        public async Task<GachaPullHistory> AddGachaPullHistory(GachaPullHistory history)
+        {
+            await _context.GachaPullHistories.AddAsync(history);
+            await _context.SaveChangesAsync();
+            return history;
+        }
+
+        public async Task<List<GachaPullHistory>> GetPullHistoryByPlayerAndBanner(int playerProfileId, int bannerId)
+        {
+            return await _context.GachaPullHistories
+                .Where(h => h.PlayerProfileId == playerProfileId && h.GachaBannerId == bannerId)
+                .OrderByDescending(h => h.PulledAt)
+                .ThenByDescending(h => h.GachaPullHistoryId)
+                .ToListAsync();
+        }
+
+        public async Task<(int TotalCount, List<GachaPullHistory> Items)> GetGachaPullHistoryPaged(int playerProfileId, int page, int pageSize)
+        {
+            var query = _context.GachaPullHistories
+                .Include(h => h.GachaBanner)
+                .Include(h => h.RewardItem)
+                .Where(h => h.PlayerProfileId == playerProfileId)
+                .OrderByDescending(h => h.PulledAt)
+                .AsNoTracking();
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (totalCount, items);
+        }
     }
 }

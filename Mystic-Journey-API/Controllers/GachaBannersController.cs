@@ -1,5 +1,6 @@
 using BLL.DTOs;
 using BLL.Services.Interfaces;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mystic_Journey_API.Extensions;
@@ -55,6 +56,55 @@ namespace Mystic_Journey_API.Controllers
         {
             var result = await _gachaBannerService.GetBannerItemsPaged(page, pageSize);
             return Ok(new ApiResponse<PagedResultDto<GachaBannerItemResponseDto>> { Success = true, Data = result });
+        }
+
+        private int GetPlayerProfileId()
+        {
+            var claim = User.FindFirstValue("playerProfileId");
+            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var profileId))
+            {
+                return 0;
+            }
+            return profileId;
+        }
+
+        // ── POST /api/gachabanners/{id}/pull ───────────────────────
+        // Thực hiện quay gacha
+        [Authorize]
+        [HttpPost("{id}/pull")]
+        public async Task<IActionResult> Pull(int id, [FromBody] GachaPullRequestDto request)
+        {
+            try
+            {
+                var playerProfileId = GetPlayerProfileId();
+                if (playerProfileId == 0)
+                    return Unauthorized(new ApiResponse<object> { Success = false, Message = "Profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+                var result = await _gachaBannerService.Pull(playerProfileId, id, request);
+                return Ok(new ApiResponse<MultiPullResultDto> { Success = true, Data = result });
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InvalidOperation });
+            }
+            catch (System.Collections.Generic.KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+            }
+        }
+
+        // ── GET /api/gachabanners/history ──────────────────────────
+        // Lấy lịch sử quay của người chơi hiện tại
+        [Authorize]
+        [HttpGet("history")]
+        public async Task<IActionResult> GetHistory([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var playerProfileId = GetPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var result = await _gachaBannerService.GetHistoryPaged(playerProfileId, page, pageSize);
+            return Ok(new ApiResponse<PagedResultDto<GachaPullHistoryResponseDto>> { Success = true, Data = result });
         }
 
         // ═══════════════════════════════════════════════════════════════════════

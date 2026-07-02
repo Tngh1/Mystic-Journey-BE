@@ -666,6 +666,9 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GachaBannerId"));
 
+                    b.Property<int?>("CostItemId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("EndAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1624,6 +1627,9 @@ namespace DAL.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<DateTime>("LastEnergyUpdateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastFreeGachaTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastMapName")

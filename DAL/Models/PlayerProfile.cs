@@ -25,6 +25,7 @@ namespace DAL.Models
         public int CurrentEnergy { get; set; } = 100;
         public int MaxEnergy { get; set; } = 100;
         public DateTime LastEnergyUpdateTime { get; set; } = DateTime.UtcNow;
+        public DateTime? LastFreeGachaTime { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
