@@ -11,25 +11,72 @@ namespace BLL.DTOs
         public string? SenderAvatarUrl { get; set; }
         public int RecipientId { get; set; }
         public string? RecipientName { get; set; }
+        public string? RecipientAvatarUrl { get; set; }
         public string Content { get; set; } = string.Empty;
         public bool IsReported { get; set; }
         public bool IsHidden { get; set; }
         public DateTime SentAt { get; set; }
     }
 
+    public class WorldChatMessageResponseDto
+    {
+        public int ChatMessageId { get; set; }
+        public int SenderId { get; set; }
+        public string? SenderName { get; set; }
+        public string? SenderAvatarUrl { get; set; }
+        public string Channel { get; set; } = "World";
+        public string Content { get; set; } = string.Empty;
+        public bool IsReported { get; set; }
+        public bool IsHidden { get; set; }
+        public int? ReportedById { get; set; }
+        public string? ReportReason { get; set; }
+        public DateTime? ReportedAt { get; set; }
+        public DateTime SentAt { get; set; }
+    }
+
+    public class SendWorldChatMessageRequestDto
+    {
+        [Required(ErrorMessage = "Content is required.")]
+        [StringLength(500, MinimumLength = 1, ErrorMessage = "Content must be between 1 and 500 characters.")]
+        public string Content { get; set; } = string.Empty;
+    }
+
+    public class WorldChatMessageListQueryDto
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Page must be greater than 0.")]
+        public int Page { get; set; } = 1;
+
+        [Range(1, 100, ErrorMessage = "Page size must be between 1 and 100.")]
+        public int PageSize { get; set; } = 50;
+    }
+
     public class SendChatMessageRequestDto
     {
         [Required(ErrorMessage = "Recipient ID is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Recipient ID must be greater than 0.")]
         public int RecipientId { get; set; }
 
         [Required(ErrorMessage = "Content is required.")]
-        [StringLength(500, ErrorMessage = "Content must not exceed 500 characters.")]
+        [StringLength(500, MinimumLength = 1, ErrorMessage = "Content must be between 1 and 500 characters.")]
         public string Content { get; set; } = string.Empty;
+    }
+
+    public class ChatMessageListQueryDto
+    {
+        [Required(ErrorMessage = "Recipient ID is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Recipient ID must be greater than 0.")]
+        public int RecipientId { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Page must be greater than 0.")]
+        public int Page { get; set; } = 1;
+
+        [Range(1, 100, ErrorMessage = "Page size must be between 1 and 100.")]
+        public int PageSize { get; set; } = 50;
     }
 
     public class ReportChatMessageRequestDto
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Chat message ID must be greater than 0.")]
         public int ChatMessageId { get; set; }
 
         [StringLength(500)]

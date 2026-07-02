@@ -248,8 +248,29 @@ namespace BLL.Mappings
             // ═══════════════════════════════════════════════════════════════════════
 
             // Ánh xạ tin nhắn chat.
-            CreateMap<ChatMessage, ChatMessageResponseDto>();
-            CreateMap<SendChatMessageRequestDto, ChatMessage>();
+            CreateMap<ChatMessage, ChatMessageResponseDto>()
+                .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src => src.Sender != null ? src.Sender.DisplayName : null))
+                .ForMember(dest => dest.SenderAvatarUrl, opt => opt.MapFrom(src => src.Sender != null ? src.Sender.AvatarUrl : null))
+                .ForMember(dest => dest.RecipientName, opt => opt.MapFrom(src => src.Recipient != null ? src.Recipient.DisplayName : null))
+                .ForMember(dest => dest.RecipientAvatarUrl, opt => opt.MapFrom(src => src.Recipient != null ? src.Recipient.AvatarUrl : null));
+            CreateMap<SendChatMessageRequestDto, ChatMessage>()
+                .ForMember(dest => dest.ChatMessageId, opt => opt.Ignore())
+                .ForMember(dest => dest.SenderId, opt => opt.Ignore())
+                .ForMember(dest => dest.Sender, opt => opt.Ignore())
+                .ForMember(dest => dest.Recipient, opt => opt.Ignore())
+                .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content.Trim()))
+                .ForMember(dest => dest.SentAt, opt => opt.Ignore());
+            CreateMap<WorldChatMessage, WorldChatMessageResponseDto>()
+                .ForMember(dest => dest.ChatMessageId, opt => opt.MapFrom(src => src.WorldChatMessageId))
+                .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src => src.Sender != null ? src.Sender.DisplayName : null))
+                .ForMember(dest => dest.SenderAvatarUrl, opt => opt.MapFrom(src => src.Sender != null ? src.Sender.AvatarUrl : null))
+                .ForMember(dest => dest.Channel, opt => opt.MapFrom(src => "World"));
+            CreateMap<SendWorldChatMessageRequestDto, WorldChatMessage>()
+                .ForMember(dest => dest.WorldChatMessageId, opt => opt.Ignore())
+                .ForMember(dest => dest.SenderId, opt => opt.Ignore())
+                .ForMember(dest => dest.Sender, opt => opt.Ignore())
+                .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content.Trim()))
+                .ForMember(dest => dest.SentAt, opt => opt.Ignore());
             // Ánh xạ bạn bè.
             CreateMap<Friend, FriendResponseDto>();
 

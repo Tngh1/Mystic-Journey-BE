@@ -32,6 +32,7 @@ namespace DAL.Data
         public DbSet<MailRewardItem> MailRewardItems => Set<MailRewardItem>();
         public DbSet<Friend> Friends => Set<Friend>();
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+        public DbSet<WorldChatMessage> WorldChatMessages => Set<WorldChatMessage>();
         public DbSet<MonsterDrop> MonsterDrops => Set<MonsterDrop>();
         public DbSet<GachaBanner> GachaBanners => Set<GachaBanner>();
         public DbSet<GachaBannerItem> GachaBannerItems => Set<GachaBannerItem>();
@@ -101,6 +102,31 @@ namespace DAL.Data
                 .WithMany()
                 .HasForeignKey(q => q.BossMonsterId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<WorldChatMessage>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorldChatMessage>()
+                .HasOne(m => m.ReportedBy)
+                .WithMany()
+                .HasForeignKey(m => m.ReportedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<WorldChatMessage>()
+                .Property(m => m.ReportReason)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<WorldChatMessage>()
+                .HasIndex(m => m.SentAt);
+
+            modelBuilder.Entity<WorldChatMessage>()
+                .HasIndex(m => m.SenderId);
+
+            modelBuilder.Entity<WorldChatMessage>()
+                .HasIndex(m => m.ReportedById);
         }
     }
 }
