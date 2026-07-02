@@ -1762,6 +1762,48 @@ namespace Mystic_Journey_API.Controllers
 
                 await _ctx.SaveChangesAsync();
 
+                // Setup Dungeon Boss Chest
+                var bossChest = await _ctx.Chests.FirstOrDefaultAsync(c => c.Name == "Abandoned Mines Reward Chest");
+                if (bossChest == null)
+                {
+                    bossChest = new Chest
+                    {
+                        Name = "Abandoned Mines Reward Chest",
+                        GoldMinReward = 150,
+                        GoldMaxReward = 300,
+                        ExperienceReward = 200
+                    };
+                    _ctx.Chests.Add(bossChest);
+                    await _ctx.SaveChangesAsync();
+
+                    // Add some items to this chest
+                    var healthPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Health Potion");
+                    var basicSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Basic Sword");
+                    if (healthPotion != null)
+                    {
+                        _ctx.ChestItems.Add(new ChestItem
+                        {
+                            ChestId = bossChest.ChestId,
+                            ItemId = healthPotion.ItemId,
+                            DropRate = 1.0m,
+                            QuantityMin = 1,
+                            QuantityMax = 3
+                        });
+                    }
+                    if (basicSword != null)
+                    {
+                        _ctx.ChestItems.Add(new ChestItem
+                        {
+                            ChestId = bossChest.ChestId,
+                            ItemId = basicSword.ItemId,
+                            DropRate = 0.5m,
+                            QuantityMin = 1,
+                            QuantityMax = 1
+                        });
+                    }
+                    await _ctx.SaveChangesAsync();
+                }
+
                 // Setup DungeonConfig
                 var dungeonConfig = await _ctx.DungeonConfigs.FirstOrDefaultAsync(d => d.Name == "Abandoned Mines" || d.Name == "Goblin Dungeon");
                 if (dungeonConfig == null)
@@ -1773,7 +1815,8 @@ namespace Mystic_Journey_API.Controllers
                         LevelRequirement = 5,
                         EnergyCost = 20,
                         Type = "Normal",
-                        IsActive = true
+                        IsActive = true,
+                        ChestId = bossChest.ChestId
                     };
                     _ctx.DungeonConfigs.Add(dungeonConfig);
                     await _ctx.SaveChangesAsync();
@@ -1782,22 +1825,17 @@ namespace Mystic_Journey_API.Controllers
                 {
                     dungeonConfig.Name = "Abandoned Mines";
                     dungeonConfig.EnergyCost = 20;
+                    dungeonConfig.ChestId = bossChest.ChestId;
                     _ctx.DungeonConfigs.Update(dungeonConfig);
                     await _ctx.SaveChangesAsync();
                 }
 
                 // Setup Dungeon (for Monster Spawns)
-                var dungeon = await _ctx.Dungeons.FirstOrDefaultAsync(d => d.Name == "Goblin Dungeon" || d.Name == "Abandoned Mines");
+                var dungeon = await _ctx.Dungeons.FirstOrDefaultAsync(d => d.DungeonId == 1);
                 if (dungeon == null)
                 {
                     dungeon = new Dungeon { Name = "Abandoned Mines", Description = "A dark dungeon filled with goblins and skeletons.", IsRepeatable = true };
                     _ctx.Dungeons.Add(dungeon);
-                    await _ctx.SaveChangesAsync();
-                }
-                else
-                {
-                    dungeon.Name = "Abandoned Mines";
-                    _ctx.Dungeons.Update(dungeon);
                     await _ctx.SaveChangesAsync();
                 }
 
@@ -1910,6 +1948,75 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedQuestId"" ON ""NPCDialogues""
 CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogues"" (""LinkedShopItemId"");
 ");
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/dungeons → Tạo dữ liệu 3 Dungeon mẫu để test luồng Game
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("dungeons")]
+        public async Task<IActionResult> SeedDungeons()
+        {
+            try
+            {
+                // 1. Xoá dữ liệu cũ
+                var existingSpawns = await _ctx.MonsterSpawns.Where(ms => ms.DungeonId != null).ToListAsync();
+                _ctx.MonsterSpawns.RemoveRange(existingSpawns);
+
+                var existingDungeons = await _ctx.Dungeons.ToListAsync();
+                _ctx.Dungeons.RemoveRange(existingDungeons);
+                await _ctx.SaveChangesAsync();
+
+                // 2. Đảm bảo 3 con quái (Slime=4, Skeleton=5, Ogre Boss=8) tồn tại
+                var slime = await _ctx.Monsters.FindAsync(4);
+                if (slime == null) _ctx.Monsters.Add(new Monster { MonsterId = 4, Name = "Slime", Type = "Normal", MaxHp = 50, Atk = 5, Def = 2 });
+
+                var skeleton = await _ctx.Monsters.FindAsync(5);
+                if (skeleton == null) _ctx.Monsters.Add(new Monster { MonsterId = 5, Name = "SkeletonMelee", Type = "Normal", MaxHp = 100, Atk = 10, Def = 5 });
+
+                var ogre = await _ctx.Monsters.FindAsync(8);
+                if (ogre == null) _ctx.Monsters.Add(new Monster { MonsterId = 8, Name = "Ogre", Type = "Boss", MaxHp = 1000, Atk = 50, Def = 20 });
+
+                await _ctx.SaveChangesAsync();
+
+                // 3. Tạo 3 Dungeon mẫu (Ép ID = 1, 2, 3 để khớp với Unity config)
+                var dungeons = new List<Dungeon>
+                {
+                    new Dungeon { DungeonId = 1, Name = "Hầm ngục Slime (Dễ)", Description = "Nơi đầy rẫy Slime", IsRepeatable = true },
+                    new Dungeon { DungeonId = 2, Name = "Nghĩa địa Xương (Vừa)", Description = "Bộ xương khô khắp nơi", IsRepeatable = true },
+                    new Dungeon { DungeonId = 3, Name = "Sào huyệt Ogre (Khó)", Description = "Thử thách cực đại", IsRepeatable = true }
+                };
+                
+                // Set identity insert if needed, but in PG/EF Core usually works directly
+                _ctx.Dungeons.AddRange(dungeons);
+                await _ctx.SaveChangesAsync();
+
+                // 4. Tạo Spawns cho từng Dungeon (MapName là "HollowCryptDungeon" như Unity đã fix cứng)
+                string mapName = "HollowCryptDungeon";
+                var spawns = new List<MonsterSpawn>
+                {
+                    // Dungeon 1: 3 Slimes, 1 Boss Ogre
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 4, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                    // Dungeon 2: 5 Skeletons, 1 Boss Ogre
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 5, SpawnCount = 5, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                    // Dungeon 3: 3 Slimes, 3 Skeletons, 1 Boss Ogre
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 4, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 5, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true }
+                };
+                _ctx.MonsterSpawns.AddRange(spawns);
+                await _ctx.SaveChangesAsync();
+
+                return Ok(new { message = "Đã tạo 3 Dungeons mẫu (ID: 1, 2, 3) và MonsterSpawns thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi seed Dungeon: " + ex.Message, details = ex.InnerException?.Message });
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────────
         // ─────────────────────────────────────────────────────────────────────────
         // POST /api/seed/content -> Seed Content

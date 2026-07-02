@@ -203,11 +203,76 @@ namespace Mystic_Journey_API.Controllers
             }
             catch (InvalidOperationException ex)
             {
+                if (ex.Message.StartsWith("CONFLICT:"))
+                {
+                    return Conflict(new ApiResponse<object> { Success = false, ErrorCode = "CONFLICT", Message = ex.Message.Replace("CONFLICT: ", "") });
+                }
                 return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_OPERATION", Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
+            }
+        }
+
+        // ── POST /api/dungeons/session/{sessionId}/abandon ────────────────────
+        // Hủy dungeon session.
+        [Authorize]
+        [HttpPost("session/{sessionId}/abandon")]
+        public async Task<IActionResult> Abandon(int sessionId)
+        {
+            try
+            {
+                var profileId = GetPlayerProfileId();
+                await _dungeonSessionService.AbandonSession(sessionId, profileId);
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Dungeon session abandoned.",
+                    Data = null
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, ErrorCode = "NOT_FOUND", Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_OPERATION", Message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
+            }
+        }
+
+        // ── GET /api/dungeons/session/active ──────────────────────────────────
+        // Lấy dungeon session đang active (Resume).
+        [Authorize]
+        [HttpGet("session/active")]
+        public async Task<IActionResult> GetActiveSession()
+        {
+            try
+            {
+                var profileId = GetPlayerProfileId();
+                var result = await _dungeonSessionService.GetActiveSession(profileId);
+                if (result == null)
+                    return Ok(new ApiResponse<object> { Success = true, Message = "No active session found.", Data = null });
+
+                return Ok(new ApiResponse<EnterDungeonResponseDto>
+                {
+                    Success = true,
+                    Message = "Active session retrieved.",
+                    Data = result
+                });
             }
             catch (System.Exception ex)
             {
@@ -253,6 +318,28 @@ namespace Mystic_Journey_API.Controllers
             if (!int.TryParse(claim, out var id))
                 throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
             return id;
+        }
+
+        // ── Lấy lịch sử dungeon ───────────────────────────────────────────────────────
+        [Authorize]
+        [HttpGet("history")]
+        public async Task<IActionResult> GetHistory()
+        {
+            try
+            {
+                var profileId = GetPlayerProfileId();
+                var result = await _dungeonSessionService.GetHistory(profileId);
+                return Ok(new ApiResponse<List<DungeonHistoryResponseDto>>
+                {
+                    Success = true,
+                    Message = "Dungeon history retrieved successfully.",
+                    Data = result
+                });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
+            }
         }
     }
 }

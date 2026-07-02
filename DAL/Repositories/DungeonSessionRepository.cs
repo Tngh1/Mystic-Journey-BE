@@ -48,13 +48,19 @@ namespace DAL.Repositories
         /// Tìm phiên chơi đang hoạt động của người chơi trong dungeon cụ thể.
         /// Dùng để ngăn chặn chạy nhiều phiên cùng lúc.
         /// </summary>
-        public async Task<DungeonSession?> GetActiveSession(int playerProfileId, int dungeonConfigId)
+        public async Task<DungeonSession?> GetActiveSession(int playerProfileId, int? dungeonConfigId = null)
         {
-            return await _context.DungeonSessions
-                .FirstOrDefaultAsync(s =>
-                    s.PlayerProfileId == playerProfileId &&
-                    s.DungeonConfigId == dungeonConfigId &&
-                    s.Status == "Active");
+            var query = _context.DungeonSessions.Where(s => s.PlayerProfileId == playerProfileId && s.Status == "Active");
+            
+            if (dungeonConfigId.HasValue)
+            {
+                query = query.Where(s => s.DungeonConfigId == dungeonConfigId.Value);
+            }
+
+            return await query
+                .Include(s => s.DungeonConfig)
+                .Include(s => s.Progress)
+                .FirstOrDefaultAsync();
         }
 
         // ── CRUD ──
