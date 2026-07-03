@@ -70,6 +70,12 @@ builder.Services.AddScoped<IDungeonSessionService, DungeonSessionService>();
 builder.Services.AddScoped<IShopItemRepository, ShopItemRepository>();
 builder.Services.AddScoped<IShopItemService, ShopItemService>();
 
+// Player Currency and Shop Services
+builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddScoped<IPlayerShopRepository, PlayerShopRepository>();
+builder.Services.AddScoped<IPlayerShopService, PlayerShopService>();
+
 // Gacha Services
 builder.Services.AddScoped<IGachaBannerRepository, GachaBannerRepository>();
 builder.Services.AddScoped<IGachaBannerService, GachaBannerService>();
