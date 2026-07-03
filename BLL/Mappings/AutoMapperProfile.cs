@@ -59,6 +59,19 @@ namespace BLL.Mappings
 
             // Ánh xạ vật phẩm shop sang response.
             CreateMap<ShopItem, ShopItemResponseDto>();
+            CreateMap<ShopItem, ShopItemPublicResponseDto>()
+                .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : string.Empty))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Item != null ? src.Item.Description : null))
+                .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
+                .ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.Item != null ? src.Item.Type : string.Empty))
+                .ForMember(dest => dest.Rarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : string.Empty))
+                .ForMember(dest => dest.Slot, opt => opt.MapFrom(src => src.Item != null ? src.Item.Slot : string.Empty))
+                .ForMember(dest => dest.MaxStack, opt => opt.MapFrom(src => src.Item != null ? src.Item.MaxStack : 0))
+                .ForMember(dest => dest.IsUnlimitedStock, opt => opt.MapFrom(src => src.Stock < 0))
+                .ForMember(dest => dest.PurchasedToday, opt => opt.Ignore())
+                .ForMember(dest => dest.RemainingDailyPurchases, opt => opt.Ignore())
+                .ForMember(dest => dest.CanPurchase, opt => opt.Ignore())
+                .ForMember(dest => dest.UnavailableReason, opt => opt.Ignore());
             // Ánh xạ yêu cầu tạo/cập nhật vật phẩm shop.
             CreateMap<CreateShopItemRequestDto, ShopItem>();
             CreateMap<UpdateShopItemRequestDto, ShopItem>();
@@ -366,7 +379,8 @@ namespace BLL.Mappings
 
             // Ánh xạ nhật ký tiền tệ người chơi.
             CreateMap<PlayerCurrencyLog, PlayerCurrencyLogResponseDto>();
-
+            CreateMap<PlayerProfile, CurrencyBalanceResponseDto>()
+                .ForMember(dest => dest.ServerTimeUtc, opt => opt.Ignore());
             // ═══════════════════════════════════════════════════════════════════════
             // THÀNH TÍCH NGƯỜI CHƠI (Player Achievement)
             // ═══════════════════════════════════════════════════════════════════════
