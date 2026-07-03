@@ -1775,34 +1775,52 @@ namespace Mystic_Journey_API.Controllers
                     };
                     _ctx.Chests.Add(bossChest);
                     await _ctx.SaveChangesAsync();
+                }
 
-                    // Add some items to this chest
-                    var healthPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Health Potion");
-                    var basicSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Basic Sword");
-                    if (healthPotion != null)
+                // Add some items to this chest (Upsert logic)
+                var healthPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "[SEED] Health Potion" || i.Name == "Health Potion");
+                var basicSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "[SEED] Sword of Dawn" || i.Name == "Basic Sword");
+                
+                if (healthPotion != null)
+                {
+                    var existingHp = await _ctx.ChestItems.FirstOrDefaultAsync(ci => ci.ChestId == bossChest.ChestId && ci.ItemId == healthPotion.ItemId);
+                    if (existingHp == null)
                     {
                         _ctx.ChestItems.Add(new ChestItem
                         {
                             ChestId = bossChest.ChestId,
                             ItemId = healthPotion.ItemId,
-                            DropRate = 1.0m,
+                            DropRate = 100.0m, // 100%
                             QuantityMin = 1,
                             QuantityMax = 3
                         });
                     }
-                    if (basicSword != null)
+                    else
+                    {
+                        existingHp.DropRate = 100.0m;
+                    }
+                }
+                
+                if (basicSword != null)
+                {
+                    var existingSword = await _ctx.ChestItems.FirstOrDefaultAsync(ci => ci.ChestId == bossChest.ChestId && ci.ItemId == basicSword.ItemId);
+                    if (existingSword == null)
                     {
                         _ctx.ChestItems.Add(new ChestItem
                         {
                             ChestId = bossChest.ChestId,
                             ItemId = basicSword.ItemId,
-                            DropRate = 0.5m,
+                            DropRate = 50.0m, // 50%
                             QuantityMin = 1,
                             QuantityMax = 1
                         });
                     }
-                    await _ctx.SaveChangesAsync();
+                    else
+                    {
+                        existingSword.DropRate = 50.0m;
+                    }
                 }
+                await _ctx.SaveChangesAsync();
 
                 // Setup DungeonConfig
                 var dungeonConfig = await _ctx.DungeonConfigs.FirstOrDefaultAsync(d => d.Name == "Abandoned Mines" || d.Name == "Goblin Dungeon");

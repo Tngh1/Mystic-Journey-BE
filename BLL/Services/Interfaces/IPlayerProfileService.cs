@@ -13,7 +13,6 @@ namespace BLL.Services.Interfaces
         // GAME APIs (Người chơi)
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Lấy chi tiết player profile theo ID.
         Task<PlayerProfileDetailResponseDto?> GetProfileById(int id);
 
         // Cập nhật thông tin player profile (display name, avatar...).

@@ -116,6 +116,11 @@ builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
 builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
+builder.Services.AddScoped<IFriendService, FriendService>();
+
+// Presence Service
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IPlayerPresenceService, PlayerPresenceService>();
 
 // Chat Services
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
