@@ -31,6 +31,7 @@ namespace DAL.Data
         public DbSet<Mail> Mails => Set<Mail>();
         public DbSet<MailRewardItem> MailRewardItems => Set<MailRewardItem>();
         public DbSet<Friend> Friends => Set<Friend>();
+        public DbSet<FriendBlock> FriendBlocks => Set<FriendBlock>();
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
         public DbSet<WorldChatMessage> WorldChatMessages => Set<WorldChatMessage>();
         public DbSet<MonsterDrop> MonsterDrops => Set<MonsterDrop>();
@@ -127,6 +128,18 @@ namespace DAL.Data
 
             modelBuilder.Entity<WorldChatMessage>()
                 .HasIndex(m => m.ReportedById);
+
+            modelBuilder.Entity<FriendBlock>()
+                .HasOne(fb => fb.Blocker)
+                .WithMany()
+                .HasForeignKey(fb => fb.BlockerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FriendBlock>()
+                .HasOne(fb => fb.Blocked)
+                .WithMany()
+                .HasForeignKey(fb => fb.BlockedId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

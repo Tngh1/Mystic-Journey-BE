@@ -25,6 +25,8 @@ namespace DAL.Repositories.Interfaces
         // Lấy hồ sơ người chơi theo mã tài khoản.
         Task<PlayerProfile?> GetByAccountId(int accountId);
 
+        Task<PlayerProfile?> GetPlayerProfileByName(string playerName);
+
         // Lấy snapshot chỉ số của người chơi.
         Task<PlayerStatsSnapshot?> GetSnapshotByPlayerProfileId(int playerProfileId);
 

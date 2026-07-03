@@ -4,15 +4,18 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
 {
-    // Quản lý mối quan hệ kết bạn.
-    // Game APIs: Xem danh sách bạn bè.
     public interface IFriendRepository
     {
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
-
-        // Lấy danh sách bạn bè của người chơi (đã chấp nhận lời mời).
+        Task<List<Friend>> GetFriendListRaw(int playerProfileId);
+        Task<List<Friend>> GetFriendRequests(int playerProfileId);
+        Task<Friend?> GetFriendship(int id1, int id2);
+        Task<Friend> AddFriend(Friend friend);
+        Task UpdateFriend(Friend friend);
+        Task RemoveFriend(Friend friend);
+        Task<List<FriendBlock>> GetFriendBlocks(int playerProfileId);
+        Task<FriendBlock?> GetFriendBlock(int blockerId, int blockedId);
+        Task AddFriendBlock(FriendBlock block);
+        Task RemoveFriendBlock(FriendBlock block);
         Task<List<PlayerProfile>> GetFriends(int playerProfileId);
     }
 }
