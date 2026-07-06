@@ -127,5 +127,26 @@ namespace DAL.Repositories
 
             return message;
         }
+
+        public async Task<ChatMessage?> GetMessageById(int chatMessageId)
+        {
+            return await _context.ChatMessages
+                .Include(m => m.Sender)
+                .Include(m => m.Recipient)
+                .FirstOrDefaultAsync(m =>
+                    m.ChatMessageId == chatMessageId &&
+                    !m.IsHidden);
+        }
+
+        public async Task<ChatMessage> Update(ChatMessage message)
+        {
+            _context.ChatMessages.Update(message);
+            await _context.SaveChangesAsync();
+
+            await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
+            await _context.Entry(message).Reference(m => m.Recipient).LoadAsync();
+
+            return message;
+        }
     }
 }

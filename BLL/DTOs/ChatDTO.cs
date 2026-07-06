@@ -15,6 +15,9 @@ namespace BLL.DTOs
         public string Content { get; set; } = string.Empty;
         public bool IsReported { get; set; }
         public bool IsHidden { get; set; }
+        public int? ReportedById { get; set; }
+        public string? ReportReason { get; set; }
+        public DateTime? ReportedAt { get; set; }
         public DateTime SentAt { get; set; }
     }
 

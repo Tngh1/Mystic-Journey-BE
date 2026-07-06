@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -13,8 +13,10 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.*" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="Azure.AI.ContentSafety" Version="1.*" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.*" />
-	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.*" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
   </ItemGroup>
 
 </Project>

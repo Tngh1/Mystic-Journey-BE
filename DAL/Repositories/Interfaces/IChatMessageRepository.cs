@@ -24,5 +24,7 @@ namespace DAL.Repositories.Interfaces
 
         Task<DateTime?> GetLatestSentAtBySenderId(int senderId);
         Task<ChatMessage> Create(ChatMessage message);
+        Task<ChatMessage?> GetMessageById(int chatMessageId);
+        Task<ChatMessage> Update(ChatMessage message);
     }
 }
