@@ -30,17 +30,23 @@ namespace BLL.Services
 
         private readonly IChatMessageRepository _repository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
+        private readonly IFriendRepository _friendRepository;
+        private readonly IChatModerationService _moderationService;
         private readonly IMapper _mapper;
         private readonly IDistributedCache _cache;
 
         public ChatService(
             IChatMessageRepository repository,
             IPlayerProfileRepository playerProfileRepository,
+            IFriendRepository friendRepository,
+            IChatModerationService moderationService,
             IMapper mapper,
             IDistributedCache cache)
         {
             _repository = repository;
             _playerProfileRepository = playerProfileRepository;
+            _friendRepository = friendRepository;
+            _moderationService = moderationService;
             _mapper = mapper;
             _cache = cache;
         }
@@ -94,6 +100,7 @@ namespace BLL.Services
 
             var content = NormalizeContent(request.Content);
             await EnsurePlayerExists(senderId, "Player profile not found.");
+            await _moderationService.EnsureCanSendChat(senderId);
 
             var senderLock = WorldSenderLocks.GetOrAdd(senderId, _ => new SemaphoreSlim(1, 1));
             await senderLock.WaitAsync();
@@ -136,7 +143,7 @@ namespace BLL.Services
             }
         }
 
-        public async Task<WorldChatMessageResponseDto> ReportWorldMessage(
+        public async Task<ReportWorldChatMessageResponseDto> ReportWorldMessage(
             int reporterId,
             ReportChatMessageRequestDto request)
         {
@@ -157,6 +164,9 @@ namespace BLL.Services
             if (message == null)
                 throw new KeyNotFoundException("World chat message not found.");
 
+            if (message.SenderId == reporterId)
+                throw new BadRequestException("You cannot report your own message.");
+
             message.IsReported = true;
             message.ReportedById = reporterId;
             message.ReportReason = reason;
@@ -164,12 +174,16 @@ namespace BLL.Services
 
             var updated = await _repository.UpdateWorldMessage(message);
             var dto = _mapper.Map<WorldChatMessageResponseDto>(updated);
+            var moderation = await _moderationService.ReviewReportedWorldMessage(reporterId, updated, reason);
 
             await ReplaceWorldCacheMessage(dto);
 
-            return dto;
+            return new ReportWorldChatMessageResponseDto
+            {
+                Message = dto,
+                Moderation = moderation
+            };
         }
-
         public async Task<PagedResultDto<ChatMessageResponseDto>> GetMessages(
             int playerProfileId,
             ChatMessageListQueryDto query)
@@ -189,6 +203,7 @@ namespace BLL.Services
 
             await EnsurePlayerExists(playerProfileId, "Player profile not found.");
             await EnsurePlayerExists(recipientId, "Recipient profile not found.");
+            await EnsureCanChatWithFriend(playerProfileId, recipientId);
 
             if (page == 1 && pageSize <= MaxCachedMessages)
             {
@@ -239,7 +254,9 @@ namespace BLL.Services
             var content = NormalizeContent(request.Content);
 
             await EnsurePlayerExists(senderId, "Player profile not found.");
+            await _moderationService.EnsureCanSendChat(senderId);
             await EnsurePlayerExists(request.RecipientId, "Recipient profile not found.");
+            await EnsureCanChatWithFriend(senderId, request.RecipientId);
 
             var now = DateTime.UtcNow;
             var message = _mapper.Map<ChatMessage>(request);
@@ -258,11 +275,67 @@ namespace BLL.Services
             return dto;
         }
 
+        public async Task<ReportChatMessageResponseDto> ReportMessage(
+            int reporterId,
+            ReportChatMessageRequestDto request)
+        {
+            if (reporterId <= 0)
+                throw new UnauthorizedAccessException("Player profile not found.");
+
+            if (request.ChatMessageId <= 0)
+                throw new BadRequestException("Chat message ID must be greater than 0.");
+
+            var reason = NormalizeOptionalText(
+                request.Reason,
+                500,
+                "Reason must not exceed 500 characters.");
+
+            await EnsurePlayerExists(reporterId, "Player profile not found.");
+
+            var message = await _repository.GetMessageById(request.ChatMessageId);
+            if (message == null)
+                throw new KeyNotFoundException("Chat message not found.");
+
+            if (message.SenderId != reporterId && message.RecipientId != reporterId)
+                throw new BadRequestException("You can only report messages in your conversation.");
+
+            if (message.SenderId == reporterId)
+                throw new BadRequestException("You cannot report your own message.");
+
+            message.IsReported = true;
+            message.ReportedById = reporterId;
+            message.ReportReason = reason;
+            message.ReportedAt = DateTime.UtcNow;
+
+            var updated = await _repository.Update(message);
+            var dto = _mapper.Map<ChatMessageResponseDto>(updated);
+            var moderation = await _moderationService.ReviewReportedMessage(reporterId, updated, reason);
+
+            await ReplaceConversationCacheMessage(dto);
+
+            return new ReportChatMessageResponseDto
+            {
+                Message = dto,
+                Moderation = moderation
+            };
+        }
         private async Task EnsurePlayerExists(int playerProfileId, string message)
         {
             var player = await _playerProfileRepository.GetPlayerProfileById(playerProfileId);
             if (player == null)
                 throw new KeyNotFoundException(message);
+        }
+
+        private async Task EnsureCanChatWithFriend(int playerProfileId, int friendProfileId)
+        {
+            var block = await _friendRepository.GetFriendBlock(playerProfileId, friendProfileId);
+            var reverseBlock = await _friendRepository.GetFriendBlock(friendProfileId, playerProfileId);
+            if (block != null || reverseBlock != null)
+                throw new BadRequestException("Cannot chat with this player.");
+
+            var friendship = await _friendRepository.GetFriendship(playerProfileId, friendProfileId);
+            if (friendship == null || friendship.Status != "Accepted")
+                throw new BadRequestException("You can only chat with accepted friends.");
         }
 
         private static string NormalizeContent(string? content)
@@ -396,6 +469,20 @@ namespace BLL.Services
             await SetCacheValue(cacheKey, cached, ConversationCacheTtl);
         }
 
+        private async Task ReplaceConversationCacheMessage(ChatMessageResponseDto message)
+        {
+            var cacheKey = GetConversationCacheKey(message.SenderId, message.RecipientId);
+            var cached = await GetCacheValue<CachedConversation>(cacheKey);
+            if (cached == null)
+                return;
+
+            var index = cached.Items.FindIndex(x => x.ChatMessageId == message.ChatMessageId);
+            if (index < 0)
+                return;
+
+            cached.Items[index] = message;
+            await SetCacheValue(cacheKey, cached, ConversationCacheTtl);
+        }
         private async Task<T?> GetCacheValue<T>(string key) where T : class
         {
             try

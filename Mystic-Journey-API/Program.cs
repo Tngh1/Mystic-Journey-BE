@@ -10,9 +10,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Mystic_Journey_API.Filters;
+using System.IO;
 using System.Text;
 
-Env.Load();
+LoadEnvIfExists(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
+LoadEnvIfExists(Path.Combine(Directory.GetCurrentDirectory(), "Mystic-Journey-API", ".env"));
+
+static void LoadEnvIfExists(string path)
+{
+    if (File.Exists(path))
+    {
+        Env.Load(path);
+    }
+}
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -123,7 +133,11 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IPlayerPresenceService, PlayerPresenceService>();
 
 // Chat Services
+builder.Services.Configure<AzureContentSafetyOptions>(builder.Configuration.GetSection("AzureContentSafety"));
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+builder.Services.AddScoped<IChatModerationRepository, ChatModerationRepository>();
+builder.Services.AddScoped<IContentSafetyProvider, AzureContentSafetyProvider>();
+builder.Services.AddScoped<IChatModerationService, ChatModerationService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 
 // Character Services

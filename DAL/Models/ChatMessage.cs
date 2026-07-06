@@ -18,6 +18,14 @@ namespace DAL.Models
         public bool IsReported { get; set; } = false;
         public bool IsHidden { get; set; } = false;
 
+        public int? ReportedById { get; set; }
+        public PlayerProfile? ReportedBy { get; set; }
+
+        [MaxLength(500)]
+        public string? ReportReason { get; set; }
+
+        public DateTime? ReportedAt { get; set; }
+
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
     }
 }

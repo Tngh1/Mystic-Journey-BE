@@ -34,6 +34,7 @@ namespace DAL.Data
         public DbSet<FriendBlock> FriendBlocks => Set<FriendBlock>();
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
         public DbSet<WorldChatMessage> WorldChatMessages => Set<WorldChatMessage>();
+        public DbSet<ChatModerationPenalty> ChatModerationPenalties => Set<ChatModerationPenalty>();
         public DbSet<MonsterDrop> MonsterDrops => Set<MonsterDrop>();
         public DbSet<GachaBanner> GachaBanners => Set<GachaBanner>();
         public DbSet<GachaBannerItem> GachaBannerItems => Set<GachaBannerItem>();
@@ -104,6 +105,19 @@ namespace DAL.Data
                 .HasForeignKey(q => q.BossMonsterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.ReportedBy)
+                .WithMany()
+                .HasForeignKey(m => m.ReportedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ChatMessage>()
+                .Property(m => m.ReportReason)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasIndex(m => m.ReportedById);
+
             modelBuilder.Entity<WorldChatMessage>()
                 .HasOne(m => m.Sender)
                 .WithMany()
@@ -128,6 +142,61 @@ namespace DAL.Data
 
             modelBuilder.Entity<WorldChatMessage>()
                 .HasIndex(m => m.ReportedById);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasOne(p => p.PlayerProfile)
+                .WithMany()
+                .HasForeignKey(p => p.PlayerProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasOne(p => p.Reporter)
+                .WithMany()
+                .HasForeignKey(p => p.ReporterId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasOne(p => p.ChatMessage)
+                .WithMany()
+                .HasForeignKey(p => p.ChatMessageId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasOne(p => p.WorldChatMessage)
+                .WithMany()
+                .HasForeignKey(p => p.WorldChatMessageId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .Property(p => p.Channel)
+                .HasMaxLength(30);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .Property(p => p.ContentSnapshot)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .Property(p => p.ReportReason)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .Property(p => p.MatchedTerms)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasIndex(p => p.PlayerProfileId);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasIndex(p => p.ReporterId);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasIndex(p => p.ChatMessageId);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasIndex(p => p.WorldChatMessageId);
+
+            modelBuilder.Entity<ChatModerationPenalty>()
+                .HasIndex(p => p.LockedUntil);
 
             modelBuilder.Entity<FriendBlock>()
                 .HasOne(fb => fb.Blocker)

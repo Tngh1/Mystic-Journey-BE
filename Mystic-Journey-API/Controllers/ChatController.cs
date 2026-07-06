@@ -90,6 +90,22 @@ namespace Mystic_Journey_API.Controllers
                 var result = await _chatService.SendWorldMessage(playerProfileId, request);
                 return Ok(new ApiResponse<WorldChatMessageResponseDto> { Success = true, Data = result });
             }
+            catch (ChatLockedException ex)
+            {
+                Response.Headers["Retry-After"] = ex.RetryAfterSeconds.ToString();
+                return StatusCode(423, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    ErrorCode = ErrorCodes.ChatLocked,
+                    Data = new
+                    {
+                        lockedUntil = ex.LockedUntil,
+                        lockLevel = ex.LockLevel,
+                        retryAfterSeconds = ex.RetryAfterSeconds
+                    }
+                });
+            }
             catch (ChatRateLimitException ex)
             {
                 Response.Headers["Retry-After"] = ex.RetryAfterSeconds.ToString();
@@ -124,13 +140,23 @@ namespace Mystic_Journey_API.Controllers
                 });
 
             var result = await _chatService.ReportWorldMessage(playerProfileId, request);
-            return Ok(new ApiResponse<WorldChatMessageResponseDto>
+            return Ok(new ApiResponse<ReportWorldChatMessageResponseDto>
             {
                 Success = true,
-                Message = "Message reported.",
+                Message = result.Moderation.ChatLocked ? result.Moderation.WarningMessage : "Message reported.",
                 Data = result
             });
         }
+
+        [Authorize]
+        [HttpGet("friend/messages")]
+        public async Task<IActionResult> GetFriendMessages([FromQuery] ChatMessageListQueryDto query)
+            => await GetMessages(query);
+
+        [Authorize]
+        [HttpGet("friend/history")]
+        public async Task<IActionResult> GetFriendHistory([FromQuery] ChatMessageListQueryDto query)
+            => await GetMessages(query);
 
         [Authorize]
         [HttpGet("messages")]
@@ -167,6 +193,45 @@ namespace Mystic_Journey_API.Controllers
             => await GetMessages(query);
 
         [Authorize]
+        [HttpPost("friend/send")]
+        public async Task<IActionResult> SendFriendMessage([FromBody] SendChatMessageRequestDto request)
+            => await SendMessage(request);
+
+        [Authorize]
+        [HttpPost("friend/report")]
+        public async Task<IActionResult> ReportFriendMessage([FromBody] ReportChatMessageRequestDto request)
+            => await ReportMessage(request);
+
+        [Authorize]
+        [HttpPost("report")]
+        public async Task<IActionResult> ReportMessage([FromBody] ReportChatMessageRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Validation failed.",
+                    ErrorCode = ErrorCodes.ValidationError
+                });
+
+            var playerProfileId = GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Player profile not found.",
+                    ErrorCode = ErrorCodes.Unauthorized
+                });
+
+            var result = await _chatService.ReportMessage(playerProfileId, request);
+            return Ok(new ApiResponse<ReportChatMessageResponseDto>
+            {
+                Success = true,
+                Message = result.Moderation.ChatLocked ? result.Moderation.WarningMessage : "Message reported.",
+                Data = result
+            });
+        }
+        [Authorize]
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage([FromBody] SendChatMessageRequestDto request)
         {
@@ -191,6 +256,22 @@ namespace Mystic_Journey_API.Controllers
             {
                 var result = await _chatService.SendMessage(playerProfileId, request);
                 return Ok(new ApiResponse<ChatMessageResponseDto> { Success = true, Data = result });
+            }
+            catch (ChatLockedException ex)
+            {
+                Response.Headers["Retry-After"] = ex.RetryAfterSeconds.ToString();
+                return StatusCode(423, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    ErrorCode = ErrorCodes.ChatLocked,
+                    Data = new
+                    {
+                        lockedUntil = ex.LockedUntil,
+                        lockLevel = ex.LockLevel,
+                        retryAfterSeconds = ex.RetryAfterSeconds
+                    }
+                });
             }
             catch (ChatRateLimitException ex)
             {
