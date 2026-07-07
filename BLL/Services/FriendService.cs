@@ -1,6 +1,7 @@
 using BLL.DTOs;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +13,21 @@ namespace BLL.Services
     {
         private readonly IFriendRepository _friendRepository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
+        private readonly IChatMessageRepository _chatMessageRepository;
+        private readonly IDistributedCache _cache;
         private readonly Interfaces.IPlayerPresenceService _presenceService;
 
-        public FriendService(IFriendRepository friendRepository, IPlayerProfileRepository playerProfileRepository, Interfaces.IPlayerPresenceService presenceService)
+        public FriendService(
+            IFriendRepository friendRepository,
+            IPlayerProfileRepository playerProfileRepository,
+            IChatMessageRepository chatMessageRepository,
+            IDistributedCache cache,
+            Interfaces.IPlayerPresenceService presenceService)
         {
             _friendRepository = friendRepository;
             _playerProfileRepository = playerProfileRepository;
+            _chatMessageRepository = chatMessageRepository;
+            _cache = cache;
             _presenceService = presenceService;
         }
 
@@ -241,6 +251,9 @@ namespace BLL.Services
         public async Task RemoveFriend(int playerId, int targetId)
         {
             var friendship = await _friendRepository.GetFriendship(playerId, targetId);
+
+            await DeleteFriendConversation(playerId, targetId);
+
             if (friendship != null)
             {
                 await _friendRepository.RemoveFriend(friendship);
@@ -256,6 +269,7 @@ namespace BLL.Services
 
             // If they are friends, unfriend them first
             var friendship = await _friendRepository.GetFriendship(playerId, targetProfileId);
+            await DeleteFriendConversation(playerId, targetProfileId);
             if (friendship != null)
             {
                 await _friendRepository.RemoveFriend(friendship);
@@ -281,6 +295,33 @@ namespace BLL.Services
             {
                 await _friendRepository.RemoveFriendBlock(existingBlock);
             }
+        }
+        private async Task DeleteFriendConversation(int firstPlayerProfileId, int secondPlayerProfileId)
+        {
+            if (firstPlayerProfileId <= 0 || secondPlayerProfileId <= 0 || firstPlayerProfileId == secondPlayerProfileId)
+                return;
+
+            await _chatMessageRepository.DeleteConversation(firstPlayerProfileId, secondPlayerProfileId);
+            await RemoveConversationCache(firstPlayerProfileId, secondPlayerProfileId);
+        }
+
+        private async Task RemoveConversationCache(int firstPlayerProfileId, int secondPlayerProfileId)
+        {
+            try
+            {
+                await _cache.RemoveAsync(GetConversationCacheKey(firstPlayerProfileId, secondPlayerProfileId));
+            }
+            catch
+            {
+                // Redis/cache cleanup failure must not block unfriending.
+            }
+        }
+
+        private static string GetConversationCacheKey(int firstPlayerProfileId, int secondPlayerProfileId)
+        {
+            var min = Math.Min(firstPlayerProfileId, secondPlayerProfileId);
+            var max = Math.Max(firstPlayerProfileId, secondPlayerProfileId);
+            return $"chat:conversation:{min}:{max}:latest";
         }
     }
 }

@@ -148,5 +148,13 @@ namespace DAL.Repositories
 
             return message;
         }
+        public async Task<int> DeleteConversation(int firstPlayerProfileId, int secondPlayerProfileId)
+        {
+            return await _context.ChatMessages
+                .Where(m =>
+                    (m.SenderId == firstPlayerProfileId && m.RecipientId == secondPlayerProfileId) ||
+                    (m.SenderId == secondPlayerProfileId && m.RecipientId == firstPlayerProfileId))
+                .ExecuteDeleteAsync();
+        }
     }
 }
