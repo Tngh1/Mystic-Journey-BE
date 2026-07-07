@@ -26,5 +26,6 @@ namespace DAL.Repositories.Interfaces
         Task<ChatMessage> Create(ChatMessage message);
         Task<ChatMessage?> GetMessageById(int chatMessageId);
         Task<ChatMessage> Update(ChatMessage message);
+        Task<int> DeleteConversation(int firstPlayerProfileId, int secondPlayerProfileId);
     }
 }

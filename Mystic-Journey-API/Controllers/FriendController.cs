@@ -20,7 +20,14 @@ namespace Mystic_Journey_API.Controllers
 
         private int GetPlayerProfileId()
         {
-            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var profileClaim = User.FindFirst("playerProfileId")?.Value;
+            if (int.TryParse(profileClaim, out var profileId) && profileId > 0)
+            {
+                return profileId;
+            }
+
+            var legacyClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(legacyClaim, out var legacyId) ? legacyId : 0;
         }
 
         [HttpGet]
