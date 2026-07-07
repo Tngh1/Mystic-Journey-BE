@@ -2128,6 +2128,119 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             }
         }
 
+        [HttpPost("friends")]
+        public async Task<IActionResult> SeedFriends()
+        {
+            using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                const string TEST_EMAIL = "elf1@mystic.test";
+                var mainAcc = await _ctx.Accounts
+                    .Include(a => a.PlayerProfile)
+                    .FirstOrDefaultAsync(a => a.Email == TEST_EMAIL);
+
+                if (mainAcc == null || mainAcc.PlayerProfile == null)
+                {
+                    return BadRequest(new ApiResponse<object> { Success = false, Message = $"{TEST_EMAIL} not found. Please create or login with this account first." });
+                }
+
+                int mainPid = mainAcc.PlayerProfile.PlayerProfileId;
+
+                // Xóa bots cũ
+                var botEmails = Enumerable.Range(1, 15).Select(i => $"bot{i}@mystic.test").ToList();
+                var existingBots = await _ctx.Accounts
+                    .Include(a => a.PlayerProfile)
+                    .Where(a => botEmails.Contains(a.Email))
+                    .ToListAsync();
+                
+                foreach (var acc in existingBots)
+                {
+                    if (acc.PlayerProfile != null)
+                    {
+                        _ctx.Friends.RemoveRange(_ctx.Friends.Where(f => f.RequesterId == acc.PlayerProfile.PlayerProfileId || f.AddresseeId == acc.PlayerProfile.PlayerProfileId));
+                        await _ctx.SaveChangesAsync();
+                        _ctx.PlayerProfiles.Remove(acc.PlayerProfile);
+                    }
+                    _ctx.Accounts.Remove(acc);
+                }
+                await _ctx.SaveChangesAsync();
+
+                // Tạo 15 Bots
+                var botProfiles = new List<PlayerProfile>();
+                var classes = new[] { "Knight", "Mage", "Archer" };
+                var names = new[] { "Alex", "Bob", "Charlie", "David", "Eve", "Fiona", "George", "Hannah", "Ian", "Jane", "Kevin", "Luna", "Mike", "Nina", "Oscar" };
+
+                for (int i = 1; i <= 15; i++)
+                {
+                    var botAcc = new Account
+                    {
+                        UserName = $"bot{i}",
+                        Email = $"bot{i}@mystic.test",
+                        HashPassword = HashPassword("Abc@12345"),
+                        RoleId = 1,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _ctx.Accounts.Add(botAcc);
+                    await _ctx.SaveChangesAsync();
+
+                    var botProf = new PlayerProfile
+                    {
+                        AccountId = botAcc.AccountId,
+                        DisplayName = names[i - 1],
+                        Class = classes[i % 3],
+                        Level = 5 + i,
+                        Gold = 1000,
+                        Gems = 100,
+                        CurrentEnergy = 100,
+                        MaxEnergy = 100,
+                        LastEnergyUpdateTime = DateTime.UtcNow,
+                        LastMapName = "ElfForest",
+                        PositionX = 0, PositionY = 0,
+                        AvatarUrl = ""
+                    };
+                    _ctx.PlayerProfiles.Add(botProf);
+                    await _ctx.SaveChangesAsync();
+                    botProfiles.Add(botProf);
+                }
+
+                // Gán Relationship
+                var friendsList = new List<Friend>();
+
+                // 5 Accepted (Bạn bè)
+                for (int i = 0; i < 5; i++)
+                {
+                    friendsList.Add(new Friend { RequesterId = mainPid, AddresseeId = botProfiles[i].PlayerProfileId, Status = "Accepted", CreatedAt = DateTime.UtcNow });
+                }
+
+                // 5 Pending (Lời mời kết bạn GỬI ĐẾN mainPid)
+                for (int i = 5; i < 10; i++)
+                {
+                    friendsList.Add(new Friend { RequesterId = botProfiles[i].PlayerProfileId, AddresseeId = mainPid, Status = "Pending", CreatedAt = DateTime.UtcNow });
+                }
+
+                // 3 Blocked (mainPid CHẶN bot)
+                for (int i = 10; i < 13; i++)
+                {
+                    friendsList.Add(new Friend { RequesterId = mainPid, AddresseeId = botProfiles[i].PlayerProfileId, Status = "Blocked", CreatedAt = DateTime.UtcNow });
+                }
+
+                // 2 Không có quan hệ (bot 14, 15) -> Sẽ hiện nút Add khi Search
+
+                _ctx.Friends.AddRange(friendsList);
+                await _ctx.SaveChangesAsync();
+                
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed 15 friends successfully." });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
         private static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
