@@ -21,6 +21,11 @@ namespace DAL.Repositories.Interfaces
             IEnumerable<int> shopItemIds,
             DateTime utcNow);
 
+        Task<Dictionary<int, int>> GetPurchasedThisWeekCounts(
+            int playerProfileId,
+            IEnumerable<int> shopItemIds,
+            DateTime utcNow);
+
         Task<PlayerShopPurchaseResult> PurchaseItem(
             int playerProfileId,
             int shopItemId,

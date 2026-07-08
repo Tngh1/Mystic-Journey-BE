@@ -117,6 +117,7 @@ namespace DAL.Migrations
                     Rarity = table.Column<string>(type: "text", nullable: false),
                     Slot = table.Column<string>(type: "text", nullable: false),
                     BaseValue = table.Column<decimal>(type: "numeric", nullable: false),
+                    CorruptionReduction = table.Column<float>(type: "real", nullable: false),
                     MaxStack = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IconUrl = table.Column<string>(type: "text", nullable: true),
@@ -206,6 +207,7 @@ namespace DAL.Migrations
                     DamagePerLevel = table.Column<double>(type: "double precision", nullable: false),
                     DamageGrowthPercent = table.Column<double>(type: "double precision", nullable: false),
                     UnlockLevel = table.Column<int>(type: "integer", nullable: false),
+                    CorruptionCost = table.Column<float>(type: "real", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -441,6 +443,7 @@ namespace DAL.Migrations
                     Price = table.Column<decimal>(type: "numeric", nullable: false),
                     Stock = table.Column<int>(type: "integer", nullable: false),
                     DailyPurchaseLimit = table.Column<int>(type: "integer", nullable: false),
+                    WeeklyPurchaseLimit = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     AvailableFrom = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     AvailableTo = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -688,7 +691,8 @@ namespace DAL.Migrations
                     TotalDungeonClears = table.Column<int>(type: "integer", nullable: false),
                     LastMapName = table.Column<string>(type: "text", nullable: false),
                     PositionX = table.Column<double>(type: "double precision", nullable: false),
-                    PositionY = table.Column<double>(type: "double precision", nullable: false)
+                    PositionY = table.Column<double>(type: "double precision", nullable: false),
+                    CorruptionLevel = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -776,6 +780,9 @@ namespace DAL.Migrations
                     Content = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     IsReported = table.Column<bool>(type: "boolean", nullable: false),
                     IsHidden = table.Column<bool>(type: "boolean", nullable: false),
+                    ReportedById = table.Column<int>(type: "integer", nullable: true),
+                    ReportReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ReportedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -787,6 +794,12 @@ namespace DAL.Migrations
                         principalTable: "PlayerProfiles",
                         principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_PlayerProfiles_ReportedById",
+                        column: x => x.ReportedById,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_ChatMessages_PlayerProfiles_SenderId",
                         column: x => x.SenderId,
@@ -805,6 +818,7 @@ namespace DAL.Migrations
                     DungeonConfigId = table.Column<int>(type: "integer", nullable: false),
                     EnterTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CompletedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ClaimedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
                     IsRewardClaimed = table.Column<bool>(type: "boolean", nullable: false),
                     PartyMembers = table.Column<string>(type: "text", nullable: true),
@@ -826,6 +840,33 @@ namespace DAL.Migrations
                         principalTable: "PlayerProfiles",
                         principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FriendBlocks",
+                columns: table => new
+                {
+                    FriendBlockId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BlockerId = table.Column<int>(type: "integer", nullable: false),
+                    BlockedId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FriendBlocks", x => x.FriendBlockId);
+                    table.ForeignKey(
+                        name: "FK_FriendBlocks_PlayerProfiles_BlockedId",
+                        column: x => x.BlockedId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_FriendBlocks_PlayerProfiles_BlockerId",
+                        column: x => x.BlockerId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1193,7 +1234,8 @@ namespace DAL.Migrations
                     Level = table.Column<int>(type: "integer", nullable: false),
                     Experience = table.Column<int>(type: "integer", nullable: false),
                     EquippedSlot = table.Column<int>(type: "integer", nullable: true),
-                    UnlockedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    UnlockedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    NextAvailableTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1335,6 +1377,38 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "WorldChatMessages",
+                columns: table => new
+                {
+                    WorldChatMessageId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SenderId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    IsReported = table.Column<bool>(type: "boolean", nullable: false),
+                    IsHidden = table.Column<bool>(type: "boolean", nullable: false),
+                    ReportedById = table.Column<int>(type: "integer", nullable: true),
+                    ReportReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ReportedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorldChatMessages", x => x.WorldChatMessageId);
+                    table.ForeignKey(
+                        name: "FK_WorldChatMessages_PlayerProfiles_ReportedById",
+                        column: x => x.ReportedById,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_WorldChatMessages_PlayerProfiles_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DungeonProgresses",
                 columns: table => new
                 {
@@ -1342,7 +1416,9 @@ namespace DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     DungeonSessionId = table.Column<int>(type: "integer", nullable: false),
                     MonstersKilled = table.Column<int>(type: "integer", nullable: false),
+                    BossSpawned = table.Column<bool>(type: "boolean", nullable: false),
                     BossKilled = table.Column<bool>(type: "boolean", nullable: false),
+                    ElapsedTime = table.Column<int>(type: "integer", nullable: false),
                     CompletionPercentage = table.Column<int>(type: "integer", nullable: false),
                     ExtraData = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -1453,6 +1529,54 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ChatModerationPenalties",
+                columns: table => new
+                {
+                    ChatModerationPenaltyId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
+                    ReporterId = table.Column<int>(type: "integer", nullable: true),
+                    ChatMessageId = table.Column<int>(type: "integer", nullable: true),
+                    WorldChatMessageId = table.Column<int>(type: "integer", nullable: true),
+                    Channel = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    ContentSnapshot = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    ReportReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    MatchedTerms = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ViolationCount = table.Column<int>(type: "integer", nullable: false),
+                    LockLevel = table.Column<int>(type: "integer", nullable: false),
+                    LockedUntil = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatModerationPenalties", x => x.ChatModerationPenaltyId);
+                    table.ForeignKey(
+                        name: "FK_ChatModerationPenalties_ChatMessages_ChatMessageId",
+                        column: x => x.ChatMessageId,
+                        principalTable: "ChatMessages",
+                        principalColumn: "ChatMessageId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ChatModerationPenalties_PlayerProfiles_PlayerProfileId",
+                        column: x => x.PlayerProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatModerationPenalties_PlayerProfiles_ReporterId",
+                        column: x => x.ReporterId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ChatModerationPenalties_WorldChatMessages_WorldChatMessageId",
+                        column: x => x.WorldChatMessageId,
+                        principalTable: "WorldChatMessages",
+                        principalColumn: "WorldChatMessageId",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
             migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "RoleId", "Name" },
@@ -1484,9 +1608,39 @@ namespace DAL.Migrations
                 column: "RecipientId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_ReportedById",
+                table: "ChatMessages",
+                column: "ReportedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ChatMessages_SenderId",
                 table: "ChatMessages",
                 column: "SenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatModerationPenalties_ChatMessageId",
+                table: "ChatModerationPenalties",
+                column: "ChatMessageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatModerationPenalties_LockedUntil",
+                table: "ChatModerationPenalties",
+                column: "LockedUntil");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatModerationPenalties_PlayerProfileId",
+                table: "ChatModerationPenalties",
+                column: "PlayerProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatModerationPenalties_ReporterId",
+                table: "ChatModerationPenalties",
+                column: "ReporterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatModerationPenalties_WorldChatMessageId",
+                table: "ChatModerationPenalties",
+                column: "WorldChatMessageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChestItems_ChestId",
@@ -1544,6 +1698,16 @@ namespace DAL.Migrations
                 table: "EquipmentStats",
                 column: "ItemId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FriendBlocks_BlockedId",
+                table: "FriendBlocks",
+                column: "BlockedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FriendBlocks_BlockerId",
+                table: "FriendBlocks",
+                column: "BlockerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Friends_AddresseeId",
@@ -1812,6 +1976,21 @@ namespace DAL.Migrations
                 name: "IX_SubCategoryContents_CategoryContentId",
                 table: "SubCategoryContents",
                 column: "CategoryContentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorldChatMessages_ReportedById",
+                table: "WorldChatMessages",
+                column: "ReportedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorldChatMessages_SenderId",
+                table: "WorldChatMessages",
+                column: "SenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorldChatMessages_SentAt",
+                table: "WorldChatMessages",
+                column: "SentAt");
         }
 
         /// <inheritdoc />
@@ -1821,7 +2000,7 @@ namespace DAL.Migrations
                 name: "BlockContents");
 
             migrationBuilder.DropTable(
-                name: "ChatMessages");
+                name: "ChatModerationPenalties");
 
             migrationBuilder.DropTable(
                 name: "ChestItems");
@@ -1834,6 +2013,9 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "EquipmentStats");
+
+            migrationBuilder.DropTable(
+                name: "FriendBlocks");
 
             migrationBuilder.DropTable(
                 name: "Friends");
@@ -1906,6 +2088,12 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Contents");
+
+            migrationBuilder.DropTable(
+                name: "ChatMessages");
+
+            migrationBuilder.DropTable(
+                name: "WorldChatMessages");
 
             migrationBuilder.DropTable(
                 name: "DungeonSessions");

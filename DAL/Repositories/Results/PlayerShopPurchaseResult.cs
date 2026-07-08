@@ -14,6 +14,7 @@ namespace DAL.Repositories.Results
         Expired,
         SoldOut,
         DailyLimitExceeded,
+        WeeklyLimitExceeded,
         UnsupportedCurrency,
         InsufficientCurrency
     }
@@ -29,5 +30,6 @@ namespace DAL.Repositories.Results
         public decimal BalanceAfter { get; set; }
         public int InventoryQuantity { get; set; }
         public int PurchasedTodayAfter { get; set; }
+        public int PurchasedThisWeekAfter { get; set; }
     }
 }

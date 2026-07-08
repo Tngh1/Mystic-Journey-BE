@@ -103,6 +103,28 @@ namespace DAL.Repositories
                 .ToDictionaryAsync(x => x.ShopItemId, x => x.Quantity);
         }
 
+        public async Task<Dictionary<int, int>> GetPurchasedThisWeekCounts(
+            int playerProfileId,
+            IEnumerable<int> shopItemIds,
+            DateTime utcNow)
+        {
+            var ids = shopItemIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return new Dictionary<int, int>();
+
+            var (weekStart, weekEnd) = GetUtcWeekRange(utcNow);
+
+            return await _context.PurchaseHistories
+                .Where(p =>
+                    p.PlayerProfileId == playerProfileId &&
+                    ids.Contains(p.ShopItemId) &&
+                    p.PurchasedAt >= weekStart &&
+                    p.PurchasedAt < weekEnd)
+                .GroupBy(p => p.ShopItemId)
+                .Select(g => new { ShopItemId = g.Key, Quantity = g.Sum(x => x.Quantity) })
+                .ToDictionaryAsync(x => x.ShopItemId, x => x.Quantity);
+        }
+
         public async Task<PlayerShopPurchaseResult> PurchaseItem(
             int playerProfileId,
             int shopItemId,
@@ -177,6 +199,20 @@ namespace DAL.Repositories
                 };
             }
 
+            var purchasedThisWeek = await GetPurchasedThisWeek(playerProfileId, shopItemId, utcNow);
+            if (shopItem.WeeklyPurchaseLimit > 0 &&
+                purchasedThisWeek + quantity > shopItem.WeeklyPurchaseLimit)
+            {
+                return new PlayerShopPurchaseResult
+                {
+                    Status = PurchaseShopItemStatus.WeeklyLimitExceeded,
+                    PlayerProfile = profile,
+                    ShopItem = shopItem,
+                    PurchasedTodayAfter = purchasedToday,
+                    PurchasedThisWeekAfter = purchasedThisWeek
+                };
+            }
+
             var currency = NormalizeCurrency(shopItem.Currency);
             if (currency == null)
             {
@@ -247,7 +283,8 @@ namespace DAL.Repositories
                 BalanceBefore = balanceBefore,
                 BalanceAfter = balanceAfter,
                 InventoryQuantity = inventoryQuantity,
-                PurchasedTodayAfter = purchasedToday + quantity
+                PurchasedTodayAfter = purchasedToday + quantity,
+                PurchasedThisWeekAfter = purchasedThisWeek + quantity
             };
         }
 
@@ -304,10 +341,31 @@ namespace DAL.Repositories
                 .SumAsync(p => (int?)p.Quantity) ?? 0;
         }
 
+        private async Task<int> GetPurchasedThisWeek(int playerProfileId, int shopItemId, DateTime utcNow)
+        {
+            var (weekStart, weekEnd) = GetUtcWeekRange(utcNow);
+
+            return await _context.PurchaseHistories
+                .Where(p =>
+                    p.PlayerProfileId == playerProfileId &&
+                    p.ShopItemId == shopItemId &&
+                    p.PurchasedAt >= weekStart &&
+                    p.PurchasedAt < weekEnd)
+                .SumAsync(p => (int?)p.Quantity) ?? 0;
+        }
+
         private static (DateTime Start, DateTime End) GetUtcDayRange(DateTime utcNow)
         {
             var start = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day, 0, 0, 0, DateTimeKind.Utc);
             return (start, start.AddDays(1));
+        }
+
+        private static (DateTime Start, DateTime End) GetUtcWeekRange(DateTime utcNow)
+        {
+            var start = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day, 0, 0, 0, DateTimeKind.Utc);
+            int diff = (7 + (start.DayOfWeek - DayOfWeek.Monday)) % 7;
+            start = start.AddDays(-1 * diff);
+            return (start, start.AddDays(7));
         }
 
         private static string? NormalizeCurrency(string? currency)

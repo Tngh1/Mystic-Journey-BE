@@ -39,8 +39,11 @@ namespace BLL.DTOs
         public int Stock { get; set; }
         public bool IsUnlimitedStock { get; set; }
         public int DailyPurchaseLimit { get; set; }
+        public int WeeklyPurchaseLimit { get; set; }
         public int PurchasedToday { get; set; }
+        public int PurchasedThisWeek { get; set; }
         public int? RemainingDailyPurchases { get; set; }
+        public int? RemainingWeeklyPurchases { get; set; }
         public DateTime? AvailableFrom { get; set; }
         public DateTime? AvailableTo { get; set; }
         public bool CanPurchase { get; set; }

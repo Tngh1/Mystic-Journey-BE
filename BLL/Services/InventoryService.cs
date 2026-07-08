@@ -16,6 +16,7 @@ namespace BLL.Services
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IMapper _mapper;
         private readonly IPlayerStatRepository _statRepository;
+        private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly ITransactionManager _transactionManager;
 
         // enhancement scaling per level (unscaled integers for HP/Atk/Def)
@@ -32,12 +33,14 @@ namespace BLL.Services
         public InventoryService(
             IInventoryRepository inventoryRepository, 
             IMapper mapper, 
-            IPlayerStatRepository statRepository, 
+            IPlayerStatRepository statRepository,
+            IPlayerProfileRepository playerProfileRepository,
             ITransactionManager transactionManager)
         {
             _inventoryRepository = inventoryRepository;
             _mapper = mapper;
             _statRepository = statRepository;
+            _playerProfileRepository = playerProfileRepository;
             _transactionManager = transactionManager;
         }
 
@@ -264,6 +267,17 @@ namespace BLL.Services
                         stat.CurrentHp = Math.Min(stat.CurrentHp + healAmount, stat.MaxHp);
                         stat.UpdatedAt = DateTime.UtcNow;
                         await _statRepository.Update(stat);
+                    }
+                }
+
+                // Apply corruption reduction
+                if (inv.Item != null && inv.Item.CorruptionReduction > 0)
+                {
+                    var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
+                    if (profile != null && profile.CorruptionLevel > 0)
+                    {
+                        profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - (inv.Item.CorruptionReduction * request.Quantity));
+                        await _playerProfileRepository.UpdatePlayerProfile(profile);
                     }
                 }
             });

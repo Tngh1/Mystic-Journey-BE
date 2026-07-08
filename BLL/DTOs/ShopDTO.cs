@@ -14,6 +14,7 @@ namespace BLL.DTOs
         public decimal Price { get; set; }
         public int Stock { get; set; }
         public int DailyPurchaseLimit { get; set; }
+        public int WeeklyPurchaseLimit { get; set; }
         public bool IsActive { get; set; }
         public DateTime? AvailableFrom { get; set; }
         public DateTime? AvailableTo { get; set; }
@@ -30,6 +31,7 @@ namespace BLL.DTOs
 
         public int Stock { get; set; } = -1;
         public int DailyPurchaseLimit { get; set; }
+        public int WeeklyPurchaseLimit { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime? AvailableFrom { get; set; }
         public DateTime? AvailableTo { get; set; }
@@ -46,6 +48,7 @@ namespace BLL.DTOs
 
         public int Stock { get; set; } = -1;
         public int DailyPurchaseLimit { get; set; }
+        public int WeeklyPurchaseLimit { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime? AvailableFrom { get; set; }
         public DateTime? AvailableTo { get; set; }

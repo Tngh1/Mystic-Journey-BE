@@ -15,6 +15,9 @@ namespace BLL.Services.Interfaces
         // Lấy danh sách achievements của player đang đăng nhập (bao gồm tiến độ và trạng thái hoàn thành).
         Task<PlayerMeAchievementsResponseDto> GetMeAchievements(int playerProfileId);
 
+        // Kích hoạt một achievement cho player đang đăng nhập.
+        Task<PlayerAchievementResponseDto> UnlockAchievement(int playerProfileId, int playerAchievementId);
+
         // Lấy chi tiết một achievement theo ID.
         Task<AchievementResponseDto?> GetAchievementById(int id);
 

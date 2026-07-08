@@ -651,6 +651,101 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/achievements  → Upsert mẫu Achievements
+        // Dùng để tạo các danh hiệu (Achievements) test
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("achievements")]
+        public async Task<IActionResult> SeedAchievements()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var achievementList = new List<Achievement>
+                {
+                    new Achievement
+                    {
+                        Name = "Novice",
+                        Description = "Danh hiệu khởi đầu cho những nhà mạo hiểm mới.",
+                        Point = 0,
+                        IconUrl = "",
+                        RequiredValue = 1,
+                        RewardGold = 100,
+                        Type = "Combat",
+                        IsActive = true
+                    },
+                    new Achievement
+                    {
+                        Name = "Goblin Slayer",
+                        Description = "Kẻ tiêu diệt yêu tinh. Yêu cầu giết 100 con Goblin.",
+                        Point = 100,
+                        IconUrl = "",
+                        RequiredValue = 100,
+                        RewardGold = 500,
+                        Type = "Combat",
+                        IsActive = true
+                    },
+                    new Achievement
+                    {
+                        Name = "Dragon Fear",
+                        Description = "Chạm trán Rồng Thủ Lĩnh và sống sót.",
+                        Point = 500,
+                        IconUrl = "",
+                        RequiredValue = 1,
+                        RewardGem = 50,
+                        Type = "Combat",
+                        IsActive = true
+                    },
+                    new Achievement
+                    {
+                        Name = "Flower Picker",
+                        Description = "Nhiệm vụ nhặt bông. Yêu cầu nhặt 50 bông hoa.",
+                        Point = 50,
+                        IconUrl = "",
+                        RequiredValue = 50,
+                        RewardGold = 200,
+                        RewardGem = 5,
+                        Type = "Gathering",
+                        IsActive = true
+                    }
+                };
+
+                foreach (var a in achievementList)
+                {
+                    var existing = await _ctx.Achievements.FirstOrDefaultAsync(x => x.Name == a.Name);
+                    if (existing == null)
+                    {
+                        _ctx.Achievements.Add(a);
+                    }
+                    else
+                    {
+                        existing.Description = a.Description;
+                        existing.Point = a.Point;
+                        existing.RequiredValue = a.RequiredValue;
+                        existing.RewardGold = a.RewardGold;
+                        existing.RewardGem = a.RewardGem;
+                        existing.Type = a.Type;
+                        existing.IsActive = a.IsActive;
+                    }
+                }
+
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Seed achievements thành công",
+                    Data = new { count = achievementList.Count }
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
         // POST /api/seed/elfforest -> Seed tutorial world on map ElfForest
         // ─────────────────────────────────────────────────────────────────────────
         [HttpPost("elfforest")]
@@ -698,6 +793,7 @@ namespace Mystic_Journey_API.Controllers
                 var armor = UpsertItem("[ELF] Leather Armor", "Light leather armor that grants a small defense bonus.", "Armor", "Common", "Armor", 180, 1);
                 UpsertItem("[ELF] White Flower", "A white flower used for the ElfForest tutorial quest.", "QuestItem", "Common", "None", 0, 99);
                 UpsertItem("[ELF] Old Willow Branch", "A branch from the old willow, used for ElfForest quest objectives.", "QuestItem", "Common", "None", 0, 99);
+                var upgradeStone = UpsertItem("Skill Upgrade Stone", "A magical stone used to upgrade skills.", "Material", "Rare", "None", 50, 999);
                 await _ctx.SaveChangesAsync();
 
                 var existingEquipmentStats = await _ctx.EquipmentStats
@@ -780,13 +876,16 @@ namespace Mystic_Journey_API.Controllers
                 }
 
                 // Upsert 3 tutorial skills rewarded when player delivers 3 White Flowers
-                var elfSkillNames = new[] { "[ELF] First Strike", "[ELF] Forest Arrow", "[ELF] Shield Bash" };
+                var elfSkillNames = new[] { 
+                    "Dark Poison Zone", "Dark Explosion",
+                    "AP_Skill", "Skill_Ad", "Skill_Knight Attack", "Skill_Mui_Ten_Bang", "Skill_Thap_AS"
+                };
                 var existingElfSkills = await _ctx.Skills
                     .Where(s => elfSkillNames.Contains(s.Name))
                     .ToListAsync();
 
                 Skill UpsertSkill(string name, string description, string type, string damageType,
-                    string targetType, string classReq, int cooldown, double baseDmg, double dmgPerLv, double growthPct)
+                    string targetType, string classReq, int cooldown, double baseDmg, double dmgPerLv, double growthPct, float corruptionCost = 0f)
                 {
                     var s = existingElfSkills.FirstOrDefault(x => x.Name == name);
                     if (s == null)
@@ -804,25 +903,28 @@ namespace Mystic_Journey_API.Controllers
                     s.BaseDamage          = baseDmg;
                     s.DamagePerLevel      = dmgPerLv;
                     s.DamageGrowthPercent = growthPct;
+                    s.CorruptionCost      = corruptionCost;
                     s.UnlockLevel         = 1;
                     s.IsActive            = true;
                     return s;
                 }
 
-                var tutorialSkill = UpsertSkill(
-                    "[ELF] First Strike",
-                    "A simple tutorial melee strike taught by Elder Rowan.",
-                    "Active", "Physical", "SingleTarget", "All", 6, 40.0, 6.0, 2.0);
+                var poisonZoneSkill = UpsertSkill(
+                    "Dark Poison Zone",
+                    "Tạo bãi độc gây sát thương diện rộng. Hắc hóa +10.",
+                    "Active", "Magical", "Area", "All", 90, 80.0, 10.0, 3.0, 10f);
 
-                var tutorialSkill2 = UpsertSkill(
-                    "[ELF] Forest Arrow",
-                    "A quick ranged shot aimed at a single enemy — Elder Rowan's second lesson.",
-                    "Active", "Physical", "SingleTarget", "All", 8, 35.0, 5.0, 1.5);
+                var explosionSkill = UpsertSkill(
+                    "Dark Explosion",
+                    "Tạo vụ nổ gây sát thương khủng khiếp. Hắc hóa +5.",
+                    "Active", "Magical", "Area", "All", 60, 150.0, 20.0, 5.0, 5f);
 
-                var tutorialSkill3 = UpsertSkill(
-                    "[ELF] Shield Bash",
-                    "A short-range bash that staggers nearby enemies — the third skill from Elder Rowan.",
-                    "Active", "Physical", "Area", "All", 10, 30.0, 4.0, 1.0);
+                // Add 5 custom skills
+                var apSkill = UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 12, 100.0, 15.0, 3.0);
+                var skillAd = UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 5, 45.0, 8.0, 2.0);
+                var skillKnightAttack = UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 8, 80.0, 12.0, 2.5);
+                var skillMuiTenBang = UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 6, 60.0, 10.0, 2.0);
+                var skillThapAS = UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 15, 120.0, 20.0, 4.0);
 
                 await _ctx.SaveChangesAsync();
 
@@ -991,7 +1093,7 @@ namespace Mystic_Journey_API.Controllers
                         RewardGold = 80,
                         RewardGems = 25,
                         RewardItemId = potion.ItemId,
-                        RewardSkillId = tutorialSkill.SkillId,
+                        RewardSkillId = null,
                         IsActive = true,
                     },
                     new Quest
@@ -1284,6 +1386,14 @@ namespace Mystic_Journey_API.Controllers
                         IsEquipped = false,
                         IsSkin = false,
                     });
+                    _ctx.InventoryItems.Add(new InventoryItem
+                    {
+                        PlayerProfileId = pid,
+                        ItemId = upgradeStone.ItemId,
+                        Quantity = 99,
+                        IsEquipped = false,
+                        IsSkin = false,
+                    });
 
                     // player skin: default equipped + one extra skin in bag
                     _ctx.PlayerSkins.Add(new PlayerSkin
@@ -1324,7 +1434,7 @@ namespace Mystic_Journey_API.Controllers
                     // [DA UPDATE] Đã comment đoạn này lại để testplayer KHÔNG có sẵn skill,
                     // giúp test tính năng: Làm xong Quest nhận thưởng mới được mở khóa skill.
                     /*
-                    foreach (var skill in new[] { tutorialSkill, tutorialSkill2, tutorialSkill3 })
+                    foreach (var skill in new[] { apSkill, skillAd, skillKnightAttack })
                     {
                         var alreadyHas = await _ctx.PlayerSkills.AnyAsync(
                             ps => ps.PlayerProfileId == pid && ps.SkillId == skill.SkillId);
@@ -1348,6 +1458,29 @@ namespace Mystic_Journey_API.Controllers
                 }
 
                 var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Knight 1", "Knight");
+                
+                // Cấp sẵn 7 kỹ năng cho elf1 (2 hắc hóa + 5 kỹ năng custom)
+                foreach (var skillId in new[] { 
+                    poisonZoneSkill.SkillId, 
+                    explosionSkill.SkillId, 
+                    apSkill.SkillId, 
+                    skillAd.SkillId, 
+                    skillKnightAttack.SkillId, 
+                    skillMuiTenBang.SkillId, 
+                    skillThapAS.SkillId 
+                })
+                {
+                    _ctx.PlayerSkills.Add(new PlayerSkill
+                    {
+                        PlayerProfileId = p1,
+                        SkillId = skillId,
+                        Level = 1,
+                        Experience = 0,
+                        UnlockedAt = DateTime.UtcNow
+                    });
+                }
+                await _ctx.SaveChangesAsync();
+
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
 

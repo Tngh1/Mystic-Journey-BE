@@ -17,17 +17,20 @@ namespace BLL.Services
         private readonly IMapper _mapper;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly ITransactionManager _transactionManager;
+        private readonly IInventoryRepository _inventoryRepository;
 
         public SkillService(
             ISkillRepository repository,
             IMapper mapper,
             IPlayerProfileRepository playerProfileRepository,
-            ITransactionManager transactionManager)
+            ITransactionManager transactionManager,
+            IInventoryRepository inventoryRepository)
         {
             _repository = repository;
             _mapper = mapper;
             _playerProfileRepository = playerProfileRepository;
             _transactionManager = transactionManager;
+            _inventoryRepository = inventoryRepository;
         }
 
         public async Task<SkillResponseDto?> GetSkillById(int id)
@@ -81,13 +84,42 @@ namespace BLL.Services
             if (ps.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("PlayerSkill does not belong to actor.");
 
-            // simple upgrade logic: increase level by 1, reset experience
-            ps.Level += 1;
-            ps.Experience = 0;
+            var playerProfile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
+            if (playerProfile == null) throw new InvalidOperationException("Player profile not found.");
 
-            var updated = await _repository.UpdatePlayerSkill(ps);
+            if (ps.Level >= playerProfile.Level)
+            {
+                throw new InvalidOperationException($"Skill level ({ps.Level}) cannot exceed player level ({playerProfile.Level}).");
+            }
 
-            return _mapper.Map<PlayerSkillResponseDto>(updated);
+            int requiredStones = ps.Level;
+            var inventoryItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
+            var stoneItem = inventoryItems.FirstOrDefault(i => i.Item?.Name == "Skill Upgrade Stone");
+
+            if (stoneItem == null || stoneItem.Quantity < requiredStones)
+            {
+                throw new InvalidOperationException($"Not enough Skill Upgrade Stones. Required: {requiredStones}, Have: {(stoneItem?.Quantity ?? 0)}.");
+            }
+
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
+            {
+                stoneItem.Quantity -= requiredStones;
+                if (stoneItem.Quantity <= 0)
+                {
+                    await _inventoryRepository.DeleteItem(stoneItem.InventoryItemId);
+                }
+                else
+                {
+                    await _inventoryRepository.UpdateItem(stoneItem);
+                }
+
+                ps.Level += 1;
+                ps.Experience = 0;
+
+                var updated = await _repository.UpdatePlayerSkill(ps);
+
+                return _mapper.Map<PlayerSkillResponseDto>(updated);
+            });
         }
 
         public async Task<PlayerSkillResponseDto> EquipPlayerSkill(int actorPlayerProfileId, EquipSkillRequestDto request)
@@ -152,13 +184,28 @@ namespace BLL.Services
                 {
                     // Hủy trang bị
                     ps.EquippedSlot = null;
-                    // IsEquipped is derived from EquippedSlot
                 }
 
                 var updated = await _repository.UpdatePlayerSkill(ps);
 
                 return _mapper.Map<PlayerSkillResponseDto>(updated);
             });
+        }
+
+        public async Task<PlayerSkillResponseDto> RecordSkillCast(int actorPlayerProfileId, int playerSkillId)
+        {
+            var ps = await _repository.GetPlayerSkillById(playerSkillId)
+                ?? throw new KeyNotFoundException("PlayerSkill not found.");
+
+            if (ps.PlayerProfileId != actorPlayerProfileId)
+                throw new UnauthorizedAccessException("PlayerSkill does not belong to actor.");
+
+            var skillDef = ps.Skill ?? await _repository.GetSkillById(ps.SkillId);
+            if (skillDef == null) throw new InvalidOperationException("Skill definition not found.");
+
+            ps.NextAvailableTime = DateTime.UtcNow.AddSeconds(skillDef.CooldownSeconds);
+            var updated = await _repository.UpdatePlayerSkill(ps);
+            return _mapper.Map<PlayerSkillResponseDto>(updated);
         }
 
         public async Task<PlayerSkillResponseDto?> DismantlePlayerSkill(int actorPlayerProfileId, DismantlePlayerSkillRequestDto request)

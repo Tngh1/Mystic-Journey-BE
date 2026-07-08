@@ -12,18 +12,15 @@ namespace BLL.Services
     {
         private readonly IAchievementRepository _repository;
         private readonly IMapper _mapper;
-        private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IPlayerAchievementRepository _playerAchievementRepository;
 
         public AchievementService(
             IAchievementRepository repository,
             IMapper mapper,
-            IPlayerProfileRepository playerProfileRepository,
             IPlayerAchievementRepository playerAchievementRepository)
         {
             _repository = repository;
             _mapper = mapper;
-            _playerProfileRepository = playerProfileRepository;
             _playerAchievementRepository = playerAchievementRepository;
         }
 
@@ -90,6 +87,30 @@ namespace BLL.Services
                 TotalCount = dtos.Count,
                 CompletedCount = dtos.Count(a => a.IsCompleted)
             };
+        }
+
+        public async Task<PlayerAchievementResponseDto> UnlockAchievement(int playerProfileId, int playerAchievementId)
+        {
+            var playerAchievement = await _playerAchievementRepository.GetByIdWithAchievement(playerAchievementId)
+                ?? throw new KeyNotFoundException($"Player achievement with id {playerAchievementId} not found.");
+
+            if (playerAchievement.PlayerProfileId != playerProfileId)
+                throw new UnauthorizedAccessException("You cannot unlock another player's achievement.");
+
+            if (playerAchievement.Achievement == null)
+                throw new InvalidOperationException("Achievement data is missing.");
+
+            if (playerAchievement.IsCompleted)
+                return _mapper.Map<PlayerAchievementResponseDto>(playerAchievement);
+
+            if (playerAchievement.Progress < playerAchievement.Achievement.RequiredValue)
+                throw new InvalidOperationException("Achievement progress is not high enough to unlock.");
+
+            playerAchievement.IsCompleted = true;
+            playerAchievement.CompletedAt = DateTime.UtcNow;
+
+            var updated = await _playerAchievementRepository.Update(playerAchievement);
+            return _mapper.Map<PlayerAchievementResponseDto>(updated);
         }
     }
 }

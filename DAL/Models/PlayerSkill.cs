@@ -21,5 +21,6 @@ namespace DAL.Models
         public bool IsEquipped => EquippedSlot.HasValue;
 
         public DateTime UnlockedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? NextAvailableTime { get; set; }
     }
 }

@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL", "DAL\DAL.csproj", "{1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BLL", "BLL\BLL.csproj", "{5875EBB1-01BE-2D17-3613-D0BAD09CBB40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MysticJourneyBE.Tests", "..\MysticJourneyBE.Tests\MysticJourneyBE.Tests.csproj", "{2B54F4BC-482B-4690-AC59-A78C66CFDDA5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{5875EBB1-01BE-2D17-3613-D0BAD09CBB40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5875EBB1-01BE-2D17-3613-D0BAD09CBB40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5875EBB1-01BE-2D17-3613-D0BAD09CBB40}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2B54F4BC-482B-4690-AC59-A78C66CFDDA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2B54F4BC-482B-4690-AC59-A78C66CFDDA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2B54F4BC-482B-4690-AC59-A78C66CFDDA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2B54F4BC-482B-4690-AC59-A78C66CFDDA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

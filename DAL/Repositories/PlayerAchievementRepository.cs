@@ -27,5 +27,21 @@ namespace DAL.Repositories
                 .Where(pa => pa.PlayerProfileId == playerProfileId)
                 .ToListAsync();
         }
+
+        /// <summary>Lấy một thành tích người chơi theo ID, kèm thông tin thành tích.</summary>
+        public async Task<PlayerAchievement?> GetByIdWithAchievement(int playerAchievementId)
+        {
+            return await _context.PlayerAchievements
+                .Include(pa => pa.Achievement)
+                .FirstOrDefaultAsync(pa => pa.PlayerAchievementId == playerAchievementId);
+        }
+
+        /// <summary>Cập nhật trạng thái thành tích người chơi.</summary>
+        public async Task<PlayerAchievement> Update(PlayerAchievement playerAchievement)
+        {
+            _context.PlayerAchievements.Update(playerAchievement);
+            await _context.SaveChangesAsync();
+            return playerAchievement;
+        }
     }
 }

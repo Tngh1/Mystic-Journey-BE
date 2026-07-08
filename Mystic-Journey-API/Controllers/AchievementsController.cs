@@ -45,6 +45,17 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PlayerMeAchievementsResponseDto> { Success = true, Data = result });
         }
 
+        // ── POST /api/achievements/me/{playerAchievementId}/unlock ───────────
+        // Kích hoạt thành tích của người chơi đang đăng nhập.
+        [Authorize]
+        [HttpPost("me/{playerAchievementId}/unlock")]
+        public async Task<IActionResult> UnlockAchievement(int playerAchievementId)
+        {
+            var profileId = GetPlayerProfileId();
+            var result = await _achievementService.UnlockAchievement(profileId, playerAchievementId);
+            return Ok(new ApiResponse<PlayerAchievementResponseDto> { Success = true, Data = result });
+        }
+
         // ── GET /api/achievements/{id} ─────────────────────────────────────────
         // Lấy chi tiết một achievement theo ID.
         [AllowAnonymous]

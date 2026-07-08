@@ -50,11 +50,20 @@ namespace BLL.Services
                 shopItemIds,
                 now);
 
+            var purchasedThisWeek = await _repository.GetPurchasedThisWeekCounts(
+                playerProfileId,
+                shopItemIds,
+                now);
+
             var dtos = _mapper.Map<List<ShopItemPublicResponseDto>>(items);
             foreach (var dto in dtos)
             {
-                purchasedToday.TryGetValue(dto.ShopItemId, out var purchasedCount);
-                dto.PurchasedToday = purchasedCount;
+                purchasedToday.TryGetValue(dto.ShopItemId, out var purchasedCountToday);
+                dto.PurchasedToday = purchasedCountToday;
+
+                purchasedThisWeek.TryGetValue(dto.ShopItemId, out var purchasedCountWeek);
+                dto.PurchasedThisWeek = purchasedCountWeek;
+
                 ApplyAvailability(dto, now);
             }
 
@@ -111,6 +120,9 @@ namespace BLL.Services
             item.RemainingDailyPurchases = item.DailyPurchaseLimit > 0
                 ? Math.Max(0, item.DailyPurchaseLimit - item.PurchasedToday)
                 : null;
+            item.RemainingWeeklyPurchases = item.WeeklyPurchaseLimit > 0
+                ? Math.Max(0, item.WeeklyPurchaseLimit - item.PurchasedThisWeek)
+                : null;
 
             if (item.AvailableFrom.HasValue && item.AvailableFrom.Value > utcNow)
             {
@@ -137,6 +149,13 @@ namespace BLL.Services
             {
                 item.CanPurchase = false;
                 item.UnavailableReason = "Daily purchase limit reached.";
+                return;
+            }
+
+            if (item.WeeklyPurchaseLimit > 0 && item.RemainingWeeklyPurchases <= 0)
+            {
+                item.CanPurchase = false;
+                item.UnavailableReason = "Weekly purchase limit reached.";
                 return;
             }
 
@@ -167,6 +186,8 @@ namespace BLL.Services
                     throw new BadRequestException("Shop item is sold out.");
                 case PurchaseShopItemStatus.DailyLimitExceeded:
                     throw new BadRequestException("Daily purchase limit exceeded.");
+                case PurchaseShopItemStatus.WeeklyLimitExceeded:
+                    throw new BadRequestException("Weekly purchase limit exceeded.");
                 case PurchaseShopItemStatus.UnsupportedCurrency:
                     throw new BadRequestException("Currency must be Gold or Gems.");
                 case PurchaseShopItemStatus.InsufficientCurrency:

@@ -13,6 +13,7 @@ namespace BLL.DTOs
         public string Rarity { get; set; } = string.Empty;
         public string Slot { get; set; } = string.Empty;
         public decimal BaseValue { get; set; }
+        public float CorruptionReduction { get; set; }
         public int MaxStack { get; set; }
         public bool IsActive { get; set; }
         public string? IconUrl { get; set; }
@@ -48,6 +49,7 @@ namespace BLL.DTOs
 
         [Range(1, int.MaxValue, ErrorMessage = "MaxStack must be at least 1.")]
         public int MaxStack { get; set; } = 1;
+        public float CorruptionReduction { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
         public string? IconUrl { get; set; }
@@ -82,6 +84,7 @@ namespace BLL.DTOs
 
         [Range(1, int.MaxValue, ErrorMessage = "MaxStack must be at least 1.")]
         public int MaxStack { get; set; } = 1;
+        public float CorruptionReduction { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
         public string? IconUrl { get; set; }

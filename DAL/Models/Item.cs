@@ -20,6 +20,7 @@ namespace DAL.Models
         public string Slot { get; set; } = "None";
 
         public decimal BaseValue { get; set; } = 0;
+        public float CorruptionReduction { get; set; } = 0;
         public int MaxStack { get; set; } = 1;
         public bool IsActive { get; set; } = true;
 

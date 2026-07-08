@@ -1136,6 +1136,9 @@ namespace DAL.Migrations
                     b.Property<decimal>("BaseValue")
                         .HasColumnType("numeric");
 
+                    b.Property<float>("CorruptionReduction")
+                        .HasColumnType("real");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1718,6 +1721,9 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<float>("CorruptionLevel")
+                        .HasColumnType("real");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1832,6 +1838,9 @@ namespace DAL.Migrations
 
                     b.Property<int>("Level")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("NextAvailableTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("PlayerProfileId")
                         .HasColumnType("integer");
@@ -2183,6 +2192,9 @@ namespace DAL.Migrations
                     b.Property<int>("Stock")
                         .HasColumnType("integer");
 
+                    b.Property<int>("WeeklyPurchaseLimit")
+                        .HasColumnType("integer");
+
                     b.HasKey("ShopItemId");
 
                     b.HasIndex("ItemId");
@@ -2207,6 +2219,9 @@ namespace DAL.Migrations
 
                     b.Property<int>("CooldownSeconds")
                         .HasColumnType("integer");
+
+                    b.Property<float>("CorruptionCost")
+                        .HasColumnType("real");
 
                     b.Property<double>("DamageGrowthPercent")
                         .HasColumnType("double precision");
