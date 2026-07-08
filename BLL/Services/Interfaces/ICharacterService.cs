@@ -1,4 +1,6 @@
 using BLL.DTOs;
+using DAL.Models;
+using System.Collections.Generic;
 
 namespace BLL.Services.Interfaces
 {
@@ -26,5 +28,8 @@ namespace BLL.Services.Interfaces
         // Nâng cấp thuộc tính nhân vật bằng Skill Points.
         // Skill Points được cấp tự động khi lên level (3 điểm mỗi level).
         Task<UpgradeAttributeResponseDto> UpgradeAttribute(int playerProfileId, UpgradeAttributeRequestDto request);
+
+        // Lấy danh sách chỉ số khởi điểm của các Class (dành cho Web Wiki)
+        Task<IEnumerable<ClassConfig>> GetAllClassConfigs();
     }
 }

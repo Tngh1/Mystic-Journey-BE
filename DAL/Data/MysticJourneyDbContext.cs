@@ -63,6 +63,7 @@ namespace DAL.Data
         public DbSet<SubCategoryContent> SubCategoryContents => Set<SubCategoryContent>();
         public DbSet<Content> Contents => Set<Content>();
         public DbSet<BlockContent> BlockContents => Set<BlockContent>();
+        public DbSet<ClassConfig> ClassConfigs => Set<ClassConfig>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,6 +71,12 @@ namespace DAL.Data
             new Role { RoleId = 1, Name = "Player" },
             new Role { RoleId = 2, Name = "Admin" },
             new Role { RoleId = 3, Name = "SuperAdmin" });
+
+            modelBuilder.Entity<ClassConfig>().HasData(
+                new ClassConfig { ClassConfigId = 1, ClassName = "Knight", MaxHp = 500, Atk = 30, Def = 40, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
+                new ClassConfig { ClassConfigId = 2, ClassName = "Archer", MaxHp = 350, Atk = 40, Def = 20, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
+                new ClassConfig { ClassConfigId = 3, ClassName = "Mage", MaxHp = 300, Atk = 50, Def = 15, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 }
+            );
 
             modelBuilder.Entity<PlayerMonsterDiscovery>()
                 .HasIndex(d => new { d.PlayerProfileId, d.MonsterId })

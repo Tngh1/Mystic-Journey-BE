@@ -13,44 +13,18 @@ namespace BLL.Services
         private readonly IPlayerProfileRepository _profileRepository;
         private readonly IPlayerStatRepository _statRepository;
         private readonly IPlayerProfileService _playerProfileService;
-
-        // ── Base stats seeded on character creation, keyed by class name ─────────────
-        private static readonly Dictionary<string, PlayerStat> BaseStats = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Knight"] = new PlayerStat
-            {
-                CurrentHp = 200, MaxHp = 200,
-                Atk = 15, Def = 20,
-                MoveSpeed = 100, AttackSpeed = 90,
-                CritRate = 5, CritDamage = 150,
-                DamageBonus = 0, SkillPoints = 0
-            },
-            ["Archer"] = new PlayerStat
-            {
-                CurrentHp = 140, MaxHp = 140,
-                Atk = 20, Def = 10,
-                MoveSpeed = 115, AttackSpeed = 120,
-                CritRate = 12, CritDamage = 175,
-                DamageBonus = 0, SkillPoints = 0
-            },
-            ["Mage"] = new PlayerStat
-            {
-                CurrentHp = 120, MaxHp = 120,
-                Atk = 25, Def = 8,
-                MoveSpeed = 105, AttackSpeed = 100,
-                CritRate = 8, CritDamage = 160,
-                DamageBonus = 0, SkillPoints = 0
-            }
-        };
+        private readonly IClassConfigRepository _classConfigRepository;
 
         public CharacterService(
             IPlayerProfileRepository profileRepository,
             IPlayerStatRepository statRepository,
-            IPlayerProfileService playerProfileService)
+            IPlayerProfileService playerProfileService,
+            IClassConfigRepository classConfigRepository)
         {
             _profileRepository = profileRepository;
             _statRepository = statRepository;
             _playerProfileService = playerProfileService;
+            _classConfigRepository = classConfigRepository;
         }
 
         // ── 1. Create Character ────────────────────────────────────────────────────────
@@ -72,14 +46,15 @@ namespace BLL.Services
             _playerProfileService.RecalculateEnergy(profile);
             await _profileRepository.UpdatePlayerProfile(profile);
 
-            // Seed class-appropriate base stats.
-            if (!BaseStats.TryGetValue(request.SelectedClass, out var template))
+            // Fetch class-appropriate base stats from DB.
+            var template = await _classConfigRepository.GetByClassName(request.SelectedClass);
+            if (template == null)
                 throw new ArgumentException($"Unknown class '{request.SelectedClass}'.");
 
             var stat = new PlayerStat
             {
                 PlayerProfileId = playerProfileId,
-                CurrentHp     = template.CurrentHp,
+                CurrentHp     = template.MaxHp, // Start with full HP
                 MaxHp         = template.MaxHp,
                 Atk           = template.Atk,
                 Def           = template.Def,
@@ -88,7 +63,7 @@ namespace BLL.Services
                 CritRate      = template.CritRate,
                 CritDamage    = template.CritDamage,
                 DamageBonus   = template.DamageBonus,
-                SkillPoints   = template.SkillPoints
+                SkillPoints   = 0
             };
 
             await _statRepository.Create(stat);
@@ -103,7 +78,26 @@ namespace BLL.Services
             var stat = await _statRepository.GetByPlayerProfileId(playerProfileId)
                 ?? throw new KeyNotFoundException("Character stats not found. Please create a character first.");
 
-            return MapToStatsDto(stat);
+            var dto = MapToStatsDto(stat);
+
+            // Tích hợp chỉ số từ trang bị (nếu có)
+            var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(playerProfileId);
+            if (snapshot != null)
+            {
+                dto.MaxHp += snapshot.MaxHp;
+                dto.Atk += snapshot.Atk;
+                dto.Def += snapshot.Def;
+                dto.MoveSpeed += snapshot.MoveSpeed;
+                dto.AttackSpeed += snapshot.AttackSpeed;
+                dto.CritRate += snapshot.CritRate;
+                dto.CritDamage += snapshot.CritDamage;
+                dto.DamageBonus += snapshot.DamageBonus;
+                
+                // Đảm bảo CurrentHp luôn tăng theo MaxHp (tuỳ logic game, ở đây có thể cập nhật)
+                // (Chưa cập nhật CurrentHp ở đây vì CurrentHp do logic hồi máu/chịu đòn quyết định)
+            }
+
+            return dto;
         }
 
         // ── 3. Upgrade Character ───────────────────────────────────────────────────────
@@ -232,6 +226,12 @@ namespace BLL.Services
                 CreatedAt       = profile.CreatedAt,
                 Stats           = MapToStatsDto(stat)
             };
+        }
+        // ── 5. Get Class Configs ───────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<ClassConfig>> GetAllClassConfigs()
+        {
+            return await _classConfigRepository.GetAll();
         }
     }
 }
