@@ -26,6 +26,23 @@ namespace Mystic_Journey_API.Controllers
         // GAME APIs (Người chơi)
         // ═══════════════════════════════════════════════════════════════════════
 
+        // ── GET /api/characters/class-configs ──────────────────────────────────────────
+        // Lấy danh sách chỉ số khởi điểm của các Class (dành cho Web Wiki)
+        [AllowAnonymous]
+        [HttpGet("class-configs")]
+        public async Task<IActionResult> GetClassConfigs()
+        {
+            try
+            {
+                var configs = await _characterService.GetAllClassConfigs();
+                return Ok(new { success = true, data = configs });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
         // ── POST /api/characters ────────────────────────────────────
         // Tạo nhân vật mới cho tài khoản.
         // Thiết lập display name và class cho player mới đăng ký.

@@ -142,6 +142,7 @@ builder.Services.AddScoped<IChatService, ChatService>();
 
 // Character Services
 builder.Services.AddScoped<IPlayerStatRepository, PlayerStatRepository>();
+builder.Services.AddScoped<IClassConfigRepository, ClassConfigRepository>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 
 // Account Admin Services
