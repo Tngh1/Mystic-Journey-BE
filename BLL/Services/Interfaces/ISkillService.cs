@@ -24,6 +24,9 @@ namespace BLL.Services.Interfaces
         // Mở khóa skill mới cho player.
         Task<PlayerSkillResponseDto> UnlockPlayerSkill(int actorPlayerProfileId, UnlockPlayerSkillRequestDto request);
 
+        // Record that a skill was cast to track its cooldown
+        Task<PlayerSkillResponseDto> RecordSkillCast(int actorPlayerProfileId, int playerSkillId);
+
         // Phá skill để lấy nguyên liệu.
         Task<PlayerSkillResponseDto?> DismantlePlayerSkill(int actorPlayerProfileId, DismantlePlayerSkillRequestDto request);
 

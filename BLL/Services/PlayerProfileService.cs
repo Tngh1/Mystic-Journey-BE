@@ -106,6 +106,9 @@ namespace BLL.Services
             if (request.MaxEnergy > 0)
                 profile.MaxEnergy = request.MaxEnergy;
 
+            if (request.CorruptionLevel.HasValue)
+                profile.CorruptionLevel = request.CorruptionLevel.Value;
+
             profile.UpdatedAt = DateTime.UtcNow;
 
             var updated = await _repository.UpdatePlayerProfile(profile);

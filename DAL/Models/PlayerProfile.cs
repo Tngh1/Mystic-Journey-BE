@@ -36,6 +36,8 @@ namespace DAL.Models
         public double PositionX { get; set; } = 0;
         public double PositionY { get; set; } = 0;
 
+        public float CorruptionLevel { get; set; } = 0;
+
         public PlayerStat? PlayerStats { get; set; }
 
         public ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();

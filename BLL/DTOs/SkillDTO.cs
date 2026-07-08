@@ -17,6 +17,7 @@ namespace BLL.DTOs
         public double DamagePerLevel { get; set; }
         public double DamageGrowthPercent { get; set; }
         public int UnlockLevel { get; set; }
+        public float CorruptionCost { get; set; }
         public bool IsActive { get; set; }
     }
 
@@ -46,6 +47,7 @@ namespace BLL.DTOs
 
         [Range(1, 100)]
         public int UnlockLevel { get; set; } = 1;
+        public float CorruptionCost { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
     }
@@ -76,6 +78,7 @@ namespace BLL.DTOs
 
         [Range(1, 100)]
         public int UnlockLevel { get; set; } = 1;
+        public float CorruptionCost { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
     }
@@ -100,7 +103,9 @@ namespace BLL.DTOs
         public int CooldownSeconds { get; set; }
         public double BaseDamage { get; set; }
         public int UnlockLevel { get; set; }
+        public float CorruptionCost { get; set; }
         public DateTime UnlockedAt { get; set; }
+        public DateTime? NextAvailableTime { get; set; }
     }
 
     public class UpgradePlayerSkillRequestDto

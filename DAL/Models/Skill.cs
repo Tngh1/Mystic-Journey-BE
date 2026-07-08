@@ -28,6 +28,7 @@ namespace DAL.Models
         // Percentage growth applied per level (e.g. 10 means +10% per level)
         public double DamageGrowthPercent { get; set; } = 0.0;
         public int UnlockLevel { get; set; } = 1;
+        public float CorruptionCost { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
 

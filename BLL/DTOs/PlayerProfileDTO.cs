@@ -20,6 +20,7 @@ namespace BLL.DTOs
         public int Energy { get; set; }
         public int MaxEnergy { get; set; }
         public DateTime LastEnergyUpdateTime { get; set; }
+        public float CorruptionLevel { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }
@@ -58,6 +59,7 @@ namespace BLL.DTOs
         public decimal Gems { get; set; }
         public int Energy { get; set; }
         public int MaxEnergy { get; set; }
+        public float? CorruptionLevel { get; set; }
     }
 
     // ============ PlayerProfile API Response ============
@@ -103,6 +105,7 @@ namespace BLL.DTOs
         public int Energy { get; set; }
         public int MaxEnergy { get; set; }
         public DateTime LastEnergyUpdateTime { get; set; }
+        public float CorruptionLevel { get; set; }
         public DateTime CreatedAt { get; set; }
         public PlayerStatsResponseDto Stats { get; set; } = new();
     }
@@ -161,6 +164,7 @@ namespace BLL.DTOs
         public string LastMapName { get; set; } = string.Empty;
         public double PositionX { get; set; }
         public double PositionY { get; set; }
+        public float CorruptionLevel { get; set; }
 
         // Stats
         public PlayerStatsResponseDto? Stats { get; set; }

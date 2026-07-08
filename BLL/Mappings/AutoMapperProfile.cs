@@ -326,7 +326,8 @@ namespace BLL.Mappings
                     src.Skill != null ? 
                     src.Skill.BaseDamage * (1 + src.Skill.DamageGrowthPercent / 100.0 * (src.Level - 1)) + src.Skill.DamagePerLevel * (src.Level - 1)
                     : 0.0))
-                .ForMember(dest => dest.UnlockLevel, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.UnlockLevel : 1));
+                .ForMember(dest => dest.UnlockLevel, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.UnlockLevel : 1))
+                .ForMember(dest => dest.CorruptionCost, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.CorruptionCost : 0f));
 
             // ═══════════════════════════════════════════════════════════════════════
             // SKIN (Trang phục)

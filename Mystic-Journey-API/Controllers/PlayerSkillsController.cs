@@ -109,5 +109,30 @@ namespace Mystic_Journey_API.Controllers
             var updated = await _skillService.DismantlePlayerSkill(playerProfileId, request);
             return Ok(new ApiResponse<PlayerSkillResponseDto> { Success = true, Data = updated });
         }
+        [HttpPost("record-cast/{id}")]
+        public async Task<IActionResult> RecordSkillCast(int id)
+        {
+            var playerProfileId = GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+            try
+            {
+                var updated = await _skillService.RecordSkillCast(playerProfileId, id);
+                return Ok(new ApiResponse<PlayerSkillResponseDto> { Success = true, Data = updated });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.Unauthorized });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.InvalidOperation });
+            }
+        }
     }
 }

@@ -14,6 +14,7 @@ namespace BLL.DTOs
         public string ItemRarity { get; set; } = string.Empty;
         public string ItemSlot { get; set; } = "None";
         public string? IconUrl { get; set; }
+        public float CorruptionReduction { get; set; }
         public int Quantity { get; set; }
         public bool IsEquipped { get; set; }
         public bool IsSkin { get; set; }

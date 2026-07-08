@@ -13,6 +13,7 @@ namespace DAL.Models
 
         public int Stock { get; set; } = -1;
         public int DailyPurchaseLimit { get; set; } = 0;
+        public int WeeklyPurchaseLimit { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
 
