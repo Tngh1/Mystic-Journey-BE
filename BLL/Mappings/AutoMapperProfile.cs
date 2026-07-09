@@ -26,8 +26,7 @@ namespace BLL.Mappings
 
             // Ánh xạ vật phẩm sang response.
             CreateMap<Item, ItemResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật vật phẩm.
-            CreateMap<CreateItemRequestDto, Item>();
+            // Ánh xạ yêu cầu cập nhật vật phẩm.
             CreateMap<UpdateItemRequestDto, Item>();
 
             // ═══════════════════════════════════════════════════════════════════════
@@ -39,8 +38,7 @@ namespace BLL.Mappings
             // Ánh xạ quái vật sang chi tiết (mở rộng từ response cơ bản).
             CreateMap<Monster, MonsterDetailResponseDto>()
                 .IncludeBase<Monster, MonsterResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật quái vật.
-            CreateMap<CreateMonsterRequestDto, Monster>();
+            // Ánh xạ yêu cầu cập nhật quái vật.
             CreateMap<UpdateMonsterRequestDto, Monster>();
 
             // ═══════════════════════════════════════════════════════════════════════
@@ -49,8 +47,7 @@ namespace BLL.Mappings
 
             // Ánh xạ cấu hình dungeon sang response.
             CreateMap<DungeonConfig, DungeonConfigResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật cấu hình dungeon.
-            CreateMap<CreateDungeonConfigRequestDto, DungeonConfig>();
+            // Ánh xạ yêu cầu cập nhật cấu hình dungeon.
             CreateMap<UpdateDungeonConfigRequestDto, DungeonConfig>();
 
             // ═══════════════════════════════════════════════════════════════════════
@@ -86,8 +83,7 @@ namespace BLL.Mappings
             CreateMap<GachaBanner, GachaBannerDetailResponseDto>()
                 .IncludeBase<GachaBanner, GachaBannerResponseDto>()
                 .ForMember(dest => dest.BannerItems, opt => opt.MapFrom(src => src.BannerItems));
-            // Ánh xạ yêu cầu tạo/cập nhật banner gacha.
-            CreateMap<CreateGachaBannerRequestDto, GachaBanner>();
+            // Ánh xạ yêu cầu cập nhật banner gacha.
             CreateMap<UpdateGachaBannerRequestDto, GachaBanner>();
 
             // Ánh xạ item trong banner gacha.
@@ -100,8 +96,7 @@ namespace BLL.Mappings
 
             // Ánh xạ nhiệm vụ sang response.
             CreateMap<Quest, QuestResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật nhiệm vụ.
-            CreateMap<CreateQuestRequestDto, Quest>();
+            // Ánh xạ yêu cầu cập nhật nhiệm vụ.
             CreateMap<UpdateQuestRequestDto, Quest>();
 
             // ═══════════════════════════════════════════════════════════════════════
@@ -110,8 +105,7 @@ namespace BLL.Mappings
 
             // Ánh xạ thành tích sang response.
             CreateMap<Achievement, AchievementResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật thành tích.
-            CreateMap<CreateAchievementRequestDto, Achievement>();
+            // Ánh xạ yêu cầu cập nhật thành tích.
             CreateMap<UpdateAchievementRequestDto, Achievement>();
 
             // ═══════════════════════════════════════════════════════════════════════
@@ -229,6 +223,7 @@ namespace BLL.Mappings
 
             // Ánh xạ thư sang chi tiết (kèm vật phẩm đính kèm).
             CreateMap<Mail, MailDetailDto>()
+                .ForMember(dest => dest.PlayerName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
                 .ForMember(dest => dest.AttachedItems, opt => opt.MapFrom(src => src.AttachedItems ?? new List<MailRewardItem>()));
 
             // Ánh xạ thư sang tóm tắt (kèm trạng thái nhận thưởng và thời gian hết hạn).

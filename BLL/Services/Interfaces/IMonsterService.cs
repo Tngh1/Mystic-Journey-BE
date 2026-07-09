@@ -20,7 +20,7 @@ namespace BLL.Services.Interfaces
         Task<MonsterDetailResponseDto?> GetMonsterForPlayer(int id, int playerProfileId);
 
         // Lấy danh sách tất cả monsters có phân trang và lọc.
-        Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // Lấy catalog monsters đã khám phá của player.
         Task<PagedResultDto<PlayerMonsterCatalogItemDto>> GetMonsterCatalogForPlayer(int playerProfileId, int page, int pageSize, string? search, string? type);
@@ -40,9 +40,6 @@ namespace BLL.Services.Interfaces
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
-
-        // Tạo monster mới.
-        Task<MonsterResponseDto> CreateMonster(CreateMonsterRequestDto request);
 
         // Cập nhật monster hiện có.
         Task<MonsterResponseDto> UpdateMonster(int id, UpdateMonsterRequestDto request);

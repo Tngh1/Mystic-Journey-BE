@@ -120,9 +120,11 @@ namespace Mystic_Journey_API.Controllers
             [FromQuery] int pageSize = 10,
             [FromQuery] string? search = null,
             [FromQuery] bool? isRead = null,
-            [FromQuery] bool? isClaimed = null)
+            [FromQuery] bool? isClaimed = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _mailService.GetMailsPaged(page, pageSize, search, isRead, isClaimed);
+            var result = await _mailService.GetMailsPaged(page, pageSize, search, isRead, isClaimed, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<MailDetailDto>> { Success = true, Data = result });
         }
 
@@ -150,6 +152,19 @@ namespace Mystic_Journey_API.Controllers
 
             await _mailService.SendMailToAll(request);
             return Ok(new ApiResponse<object> { Success = true, Message = "Mail sent to all players successfully." });
+        }
+
+        // ── GET /api/mails/player/{playerProfileId} ────────────────────────────
+        // Lấy tất cả mail của một player cụ thể (Admin).
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("player/{playerProfileId:int}")]
+        public async Task<IActionResult> GetByPlayerId(
+            int playerProfileId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            var result = await _mailService.GetMyMails(playerProfileId, page, pageSize);
+            return Ok(new ApiResponse<MailListPagedDto> { Success = true, Data = result });
         }
     }
 }

@@ -29,9 +29,6 @@ namespace DAL.Repositories.Interfaces
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Tạo banner gacha mới.
-        Task<GachaBanner> CreateGachaBanner(GachaBanner banner);
-
         // Cập nhật banner gacha.
         Task<GachaBanner> UpdateGachaBanner(GachaBanner banner);
 
@@ -39,7 +36,7 @@ namespace DAL.Repositories.Interfaces
         Task<GachaBannerItem> CreateBannerItem(GachaBannerItem item);
 
         // Lấy danh sách banner có phân trang, lọc theo tìm kiếm, loại và trạng thái.
-        Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // Lưu lịch sử quay
         Task<GachaPullHistory> AddGachaPullHistory(GachaPullHistory history);

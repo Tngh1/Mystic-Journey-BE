@@ -32,6 +32,8 @@ namespace BLL.DTOs
     public class MailDetailDto
     {
         public int MailId { get; set; }
+        public int PlayerProfileId { get; set; }
+        public string? PlayerName { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public string Type { get; set; } = "System";

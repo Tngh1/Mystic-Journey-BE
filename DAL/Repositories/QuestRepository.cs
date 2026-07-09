@@ -38,13 +38,6 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Quest> CreateQuest(Quest quest)
-        {
-            await _context.Quests.AddAsync(quest);
-            await _context.SaveChangesAsync();
-            return quest;
-        }
-
         public async Task<Quest> UpdateQuest(Quest quest)
         {
             _context.Quests.Update(quest);
@@ -53,7 +46,7 @@ namespace DAL.Repositories
         }
 
 
-        public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName)
+        public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.Quests
                 .Include(q => q.RewardItem)
@@ -76,6 +69,19 @@ namespace DAL.Repositories
             {
                 query = query.Where(x => x.MapName == mapName);
             }
+
+            bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+            query = (sortBy?.ToLowerInvariant()) switch
+            {
+                "title" => desc ? query.OrderByDescending(x => x.Title) : query.OrderBy(x => x.Title),
+                "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
+                "requiredlevel" => desc ? query.OrderByDescending(x => x.RequiredLevel) : query.OrderBy(x => x.RequiredLevel),
+                "rewardgold" => desc ? query.OrderByDescending(x => x.RewardGold) : query.OrderBy(x => x.RewardGold),
+                "rewardexp" => desc ? query.OrderByDescending(x => x.RewardExperience) : query.OrderBy(x => x.RewardExperience),
+                "mapname" => desc ? query.OrderByDescending(x => x.MapName) : query.OrderBy(x => x.MapName),
+                "isactive" => desc ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
+                _ => desc ? query.OrderByDescending(x => x.QuestId) : query.OrderBy(x => x.QuestId),
+            };
 
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

@@ -100,7 +100,7 @@ namespace DAL.Repositories
         // ── Phân trang ──
 
         /// <summary>Lấy danh sách thư có phân trang, lọc theo tìm kiếm (tiêu đề), trạng thái đọc và nhận.</summary>
-        public async Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed)
+        public async Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.Mails
                 .Include(m => m.PlayerProfile)
@@ -119,6 +119,17 @@ namespace DAL.Repositories
             {
                 query = query.Where(x => x.IsClaimed == isClaimed.Value);
             }
+
+            bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+            query = (sortBy?.ToLowerInvariant()) switch
+            {
+                "title" => desc ? query.OrderByDescending(x => x.Title) : query.OrderBy(x => x.Title),
+                "sentat" => desc ? query.OrderByDescending(x => x.SentAt) : query.OrderBy(x => x.SentAt),
+                "expiresat" => desc ? query.OrderByDescending(x => x.ExpiredAt) : query.OrderBy(x => x.ExpiredAt),
+                "isread" => desc ? query.OrderByDescending(x => x.IsRead) : query.OrderBy(x => x.IsRead),
+                "isclaimed" => desc ? query.OrderByDescending(x => x.IsClaimed) : query.OrderBy(x => x.IsClaimed),
+                _ => desc ? query.OrderByDescending(x => x.MailId) : query.OrderBy(x => x.MailId),
+            };
 
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

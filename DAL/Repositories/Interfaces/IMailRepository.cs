@@ -42,6 +42,6 @@ namespace DAL.Repositories.Interfaces
         Task<Mail> SoftDeleteMail(int mailId);
 
         // Lấy danh sách thư có phân trang, lọc theo tìm kiếm, trạng thái đọc và nhận.
-        Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed);
+        Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null);
     }
 }

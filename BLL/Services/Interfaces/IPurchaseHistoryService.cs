@@ -21,7 +21,7 @@ namespace BLL.Services.Interfaces
         // ═══════════════════════════════════════════════════════════════════════
 
         // Lấy tất cả lịch sử mua có phân trang và lọc.
-        Task<PagedResultDto<PurchaseHistoryResponseDto>> GetPurchaseHistoriesPaged(int page, int pageSize, string? search = null);
+        Task<PagedResultDto<PurchaseHistoryResponseDto>> GetPurchaseHistoriesPaged(int page, int pageSize, string? search = null, string? sortBy = null, string? sortOrder = null);
 
         // Lấy tất cả lịch sử mua.
         Task<List<PurchaseHistoryResponseDto>> GetAllPurchaseHistories();

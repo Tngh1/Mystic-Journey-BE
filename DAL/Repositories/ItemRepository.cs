@@ -2,8 +2,10 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace DAL.Repositories
@@ -51,13 +53,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(i => i.ItemId == id);
         }
 
-        public async Task<Item> CreateItem(Item item)
-        {
-            await _context.Items.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
-        }
-
         public async Task<Item> UpdateItem(Item item)
         {
             _context.Items.Update(item);
@@ -66,7 +61,7 @@ namespace DAL.Repositories
         }
 
 
-        public async Task<(int TotalCount, List<Item> Items)> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive)
+        public async Task<(int TotalCount, List<Item> Items)> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.Items
                 .Include(i => i.EquipmentStats)
@@ -88,6 +83,17 @@ namespace DAL.Repositories
             {
                 query = query.Where(x => x.IsActive == isActive.Value);
             }
+
+            bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+            query = (sortBy?.ToLowerInvariant()) switch
+            {
+                "name" => desc ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
+                "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
+                "rarity" => desc ? query.OrderByDescending(x => x.Rarity) : query.OrderBy(x => x.Rarity),
+                "basevalue" => desc ? query.OrderByDescending(x => x.BaseValue) : query.OrderBy(x => x.BaseValue),
+                "isactive" => desc ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
+                _ => desc ? query.OrderByDescending(x => x.ItemId) : query.OrderBy(x => x.ItemId),
+            };
 
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

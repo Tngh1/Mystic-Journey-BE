@@ -40,11 +40,18 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/shopitems ──────────────────────────────────────
         // Lấy danh sách tất cả shop items có phân trang và lọc.
-        // Query: page, pageSize, search, currency, isActive.
+        // Query: page, pageSize, search, currency, isActive, sortBy, sortOrder.
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? currency = null, [FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? currency = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _shopItemService.GetShopItemsPaged(page, pageSize, search, currency, isActive);
+            var result = await _shopItemService.GetShopItemsPaged(page, pageSize, search, currency, isActive, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<ShopItemResponseDto>> { Success = true, Data = result });
         }
 

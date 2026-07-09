@@ -77,7 +77,7 @@ namespace DAL.Repositories
         }
 
         /// <summary>Lấy lịch sử giao dịch có phân trang và tìm kiếm theo tên người chơi, tên sản phẩm hoặc loại tiền.</summary>
-        public async Task<(int TotalCount, List<PurchaseHistory> Histories)> GetPurchaseHistoriesPaged(int page, int pageSize, string? search)
+        public async Task<(int TotalCount, List<PurchaseHistory> Histories)> GetPurchaseHistoriesPaged(int page, int pageSize, string? search, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.PurchaseHistories
                 .Include(p => p.PlayerProfile)
@@ -93,9 +93,19 @@ namespace DAL.Repositories
                     (p.ShopItem != null && p.ShopItem.Currency.Contains(search)));
             }
 
+            bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+            query = (sortBy?.ToLowerInvariant()) switch
+            {
+                "playername" => desc ? query.OrderByDescending(x => x.PlayerProfile!.DisplayName) : query.OrderBy(x => x.PlayerProfile!.DisplayName),
+                "itemname" => desc ? query.OrderByDescending(x => x.ShopItem!.Item!.Name) : query.OrderBy(x => x.ShopItem!.Item!.Name),
+                "currency" => desc ? query.OrderByDescending(x => x.ShopItem!.Currency) : query.OrderBy(x => x.ShopItem!.Currency),
+                "pricepaid" => desc ? query.OrderByDescending(x => x.TotalPrice) : query.OrderBy(x => x.TotalPrice),
+                "purchasedat" => desc ? query.OrderByDescending(x => x.PurchasedAt) : query.OrderBy(x => x.PurchasedAt),
+                _ => desc ? query.OrderByDescending(x => x.PurchasedAt) : query.OrderBy(x => x.PurchasedAt),
+            };
+
             var totalCount = await query.CountAsync();
             var items = await query
-                .OrderByDescending(x => x.PurchasedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

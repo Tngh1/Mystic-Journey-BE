@@ -42,14 +42,6 @@ namespace BLL.Services
             return _mapper.Map<GachaBannerDetailResponseDto>(banner);
         }
 
-        public async Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request)
-        {
-            var banner = _mapper.Map<GachaBanner>(request);
-
-            var created = await _repository.CreateGachaBanner(banner);
-            return _mapper.Map<GachaBannerResponseDto>(created);
-        }
-
         public async Task<GachaBannerResponseDto> UpdateBanner(int id, UpdateGachaBannerRequestDto request)
         {
             var banner = await _repository.GetGachaBannerById(id)
@@ -85,9 +77,9 @@ namespace BLL.Services
             return _mapper.Map<GachaBannerItemResponseDto>(created);
         }
 
-        public async Task<PagedResultDto<GachaBannerResponseDto>> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<PagedResultDto<GachaBannerResponseDto>> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetBannersPaged(page, pageSize, search, type, isActive);
+            var (totalCount, items) = await _repository.GetBannersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
 
             var dtos = _mapper.Map<List<GachaBannerResponseDto>>(items);
 

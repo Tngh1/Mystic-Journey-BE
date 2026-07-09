@@ -35,9 +35,6 @@ namespace DAL.Repositories.Interfaces
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Tạo quái vật mới trong hệ thống.
-        Task<Monster> CreateMonster(Monster monster);
-
         // Cập nhật thông tin quái vật.
         Task<Monster> UpdateMonster(Monster monster);
 
@@ -63,7 +60,7 @@ namespace DAL.Repositories.Interfaces
         Task<List<MonsterDrop>> GetDropsByMonsterId(int monsterId);
 
         // Lấy danh sách quái vật có phân trang, lọc theo tìm kiếm, loại và trạng thái.
-        Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // Lấy danh sách vật phẩm rơi có phân trang.
         Task<(int TotalCount, List<MonsterDrop> Items)> GetMonsterDropsPaged(int page, int pageSize);

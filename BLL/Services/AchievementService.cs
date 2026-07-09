@@ -33,16 +33,6 @@ namespace BLL.Services
             return _mapper.Map<AchievementResponseDto>(achievement);
         }
 
-        public async Task<AchievementResponseDto> CreateAchievement(CreateAchievementRequestDto request)
-        {
-            var achievement = _mapper.Map<Achievement>(request);
-            achievement.CreatedAt = DateTime.UtcNow;
-
-            var created = await _repository.CreateAchievement(achievement);
-            return await GetAchievementById(created.AchievementId)
-                ?? _mapper.Map<AchievementResponseDto>(created);
-        }
-
         public async Task<AchievementResponseDto> UpdateAchievement(int id, UpdateAchievementRequestDto request)
         {
             var achievement = await _repository.GetAchievementByIdWithReward(id)
@@ -64,9 +54,9 @@ namespace BLL.Services
             return _mapper.Map<AchievementResponseDto>(updated);
         }
 
-        public async Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetAchievementsPaged(page, pageSize, search, type, isActive);
+            var (totalCount, items) = await _repository.GetAchievementsPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
 
             var dtos = _mapper.Map<List<AchievementResponseDto>>(items);
             return new PagedResultDto<AchievementResponseDto>(totalCount, dtos);

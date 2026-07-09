@@ -40,11 +40,19 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/items ──────────────────────────────────────────
         // Lấy danh sách tất cả items có phân trang và lọc.
-        // Query: page, pageSize, search, type, rarity, isActive.
+        // Query: page, pageSize, search, type, rarity, isActive, sortBy, sortOrder.
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] string? rarity = null, [FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? type = null,
+            [FromQuery] string? rarity = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _itemService.GetItemsPaged(page, pageSize, search, type, rarity, isActive);
+            var result = await _itemService.GetItemsPaged(page, pageSize, search, type, rarity, isActive, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<ItemResponseDto>> { Success = true, Data = result });
         }
 
@@ -52,18 +60,7 @@ namespace Mystic_Journey_API.Controllers
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
-        // ── POST /api/items ─────────────────────────────────────────
-        // Tạo item mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateItemRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var item = await _itemService.CreateItem(request);
-            return Ok(new ApiResponse<ItemResponseDto> { Success = true, Data = item });
-        }
+        // NOTE: Create endpoint removed - managed via seeding.
 
         // ── PUT /api/items/{id} ─────────────────────────────────────
         // Cập nhật item hiện có.

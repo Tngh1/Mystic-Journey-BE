@@ -30,14 +30,6 @@ namespace BLL.Services
             return _mapper.Map<DungeonConfigResponseDto>(dungeon);
         }
 
-        public async Task<DungeonConfigResponseDto> CreateDungeon(CreateDungeonConfigRequestDto request)
-        {
-            var dungeon = _mapper.Map<DungeonConfig>(request);
-
-            var created = await _repository.CreateDungeonConfig(dungeon);
-            return _mapper.Map<DungeonConfigResponseDto>(created);
-        }
-
         public async Task<DungeonConfigResponseDto> UpdateDungeon(int id, UpdateDungeonConfigRequestDto request)
         {
             var dungeon = await _repository.GetDungeonConfigById(id)
@@ -58,9 +50,9 @@ namespace BLL.Services
             return _mapper.Map<DungeonConfigResponseDto>(updated);
         }
 
-        public async Task<PagedResultDto<DungeonConfigResponseDto>> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<PagedResultDto<DungeonConfigResponseDto>> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetDungeonsPaged(page, pageSize, search, type, isActive);
+            var (totalCount, items) = await _repository.GetDungeonsPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
 
             var dtos = _mapper.Map<List<DungeonConfigResponseDto>>(items);
             return new PagedResultDto<DungeonConfigResponseDto>(totalCount, dtos);

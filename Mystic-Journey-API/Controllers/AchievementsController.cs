@@ -69,32 +69,27 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<AchievementResponseDto> { Success = true, Data = achievement });
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
-
-        // ── GET /api/achievements ─────────────────────────────────────────────
-        // Lấy danh sách tất cả achievements có phân trang và lọc.
-        // Query: page, pageSize, search, type, isActive.
+        // ── GET /api/achievements ──────────────────────────────────────────────
+        // Lấy danh sách achievements có phân trang và lọc.
+        // Query: page, pageSize, search, type, isActive, sortBy, sortOrder.
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? type = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _achievementService.GetAchievementsPaged(page, pageSize, search, type, isActive);
+            var result = await _achievementService.GetAchievementsPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<AchievementResponseDto>> { Success = true, Data = result });
         }
 
-        // ── POST /api/achievements ─────────────────────────────────────────────
-        // Tạo achievement mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateAchievementRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var achievement = await _achievementService.CreateAchievement(request);
-            return Ok(new ApiResponse<AchievementResponseDto> { Success = true, Data = achievement });
-        }
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
+        // NOTE: Create endpoint removed - managed via seeding.
 
         // ── PUT /api/achievements/{id} ─────────────────────────────────────────
         // Cập nhật achievement hiện có.

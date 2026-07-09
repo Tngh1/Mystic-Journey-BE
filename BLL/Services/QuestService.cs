@@ -27,15 +27,6 @@ namespace BLL.Services
             return _mapper.Map<QuestResponseDto>(quest);
         }
 
-        public async Task<QuestResponseDto> CreateQuest(CreateQuestRequestDto request)
-        {
-            var quest = _mapper.Map<Quest>(request);
-
-            var created = await _repository.CreateQuest(quest);
-            var createdDto = await GetQuestById(created.QuestId);
-            return createdDto ?? _mapper.Map<QuestResponseDto>(created);
-        }
-
         public async Task<QuestResponseDto> UpdateQuest(int id, UpdateQuestRequestDto request)
         {
             var quest = await _repository.GetByIdWithReward(id)
@@ -64,9 +55,9 @@ namespace BLL.Services
             return _mapper.Map<QuestResponseDto>(updated);
         }
 
-        public async Task<PagedResultDto<QuestResponseDto>> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName)
+        public async Task<PagedResultDto<QuestResponseDto>> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetQuestsPaged(page, pageSize, search, type, isActive, mapName);
+            var (totalCount, items) = await _repository.GetQuestsPaged(page, pageSize, search, type, isActive, mapName, sortBy, sortOrder);
             var dtos = _mapper.Map<List<QuestResponseDto>>(items);
             return new PagedResultDto<QuestResponseDto>(totalCount, dtos);
         }

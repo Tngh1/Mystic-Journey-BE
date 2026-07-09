@@ -64,9 +64,16 @@ namespace Mystic_Journey_API.Controllers
         // Lấy danh sách tất cả monsters có phân trang và lọc.
         // Query: page, pageSize, search, type, isActive.
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? type = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _monsterService.GetMonstersPaged(page, pageSize, search, type, isActive);
+            var result = await _monsterService.GetMonstersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<MonsterResponseDto>> { Success = true, Data = result });
         }
 
@@ -174,19 +181,7 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
-
-        // ── POST /api/monsters ─────────────────────────────────────────────
-        // Tạo monster mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateMonsterRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var monster = await _monsterService.CreateMonster(request);
-            return Ok(new ApiResponse<MonsterResponseDto> { Success = true, Data = monster });
-        }
+        // NOTE: Create endpoint removed - managed via seeding.
 
         // ── PUT /api/monsters/{id} ─────────────────────────────────────────
         // Cập nhật monster hiện có.
