@@ -46,16 +46,39 @@ namespace BLL.Services
 
             var monthlyStats = await GetMonthlyStatsAsync();
 
+            var onlineOfflineCounts = await GetOnlineOfflineCountsAsync();
+
             return new DashboardStatsDto
             {
                 TotalPlayers = totalPlayers,
                 TotalAccounts = totalAccounts,
+                OnlinePlayers = onlineOfflineCounts.online,
+                OfflinePlayers = onlineOfflineCounts.offline,
                 TotalItems = totalItems,
                 TotalMonsters = totalMonsters,
                 TotalTransactions = totalTransactions,
                 TotalRevenue = totalRevenue,
                 MonthlyStats = monthlyStats
             };
+        }
+
+        private async Task<(int online, int offline)> GetOnlineOfflineCountsAsync()
+        {
+            var accounts = await _authRepository.GetAllActiveAccountsAsync();
+            var oneMinuteAgo = DateTime.UtcNow.AddMinutes(-1);
+
+            int online = 0;
+            int offline = 0;
+
+            foreach (var account in accounts)
+            {
+                if (account.LastSeen != null && account.LastSeen >= oneMinuteAgo)
+                    online++;
+                else
+                    offline++;
+            }
+
+            return (online, offline);
         }
 
         private async Task<List<MonthlyStatDto>> GetMonthlyStatsAsync()

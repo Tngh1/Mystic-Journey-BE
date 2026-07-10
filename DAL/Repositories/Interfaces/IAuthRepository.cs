@@ -49,6 +49,9 @@ namespace DAL.Repositories.Interfaces
         // Đếm tổng số tài khoản đang hoạt động.
         Task<int> GetTotalAccountsCount();
 
+        // Lấy tất cả tài khoản đang hoạt động (dùng cho dashboard online count).
+        Task<List<Account>> GetAllActiveAccountsAsync();
+
         // Lấy danh sách tài khoản có phân trang, lọc theo tìm kiếm, trạng thái và vai trò.
         Task<(int TotalCount, List<Account> Items)> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName);
     }

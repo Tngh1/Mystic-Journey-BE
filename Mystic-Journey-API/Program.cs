@@ -29,6 +29,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// MemoryCache for OTP/verification (AuthService)
 builder.Services.AddMemoryCache();
 
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
@@ -128,9 +129,8 @@ builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 
-// Presence Service
-builder.Services.AddMemoryCache();
-builder.Services.AddScoped<IPlayerPresenceService, PlayerPresenceService>();
+// PlayerHeartbeat Service
+builder.Services.AddScoped<IPlayerHeartbeatService, PlayerHeartbeatService>();
 
 // Chat Services
 builder.Services.Configure<AzureContentSafetyOptions>(builder.Configuration.GetSection("AzureContentSafety"));

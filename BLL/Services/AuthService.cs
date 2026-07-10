@@ -76,6 +76,10 @@ namespace BLL.Services
             account.RefreshToken = HashRefreshToken(refreshToken);
             account.RefreshTokenExpiresAt = refreshExpiry;
             account.LastLogin = DateTime.UtcNow;
+            if (request.ClientType == "Game")
+            {
+                account.LastSeen = DateTime.UtcNow;
+            }
             account.UpdatedAt = DateTime.UtcNow;
             if (account.PlayerProfile != null)
             {
