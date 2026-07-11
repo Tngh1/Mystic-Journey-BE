@@ -55,6 +55,7 @@ namespace Mystic_Journey_API.Controllers
         // ── GET /api/contents ──────────────────────────────────────
         // Lấy danh sách tất cả contents có phân trang và lọc.
         // Query: page, pageSize, search, isPublished.
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null)
         {
@@ -65,7 +66,7 @@ namespace Mystic_Journey_API.Controllers
         // ── GET /api/contents/categories ──────────────────────────
         // Lấy danh sách categories.
         // Query: page, pageSize, search, isActive (tùy chọn).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [AllowAnonymous]
         [HttpGet("categories")]
         public async Task<IActionResult> GetCategories([FromQuery] int? page = null, [FromQuery] int? pageSize = null, [FromQuery] string? search = null, [FromQuery] bool? isActive = null)
         {

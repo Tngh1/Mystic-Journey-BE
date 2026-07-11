@@ -10,13 +10,23 @@ namespace DAL.Models
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
 
-        // Roles: Leader, Officer, Member
-        public string Role { get; set; } = "Member";
+        // Stored as int to match GuildRole enum
+        public GuildRole Role { get; set; } = GuildRole.Member;
 
+        // Contribution tracking
+        public int DailyContribution { get; set; } = 0;
+        public int WeeklyContribution { get; set; } = 0;
+        public int TotalContribution { get; set; } = 0;
+
+        // Kept for backward compat, acts as lifetime contribution alias
         public int Contribution { get; set; } = 0;
 
-        public bool IsActive { get; set; } = true;
+        // Guild currency earned through contribution
+        public int Medals { get; set; } = 0;
+        public int Feats { get; set; } = 0;
 
+        public DateTime? LastDonateAt { get; set; }
+        public DateTime? LastChatAt { get; set; }
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LeftAt { get; set; }
     }

@@ -31,9 +31,6 @@ namespace DAL.Repositories.Interfaces
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Tạo cấu hình dungeon mới.
-        Task<DungeonConfig> CreateDungeonConfig(DungeonConfig dungeon);
-
         // Cập nhật cấu hình dungeon.
         Task<DungeonConfig> UpdateDungeonConfig(DungeonConfig dungeon);
 
@@ -41,6 +38,6 @@ namespace DAL.Repositories.Interfaces
         Task<bool> DungeonExists(int dungeonId);
 
         // Lấy danh sách dungeon có phân trang, lọc theo tìm kiếm, loại và trạng thái.
-        Task<(int TotalCount, List<DungeonConfig> Items)> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<(int TotalCount, List<DungeonConfig> Items)> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
     }
 }

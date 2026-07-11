@@ -71,6 +71,16 @@ namespace BLL.Services
             return _mapper.Map<PlayerProfileDetailResponseDto>(profile);
         }
 
+        public async Task<PlayerProfileResponseDto?> GetByAccountIdAsync(int accountId)
+        {
+            var profile = await _repository.GetByAccountId(accountId);
+            if (profile == null)
+                return null;
+
+            RecalculateEnergy(profile);
+            return _mapper.Map<PlayerProfileResponseDto>(profile);
+        }
+
         public async Task<PlayerProfileResponseDto> UpdateProfile(int id, UpdatePlayerProfileRequestDto request)
         {
             var profile = await _repository.GetPlayerProfileById(id)

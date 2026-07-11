@@ -49,6 +49,9 @@ namespace DAL.Data
         public DbSet<Guild> Guilds => Set<Guild>();
         public DbSet<GuildMember> GuildMembers => Set<GuildMember>();
         public DbSet<GuildInvitation> GuildInvitations => Set<GuildInvitation>();
+        public DbSet<GuildApplication> GuildApplications => Set<GuildApplication>();
+        public DbSet<GuildChatMessage> GuildChatMessages => Set<GuildChatMessage>();
+        public DbSet<GuildLog> GuildLogs => Set<GuildLog>();
         public DbSet<Skin> Skins => Set<Skin>();
         public DbSet<PlayerSkin> PlayerSkins => Set<PlayerSkin>();
         public DbSet<Chest> Chests => Set<Chest>();
@@ -216,6 +219,48 @@ namespace DAL.Data
                 .WithMany()
                 .HasForeignKey(fb => fb.BlockedId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Guild relationships
+            modelBuilder.Entity<Guild>()
+                .HasOne(g => g.Leader)
+                .WithMany()
+                .HasForeignKey(g => g.LeaderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Guild>()
+                .HasOne(g => g.CreatedBy)
+                .WithMany()
+                .HasForeignKey(g => g.CreatedByProfileId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Guild>()
+                .Ignore(g => g.MaxMembers)
+                .Ignore(g => g.ExpToNextLevel);
+
+            modelBuilder.Entity<GuildMember>()
+                .HasIndex(m => m.PlayerProfileId)
+                .IsUnique();
+
+            modelBuilder.Entity<GuildLog>()
+                .HasOne(l => l.Guild)
+                .WithMany(g => g.Logs)
+                .HasForeignKey(l => l.GuildId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GuildLog>()
+                .HasOne(l => l.Actor)
+                .WithMany()
+                .HasForeignKey(l => l.ActorProfileId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<GuildLog>()
+                .HasOne(l => l.Target)
+                .WithMany()
+                .HasForeignKey(l => l.TargetProfileId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<GuildLog>()
+                .HasIndex(l => l.GuildId);
         }
     }
 }

@@ -1,4 +1,5 @@
 using BLL.DTOs;
+using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
@@ -9,26 +10,26 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
-    public class FriendService : Interfaces.IFriendService
+    public class FriendService : IFriendService
     {
         private readonly IFriendRepository _friendRepository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IChatMessageRepository _chatMessageRepository;
         private readonly IDistributedCache _cache;
-        private readonly Interfaces.IPlayerPresenceService _presenceService;
+        private readonly IPlayerHeartbeatService _heartbeatService;
 
         public FriendService(
             IFriendRepository friendRepository,
             IPlayerProfileRepository playerProfileRepository,
             IChatMessageRepository chatMessageRepository,
             IDistributedCache cache,
-            Interfaces.IPlayerPresenceService presenceService)
+            IPlayerHeartbeatService heartbeatService)
         {
             _friendRepository = friendRepository;
             _playerProfileRepository = playerProfileRepository;
             _chatMessageRepository = chatMessageRepository;
             _cache = cache;
-            _presenceService = presenceService;
+            _heartbeatService = heartbeatService;
         }
 
         public async Task<List<FriendDto>> GetFriendList(int playerId)
@@ -45,11 +46,11 @@ namespace BLL.Services
                     FriendLevel = friendProfile.Level,
                     FriendAvatarUrl = friendProfile.AvatarUrl,
                     Class = friendProfile.Class,
-                    CurrentMap = "World Map", // Future integration
-                    IsInDungeon = false, // Future integration
-                    CanInvite = true, // Future integration
+                    CurrentMap = "World Map",
+                    IsInDungeon = false,
+                    CanInvite = true,
                     LastOnline = friendProfile.UpdatedAt ?? friendProfile.CreatedAt,
-                    IsOnline = _presenceService.IsOnline(friendProfile.PlayerProfileId),
+                    IsOnline = IsPlayerOnline(friendProfile.Account),
                     Status = f.Status
                 };
             }).ToList();
@@ -94,12 +95,12 @@ namespace BLL.Services
                 CharacterName = profile.DisplayName,
                 Class = profile.Class,
                 Level = profile.Level,
-                Power = profile.Level * 100, // Mocked Power
-                Guild = "No Guild", // Mocked
+                Power = profile.Level * 100,
+                Guild = "No Guild",
                 AvatarUrl = profile.AvatarUrl,
-                Title = "Novice", // Mocked
+                Title = "Novice",
                 LastOnline = profile.UpdatedAt ?? profile.CreatedAt,
-                IsOnline = _presenceService.IsOnline(profileId)
+                IsOnline = IsPlayerOnline(profile.Account)
             };
         }
 
@@ -118,7 +119,6 @@ namespace BLL.Services
                 }
                 else
                 {
-                    // Check block
                     var block = await _friendRepository.GetFriendBlock(playerId, p.PlayerProfileId);
                     if (block != null)
                     {
@@ -151,9 +151,9 @@ namespace BLL.Services
                     Level = p.Level,
                     Class = p.Class,
                     Avatar = p.AvatarUrl,
-                    Power = p.Level * 100, // Mocked
-                    GuildName = "No Guild", // Mocked
-                    IsOnline = _presenceService.IsOnline(p.PlayerProfileId),
+                    Power = p.Level * 100,
+                    GuildName = "No Guild",
+                    IsOnline = IsPlayerOnline(p.Account),
                     RelationshipStatus = status
                 });
             }
@@ -168,18 +168,15 @@ namespace BLL.Services
             var targetProfile = await _playerProfileRepository.GetPlayerProfileById(targetProfileId);
             if (targetProfile == null) throw new Exception("Player not found");
 
-            // Check if blocked
             var block = await _friendRepository.GetFriendBlock(targetProfileId, requesterId);
-            if (block != null) throw new Exception("Cannot send friend request"); // target blocked requester
+            if (block != null) throw new Exception("Cannot send friend request");
 
             var reverseBlock = await _friendRepository.GetFriendBlock(requesterId, targetProfileId);
             if (reverseBlock != null) throw new Exception("You have blocked this player");
 
-            // Check friends limit (requester)
             var currentFriends = await _friendRepository.GetFriendListRaw(requesterId);
             if (currentFriends.Count >= 100) throw new Exception("Friend list is full (Limit: 100)");
 
-            // Check friends limit (target)
             var targetFriends = await _friendRepository.GetFriendListRaw(targetProfileId);
             if (targetFriends.Count >= 100) throw new Exception("Target's friend list is full");
 
@@ -196,7 +193,6 @@ namespace BLL.Services
                     throw new Exception("Friend request already sent");
                 }
                 
-                // If rejected, we allow re-sending
                 existing.Status = "Pending";
                 existing.RequesterId = requesterId; 
                 existing.AddresseeId = targetProfileId;
@@ -223,7 +219,6 @@ namespace BLL.Services
                 throw new Exception("Friend request not found or cannot be accepted");
             }
 
-            // Check limits again
             var currentFriends = await _friendRepository.GetFriendListRaw(playerId);
             if (currentFriends.Count >= 100) throw new Exception("Friend list is full (Limit: 100)");
 
@@ -267,7 +262,6 @@ namespace BLL.Services
             var targetProfile = await _playerProfileRepository.GetPlayerProfileById(targetProfileId);
             if (targetProfile == null) throw new Exception("Player not found");
 
-            // If they are friends, unfriend them first
             var friendship = await _friendRepository.GetFriendship(playerId, targetProfileId);
             await DeleteFriendConversation(playerId, targetProfileId);
             if (friendship != null)
@@ -296,6 +290,15 @@ namespace BLL.Services
                 await _friendRepository.RemoveFriendBlock(existingBlock);
             }
         }
+
+        private bool IsPlayerOnline(Account? account)
+        {
+            if (account == null)
+                return false;
+
+            return _heartbeatService.IsOnline(account.LastSeen);
+        }
+
         private async Task DeleteFriendConversation(int firstPlayerProfileId, int secondPlayerProfileId)
         {
             if (firstPlayerProfileId <= 0 || secondPlayerProfileId <= 0 || firstPlayerProfileId == secondPlayerProfileId)
@@ -313,7 +316,6 @@ namespace BLL.Services
             }
             catch
             {
-                // Redis/cache cleanup failure must not block unfriending.
             }
         }
 

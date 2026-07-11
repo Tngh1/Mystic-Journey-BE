@@ -56,16 +56,18 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/dungeons ───────────────────────────────────────────────
         // Lấy danh sách tất cả dungeons có phân trang và lọc.
-        // Query: page, pageSize, search, type, isActive.
+        // Query: page, pageSize, search, type, isActive, sortBy, sortOrder.
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? search = null,
             [FromQuery] string? type = null,
-            [FromQuery] bool? isActive = null)
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _dungeonConfigService.GetDungeonsPaged(page, pageSize, search, type, isActive);
+            var result = await _dungeonConfigService.GetDungeonsPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<DungeonConfigResponseDto>> { Success = true, Data = result });
         }
 
@@ -283,19 +285,7 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
-
-        // ── POST /api/dungeons ───────────────────────────────────────────────
-        // Tạo dungeon mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateDungeonConfigRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var dungeon = await _dungeonConfigService.CreateDungeon(request);
-            return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
-        }
+        // NOTE: Create endpoint removed - managed via seeding.
 
         // ── PUT /api/dungeons/{id} ───────────────────────────────────────────
         // Cập nhật dungeon hiện có.

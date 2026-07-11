@@ -15,6 +15,7 @@ namespace DAL.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
+        public DateTime? LastSeen { get; set; }
         public bool IsActive { get; set; } = true;
         public PlayerProfile? PlayerProfile { get; set; }
     }

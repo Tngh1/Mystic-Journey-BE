@@ -132,9 +132,9 @@ namespace BLL.Services
 
         // Admin: lấy tất cả mail có lọc và phân trang.
         public async Task<PagedResultDto<MailDetailDto>> GetMailsPaged(
-            int page, int pageSize, string? search, bool? isRead, bool? isClaimed)
+            int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetMailsPaged(page, pageSize, search, isRead, isClaimed);
+            var (totalCount, items) = await _repository.GetMailsPaged(page, pageSize, search, isRead, isClaimed, sortBy, sortOrder);
             var dtos = _mapper.Map<List<MailDetailDto>>(items);
             return new PagedResultDto<MailDetailDto>(totalCount, dtos);
         }

@@ -147,5 +147,19 @@ namespace Mystic_Journey_API.Controllers
             await _inventoryService.ConsumeItem(profileId, request);
             return Ok(new ApiResponse<object> { Success = true, Message = "Item consumed successfully." });
         }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADMIN APIs
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── GET /api/inventory/{playerProfileId} ───────────────────────────────
+        // Lấy inventory đầy đủ của một player cụ thể (Admin).
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("{playerProfileId:int}")]
+        public async Task<IActionResult> GetInventoryByProfileId(int playerProfileId)
+        {
+            var result = await _inventoryService.GetMeInventory(playerProfileId);
+            return Ok(new ApiResponse<PlayerMeInventoryResponseDto> { Success = true, Data = result });
+        }
     }
 }

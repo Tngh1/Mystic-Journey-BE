@@ -31,13 +31,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(b => b.GachaBannerId == id);
         }
 
-        public async Task<GachaBanner> CreateGachaBanner(GachaBanner banner)
-        {
-            await _context.GachaBanners.AddAsync(banner);
-            await _context.SaveChangesAsync();
-            return banner;
-        }
-
         public async Task<GachaBanner> UpdateGachaBanner(GachaBanner banner)
         {
 _context.GachaBanners.Update(banner);
@@ -62,7 +55,7 @@ _context.GachaBanners.Update(banner);
         }
 
 
-        public async Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.GachaBanners
                 .Include(b => b.BannerItems)
@@ -81,6 +74,18 @@ _context.GachaBanners.Update(banner);
             {
                 query = query.Where(x => x.IsActive == isActive.Value);
             }
+
+            bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+            query = (sortBy?.ToLowerInvariant()) switch
+            {
+                "name" => desc ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
+                "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
+                "pullcost" => desc ? query.OrderByDescending(x => x.PullCost) : query.OrderBy(x => x.PullCost),
+                "startdate" => desc ? query.OrderByDescending(x => x.StartAt) : query.OrderBy(x => x.StartAt),
+                "enddate" => desc ? query.OrderByDescending(x => x.EndAt) : query.OrderBy(x => x.EndAt),
+                "isactive" => desc ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
+                _ => desc ? query.OrderByDescending(x => x.GachaBannerId) : query.OrderBy(x => x.GachaBannerId),
+            };
 
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

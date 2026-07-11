@@ -23,13 +23,10 @@ namespace DAL.Repositories.Interfaces
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Tạo thành tích mới.
-        Task<Achievement> CreateAchievement(Achievement achievement);
-
         // Cập nhật thông tin thành tích.
         Task<Achievement> UpdateAchievement(Achievement achievement);
 
         // Lấy danh sách thành tích có phân trang, lọc theo tìm kiếm, loại và trạng thái.
-        Task<(int TotalCount, List<Achievement> Items)> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<(int TotalCount, List<Achievement> Items)> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
     }
 }

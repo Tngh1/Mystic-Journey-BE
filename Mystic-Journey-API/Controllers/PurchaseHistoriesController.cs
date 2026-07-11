@@ -41,12 +41,17 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/purchasehistories ────────────────────────────────
         // Lấy tất cả lịch sử mua có phân trang và lọc.
-        // Query: page, pageSize, search.
+        // Query: page, pageSize, search, sortBy, sortOrder.
         [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _purchaseHistoryService.GetPurchaseHistoriesPaged(page, pageSize, search);
+            var result = await _purchaseHistoryService.GetPurchaseHistoriesPaged(page, pageSize, search, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<PurchaseHistoryResponseDto>> { Success = true, Data = result });
         }
     }

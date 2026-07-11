@@ -43,44 +43,6 @@ namespace BLL.Services
             return dto;
         }
 
-        public async Task<ItemResponseDto> CreateItem(CreateItemRequestDto request)
-        {
-            var item = new Item
-            {
-                Name = request.Name,
-                Description = request.Description,
-                Type = request.Type,
-                Rarity = request.Rarity,
-                Slot = request.Slot,
-                BaseValue = request.BaseValue,
-                MaxStack = request.MaxStack,
-                IsActive = request.IsActive,
-                IconUrl = request.IconUrl,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            if (IsEquipmentType(request.Type))
-            {
-                item.EquipmentStats = new EquipmentStats
-                {
-                    BaseHp = request.BaseHp ?? 0,
-                    BaseAtk = request.BaseAtk ?? 0,
-                    BaseDef = request.BaseDef ?? 0,
-                    BonusHp = request.BonusHp ?? 0,
-                    BonusAtk = request.BonusAtk ?? 0,
-                    BonusDef = request.BonusDef ?? 0,
-                    BonusCritRate = StatHelper.ToScaledFromFloat(request.BonusCritRate ?? 0f, StatScale.CritRate),
-                    BonusCritDamage = StatHelper.ToScaledFromFloat(request.BonusCritDamage ?? 0f, StatScale.CritRate),
-                    BonusMoveSpeed = 0,
-                    BonusAttackSpeed = 0,
-                    BonusDamageBonus = 0
-                };
-            }
-
-            var created = await _repository.CreateItem(item);
-            return await GetItemById(created.ItemId) ?? _mapper.Map<ItemResponseDto>(created);
-        }
-
         public async Task<ItemResponseDto> UpdateItem(int id, UpdateItemRequestDto request)
         {
             var item = await _repository.GetItemByIdWithStats(id)
@@ -120,9 +82,9 @@ namespace BLL.Services
             return await GetItemById(updated.ItemId) ?? _mapper.Map<ItemResponseDto>(updated);
         }
 
-        public async Task<PagedResultDto<ItemResponseDto>> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive)
+        public async Task<PagedResultDto<ItemResponseDto>> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetItemsPaged(page, pageSize, search, type, rarity, isActive);
+            var (totalCount, items) = await _repository.GetItemsPaged(page, pageSize, search, type, rarity, isActive, sortBy, sortOrder);
 
             var dtos = items.Select(item => {
                 var dto = _mapper.Map<ItemResponseDto>(item);

@@ -39,14 +39,6 @@ namespace DAL.Repositories
 
         // ── CRUD ──
 
-        /// <summary>Tạo thành tích mới trong hệ thống.</summary>
-        public async Task<Achievement> CreateAchievement(Achievement achievement)
-        {
-            await _context.Achievements.AddAsync(achievement);
-            await _context.SaveChangesAsync();
-            return achievement;
-        }
-
         /// <summary>Cập nhật thông tin thành tích.</summary>
         public async Task<Achievement> UpdateAchievement(Achievement achievement)
         {
@@ -58,7 +50,7 @@ namespace DAL.Repositories
         // ── Phân trang ──
 
         /// <summary>Lấy danh sách thành tích có phân trang, lọc theo tìm kiếm (tên), loại và trạng thái hoạt động.</summary>
-        public async Task<(int TotalCount, List<Achievement> Items)> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<(int TotalCount, List<Achievement> Items)> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.Achievements
                 .Include(a => a.RewardItem)
@@ -76,6 +68,18 @@ namespace DAL.Repositories
             {
                 query = query.Where(a => a.IsActive == isActive.Value);
             }
+
+            bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+            query = (sortBy?.ToLowerInvariant()) switch
+            {
+                "name" => desc ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
+                "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
+                "requiredvalue" => desc ? query.OrderByDescending(x => x.RequiredValue) : query.OrderBy(x => x.RequiredValue),
+                "rewardgold" => desc ? query.OrderByDescending(x => x.RewardGold) : query.OrderBy(x => x.RewardGold),
+                "rewardgems" => desc ? query.OrderByDescending(x => x.RewardGem) : query.OrderBy(x => x.RewardGem),
+                "isactive" => desc ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
+                _ => desc ? query.OrderByDescending(x => x.AchievementId) : query.OrderBy(x => x.AchievementId),
+            };
 
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

@@ -51,15 +51,6 @@ namespace BLL.Services
             return dto;
         }
 
-        public async Task<MonsterResponseDto> CreateMonster(CreateMonsterRequestDto request)
-        {
-            var monster = _mapper.Map<Monster>(request);
-            monster.CreatedAt = DateTime.UtcNow;
-
-            var created = await _repository.CreateMonster(monster);
-            return _mapper.Map<MonsterResponseDto>(created);
-        }
-
         public async Task<MonsterResponseDto> UpdateMonster(int id, UpdateMonsterRequestDto request)
         {
             var monster = await _repository.GetMonsterById(id)
@@ -106,9 +97,9 @@ namespace BLL.Services
             return _mapper.Map<MonsterDropResponseDto>(created);
         }
 
-        public async Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetMonstersPaged(page, pageSize, search, type, isActive);
+            var (totalCount, items) = await _repository.GetMonstersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
             var dtos = items.Select(m => _mapper.Map<MonsterResponseDto>(m)).ToList();
             return new PagedResultDto<MonsterResponseDto>(totalCount, dtos);
         }

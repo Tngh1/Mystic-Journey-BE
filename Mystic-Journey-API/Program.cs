@@ -29,6 +29,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// MemoryCache for OTP/verification (AuthService)
 builder.Services.AddMemoryCache();
 
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
@@ -128,9 +129,8 @@ builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 
-// Presence Service
-builder.Services.AddMemoryCache();
-builder.Services.AddScoped<IPlayerPresenceService, PlayerPresenceService>();
+// PlayerHeartbeat Service
+builder.Services.AddScoped<IPlayerHeartbeatService, PlayerHeartbeatService>();
 
 // Chat Services
 builder.Services.Configure<AzureContentSafetyOptions>(builder.Configuration.GetSection("AzureContentSafety"));
@@ -164,6 +164,10 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 // Daily Login Reward Services
 builder.Services.AddScoped<IDailyLoginRewardRepository, DailyLoginRewardRepository>();
 builder.Services.AddScoped<IDailyLoginRewardService, DailyLoginRewardService>();
+builder.Services.AddScoped<BLL.Services.Interfaces.IGuildService, BLL.Services.GuildService>();
+
+// Background Jobs
+builder.Services.AddHostedService<Mystic_Journey_API.BackgroundJobs.GuildContributionResetJob>();
 
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

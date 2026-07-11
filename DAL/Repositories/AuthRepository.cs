@@ -31,8 +31,7 @@ namespace DAL.Repositories
                 .Include(a => a.Role)
                 .Include(a => a.PlayerProfile)
                 .FirstOrDefaultAsync(a =>
-                    (a.UserName.ToLower() == emailOrUsername.ToLower() || a.Email.ToLower() == emailOrUsername.ToLower())
-                    && a.IsActive);
+                    a.UserName.ToLower() == emailOrUsername.ToLower() || a.Email.ToLower() == emailOrUsername.ToLower());
         }
 
         public async Task<bool> IsEmailExist(string email)
@@ -106,6 +105,13 @@ namespace DAL.Repositories
         {
             return await _context.Accounts
                 .CountAsync(a => a.IsActive);
+        }
+
+        public async Task<List<Account>> GetAllActiveAccountsAsync()
+        {
+            return await _context.Accounts
+                .Where(a => a.IsActive)
+                .ToListAsync();
         }
 
         public async Task<(int TotalCount, List<Account> Items)> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName)

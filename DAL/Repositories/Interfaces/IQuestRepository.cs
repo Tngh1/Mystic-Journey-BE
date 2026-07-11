@@ -26,13 +26,10 @@ namespace DAL.Repositories.Interfaces
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Tạo nhiệm vụ mới.
-        Task<Quest> CreateQuest(Quest quest);
-
         // Cập nhật thông tin nhiệm vụ.
         Task<Quest> UpdateQuest(Quest quest);
 
         // Lấy danh sách nhiệm vụ có phân trang, lọc theo tìm kiếm, loại, trạng thái và bản đồ.
-        Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName);
+        Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null);
     }
 }

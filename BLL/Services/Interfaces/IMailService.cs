@@ -32,7 +32,7 @@ namespace BLL.Services.Interfaces
         // ═══════════════════════════════════════════════════════════════════════
 
         // Lấy tất cả mail có lọc và phân trang (Admin).
-        Task<PagedResultDto<MailDetailDto>> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed);
+        Task<PagedResultDto<MailDetailDto>> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null);
 
         // Gửi mail đến danh sách player theo ID.
         Task SendMailByListId(SendMailByListIdDto request);

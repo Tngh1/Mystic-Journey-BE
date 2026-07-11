@@ -64,9 +64,9 @@ namespace BLL.Services
             return _mapper.Map<ShopItemResponseDto>(updated);
         }
 
-        public async Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive)
+        public async Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetShopItemsPaged(page, pageSize, search, currency, isActive);
+            var (totalCount, items) = await _repository.GetShopItemsPaged(page, pageSize, search, currency, isActive, sortBy, sortOrder);
             var dtos = _mapper.Map<List<ShopItemResponseDto>>(items);
             return new PagedResultDto<ShopItemResponseDto>(totalCount, dtos);
         }

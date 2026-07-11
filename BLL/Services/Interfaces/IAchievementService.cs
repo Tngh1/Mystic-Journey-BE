@@ -26,10 +26,7 @@ namespace BLL.Services.Interfaces
         // ═══════════════════════════════════════════════════════════════════════
 
         // Lấy danh sách tất cả achievements có phân trang và lọc.
-        Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
-
-        // Tạo achievement mới.
-        Task<AchievementResponseDto> CreateAchievement(CreateAchievementRequestDto request);
+        Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // Cập nhật achievement hiện có.
         Task<AchievementResponseDto> UpdateAchievement(int id, UpdateAchievementRequestDto request);

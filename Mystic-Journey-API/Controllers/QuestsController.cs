@@ -39,30 +39,26 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/quests ─────────────────────────────────────────────
         // Lấy danh sách tất cả quests có phân trang và lọc.
-        // Query: page, pageSize, search, type, isActive, mapName.
+        // Query: page, pageSize, search, type, isActive, mapName, sortBy, sortOrder.
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null, [FromQuery] string? mapName = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? type = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string? mapName = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _questService.GetQuestsPaged(page, pageSize, search, type, isActive, mapName);
+            var result = await _questService.GetQuestsPaged(page, pageSize, search, type, isActive, mapName, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<QuestResponseDto>> { Success = true, Data = result });
         }
 
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
-
-        // ── POST /api/quests ────────────────────────────────────────────
-        // Tạo quest mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateQuestRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var quest = await _questService.CreateQuest(request);
-            return Ok(new ApiResponse<QuestResponseDto> { Success = true, Data = quest });
-        }
+        // NOTE: Create endpoint removed - managed via seeding.
 
         // ── PUT /api/quests/{id} ───────────────────────────────────────
         // Cập nhật quest hiện có.

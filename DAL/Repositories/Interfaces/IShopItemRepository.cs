@@ -30,6 +30,6 @@ namespace DAL.Repositories.Interfaces
         Task<ShopItem> UpdateShopItem(ShopItem shopItem);
 
         // Lấy danh sách vật phẩm shop có phân trang, lọc theo tìm kiếm, loại tiền và trạng thái.
-        Task<(int TotalCount, List<ShopItem> Items)> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive);
+        Task<(int TotalCount, List<ShopItem> Items)> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive, string? sortBy = null, string? sortOrder = null);
     }
 }

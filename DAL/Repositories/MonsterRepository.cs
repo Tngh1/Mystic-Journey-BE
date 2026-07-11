@@ -156,14 +156,6 @@ namespace DAL.Repositories
 
         // ── CRUD ──
 
-        /// <summary>Tạo quái vật mới trong hệ thống.</summary>
-        public async Task<Monster> CreateMonster(Monster monster)
-        {
-            await _context.Monsters.AddAsync(monster);
-            await _context.SaveChangesAsync();
-            return monster;
-        }
-
         /// <summary>Cập nhật thông tin quái vật.</summary>
         public async Task<Monster> UpdateMonster(Monster monster)
         {
@@ -215,7 +207,7 @@ namespace DAL.Repositories
         // ── Phân trang ──
 
         /// <summary>Lấy danh sách quái vật có phân trang, lọc theo tìm kiếm (tên), loại và trạng thái hoạt động.</summary>
-        public async Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive)
+        public async Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.Monsters
                 .Include(m => m.MonsterDrops)
@@ -234,6 +226,21 @@ namespace DAL.Repositories
             {
                 query = query.Where(x => x.IsActive == isActive.Value);
             }
+
+            bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+            query = (sortBy?.ToLowerInvariant()) switch
+            {
+                "name" => desc ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
+                "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
+                "level" => desc ? query.OrderByDescending(x => x.Level) : query.OrderBy(x => x.Level),
+                "maxhp" => desc ? query.OrderByDescending(x => x.MaxHp) : query.OrderBy(x => x.MaxHp),
+                "attack" => desc ? query.OrderByDescending(x => x.Atk) : query.OrderBy(x => x.Atk),
+                "defense" => desc ? query.OrderByDescending(x => x.Def) : query.OrderBy(x => x.Def),
+                "goldreward" => desc ? query.OrderByDescending(x => x.GoldReward) : query.OrderBy(x => x.GoldReward),
+                "expReward" => desc ? query.OrderByDescending(x => x.ExperienceReward) : query.OrderBy(x => x.ExperienceReward),
+                "isactive" => desc ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
+                _ => desc ? query.OrderByDescending(x => x.MonsterId) : query.OrderBy(x => x.MonsterId),
+            };
 
             int totalCount = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

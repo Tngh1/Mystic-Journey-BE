@@ -16,14 +16,11 @@ namespace BLL.Services.Interfaces
         Task<ItemResponseDto?> GetItemById(int id);
 
         // Lấy danh sách tất cả items có phân trang và lọc.
-        Task<PagedResultDto<ItemResponseDto>> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive);
+        Task<PagedResultDto<ItemResponseDto>> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
-
-        // Tạo item mới.
-        Task<ItemResponseDto> CreateItem(CreateItemRequestDto request);
+        // NOTE: Create endpoint removed - managed via seeding.
 
         // Cập nhật item hiện có.
         Task<ItemResponseDto> UpdateItem(int id, UpdateItemRequestDto request);

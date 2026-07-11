@@ -29,7 +29,7 @@ namespace DAL.Repositories.Interfaces
         Task<List<PurchaseHistory>> GetPurchasesByPlayerId(int playerProfileId);
 
         // Lấy lịch sử giao dịch có phân trang và tìm kiếm theo từ khóa.
-        Task<(int TotalCount, List<PurchaseHistory> Histories)> GetPurchaseHistoriesPaged(int page, int pageSize, string? search);
+        Task<(int TotalCount, List<PurchaseHistory> Histories)> GetPurchaseHistoriesPaged(int page, int pageSize, string? search, string? sortBy = null, string? sortOrder = null);
 
         // Tạo bản ghi giao dịch mua hàng mới.
         Task<PurchaseHistory> CreatePurchaseHistory(PurchaseHistory history);

@@ -43,9 +43,16 @@ namespace Mystic_Journey_API.Controllers
         // Lấy danh sách tất cả gacha banners có phân trang và lọc.
         // Query: page, pageSize, search, type, isActive.
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? type = null, [FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? type = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = null)
         {
-            var result = await _gachaBannerService.GetBannersPaged(page, pageSize, search, type, isActive);
+            var result = await _gachaBannerService.GetBannersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<GachaBannerResponseDto>> { Success = true, Data = result });
         }
 
@@ -110,19 +117,7 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
-
-        // ── POST /api/gachabanners ────────────────────────────────
-        // Tạo gacha banner mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateGachaBannerRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var banner = await _gachaBannerService.CreateBanner(request);
-            return Ok(new ApiResponse<GachaBannerResponseDto> { Success = true, Data = banner });
-        }
+        // NOTE: Create endpoint removed - managed via seeding.
 
         // ── PUT /api/gachabanners/{id} ────────────────────────────
         // Cập nhật gacha banner hiện có.

@@ -15,14 +15,11 @@ namespace BLL.Services.Interfaces
         Task<DungeonConfigResponseDto?> GetDungeonById(int id);
 
         // Lấy danh sách tất cả dungeons có phân trang và lọc.
-        Task<PagedResultDto<DungeonConfigResponseDto>> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive);
+        Task<PagedResultDto<DungeonConfigResponseDto>> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
-
-        // Tạo dungeon mới.
-        Task<DungeonConfigResponseDto> CreateDungeon(CreateDungeonConfigRequestDto request);
 
         // Cập nhật dungeon hiện có.
         Task<DungeonConfigResponseDto> UpdateDungeon(int id, UpdateDungeonConfigRequestDto request);

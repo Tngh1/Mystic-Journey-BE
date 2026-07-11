@@ -36,9 +36,9 @@ namespace BLL.Services
 
 
 
-        public async Task<PagedResultDto<PurchaseHistoryResponseDto>> GetPurchaseHistoriesPaged(int page, int pageSize, string? search = null)
+        public async Task<PagedResultDto<PurchaseHistoryResponseDto>> GetPurchaseHistoriesPaged(int page, int pageSize, string? search = null, string? sortBy = null, string? sortOrder = null)
         {
-            var result = await _repository.GetPurchaseHistoriesPaged(page, pageSize, search);
+            var result = await _repository.GetPurchaseHistoriesPaged(page, pageSize, search, sortBy, sortOrder);
             var dtos = _mapper.Map<List<PurchaseHistoryResponseDto>>(result.Histories);
             return new PagedResultDto<PurchaseHistoryResponseDto>(result.TotalCount, dtos);
         }

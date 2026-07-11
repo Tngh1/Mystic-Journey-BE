@@ -29,14 +29,11 @@ namespace DAL.Repositories.Interfaces
         // Lấy vật phẩm kèm chỉ số trang bị (stats).
         Task<Item?> GetItemByIdWithStats(int id);
 
-        // Tạo vật phẩm mới trong hệ thống.
-        Task<Item> CreateItem(Item item);
-
         // Cập nhật thông tin vật phẩm.
         Task<Item> UpdateItem(Item item);
 
         // Lấy danh sách vật phẩm có phân trang, lọc theo tìm kiếm, loại, độ hiếm và trạng thái.
-        Task<(int TotalCount, List<Item> Items)> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive);
+        Task<(int TotalCount, List<Item> Items)> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // Đếm tổng số vật phẩm trong hệ thống.
         Task<int> GetTotalItemsCount();
