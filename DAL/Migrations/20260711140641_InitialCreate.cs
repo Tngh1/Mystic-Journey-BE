@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -49,6 +49,27 @@ namespace DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Chests", x => x.ChestId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ClassConfigs",
+                columns: table => new
+                {
+                    ClassConfigId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ClassName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    MaxHp = table.Column<int>(type: "integer", nullable: false),
+                    Atk = table.Column<int>(type: "integer", nullable: false),
+                    Def = table.Column<int>(type: "integer", nullable: false),
+                    MoveSpeed = table.Column<int>(type: "integer", nullable: false),
+                    AttackSpeed = table.Column<int>(type: "integer", nullable: false),
+                    CritRate = table.Column<int>(type: "integer", nullable: false),
+                    CritDamage = table.Column<int>(type: "integer", nullable: false),
+                    DamageBonus = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClassConfigs", x => x.ClassConfigId);
                 });
 
             migrationBuilder.CreateTable(
@@ -537,6 +558,7 @@ namespace DAL.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastSeen = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -686,6 +708,8 @@ namespace DAL.Migrations
                     MaxEnergy = table.Column<int>(type: "integer", nullable: false),
                     LastEnergyUpdateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastFreeGachaTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastActiveTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastLeaveAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     TotalDungeonClears = table.Column<int>(type: "integer", nullable: false),
@@ -942,11 +966,16 @@ namespace DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    IconUrl = table.Column<string>(type: "text", nullable: true),
+                    Notice = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    IconId = table.Column<int>(type: "integer", nullable: false),
+                    BannerId = table.Column<int>(type: "integer", nullable: false),
                     LeaderId = table.Column<int>(type: "integer", nullable: false),
-                    MaxMembers = table.Column<int>(type: "integer", nullable: false),
+                    CreatedByProfileId = table.Column<int>(type: "integer", nullable: false),
+                    RequiredLevel = table.Column<int>(type: "integer", nullable: false),
                     Level = table.Column<int>(type: "integer", nullable: false),
-                    Experience = table.Column<int>(type: "integer", nullable: false),
+                    GuildExp = table.Column<int>(type: "integer", nullable: false),
+                    TotalMedals = table.Column<int>(type: "integer", nullable: false),
+                    JoinPolicy = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -954,11 +983,17 @@ namespace DAL.Migrations
                 {
                     table.PrimaryKey("PK_Guilds", x => x.GuildId);
                     table.ForeignKey(
+                        name: "FK_Guilds_PlayerProfiles_CreatedByProfileId",
+                        column: x => x.CreatedByProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Guilds_PlayerProfiles_LeaderId",
                         column: x => x.LeaderId,
                         principalTable: "PlayerProfiles",
                         principalColumn: "PlayerProfileId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1436,6 +1471,64 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "GuildApplications",
+                columns: table => new
+                {
+                    GuildApplicationId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    GuildId = table.Column<int>(type: "integer", nullable: false),
+                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GuildApplications", x => x.GuildApplicationId);
+                    table.ForeignKey(
+                        name: "FK_GuildApplications_Guilds_GuildId",
+                        column: x => x.GuildId,
+                        principalTable: "Guilds",
+                        principalColumn: "GuildId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GuildApplications_PlayerProfiles_PlayerProfileId",
+                        column: x => x.PlayerProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GuildChatMessages",
+                columns: table => new
+                {
+                    GuildChatMessageId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    GuildId = table.Column<int>(type: "integer", nullable: false),
+                    SenderId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    MessageType = table.Column<int>(type: "integer", nullable: false),
+                    SenderRole = table.Column<int>(type: "integer", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GuildChatMessages", x => x.GuildChatMessageId);
+                    table.ForeignKey(
+                        name: "FK_GuildChatMessages_Guilds_GuildId",
+                        column: x => x.GuildId,
+                        principalTable: "Guilds",
+                        principalColumn: "GuildId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GuildChatMessages_PlayerProfiles_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GuildInvitations",
                 columns: table => new
                 {
@@ -1446,6 +1539,7 @@ namespace DAL.Migrations
                     InviteeId = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     RespondedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -1472,6 +1566,44 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "GuildLogs",
+                columns: table => new
+                {
+                    GuildLogId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    GuildId = table.Column<int>(type: "integer", nullable: false),
+                    ActorProfileId = table.Column<int>(type: "integer", nullable: true),
+                    TargetProfileId = table.Column<int>(type: "integer", nullable: true),
+                    ActorName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    TargetName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Action = table.Column<int>(type: "integer", nullable: false),
+                    Detail = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GuildLogs", x => x.GuildLogId);
+                    table.ForeignKey(
+                        name: "FK_GuildLogs_Guilds_GuildId",
+                        column: x => x.GuildId,
+                        principalTable: "Guilds",
+                        principalColumn: "GuildId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GuildLogs_PlayerProfiles_ActorProfileId",
+                        column: x => x.ActorProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_GuildLogs_PlayerProfiles_TargetProfileId",
+                        column: x => x.TargetProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "PlayerProfileId",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GuildMembers",
                 columns: table => new
                 {
@@ -1479,9 +1611,15 @@ namespace DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GuildId = table.Column<int>(type: "integer", nullable: false),
                     PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
-                    Role = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
+                    DailyContribution = table.Column<int>(type: "integer", nullable: false),
+                    WeeklyContribution = table.Column<int>(type: "integer", nullable: false),
+                    TotalContribution = table.Column<int>(type: "integer", nullable: false),
                     Contribution = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    Medals = table.Column<int>(type: "integer", nullable: false),
+                    Feats = table.Column<int>(type: "integer", nullable: false),
+                    LastDonateAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastChatAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LeftAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -1575,6 +1713,16 @@ namespace DAL.Migrations
                         principalTable: "WorldChatMessages",
                         principalColumn: "WorldChatMessageId",
                         onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.InsertData(
+                table: "ClassConfigs",
+                columns: new[] { "ClassConfigId", "Atk", "AttackSpeed", "ClassName", "CritDamage", "CritRate", "DamageBonus", "Def", "MaxHp", "MoveSpeed" },
+                values: new object[,]
+                {
+                    { 1, 30, 100, "Knight", 150, 5, 0, 40, 500, 100 },
+                    { 2, 40, 100, "Archer", 150, 5, 0, 20, 350, 100 },
+                    { 3, 50, 100, "Mage", 150, 5, 0, 15, 300, 100 }
                 });
 
             migrationBuilder.InsertData(
@@ -1755,6 +1903,26 @@ namespace DAL.Migrations
                 column: "UpdatedByAccountAccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GuildApplications_GuildId",
+                table: "GuildApplications",
+                column: "GuildId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuildApplications_PlayerProfileId",
+                table: "GuildApplications",
+                column: "PlayerProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuildChatMessages_GuildId",
+                table: "GuildChatMessages",
+                column: "GuildId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuildChatMessages_SenderId",
+                table: "GuildChatMessages",
+                column: "SenderId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GuildInvitations_GuildId",
                 table: "GuildInvitations",
                 column: "GuildId");
@@ -1770,6 +1938,21 @@ namespace DAL.Migrations
                 column: "InviterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GuildLogs_ActorProfileId",
+                table: "GuildLogs",
+                column: "ActorProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuildLogs_GuildId",
+                table: "GuildLogs",
+                column: "GuildId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GuildLogs_TargetProfileId",
+                table: "GuildLogs",
+                column: "TargetProfileId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GuildMembers_GuildId",
                 table: "GuildMembers",
                 column: "GuildId");
@@ -1777,7 +1960,13 @@ namespace DAL.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_GuildMembers_PlayerProfileId",
                 table: "GuildMembers",
-                column: "PlayerProfileId");
+                column: "PlayerProfileId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Guilds_CreatedByProfileId",
+                table: "Guilds",
+                column: "CreatedByProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Guilds_LeaderId",
@@ -2006,6 +2195,9 @@ namespace DAL.Migrations
                 name: "ChestItems");
 
             migrationBuilder.DropTable(
+                name: "ClassConfigs");
+
+            migrationBuilder.DropTable(
                 name: "DailyLoginRewards");
 
             migrationBuilder.DropTable(
@@ -2030,7 +2222,16 @@ namespace DAL.Migrations
                 name: "GameSettings");
 
             migrationBuilder.DropTable(
+                name: "GuildApplications");
+
+            migrationBuilder.DropTable(
+                name: "GuildChatMessages");
+
+            migrationBuilder.DropTable(
                 name: "GuildInvitations");
+
+            migrationBuilder.DropTable(
+                name: "GuildLogs");
 
             migrationBuilder.DropTable(
                 name: "GuildMembers");
