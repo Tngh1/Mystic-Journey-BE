@@ -2399,7 +2399,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     var acc = await _ctx.Accounts.FirstOrDefaultAsync(a => a.Email == email);
                     if (acc == null)
                     {
-                        acc = new Account { Email = email, PasswordHash = HashPassword("123"), IsActive = true, CreatedAt = DateTime.UtcNow };
+                        acc = new Account { UserName = $"guildbot{i}", Email = email, HashPassword = HashPassword("123"), IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = 1 };
                         _ctx.Accounts.Add(acc);
                         await _ctx.SaveChangesAsync();
                     }
@@ -2407,7 +2407,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     var prof = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.AccountId == acc.AccountId);
                     if (prof == null)
                     {
-                        prof = new PlayerProfile { AccountId = acc.AccountId, DisplayName = $"[SEED] GuildBot {i}", Level = i * 5, ClassId = 1, IsOnline = true, CreatedAt = DateTime.UtcNow };
+                        prof = new PlayerProfile { AccountId = acc.AccountId, DisplayName = $"[SEED] GuildBot {i}", Level = i * 5, Class = "Knight", CreatedAt = DateTime.UtcNow };
                         _ctx.PlayerProfiles.Add(prof);
                         await _ctx.SaveChangesAsync();
                     }
@@ -2423,9 +2423,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     BannerId = 1,
                     Level = 7,
                     GuildExp = 50000,
-                    JoinPolicy = 1, // Approval
+                    JoinPolicy = DAL.Models.GuildJoinPolicy.Approval,
                     RequiredLevel = 20,
-                    LeaderProfileId = botProfiles[0].PlayerProfileId,
+                    LeaderId = botProfiles[0].PlayerProfileId,
+                    CreatedByProfileId = botProfiles[0].PlayerProfileId,
                     TotalMedals = 150000,
                     CreatedAt = DateTime.UtcNow.AddDays(-30)
                 };
@@ -2438,9 +2439,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     BannerId = 2,
                     Level = 2,
                     GuildExp = 1500,
-                    JoinPolicy = 0, // Open
+                    JoinPolicy = DAL.Models.GuildJoinPolicy.Open,
                     RequiredLevel = 1,
-                    LeaderProfileId = botProfiles[1].PlayerProfileId,
+                    LeaderId = botProfiles[1].PlayerProfileId,
+                    CreatedByProfileId = botProfiles[1].PlayerProfileId,
                     TotalMedals = 5000,
                     CreatedAt = DateTime.UtcNow.AddDays(-5)
                 };
@@ -2453,9 +2455,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     BannerId = 3,
                     Level = 5,
                     GuildExp = 25000,
-                    JoinPolicy = 2, // Closed
+                    JoinPolicy = DAL.Models.GuildJoinPolicy.InviteOnly,
                     RequiredLevel = 50,
-                    LeaderProfileId = botProfiles[2].PlayerProfileId,
+                    LeaderId = botProfiles[2].PlayerProfileId,
+                    CreatedByProfileId = botProfiles[2].PlayerProfileId,
                     TotalMedals = 75000,
                     CreatedAt = DateTime.UtcNow.AddDays(-15)
                 };
@@ -2466,17 +2469,17 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 // 4. Thêm thành viên vào Guild 1
                 var members = new List<GuildMember>
                 {
-                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[0].PlayerProfileId, Role = "Leader", Feats = 10000, JoinedAt = DateTime.UtcNow.AddDays(-30) },
-                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[3].PlayerProfileId, Role = "Officer", Feats = 5000, JoinedAt = DateTime.UtcNow.AddDays(-20) },
-                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[4].PlayerProfileId, Role = "Member", Feats = 200, JoinedAt = DateTime.UtcNow.AddDays(-5) }
+                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[0].PlayerProfileId, Role = DAL.Models.GuildRole.Leader, Feats = 10000, JoinedAt = DateTime.UtcNow.AddDays(-30) },
+                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[3].PlayerProfileId, Role = DAL.Models.GuildRole.Officer, Feats = 5000, JoinedAt = DateTime.UtcNow.AddDays(-20) },
+                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[4].PlayerProfileId, Role = DAL.Models.GuildRole.Member, Feats = 200, JoinedAt = DateTime.UtcNow.AddDays(-5) }
                 };
 
                 // Guild 2
-                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[1].PlayerProfileId, Role = "Leader", Feats = 500, JoinedAt = DateTime.UtcNow.AddDays(-5) });
-                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[5].PlayerProfileId, Role = "Member", Feats = 10, JoinedAt = DateTime.UtcNow.AddDays(-1) });
+                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[1].PlayerProfileId, Role = DAL.Models.GuildRole.Leader, Feats = 500, JoinedAt = DateTime.UtcNow.AddDays(-5) });
+                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[5].PlayerProfileId, Role = DAL.Models.GuildRole.Member, Feats = 10, JoinedAt = DateTime.UtcNow.AddDays(-1) });
 
                 // Guild 3 (Chỉ có 1 leader cô đơn)
-                members.Add(new GuildMember { GuildId = guild3.GuildId, PlayerProfileId = botProfiles[2].PlayerProfileId, Role = "Leader", Feats = 99999, JoinedAt = DateTime.UtcNow.AddDays(-15) });
+                members.Add(new GuildMember { GuildId = guild3.GuildId, PlayerProfileId = botProfiles[2].PlayerProfileId, Role = DAL.Models.GuildRole.Leader, Feats = 99999, JoinedAt = DateTime.UtcNow.AddDays(-15) });
 
                 _ctx.GuildMembers.AddRange(members);
                 await _ctx.SaveChangesAsync();
