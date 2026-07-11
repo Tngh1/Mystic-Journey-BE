@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711085354_GuildSystem")]
+    partial class GuildSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1057,34 +1060,28 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GuildId"));
 
-                    b.Property<int>("BannerId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CreatedByProfileId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<int>("GuildExp")
+                    b.Property<int>("Experience")
                         .HasColumnType("integer");
 
-                    b.Property<int>("IconId")
-                        .HasColumnType("integer");
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("JoinPolicy")
-                        .HasColumnType("integer");
 
                     b.Property<int>("LeaderId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxMembers")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
@@ -1094,8 +1091,7 @@ namespace DAL.Migrations
 
                     b.Property<string>("Notice")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<int>("RequiredLevel")
                         .HasColumnType("integer");
@@ -1104,8 +1100,6 @@ namespace DAL.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("GuildId");
-
-                    b.HasIndex("CreatedByProfileId");
 
                     b.HasIndex("LeaderId");
 
@@ -1158,13 +1152,7 @@ namespace DAL.Migrations
                     b.Property<int>("GuildId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MessageType")
-                        .HasColumnType("integer");
-
                     b.Property<int>("SenderId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SenderRole")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("SentAt")
@@ -1188,9 +1176,6 @@ namespace DAL.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GuildInvitationId"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("GuildId")
@@ -1220,52 +1205,6 @@ namespace DAL.Migrations
                     b.ToTable("GuildInvitations");
                 });
 
-            modelBuilder.Entity("DAL.Models.GuildLog", b =>
-                {
-                    b.Property<int>("GuildLogId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GuildLogId"));
-
-                    b.Property<int>("Action")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ActorName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int?>("ActorProfileId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Detail")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<int>("GuildId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TargetName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int?>("TargetProfileId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("GuildLogId");
-
-                    b.HasIndex("ActorProfileId");
-
-                    b.HasIndex("GuildId");
-
-                    b.HasIndex("TargetProfileId");
-
-                    b.ToTable("GuildLogs");
-                });
-
             modelBuilder.Entity("DAL.Models.GuildMember", b =>
                 {
                     b.Property<int>("GuildMemberId")
@@ -1277,22 +1216,16 @@ namespace DAL.Migrations
                     b.Property<int>("Contribution")
                         .HasColumnType("integer");
 
-                    b.Property<int>("DailyContribution")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Feats")
                         .HasColumnType("integer");
 
                     b.Property<int>("GuildId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("LastChatAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("LastDonateAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("LeftAt")
@@ -1304,14 +1237,9 @@ namespace DAL.Migrations
                     b.Property<int>("PlayerProfileId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TotalContribution")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("WeeklyContribution")
-                        .HasColumnType("integer");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("GuildMemberId");
 
@@ -1990,9 +1918,6 @@ namespace DAL.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("LastFreeGachaTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("LastLeaveAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastMapName")
@@ -2929,19 +2854,11 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Models.Guild", b =>
                 {
-                    b.HasOne("DAL.Models.PlayerProfile", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedByProfileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("DAL.Models.PlayerProfile", "Leader")
                         .WithMany()
                         .HasForeignKey("LeaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("CreatedBy");
 
                     b.Navigation("Leader");
                 });
@@ -2949,7 +2866,7 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.GuildApplication", b =>
                 {
                     b.HasOne("DAL.Models.Guild", "Guild")
-                        .WithMany("Applications")
+                        .WithMany()
                         .HasForeignKey("GuildId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2968,7 +2885,7 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.GuildChatMessage", b =>
                 {
                     b.HasOne("DAL.Models.Guild", "Guild")
-                        .WithMany("ChatMessages")
+                        .WithMany()
                         .HasForeignKey("GuildId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -3009,31 +2926,6 @@ namespace DAL.Migrations
                     b.Navigation("Invitee");
 
                     b.Navigation("Inviter");
-                });
-
-            modelBuilder.Entity("DAL.Models.GuildLog", b =>
-                {
-                    b.HasOne("DAL.Models.PlayerProfile", "Actor")
-                        .WithMany()
-                        .HasForeignKey("ActorProfileId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DAL.Models.Guild", "Guild")
-                        .WithMany("Logs")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DAL.Models.PlayerProfile", "Target")
-                        .WithMany()
-                        .HasForeignKey("TargetProfileId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Actor");
-
-                    b.Navigation("Guild");
-
-                    b.Navigation("Target");
                 });
 
             modelBuilder.Entity("DAL.Models.GuildMember", b =>
@@ -3482,13 +3374,7 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Models.Guild", b =>
                 {
-                    b.Navigation("Applications");
-
-                    b.Navigation("ChatMessages");
-
                     b.Navigation("Invitations");
-
-                    b.Navigation("Logs");
 
                     b.Navigation("Members");
                 });

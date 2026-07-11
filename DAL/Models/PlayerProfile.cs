@@ -26,6 +26,8 @@ namespace DAL.Models
         public int MaxEnergy { get; set; } = 100;
         public DateTime LastEnergyUpdateTime { get; set; } = DateTime.UtcNow;
         public DateTime? LastFreeGachaTime { get; set; }
+        public DateTime LastActiveTime { get; set; } = DateTime.UtcNow;
+        public DateTime? LastLeaveAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
@@ -45,5 +47,6 @@ namespace DAL.Models
         public ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();
         public ICollection<Mail> Mails { get; set; } = new List<Mail>();
         public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
+        public GuildMember? GuildMember { get; set; }
     }
 }

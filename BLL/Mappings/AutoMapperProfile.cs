@@ -244,12 +244,11 @@ namespace BLL.Mappings
 
             // Ánh xạ thành viên guild.
             CreateMap<GuildMember, GuildMemberResponseDto>();
-            CreateMap<UpdateGuildMemberRequestDto, GuildMember>();
+            // Note: UpdateGuildMemberRequestDto removed in v2 - use PromoteMemberRequest/DemoteMemberRequest
 
             // Ánh xạ lời mời guild.
             CreateMap<GuildInvitation, GuildInvitationResponseDto>();
-            CreateMap<CreateGuildInvitationRequestDto, GuildInvitation>();
-            CreateMap<RespondGuildInvitationRequestDto, GuildInvitation>();
+            // Note: CreateGuildInvitationRequestDto and RespondGuildInvitationRequestDto removed in v2 - managed by GuildService directly
 
             // ═══════════════════════════════════════════════════════════════════════
             // CHAT & BẠN BÈ (Chat & Friend)

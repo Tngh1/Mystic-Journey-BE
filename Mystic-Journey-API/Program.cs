@@ -164,6 +164,10 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 // Daily Login Reward Services
 builder.Services.AddScoped<IDailyLoginRewardRepository, DailyLoginRewardRepository>();
 builder.Services.AddScoped<IDailyLoginRewardService, DailyLoginRewardService>();
+builder.Services.AddScoped<BLL.Services.Interfaces.IGuildService, BLL.Services.GuildService>();
+
+// Background Jobs
+builder.Services.AddHostedService<Mystic_Journey_API.BackgroundJobs.GuildContributionResetJob>();
 
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

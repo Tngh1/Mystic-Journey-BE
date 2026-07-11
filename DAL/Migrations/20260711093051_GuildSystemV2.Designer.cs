@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711093051_GuildSystemV2")]
+    partial class GuildSystemV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1057,8 +1060,8 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GuildId"));
 
-                    b.Property<int>("BannerId")
-                        .HasColumnType("integer");
+                    b.Property<string>("BannerUrl")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1072,8 +1075,8 @@ namespace DAL.Migrations
                     b.Property<int>("GuildExp")
                         .HasColumnType("integer");
 
-                    b.Property<int>("IconId")
-                        .HasColumnType("integer");
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1094,8 +1097,7 @@ namespace DAL.Migrations
 
                     b.Property<string>("Notice")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<int>("RequiredLevel")
                         .HasColumnType("integer");
@@ -1164,9 +1166,6 @@ namespace DAL.Migrations
                     b.Property<int>("SenderId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SenderRole")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("SentAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1188,9 +1187,6 @@ namespace DAL.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GuildInvitationId"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("GuildId")
@@ -1231,10 +1227,6 @@ namespace DAL.Migrations
                     b.Property<int>("Action")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ActorName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<int?>("ActorProfileId")
                         .HasColumnType("integer");
 
@@ -1247,10 +1239,6 @@ namespace DAL.Migrations
 
                     b.Property<int>("GuildId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("TargetName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("TargetProfileId")
                         .HasColumnType("integer");
@@ -1287,9 +1275,6 @@ namespace DAL.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("LastChatAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("LastDonateAt")

@@ -2374,6 +2374,123 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             }
         }
 
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/guilds → Seed dữ liệu Bang hội (Guild System v3)
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("guilds")]
+        public async Task<IActionResult> SeedGuilds()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Xóa các Guild cũ (có chữ [SEED])
+                var existingGuilds = await _ctx.Guilds.Where(g => g.Name.StartsWith("[SEED]")).ToListAsync();
+                if (existingGuilds.Any())
+                {
+                    _ctx.Guilds.RemoveRange(existingGuilds);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // 2. Tạo 10 user giả để làm Leader / Member
+                var botProfiles = new List<PlayerProfile>();
+                for (int i = 1; i <= 10; i++)
+                {
+                    string email = $"guildbot{i}@mystic.test";
+                    var acc = await _ctx.Accounts.FirstOrDefaultAsync(a => a.Email == email);
+                    if (acc == null)
+                    {
+                        acc = new Account { Email = email, PasswordHash = HashPassword("123"), IsActive = true, CreatedAt = DateTime.UtcNow };
+                        _ctx.Accounts.Add(acc);
+                        await _ctx.SaveChangesAsync();
+                    }
+
+                    var prof = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.AccountId == acc.AccountId);
+                    if (prof == null)
+                    {
+                        prof = new PlayerProfile { AccountId = acc.AccountId, DisplayName = $"[SEED] GuildBot {i}", Level = i * 5, ClassId = 1, IsOnline = true, CreatedAt = DateTime.UtcNow };
+                        _ctx.PlayerProfiles.Add(prof);
+                        await _ctx.SaveChangesAsync();
+                    }
+                    botProfiles.Add(prof);
+                }
+
+                // 3. Tạo 3 Guilds
+                var guild1 = new Guild
+                {
+                    Name = "[SEED] Dragon Slayer",
+                    Notice = "Bang hội săn rồng, tuyển anh em onl thường xuyên!",
+                    IconId = 1,
+                    BannerId = 1,
+                    Level = 7,
+                    GuildExp = 50000,
+                    JoinPolicy = 1, // Approval
+                    RequiredLevel = 20,
+                    LeaderProfileId = botProfiles[0].PlayerProfileId,
+                    TotalMedals = 150000,
+                    CreatedAt = DateTime.UtcNow.AddDays(-30)
+                };
+
+                var guild2 = new Guild
+                {
+                    Name = "[SEED] Noob House",
+                    Notice = "Vui vẻ là chính, không quan trọng cấp độ.",
+                    IconId = 2,
+                    BannerId = 2,
+                    Level = 2,
+                    GuildExp = 1500,
+                    JoinPolicy = 0, // Open
+                    RequiredLevel = 1,
+                    LeaderProfileId = botProfiles[1].PlayerProfileId,
+                    TotalMedals = 5000,
+                    CreatedAt = DateTime.UtcNow.AddDays(-5)
+                };
+
+                var guild3 = new Guild
+                {
+                    Name = "[SEED] Solo Leveling",
+                    Notice = "Cày chay không nạp.",
+                    IconId = 3,
+                    BannerId = 3,
+                    Level = 5,
+                    GuildExp = 25000,
+                    JoinPolicy = 2, // Closed
+                    RequiredLevel = 50,
+                    LeaderProfileId = botProfiles[2].PlayerProfileId,
+                    TotalMedals = 75000,
+                    CreatedAt = DateTime.UtcNow.AddDays(-15)
+                };
+
+                _ctx.Guilds.AddRange(guild1, guild2, guild3);
+                await _ctx.SaveChangesAsync();
+
+                // 4. Thêm thành viên vào Guild 1
+                var members = new List<GuildMember>
+                {
+                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[0].PlayerProfileId, Role = "Leader", Feats = 10000, JoinedAt = DateTime.UtcNow.AddDays(-30) },
+                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[3].PlayerProfileId, Role = "Officer", Feats = 5000, JoinedAt = DateTime.UtcNow.AddDays(-20) },
+                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[4].PlayerProfileId, Role = "Member", Feats = 200, JoinedAt = DateTime.UtcNow.AddDays(-5) }
+                };
+
+                // Guild 2
+                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[1].PlayerProfileId, Role = "Leader", Feats = 500, JoinedAt = DateTime.UtcNow.AddDays(-5) });
+                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[5].PlayerProfileId, Role = "Member", Feats = 10, JoinedAt = DateTime.UtcNow.AddDays(-1) });
+
+                // Guild 3 (Chỉ có 1 leader cô đơn)
+                members.Add(new GuildMember { GuildId = guild3.GuildId, PlayerProfileId = botProfiles[2].PlayerProfileId, Role = "Leader", Feats = 99999, JoinedAt = DateTime.UtcNow.AddDays(-15) });
+
+                _ctx.GuildMembers.AddRange(members);
+                await _ctx.SaveChangesAsync();
+
+                await tx.CommitAsync();
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seeded 3 Guilds successfully!" });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
         private static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
