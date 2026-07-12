@@ -24,16 +24,20 @@ namespace DAL.Repositories
         /// Lấy danh sách bạn bè của người chơi.
         /// Trả về profile của người bạn (không phải người gửi/yêu cầu).
         /// Chỉ lấy các mối quan hệ có trạng thái "Accepted".
+        /// Tách thành 2 truy vấn để EF Core có thể dịch sang SQL: lấy Friend rows
+        /// (đã Include cả 2 navigation), rồi chọn profile phía bên kia trong bộ nhớ.
         /// </summary>
         public async Task<List<PlayerProfile>> GetFriends(int playerProfileId)
         {
-            return await _context.Friends
-                .Where(f => (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) && f.Status == "Accepted")
-                .Include(f => f.Requester)
-                .Include(f => f.Addressee)
-                .Select(f => f.RequesterId == playerProfileId ? f.Addressee! : f.Requester!)
-                .Where(p => p != null)
-                .ToListAsync();
+            var rawFriends = await GetFriendListRaw(playerProfileId);
+
+            var profiles = new List<PlayerProfile>();
+            foreach (var f in rawFriends)
+            {
+                var profile = f.RequesterId == playerProfileId ? f.Addressee : f.Requester;
+                if (profile != null) profiles.Add(profile);
+            }
+            return profiles;
         }
         public async Task<List<Friend>> GetFriendListRaw(int playerProfileId)
         {
