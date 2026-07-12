@@ -214,6 +214,27 @@ namespace Mystic_Journey_API.Controllers
             return success ? Ok() : Forbid();
         }
 
+        // ─────────────────────────────────────────────────────────────────────────
+        // GET /api/guilds/my-guild
+        // Lấy thông tin guild hiện tại của user
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpGet("my-guild")]
+        public async Task<IActionResult> GetMyGuild()
+        {
+            try
+            {
+                int playerProfileId = GetPlayerProfileId();
+                var result = await _guildService.GetMyGuildAsync(playerProfileId);
+                if (result == null)
+                    return Ok(new ApiResponse<GuildDetailResponseDto> { Success = true, Message = "Not in a guild", Data = null });
+                return Ok(new ApiResponse<GuildDetailResponseDto> { Success = true, Message = "Success", Data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message });
+            }
+        }
+
         // ─── Donate ─────────────────────────────────────────────────────
 
         /// <summary>
