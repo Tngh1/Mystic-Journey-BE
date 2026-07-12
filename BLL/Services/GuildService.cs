@@ -102,6 +102,35 @@ namespace BLL.Services
 
         // ─── View ─────────────────────────────────────────────────────────
 
+        public async Task<GuildDetailResponseDto?> GetMyGuildAsync(int playerProfileId)
+        {
+            var member = await _context.GuildMembers.FirstOrDefaultAsync(m => m.PlayerProfileId == playerProfileId);
+            if (member != null)
+                return await GetGuildDetailAsync(member.GuildId);
+
+            // Fallback: check if this player is a leader of an active guild
+            // This handles the case where GuildMember row was missing (e.g. creation race condition)
+            var leadedGuild = await _context.Guilds
+                .FirstOrDefaultAsync(g => g.LeaderId == playerProfileId && g.IsActive);
+
+            if (leadedGuild != null)
+            {
+                // Auto-recover: insert the missing GuildMember row for the leader
+                var recoveredMember = new GuildMember
+                {
+                    GuildId = leadedGuild.GuildId,
+                    PlayerProfileId = playerProfileId,
+                    Role = GuildRole.Leader,
+                    JoinedAt = leadedGuild.CreatedAt
+                };
+                _context.GuildMembers.Add(recoveredMember);
+                await _context.SaveChangesAsync();
+                return await GetGuildDetailAsync(leadedGuild.GuildId);
+            }
+
+            return null;
+        }
+
         public async Task<List<GuildResponseDto>> GetGuildListAsync(
             string searchTerm = "", int? joinPolicy = null, int? minLevel = null)
         {
@@ -222,6 +251,8 @@ namespace BLL.Services
                 .ToListAsync();
             foreach (var profile in profiles)
                 profile.LastLeaveAt = DateTime.UtcNow;
+
+            _context.GuildMembers.RemoveRange(guild.Members);
 
             // Clean up pending applications
             var pendingApps = await _context.GuildApplications

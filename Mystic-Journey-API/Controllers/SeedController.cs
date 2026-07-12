@@ -2383,8 +2383,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
             {
-                // 1. Xóa các Guild cũ (có chữ [SEED])
-                var existingGuilds = await _ctx.Guilds.Where(g => g.Name.StartsWith("[SEED]")).ToListAsync();
+                // 1. Xóa các Guild cũ do bot tạo
+                var botAccounts = await _ctx.Accounts.Where(a => a.Email.StartsWith("guildbot")).Select(a => a.AccountId).ToListAsync();
+                var oldBotProfiles = await _ctx.PlayerProfiles.Where(p => botAccounts.Contains(p.AccountId)).Select(p => p.PlayerProfileId).ToListAsync();
+                var existingGuilds = await _ctx.Guilds.Where(g => oldBotProfiles.Contains(g.CreatedByProfileId)).ToListAsync();
                 if (existingGuilds.Any())
                 {
                     _ctx.Guilds.RemoveRange(existingGuilds);
@@ -2407,17 +2409,22 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     var prof = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.AccountId == acc.AccountId);
                     if (prof == null)
                     {
-                        prof = new PlayerProfile { AccountId = acc.AccountId, DisplayName = $"[SEED] GuildBot {i}", Level = i * 5, Class = "Knight", CreatedAt = DateTime.UtcNow };
+                        prof = new PlayerProfile { AccountId = acc.AccountId, DisplayName = $"GuildBot {i}", Level = i * 5, Class = "Knight", CreatedAt = DateTime.UtcNow };
                         _ctx.PlayerProfiles.Add(prof);
-                        await _ctx.SaveChangesAsync();
                     }
+                    else
+                    {
+                        // Cập nhật lại tên nếu account đã tồn tại từ lần seed trước
+                        prof.DisplayName = $"GuildBot {i}";
+                    }
+                    await _ctx.SaveChangesAsync();
                     botProfiles.Add(prof);
                 }
 
                 // 3. Tạo 3 Guilds
                 var guild1 = new Guild
                 {
-                    Name = "[SEED] Dragon Slayer",
+                    Name = "Dragon Slayer",
                     Notice = "Bang hội săn rồng, tuyển anh em onl thường xuyên!",
                     IconId = 1,
                     BannerId = 1,
@@ -2433,7 +2440,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
 
                 var guild2 = new Guild
                 {
-                    Name = "[SEED] Noob House",
+                    Name = "Noob House",
                     Notice = "Vui vẻ là chính, không quan trọng cấp độ.",
                     IconId = 2,
                     BannerId = 2,
@@ -2449,7 +2456,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
 
                 var guild3 = new Guild
                 {
-                    Name = "[SEED] Solo Leveling",
+                    Name = "Solo Leveling",
                     Notice = "Cày chay không nạp.",
                     IconId = 3,
                     BannerId = 3,

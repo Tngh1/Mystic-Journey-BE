@@ -37,7 +37,7 @@ namespace BLL.DTOs
     public class CreateGuildRequestDto
     {
         [Required(ErrorMessage = "Guild name is required.")]
-        [StringLength(100)]
+        [StringLength(15, ErrorMessage = "Guild name must be between 3 and 15 characters.", MinimumLength = 3)]
         public string Name { get; set; } = string.Empty;
 
         [StringLength(200)]
