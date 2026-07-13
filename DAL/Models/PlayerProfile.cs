@@ -42,6 +42,11 @@ namespace DAL.Models
 
         public PlayerStat? PlayerStats { get; set; }
 
+        // Medals/Feats are tracked at GuildMember level; expose a convenience projection
+        // so we can map guild applications without forcing every DTO to query members.
+        public int Medals => GuildMember?.Medals ?? 0;
+        public int Feats => GuildMember?.Feats ?? 0;
+
         public ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
         public ICollection<PlayerSkill> PlayerSkills { get; set; } = new List<PlayerSkill>();
         public ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();

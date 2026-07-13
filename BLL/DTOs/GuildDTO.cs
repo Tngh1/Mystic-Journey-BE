@@ -147,7 +147,10 @@ namespace BLL.DTOs
         public int GuildApplicationId { get; set; }
         public int PlayerProfileId { get; set; }
         public string PlayerName { get; set; } = string.Empty;
+        public string? PlayerAvatarUrl { get; set; }
         public int PlayerLevel { get; set; }
+        public int Medals { get; set; }
+        public int Feats { get; set; }
         public string Status { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }

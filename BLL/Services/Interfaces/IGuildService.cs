@@ -33,6 +33,7 @@ namespace BLL.Services.Interfaces
         Task<bool> InviteMemberAsync(int playerProfileId, int guildId, int inviteeProfileId);
 
         // Settings
+        Task<bool> UpdateSettingsAsync(int playerProfileId, int guildId, UpdateGuildRequestDto request);
         Task<bool> UpdateNoticeAsync(int playerProfileId, int guildId, string notice);
         Task<bool> UpdateIconAsync(int playerProfileId, int guildId, int iconId, int? bannerId);
 

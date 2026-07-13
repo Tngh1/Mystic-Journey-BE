@@ -196,6 +196,15 @@ namespace Mystic_Journey_API.Controllers
 
         // ─── Settings ───────────────────────────────────────────────────
 
+        /// <summary>Update guild settings (Level requirement, Join policy, etc.). Leader/Officer only.</summary>
+        [HttpPut("{id}/settings")]
+        public async Task<IActionResult> UpdateSettings(int id, [FromBody] UpdateGuildRequestDto request)
+        {
+            var profileId = GetPlayerProfileId();
+            var success = await _guildService.UpdateSettingsAsync(profileId, id, request);
+            return success ? Ok() : Forbid();
+        }
+
         /// <summary>Update guild notice (max 200 chars). Leader/Officer only.</summary>
         [HttpPut("{id}/notice")]
         public async Task<IActionResult> UpdateNotice(int id, [FromBody] ChangeNoticeRequest request)
