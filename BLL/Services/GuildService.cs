@@ -94,9 +94,9 @@ namespace BLL.Services
                 WeeklyContribution = m.WeeklyContribution,
                 TotalContribution = m.TotalContribution,
                 JoinedAt = m.JoinedAt,
-                // Reuse shared LastActiveTime from PlayerProfile — single source of truth
-                IsOnline = m.PlayerProfile != null &&
-                           (DateTime.UtcNow - m.PlayerProfile.LastActiveTime).TotalMinutes < 5
+                // Reuse shared LastSeen from Account — single source of truth
+                IsOnline = m.PlayerProfile != null && m.PlayerProfile.Account != null && m.PlayerProfile.Account.LastSeen.HasValue &&
+                           (DateTime.UtcNow - m.PlayerProfile.Account.LastSeen.Value).TotalMinutes < 5
             };
         }
 
@@ -104,7 +104,7 @@ namespace BLL.Services
 
         public async Task<GuildDetailResponseDto?> GetMyGuildAsync(int playerProfileId)
         {
-            var member = await _context.GuildMembers.FirstOrDefaultAsync(m => m.PlayerProfileId == playerProfileId);
+            var member = await _context.GuildMembers.FirstOrDefaultAsync(m => m.PlayerProfileId == playerProfileId && m.LeftAt == null);
             if (member != null)
                 return await GetGuildDetailAsync(member.GuildId);
 
@@ -152,7 +152,7 @@ namespace BLL.Services
         {
             var guild = await _context.Guilds
                 .Include(g => g.Leader)
-                .Include(g => g.Members).ThenInclude(m => m.PlayerProfile)
+                .Include(g => g.Members.Where(m => m.LeftAt == null)).ThenInclude(m => m.PlayerProfile).ThenInclude(p => p.Account)
                 .FirstOrDefaultAsync(g => g.GuildId == guildId && g.IsActive);
 
             if (guild == null) return null;
@@ -176,14 +176,14 @@ namespace BLL.Services
 
         public async Task<List<GuildMemberResponseDto>> GetMembersAsync(int playerProfileId, int guildId)
         {
-            // Any member can view the member list
+            // Any active member can view the member list
             var isMember = await _context.GuildMembers
-                .AnyAsync(m => m.GuildId == guildId && m.PlayerProfileId == playerProfileId);
+                .AnyAsync(m => m.GuildId == guildId && m.PlayerProfileId == playerProfileId && m.LeftAt == null);
             if (!isMember) throw new UnauthorizedAccessException("Not a member");
 
             var members = await _context.GuildMembers
                 .Include(m => m.PlayerProfile)
-                .Where(m => m.GuildId == guildId)
+                .Where(m => m.GuildId == guildId && m.LeftAt == null)
                 .ToListAsync();
 
             return members.Select(MapMemberDto).ToList();
@@ -205,7 +205,7 @@ namespace BLL.Services
                 Name = request.Name,
                 Notice = request.Notice ?? "",
                 RequiredLevel = request.RequiredLevel,
-                JoinPolicy = (GuildJoinPolicy)(request.JoinPolicy ?? (int)GuildJoinPolicy.Approval),
+                JoinPolicy = (GuildJoinPolicy)(request.JoinPolicy ?? (int)GuildJoinPolicy.Open),
                 IconId = request.IconId,
                 BannerId = request.BannerId,
                 LeaderId = playerProfileId,
@@ -375,7 +375,10 @@ namespace BLL.Services
                     GuildApplicationId = a.GuildApplicationId,
                     PlayerProfileId = a.PlayerProfileId,
                     PlayerName = a.PlayerProfile!.DisplayName,
+                    PlayerAvatarUrl = a.PlayerProfile.AvatarUrl,
                     PlayerLevel = a.PlayerProfile.Level,
+                    Medals = a.PlayerProfile.Medals,
+                    Feats = a.PlayerProfile.Feats,
                     Status = a.Status,
                     CreatedAt = a.CreatedAt
                 }).ToListAsync();
@@ -561,7 +564,28 @@ namespace BLL.Services
             return true;
         }
 
-        // ─── Settings ─────────────────────────────────────────────────────
+        // ─── Settings ────────────────────────────────────────────────────
+
+        public async Task<bool> UpdateSettingsAsync(int playerProfileId, int guildId, UpdateGuildRequestDto request)
+        {
+            var executor = await _context.GuildMembers.Include(m => m.PlayerProfile)
+                .FirstOrDefaultAsync(m => m.GuildId == guildId && m.PlayerProfileId == playerProfileId);
+
+            if (executor == null || (executor.Role != GuildRole.Leader && executor.Role != GuildRole.Officer))
+                throw new UnauthorizedAccessException("Must be Leader or Officer to update settings");
+
+            var guild = await _context.Guilds.FindAsync(guildId);
+            if (guild == null) return false;
+
+            if (request.RequiredLevel.HasValue) guild.RequiredLevel = request.RequiredLevel.Value;
+            if (request.JoinPolicy.HasValue) guild.JoinPolicy = (GuildJoinPolicy)request.JoinPolicy.Value;
+            if (!string.IsNullOrEmpty(request.Name)) guild.Name = request.Name;
+            if (!string.IsNullOrEmpty(request.Notice)) guild.Notice = request.Notice;
+
+            AddLog(guildId, GuildLogAction.NoticeUpdated, playerProfileId, executor.PlayerProfile?.DisplayName);
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
         public async Task<bool> UpdateNoticeAsync(int playerProfileId, int guildId, string notice)
         {
