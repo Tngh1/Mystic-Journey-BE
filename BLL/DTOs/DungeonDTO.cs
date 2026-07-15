@@ -14,6 +14,7 @@ namespace BLL.DTOs
         public int MaxMembers { get; set; }
         public int Difficulty { get; set; }
         public int RecommendedPower { get; set; }
+        public int EnergyCost { get; set; }
         public int? ChestId { get; set; }
         public bool IsActive { get; set; }
     }
@@ -30,6 +31,7 @@ namespace BLL.DTOs
         public int MaxMembers { get; set; } = 4;
         public int Difficulty { get; set; } = 1;
         public int RecommendedPower { get; set; } = 0;
+        public int EnergyCost { get; set; } = 10;
         public int? ChestId { get; set; }
         public bool IsActive { get; set; } = true;
     }
