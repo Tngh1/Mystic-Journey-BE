@@ -148,6 +148,36 @@ namespace BLL.Services
             return guilds.Select(g => MapGuildDto(g, g.Members.Count)).ToList();
         }
 
+        public async Task<List<GuildRankResponseDto>> GetGuildRankingsAsync(int top = 100)
+        {
+            var query = _context.Guilds
+                .Where(g => g.IsActive)
+                .Include(g => g.Members)
+                .OrderByDescending(g => g.TotalFeats)
+                .ThenByDescending(g => g.GuildExp);
+
+            var guilds = await query.Take(top).ToListAsync();
+
+            var result = new List<GuildRankResponseDto>();
+            for (int i = 0; i < guilds.Count; i++)
+            {
+                var g = guilds[i];
+                result.Add(new GuildRankResponseDto
+                {
+                    Rank = i + 1,
+                    GuildId = g.GuildId,
+                    Name = g.Name,
+                    IconId = g.IconId,
+                    Level = g.Level,
+                    TotalMedals = g.TotalMedals,
+                    TotalFeats = g.TotalFeats,
+                    MemberCount = g.Members.Count,
+                    MaxMembers = g.MaxMembers
+                });
+            }
+            return result;
+        }
+
         public async Task<GuildDetailResponseDto?> GetGuildDetailAsync(int guildId)
         {
             var guild = await _context.Guilds
@@ -639,11 +669,13 @@ namespace BLL.Services
 
             int expGained = amount * DonateExpGainPerUnit;
             int medalsGained = amount * DonateMedalsGainPerUnit;
+            int playerFeats = amount * DonatePlayerFeatsPerUnit;
+
             guild.GuildExp += expGained;
             guild.TotalMedals += medalsGained;
+            guild.TotalFeats += playerFeats;
 
             int playerMedals = amount * DonatePlayerMedalsPerUnit;
-            int playerFeats = amount * DonatePlayerFeatsPerUnit;
             member.Medals += playerMedals;
             member.Feats += playerFeats;
             member.DailyContribution += amount;

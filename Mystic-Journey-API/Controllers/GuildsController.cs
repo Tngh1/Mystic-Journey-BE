@@ -36,6 +36,14 @@ namespace Mystic_Journey_API.Controllers
             return Ok(guilds);
         }
 
+        /// <summary>Get global top 100 guilds ranked by Total Medals</summary>
+        [HttpGet("rankings")]
+        public async Task<IActionResult> GetGuildRankings()
+        {
+            var rankings = await _guildService.GetGuildRankingsAsync(100);
+            return Ok(rankings);
+        }
+
         /// <summary>Get full guild detail including member list</summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetGuildDetail(int id)

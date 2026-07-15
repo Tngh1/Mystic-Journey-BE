@@ -29,6 +29,7 @@ namespace DAL.Models
         public int Level { get; set; } = 1;
         public int GuildExp { get; set; } = 0;
         public int TotalMedals { get; set; } = 0;
+        public int TotalFeats { get; set; } = 0;
 
         public GuildJoinPolicy JoinPolicy { get; set; } = GuildJoinPolicy.Approval;
         public bool IsActive { get; set; } = true;
