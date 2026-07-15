@@ -7,6 +7,8 @@ namespace DAL.Models
         public int ItemId { get; set; }
         public Item? Item { get; set; }
 
+        public string ShopSection { get; set; } = ShopSections.Fixed;
+
         // Currencies: Gold, Gems
         public string Currency { get; set; } = "Gold";
         public decimal Price { get; set; } = 0;

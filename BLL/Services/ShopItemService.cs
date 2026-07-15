@@ -3,7 +3,6 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using System.Linq;
 
 namespace BLL.Services
 {
@@ -32,10 +31,12 @@ namespace BLL.Services
             var shopItem = new ShopItem
             {
                 ItemId = request.ItemId,
+                ShopSection = NormalizeShopSection(request.ShopSection),
                 Currency = request.Currency,
                 Price = request.Price,
                 Stock = request.Stock,
                 DailyPurchaseLimit = request.DailyPurchaseLimit,
+                WeeklyPurchaseLimit = request.WeeklyPurchaseLimit,
                 IsActive = request.IsActive,
                 AvailableFrom = request.AvailableFrom,
                 AvailableTo = request.AvailableTo
@@ -52,10 +53,12 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"ShopItem with id {id} not found.");
 
             shopItem.ItemId = request.ItemId;
+            shopItem.ShopSection = NormalizeShopSection(request.ShopSection);
             shopItem.Currency = request.Currency;
             shopItem.Price = request.Price;
             shopItem.Stock = request.Stock;
             shopItem.DailyPurchaseLimit = request.DailyPurchaseLimit;
+            shopItem.WeeklyPurchaseLimit = request.WeeklyPurchaseLimit;
             shopItem.IsActive = request.IsActive;
             shopItem.AvailableFrom = request.AvailableFrom;
             shopItem.AvailableTo = request.AvailableTo;
@@ -64,13 +67,46 @@ namespace BLL.Services
             return _mapper.Map<ShopItemResponseDto>(updated);
         }
 
-        public async Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive, string? sortBy = null, string? sortOrder = null)
+        public async Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(
+            int page,
+            int pageSize,
+            string? search,
+            string? currency,
+            string? shopSection,
+            bool? isActive,
+            string? sortBy = null,
+            string? sortOrder = null)
         {
-            var (totalCount, items) = await _repository.GetShopItemsPaged(page, pageSize, search, currency, isActive, sortBy, sortOrder);
+            var normalizedSection = NormalizeOptionalShopSection(shopSection);
+            var (totalCount, items) = await _repository.GetShopItemsPaged(
+                page,
+                pageSize,
+                search,
+                currency,
+                normalizedSection,
+                isActive,
+                sortBy,
+                sortOrder);
+
             var dtos = _mapper.Map<List<ShopItemResponseDto>>(items);
             return new PagedResultDto<ShopItemResponseDto>(totalCount, dtos);
         }
 
+        private static string NormalizeShopSection(string? shopSection)
+            => NormalizeOptionalShopSection(shopSection) ?? ShopSections.Fixed;
 
+        private static string? NormalizeOptionalShopSection(string? shopSection)
+        {
+            if (string.IsNullOrWhiteSpace(shopSection))
+                return null;
+
+            if (string.Equals(shopSection, ShopSections.Fixed, StringComparison.OrdinalIgnoreCase))
+                return ShopSections.Fixed;
+
+            if (string.Equals(shopSection, ShopSections.DailyDeal, StringComparison.OrdinalIgnoreCase))
+                return ShopSections.DailyDeal;
+
+            throw new BadRequestException("Shop section must be Fixed or DailyDeal.");
+        }
     }
 }

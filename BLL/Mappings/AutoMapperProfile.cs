@@ -65,6 +65,7 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.Slot, opt => opt.MapFrom(src => src.Item != null ? src.Item.Slot : string.Empty))
                 .ForMember(dest => dest.MaxStack, opt => opt.MapFrom(src => src.Item != null ? src.Item.MaxStack : 0))
                 .ForMember(dest => dest.IsUnlimitedStock, opt => opt.MapFrom(src => src.Stock < 0))
+                .ForMember(dest => dest.OriginalPrice, opt => opt.Ignore())
                 .ForMember(dest => dest.PurchasedToday, opt => opt.Ignore())
                 .ForMember(dest => dest.RemainingDailyPurchases, opt => opt.Ignore())
                 .ForMember(dest => dest.CanPurchase, opt => opt.Ignore())

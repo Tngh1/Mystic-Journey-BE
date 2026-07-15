@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260715030130_AddPlayerShopRefreshState")]
+    partial class AddPlayerShopRefreshState
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2465,13 +2468,6 @@ namespace DAL.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("ShopSection")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasDefaultValue("Fixed");
-
                     b.Property<int>("Stock")
                         .HasColumnType("integer");
 
@@ -2481,8 +2477,6 @@ namespace DAL.Migrations
                     b.HasKey("ShopItemId");
 
                     b.HasIndex("ItemId");
-
-                    b.HasIndex("ShopSection");
 
                     b.ToTable("ShopItems");
                 });

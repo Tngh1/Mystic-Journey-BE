@@ -9,6 +9,8 @@ namespace DAL.Repositories
 {
     public class PlayerShopRepository : IPlayerShopRepository
     {
+        private const int DailyDealOfferCount = 10;
+
         private readonly MysticJourneyDbContext _context;
 
         public PlayerShopRepository(MysticJourneyDbContext context)
@@ -23,6 +25,92 @@ namespace DAL.Repositories
                 .AnyAsync(p => p.PlayerProfileId == playerProfileId);
         }
 
+        public async Task<PlayerShopRefreshState> GetOrCreateRefreshState(int playerProfileId, DateTime utcNow)
+        {
+            var (dayStart, _) = GetUtcDayRange(utcNow);
+
+            var state = await _context.PlayerShopRefreshStates
+                .FirstOrDefaultAsync(s =>
+                    s.PlayerProfileId == playerProfileId &&
+                    s.ShopDateUtc == dayStart);
+
+            if (state != null)
+                return state;
+
+            state = new PlayerShopRefreshState
+            {
+                PlayerProfileId = playerProfileId,
+                ShopDateUtc = dayStart,
+                RefreshCount = 0,
+                CreatedAt = utcNow,
+                LastRefreshAt = utcNow
+            };
+
+            await _context.PlayerShopRefreshStates.AddAsync(state);
+            try
+            {
+                await _context.SaveChangesAsync();
+                return state;
+            }
+            catch (DbUpdateException)
+            {
+                _context.Entry(state).State = EntityState.Detached;
+
+                var existingState = await _context.PlayerShopRefreshStates
+                    .FirstOrDefaultAsync(s =>
+                        s.PlayerProfileId == playerProfileId &&
+                        s.ShopDateUtc == dayStart);
+
+                if (existingState != null)
+                    return existingState;
+
+                throw;
+            }
+        }
+
+        public async Task<PlayerShopRefreshState?> TryConsumeRefresh(
+            int playerProfileId,
+            DateTime utcNow,
+            int maxDailyRefreshes)
+        {
+            await using var dbTransaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+            var (dayStart, _) = GetUtcDayRange(utcNow);
+
+            var state = await _context.PlayerShopRefreshStates
+                .FirstOrDefaultAsync(s =>
+                    s.PlayerProfileId == playerProfileId &&
+                    s.ShopDateUtc == dayStart);
+
+            if (state == null)
+            {
+                state = new PlayerShopRefreshState
+                {
+                    PlayerProfileId = playerProfileId,
+                    ShopDateUtc = dayStart,
+                    RefreshCount = 0,
+                    CreatedAt = utcNow,
+                    LastRefreshAt = utcNow
+                };
+
+                await _context.PlayerShopRefreshStates.AddAsync(state);
+                await _context.SaveChangesAsync();
+            }
+
+            if (state.RefreshCount >= maxDailyRefreshes)
+            {
+                await dbTransaction.RollbackAsync();
+                return null;
+            }
+
+            state.RefreshCount += 1;
+            state.LastRefreshAt = utcNow;
+
+            await _context.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
+
+            return state;
+        }
+
         public async Task<(int TotalCount, List<ShopItem> Items)> GetShopItems(
             int page,
             int pageSize,
@@ -30,48 +118,39 @@ namespace DAL.Repositories
             string? itemType,
             string? search,
             bool includeSoldOut,
-            DateTime utcNow)
+            DateTime utcNow,
+            string shopSection,
+            int? rotationSeed)
         {
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 100);
 
-            var query = _context.ShopItems
-                .Include(s => s.Item)
-                .Where(s =>
-                    s.IsActive &&
-                    s.Item != null &&
-                    s.Item.IsActive &&
-                    (!s.AvailableFrom.HasValue || s.AvailableFrom.Value <= utcNow) &&
-                    (!s.AvailableTo.HasValue || s.AvailableTo.Value >= utcNow))
-                .AsNoTracking();
+            var query = BuildAvailableShopItemsQuery(
+                shopSection,
+                currency,
+                itemType,
+                search,
+                includeSoldOut,
+                utcNow);
 
-            if (!includeSoldOut)
+            if (rotationSeed.HasValue)
             {
-                query = query.Where(s => s.Stock != 0);
-            }
+                var filteredItems = await query.ToListAsync();
+                var rotatedItems = filteredItems
+                    .OrderBy(s => GetStableRotationKey(rotationSeed.Value, s.ShopItemId))
+                    .ThenBy(s => s.ShopItemId)
+                    .Take(DailyDealOfferCount)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
 
-            if (!string.IsNullOrWhiteSpace(currency))
-            {
-                query = query.Where(s => s.Currency == currency);
-            }
-
-            if (!string.IsNullOrWhiteSpace(itemType))
-            {
-                query = query.Where(s => s.Item != null && s.Item.Type == itemType);
-            }
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var keyword = $"%{search.Trim()}%";
-                query = query.Where(s =>
-                    s.Item != null &&
-                    (EF.Functions.ILike(s.Item.Name, keyword) ||
-                     (s.Item.Description != null && EF.Functions.ILike(s.Item.Description, keyword))));
+                return (Math.Min(filteredItems.Count, DailyDealOfferCount), rotatedItems);
             }
 
             var totalCount = await query.CountAsync();
             var items = await query
-                .OrderBy(s => s.Currency)
+                .OrderBy(s => s.Item != null ? s.Item.Type : string.Empty)
+                .ThenBy(s => s.Currency)
                 .ThenBy(s => s.Price)
                 .ThenBy(s => s.ShopItemId)
                 .Skip((page - 1) * pageSize)
@@ -81,6 +160,52 @@ namespace DAL.Repositories
             return (totalCount, items);
         }
 
+
+        public async Task<Dictionary<string, decimal>> GetFixedOriginalPrices(
+            IEnumerable<(int ItemId, string Currency)> itemCurrencyPairs,
+            DateTime utcNow)
+        {
+            var keys = itemCurrencyPairs
+                .Select(k => new
+                {
+                    k.ItemId,
+                    Currency = NormalizeCurrency(k.Currency) ?? k.Currency.Trim()
+                })
+                .Where(k => k.ItemId > 0 && !string.IsNullOrWhiteSpace(k.Currency))
+                .Distinct()
+                .ToList();
+
+            if (keys.Count == 0)
+                return new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+            var itemIds = keys.Select(k => k.ItemId).Distinct().ToList();
+            var keySet = keys
+                .Select(k => BuildPriceKey(k.ItemId, k.Currency))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var fixedPrices = await _context.ShopItems
+                .AsNoTracking()
+                .Where(s =>
+                    s.ShopSection == ShopSections.Fixed &&
+                    s.IsActive &&
+                    s.Item != null &&
+                    s.Item.IsActive &&
+                    itemIds.Contains(s.ItemId) &&
+                    (!s.AvailableFrom.HasValue || s.AvailableFrom.Value <= utcNow) &&
+                    (!s.AvailableTo.HasValue || s.AvailableTo.Value >= utcNow))
+                .Select(s => new { s.ItemId, s.Currency, s.Price })
+                .ToListAsync();
+
+            return fixedPrices
+                .Select(s => new
+                {
+                    Key = BuildPriceKey(s.ItemId, NormalizeCurrency(s.Currency) ?? s.Currency.Trim()),
+                    s.Price
+                })
+                .Where(s => keySet.Contains(s.Key))
+                .GroupBy(s => s.Key, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.Min(x => x.Price), StringComparer.OrdinalIgnoreCase);
+        }
         public async Task<Dictionary<int, int>> GetPurchasedTodayCounts(
             int playerProfileId,
             IEnumerable<int> shopItemIds,
@@ -171,6 +296,16 @@ namespace DAL.Repositories
                 return new PlayerShopPurchaseResult
                 {
                     Status = unavailableStatus.Value,
+                    PlayerProfile = profile,
+                    ShopItem = shopItem
+                };
+            }
+
+            if (IsDailyDeal(shopItem) && !await IsCurrentDailyDeal(playerProfileId, shopItem.ShopItemId, utcNow))
+            {
+                return new PlayerShopPurchaseResult
+                {
+                    Status = PurchaseShopItemStatus.DailyDealNotAvailable,
                     PlayerProfile = profile,
                     ShopItem = shopItem
                 };
@@ -288,6 +423,76 @@ namespace DAL.Repositories
             };
         }
 
+        private IQueryable<ShopItem> BuildAvailableShopItemsQuery(
+            string shopSection,
+            string? currency,
+            string? itemType,
+            string? search,
+            bool includeSoldOut,
+            DateTime utcNow)
+        {
+            var query = _context.ShopItems
+                .Include(s => s.Item)
+                .Where(s =>
+                    s.ShopSection == shopSection &&
+                    s.IsActive &&
+                    s.Item != null &&
+                    s.Item.IsActive &&
+                    (!s.AvailableFrom.HasValue || s.AvailableFrom.Value <= utcNow) &&
+                    (!s.AvailableTo.HasValue || s.AvailableTo.Value >= utcNow))
+                .AsNoTracking();
+
+            if (!includeSoldOut)
+            {
+                query = query.Where(s => s.Stock != 0);
+            }
+
+            if (!string.IsNullOrWhiteSpace(currency))
+            {
+                query = query.Where(s => s.Currency == currency);
+            }
+
+            if (!string.IsNullOrWhiteSpace(itemType))
+            {
+                query = query.Where(s => s.Item != null && s.Item.Type == itemType);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var keyword = $"%{search.Trim()}%";
+                query = query.Where(s =>
+                    s.Item != null &&
+                    (EF.Functions.ILike(s.Item.Name, keyword) ||
+                     (s.Item.Description != null && EF.Functions.ILike(s.Item.Description, keyword))));
+            }
+
+            return query;
+        }
+
+        private async Task<bool> IsCurrentDailyDeal(int playerProfileId, int shopItemId, DateTime utcNow)
+        {
+            var refreshState = await GetOrCreateRefreshState(playerProfileId, utcNow);
+            var rotationSeed = BuildRotationSeed(
+                playerProfileId,
+                refreshState.ShopDateUtc,
+                refreshState.RefreshCount);
+
+            var pool = await BuildAvailableShopItemsQuery(
+                    ShopSections.DailyDeal,
+                    currency: null,
+                    itemType: null,
+                    search: null,
+                    includeSoldOut: false,
+                    utcNow)
+                .ToListAsync();
+
+            return pool
+                .OrderBy(s => GetStableRotationKey(rotationSeed, s.ShopItemId))
+                .ThenBy(s => s.ShopItemId)
+                .Take(DailyDealOfferCount)
+                .Any(s => s.ShopItemId == shopItemId);
+        }
+
         private static PurchaseShopItemStatus? GetUnavailableStatus(ShopItem shopItem, DateTime utcNow)
         {
             if (!shopItem.IsActive)
@@ -367,6 +572,40 @@ namespace DAL.Repositories
             start = start.AddDays(-1 * diff);
             return (start, start.AddDays(7));
         }
+
+        private static int BuildRotationSeed(int playerProfileId, DateTime shopDateUtc, int refreshCount)
+        {
+            unchecked
+            {
+                var seed = 17;
+                seed = seed * 31 + playerProfileId;
+                seed = seed * 31 + shopDateUtc.Year;
+                seed = seed * 31 + shopDateUtc.Month;
+                seed = seed * 31 + shopDateUtc.Day;
+                seed = seed * 31 + refreshCount;
+                return seed;
+            }
+        }
+
+        private static int GetStableRotationKey(int seed, int shopItemId)
+        {
+            unchecked
+            {
+                uint hash = 2166136261;
+                hash = (hash ^ (uint)seed) * 16777619;
+                hash = (hash ^ (uint)shopItemId) * 16777619;
+                return (int)(hash & 0x7fffffff);
+            }
+        }
+
+
+        private static string BuildPriceKey(int itemId, string? currency)
+        {
+            var normalizedCurrency = NormalizeCurrency(currency) ?? currency?.Trim() ?? string.Empty;
+            return $"{itemId}|{normalizedCurrency.ToUpperInvariant()}";
+        }
+        private static bool IsDailyDeal(ShopItem shopItem)
+            => string.Equals(shopItem.ShopSection, ShopSections.DailyDeal, StringComparison.OrdinalIgnoreCase);
 
         private static string? NormalizeCurrency(string? currency)
         {
