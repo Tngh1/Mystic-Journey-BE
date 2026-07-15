@@ -9,6 +9,9 @@ namespace BLL.Services
 {
     public class PlayerShopService : IPlayerShopService
     {
+        private const int DailyDealOfferCount = 10;
+        private const int MaxDailyRefreshes = 3;
+
         private readonly IPlayerShopRepository _repository;
         private readonly IMapper _mapper;
 
@@ -23,10 +26,7 @@ namespace BLL.Services
             ViewShopQueryDto query)
         {
             EnsureAuthenticated(playerProfileId);
-
-            var playerExists = await _repository.PlayerExists(playerProfileId);
-            if (!playerExists)
-                throw new KeyNotFoundException("Player profile not found.");
+            await EnsurePlayerExists(playerProfileId);
 
             var page = Math.Max(1, query.Page);
             var pageSize = Math.Clamp(query.PageSize, 1, 100);
@@ -42,32 +42,76 @@ namespace BLL.Services
                 itemType,
                 search,
                 query.IncludeSoldOut,
-                now);
+                now,
+                ShopSections.Fixed,
+                rotationSeed: null);
 
-            var shopItemIds = items.Select(x => x.ShopItemId).ToList();
-            var purchasedToday = await _repository.GetPurchasedTodayCounts(
+            return await MapShopResult(playerProfileId, totalCount, items, now);
+        }
+
+        public async Task<PagedResultDto<ShopItemPublicResponseDto>> GetDailyDeals(
+            int playerProfileId,
+            ViewShopQueryDto query)
+        {
+            EnsureAuthenticated(playerProfileId);
+            await EnsurePlayerExists(playerProfileId);
+
+            var now = DateTime.UtcNow;
+            var refreshState = await _repository.GetOrCreateRefreshState(playerProfileId, now);
+            var rotationSeed = BuildRotationSeed(
                 playerProfileId,
-                shopItemIds,
-                now);
+                refreshState.ShopDateUtc,
+                refreshState.RefreshCount);
 
-            var purchasedThisWeek = await _repository.GetPurchasedThisWeekCounts(
-                playerProfileId,
-                shopItemIds,
-                now);
+            var (_, items) = await _repository.GetShopItems(
+                page: 1,
+                pageSize: DailyDealOfferCount,
+                currency: null,
+                itemType: null,
+                search: null,
+                includeSoldOut: query.IncludeSoldOut,
+                utcNow: now,
+                shopSection: ShopSections.DailyDeal,
+                rotationSeed: rotationSeed);
 
-            var dtos = _mapper.Map<List<ShopItemPublicResponseDto>>(items);
-            foreach (var dto in dtos)
+            return await MapShopResult(playerProfileId, items.Count, items, now);
+        }
+
+        public async Task<ShopRefreshStatusDto> GetRefreshStatus(int playerProfileId)
+        {
+            EnsureAuthenticated(playerProfileId);
+            await EnsurePlayerExists(playerProfileId);
+
+            var now = DateTime.UtcNow;
+            var refreshState = await _repository.GetOrCreateRefreshState(playerProfileId, now);
+            return MapRefreshStatus(refreshState);
+        }
+
+        public Task<ShopRefreshResponseDto> RefreshShop(
+            int playerProfileId,
+            ViewShopQueryDto query)
+            => RefreshDailyDeals(playerProfileId, query);
+
+        public async Task<ShopRefreshResponseDto> RefreshDailyDeals(
+            int playerProfileId,
+            ViewShopQueryDto query)
+        {
+            EnsureAuthenticated(playerProfileId);
+            await EnsurePlayerExists(playerProfileId);
+
+            var now = DateTime.UtcNow;
+            var refreshState = await _repository.TryConsumeRefresh(playerProfileId, now, MaxDailyRefreshes);
+            if (refreshState == null)
+                throw new BadRequestException("Daily shop refresh limit reached.");
+
+            var shop = await GetDailyDeals(playerProfileId, query);
+            return new ShopRefreshResponseDto
             {
-                purchasedToday.TryGetValue(dto.ShopItemId, out var purchasedCountToday);
-                dto.PurchasedToday = purchasedCountToday;
-
-                purchasedThisWeek.TryGetValue(dto.ShopItemId, out var purchasedCountWeek);
-                dto.PurchasedThisWeek = purchasedCountWeek;
-
-                ApplyAvailability(dto, now);
-            }
-
-            return new PagedResultDto<ShopItemPublicResponseDto>(totalCount, dtos);
+                Success = true,
+                Message = "Daily deals refreshed.",
+                RefreshStatus = MapRefreshStatus(refreshState),
+                Shop = shop
+            };
         }
 
         public async Task<PurchaseShopItemResponseDto> PurchaseItem(
@@ -112,6 +156,118 @@ namespace BLL.Services
                 Balance = MapBalance(profile),
                 Transaction = _mapper.Map<PlayerCurrencyLogResponseDto>(result.CurrencyLog)
             };
+        }
+
+        private async Task<PagedResultDto<ShopItemPublicResponseDto>> MapShopResult(
+            int playerProfileId,
+            int totalCount,
+            List<ShopItem> items,
+            DateTime now)
+        {
+            var shopItemIds = items.Select(x => x.ShopItemId).ToList();
+            var purchasedToday = await _repository.GetPurchasedTodayCounts(
+                playerProfileId,
+                shopItemIds,
+                now);
+
+            var purchasedThisWeek = await _repository.GetPurchasedThisWeekCounts(
+                playerProfileId,
+                shopItemIds,
+                now);
+
+            var dtos = _mapper.Map<List<ShopItemPublicResponseDto>>(items);
+            var originalPrices = await GetOriginalPriceLookup(items, now);
+            foreach (var dto in dtos)
+            {
+                purchasedToday.TryGetValue(dto.ShopItemId, out var purchasedCountToday);
+                dto.PurchasedToday = purchasedCountToday;
+
+                purchasedThisWeek.TryGetValue(dto.ShopItemId, out var purchasedCountWeek);
+                dto.PurchasedThisWeek = purchasedCountWeek;
+
+                ApplyOriginalPrice(dto, originalPrices);
+                ApplyAvailability(dto, now);
+            }
+
+            return new PagedResultDto<ShopItemPublicResponseDto>(totalCount, dtos);
+        }
+
+
+        private async Task<Dictionary<string, decimal>> GetOriginalPriceLookup(
+            List<ShopItem> items,
+            DateTime now)
+        {
+            var dailyDealPairs = items
+                .Where(item => string.Equals(item.ShopSection, ShopSections.DailyDeal, StringComparison.OrdinalIgnoreCase))
+                .Select(item => (item.ItemId, item.Currency))
+                .ToList();
+
+            if (dailyDealPairs.Count == 0)
+                return new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+            return await _repository.GetFixedOriginalPrices(dailyDealPairs, now);
+        }
+
+        private static void ApplyOriginalPrice(
+            ShopItemPublicResponseDto item,
+            IReadOnlyDictionary<string, decimal> originalPrices)
+        {
+            item.OriginalPrice = null;
+
+            if (!string.Equals(item.ShopSection, ShopSections.DailyDeal, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (!originalPrices.TryGetValue(BuildPriceKey(item.ItemId, item.Currency), out var originalPrice))
+                return;
+
+            if (originalPrice > item.Price)
+                item.OriginalPrice = originalPrice;
+        }
+
+        private static string BuildPriceKey(int itemId, string? currency)
+        {
+            var normalizedCurrency = string.Equals(currency, "Gold", StringComparison.OrdinalIgnoreCase) ? "Gold"
+                : string.Equals(currency, "Gems", StringComparison.OrdinalIgnoreCase) ? "Gems"
+                : currency?.Trim() ?? string.Empty;
+
+            return $"{itemId}|{normalizedCurrency.ToUpperInvariant()}";
+        }
+
+        private async Task EnsurePlayerExists(int playerProfileId)
+        {
+            var playerExists = await _repository.PlayerExists(playerProfileId);
+            if (!playerExists)
+                throw new KeyNotFoundException("Player profile not found.");
+        }
+
+        private static ShopRefreshStatusDto MapRefreshStatus(PlayerShopRefreshState state)
+        {
+            var used = Math.Clamp(state.RefreshCount, 0, MaxDailyRefreshes);
+            var remaining = Math.Max(0, MaxDailyRefreshes - used);
+
+            return new ShopRefreshStatusDto
+            {
+                ShopDateUtc = state.ShopDateUtc,
+                NextResetUtc = state.ShopDateUtc.AddDays(1),
+                RefreshesUsedToday = used,
+                RefreshesRemainingToday = remaining,
+                MaxDailyRefreshes = MaxDailyRefreshes,
+                CanRefresh = remaining > 0
+            };
+        }
+
+        private static int BuildRotationSeed(int playerProfileId, DateTime shopDateUtc, int refreshCount)
+        {
+            unchecked
+            {
+                var seed = 17;
+                seed = seed * 31 + playerProfileId;
+                seed = seed * 31 + shopDateUtc.Year;
+                seed = seed * 31 + shopDateUtc.Month;
+                seed = seed * 31 + shopDateUtc.Day;
+                seed = seed * 31 + refreshCount;
+                return seed;
+            }
         }
 
         private static void ApplyAvailability(ShopItemPublicResponseDto item, DateTime utcNow)
@@ -192,6 +348,8 @@ namespace BLL.Services
                     throw new BadRequestException("Currency must be Gold or Gems.");
                 case PurchaseShopItemStatus.InsufficientCurrency:
                     throw new BadRequestException($"Not enough {result.ShopItem?.Currency ?? "currency"}.");
+                case PurchaseShopItemStatus.DailyDealNotAvailable:
+                    throw new BadRequestException("Daily deal is not available in your current daily shop.");
                 default:
                     throw new InvalidOperationException("Purchase failed.");
             }

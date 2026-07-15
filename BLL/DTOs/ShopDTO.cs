@@ -10,6 +10,7 @@ namespace BLL.DTOs
         public string? ItemName { get; set; }
         public string? ItemIconUrl { get; set; }
         public string? ItemType { get; set; }
+        public string ShopSection { get; set; } = "Fixed";
         public string Currency { get; set; } = "Gold";
         public decimal Price { get; set; }
         public int Stock { get; set; }
@@ -24,6 +25,11 @@ namespace BLL.DTOs
     {
         [Required]
         public int ItemId { get; set; }
+
+        [RegularExpression("^(Fixed|DailyDeal)$", ErrorMessage = "Shop section must be Fixed or DailyDeal.")]
+        public string ShopSection { get; set; } = "Fixed";
+
+        [RegularExpression("^(Gold|Gems)$", ErrorMessage = "Currency must be Gold or Gems.")]
         public string Currency { get; set; } = "Gold";
 
         [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]
@@ -41,6 +47,11 @@ namespace BLL.DTOs
     {
         [Required]
         public int ItemId { get; set; }
+
+        [RegularExpression("^(Fixed|DailyDeal)$", ErrorMessage = "Shop section must be Fixed or DailyDeal.")]
+        public string ShopSection { get; set; } = "Fixed";
+
+        [RegularExpression("^(Gold|Gems)$", ErrorMessage = "Currency must be Gold or Gems.")]
         public string Currency { get; set; } = "Gold";
 
         [Range(0, double.MaxValue)]

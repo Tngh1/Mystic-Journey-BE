@@ -16,7 +16,8 @@ namespace DAL.Repositories.Results
         DailyLimitExceeded,
         WeeklyLimitExceeded,
         UnsupportedCurrency,
-        InsufficientCurrency
+        InsufficientCurrency,
+        DailyDealNotAvailable
     }
 
     public class PlayerShopPurchaseResult

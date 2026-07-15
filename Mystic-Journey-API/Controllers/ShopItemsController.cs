@@ -47,11 +47,12 @@ namespace Mystic_Journey_API.Controllers
             [FromQuery] int pageSize = 10,
             [FromQuery] string? search = null,
             [FromQuery] string? currency = null,
+            [FromQuery] string? shopSection = null,
             [FromQuery] bool? isActive = null,
             [FromQuery] string? sortBy = null,
             [FromQuery] string? sortOrder = null)
         {
-            var result = await _shopItemService.GetShopItemsPaged(page, pageSize, search, currency, isActive, sortBy, sortOrder);
+            var result = await _shopItemService.GetShopItemsPaged(page, pageSize, search, currency, shopSection, isActive, sortBy, sortOrder);
             return Ok(new ApiResponse<PagedResultDto<ShopItemResponseDto>> { Success = true, Data = result });
         }
 

@@ -28,6 +28,7 @@ namespace DAL.Data
         public DbSet<PurchaseHistory> PurchaseHistories => Set<PurchaseHistory>();
         public DbSet<PlayerCurrencyLog> PlayerCurrencyLogs => Set<PlayerCurrencyLog>();
         public DbSet<ShopItem> ShopItems => Set<ShopItem>();
+        public DbSet<PlayerShopRefreshState> PlayerShopRefreshStates => Set<PlayerShopRefreshState>();
         public DbSet<Mail> Mails => Set<Mail>();
         public DbSet<MailRewardItem> MailRewardItems => Set<MailRewardItem>();
         public DbSet<Friend> Friends => Set<Friend>();
@@ -80,6 +81,23 @@ namespace DAL.Data
                 new ClassConfig { ClassConfigId = 2, ClassName = "Archer", MaxHp = 350, Atk = 40, Def = 20, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
                 new ClassConfig { ClassConfigId = 3, ClassName = "Mage", MaxHp = 300, Atk = 50, Def = 15, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 }
             );
+
+            modelBuilder.Entity<ShopItem>()
+                .Property(s => s.ShopSection)
+                .HasMaxLength(30)
+                .HasDefaultValue(ShopSections.Fixed);
+
+            modelBuilder.Entity<ShopItem>()
+                .HasIndex(s => s.ShopSection);
+            modelBuilder.Entity<PlayerShopRefreshState>()
+                .HasIndex(s => new { s.PlayerProfileId, s.ShopDateUtc })
+                .IsUnique();
+
+            modelBuilder.Entity<PlayerShopRefreshState>()
+                .HasOne(s => s.PlayerProfile)
+                .WithMany()
+                .HasForeignKey(s => s.PlayerProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<PlayerMonsterDiscovery>()
                 .HasIndex(d => new { d.PlayerProfileId, d.MonsterId })
