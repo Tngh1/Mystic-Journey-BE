@@ -43,6 +43,7 @@ namespace BLL.Services
             dungeon.MaxMembers = request.MaxMembers;
             dungeon.Difficulty = request.Difficulty;
             dungeon.RecommendedPower = request.RecommendedPower;
+            dungeon.EnergyCost = request.EnergyCost;
             dungeon.ChestId = request.ChestId;
             dungeon.IsActive = request.IsActive;
 
