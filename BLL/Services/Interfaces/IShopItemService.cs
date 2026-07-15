@@ -16,7 +16,7 @@ namespace BLL.Services.Interfaces
         Task<ShopItemResponseDto?> GetShopItemById(int id);
 
         // Lấy danh sách tất cả shop items có phân trang và lọc.
-        Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, bool? isActive, string? sortBy = null, string? sortOrder = null);
+        Task<PagedResultDto<ShopItemResponseDto>> GetShopItemsPaged(int page, int pageSize, string? search, string? currency, string? shopSection, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs

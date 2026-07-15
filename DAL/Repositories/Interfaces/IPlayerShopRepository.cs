@@ -7,6 +7,10 @@ namespace DAL.Repositories.Interfaces
     {
         Task<bool> PlayerExists(int playerProfileId);
 
+        Task<PlayerShopRefreshState> GetOrCreateRefreshState(int playerProfileId, DateTime utcNow);
+
+        Task<PlayerShopRefreshState?> TryConsumeRefresh(int playerProfileId, DateTime utcNow, int maxDailyRefreshes);
+
         Task<(int TotalCount, List<ShopItem> Items)> GetShopItems(
             int page,
             int pageSize,
@@ -14,8 +18,14 @@ namespace DAL.Repositories.Interfaces
             string? itemType,
             string? search,
             bool includeSoldOut,
-            DateTime utcNow);
+            DateTime utcNow,
+            string shopSection,
+            int? rotationSeed);
 
+
+        Task<Dictionary<string, decimal>> GetFixedOriginalPrices(
+            IEnumerable<(int ItemId, string Currency)> itemCurrencyPairs,
+            DateTime utcNow);
         Task<Dictionary<int, int>> GetPurchasedTodayCounts(
             int playerProfileId,
             IEnumerable<int> shopItemIds,

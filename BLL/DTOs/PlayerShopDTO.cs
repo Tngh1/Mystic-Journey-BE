@@ -34,7 +34,9 @@ namespace BLL.DTOs
         public string Rarity { get; set; } = string.Empty;
         public string Slot { get; set; } = string.Empty;
         public int MaxStack { get; set; }
+        public string ShopSection { get; set; } = "Fixed";
         public string Currency { get; set; } = "Gold";
+        public decimal? OriginalPrice { get; set; }
         public decimal Price { get; set; }
         public int Stock { get; set; }
         public bool IsUnlimitedStock { get; set; }
@@ -48,6 +50,24 @@ namespace BLL.DTOs
         public DateTime? AvailableTo { get; set; }
         public bool CanPurchase { get; set; }
         public string? UnavailableReason { get; set; }
+    }
+
+    public class ShopRefreshStatusDto
+    {
+        public DateTime ShopDateUtc { get; set; }
+        public DateTime NextResetUtc { get; set; }
+        public int RefreshesUsedToday { get; set; }
+        public int RefreshesRemainingToday { get; set; }
+        public int MaxDailyRefreshes { get; set; }
+        public bool CanRefresh { get; set; }
+    }
+
+    public class ShopRefreshResponseDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public ShopRefreshStatusDto RefreshStatus { get; set; } = new();
+        public PagedResultDto<ShopItemPublicResponseDto> Shop { get; set; } = new(0, Array.Empty<ShopItemPublicResponseDto>());
     }
 
     public class PurchaseShopItemRequestDto
