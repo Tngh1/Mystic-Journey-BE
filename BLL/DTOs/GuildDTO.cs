@@ -26,6 +26,7 @@ namespace BLL.DTOs
         public int JoinPolicy { get; set; }
         public int TotalMedals { get; set; }
         public bool IsActive { get; set; }
+        public bool IsInvited { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 

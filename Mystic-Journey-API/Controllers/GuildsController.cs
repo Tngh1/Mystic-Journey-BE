@@ -32,7 +32,8 @@ namespace Mystic_Journey_API.Controllers
             [FromQuery] int? joinPolicy = null,
             [FromQuery] int? minLevel = null)
         {
-            var guilds = await _guildService.GetGuildListAsync(search, joinPolicy, minLevel);
+            var profileId = GetPlayerProfileId();
+            var guilds = await _guildService.GetGuildListAsync(profileId, search, joinPolicy, minLevel);
             return Ok(guilds);
         }
 

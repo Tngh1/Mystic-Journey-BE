@@ -8,7 +8,7 @@ namespace BLL.Services.Interfaces
     {
         // View
         Task<GuildDetailResponseDto?> GetMyGuildAsync(int playerProfileId);
-        Task<List<GuildResponseDto>> GetGuildListAsync(string searchTerm = "", int? joinPolicy = null, int? minLevel = null);
+        Task<List<GuildResponseDto>> GetGuildListAsync(int playerProfileId, string searchTerm = "", int? joinPolicy = null, int? minLevel = null);
         Task<List<GuildRankResponseDto>> GetGuildRankingsAsync(int top = 100);
         Task<GuildDetailResponseDto?> GetGuildDetailAsync(int guildId);
         Task<List<GuildMemberResponseDto>> GetMembersAsync(int playerProfileId, int guildId);
