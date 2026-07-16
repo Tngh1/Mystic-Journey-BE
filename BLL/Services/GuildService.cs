@@ -132,9 +132,35 @@ namespace BLL.Services
         }
 
         public async Task<List<GuildResponseDto>> GetGuildListAsync(
-            string searchTerm = "", int? joinPolicy = null, int? minLevel = null)
+            int playerProfileId, string searchTerm = "", int? joinPolicy = null, int? minLevel = null)
         {
-            var query = _context.Guilds.Where(g => g.IsActive).AsQueryable();
+            var now = DateTime.UtcNow;
+            
+            // 1. Get guilds that have invited this player
+            var invitedGuildIds = await _context.GuildInvitations
+                .Where(i => i.InviteeId == playerProfileId && i.Status == "Pending" && i.ExpiresAt > now)
+                .Select(i => i.GuildId)
+                .ToListAsync();
+
+            var invitedGuilds = await _context.Guilds
+                .Include(g => g.Members)
+                .Where(g => g.IsActive && invitedGuildIds.Contains(g.GuildId))
+                .ToListAsync();
+
+            var resultDtos = new List<GuildResponseDto>();
+            
+            // Map invited guilds and mark IsInvited = true
+            foreach (var ig in invitedGuilds)
+            {
+                var dto = MapGuildDto(ig, ig.Members.Count);
+                dto.IsInvited = true;
+                resultDtos.Add(dto);
+            }
+
+            // 2. Query other guilds (exclude invited ones to avoid duplicates)
+            var query = _context.Guilds
+                .Where(g => g.IsActive && !invitedGuildIds.Contains(g.GuildId))
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 query = query.Where(g => g.Name.Contains(searchTerm));
@@ -143,9 +169,17 @@ namespace BLL.Services
             if (joinPolicy.HasValue)
                 query = query.Where(g => (int)g.JoinPolicy == joinPolicy.Value);
 
-            var guilds = await query.Include(g => g.Members).Take(20).ToListAsync();
+            var normalGuilds = await query.Include(g => g.Members).Take(20).ToListAsync();
 
-            return guilds.Select(g => MapGuildDto(g, g.Members.Count)).ToList();
+            // Map normal guilds and mark IsInvited = false
+            foreach (var ng in normalGuilds)
+            {
+                var dto = MapGuildDto(ng, ng.Members.Count);
+                dto.IsInvited = false;
+                resultDtos.Add(dto);
+            }
+
+            return resultDtos;
         }
 
         public async Task<List<GuildRankResponseDto>> GetGuildRankingsAsync(int top = 100)
@@ -307,7 +341,14 @@ namespace BLL.Services
             if (player.GuildMember != null)
                 return new GuildJoinResultDto { Success = false, Message = "Already in a guild" };
 
-            // Check leave cooldown
+            // Check if player has a pending invitation for THIS guild
+            var now = DateTime.UtcNow;
+            var activeInvitation = await _context.GuildInvitations
+                .FirstOrDefaultAsync(i => i.GuildId == guildId && i.InviteeId == playerProfileId && i.Status == "Pending" && i.ExpiresAt > now);
+
+            // Check leave cooldown (only if NOT invited, or maybe even if invited?)
+            // Usually invitations can bypass cooldown, but let's keep cooldown strictly unless requested.
+            // Actually, we'll keep cooldown check to prevent abuse.
             if (player.LastLeaveAt.HasValue)
             {
                 var remaining = (player.LastLeaveAt.Value.AddHours(LeaveCooldownHours) - DateTime.UtcNow);
@@ -328,13 +369,20 @@ namespace BLL.Services
             if (guild == null) return new GuildJoinResultDto { Success = false, Message = "Guild not found" };
             if (guild.Members.Count >= guild.MaxMembers)
                 return new GuildJoinResultDto { Success = false, Message = "Guild is full" };
-            if (player.Level < guild.RequiredLevel)
-                return new GuildJoinResultDto { Success = false, Message = $"Required level {guild.RequiredLevel}" };
-            if (guild.JoinPolicy == GuildJoinPolicy.InviteOnly)
-                return new GuildJoinResultDto { Success = false, Message = "This guild is invite only" };
 
-            // Open policy: join directly
-            if (guild.JoinPolicy == GuildJoinPolicy.Open)
+            // If the player has an active invitation, bypass level and join policy!
+            bool bypassPolicy = (activeInvitation != null);
+
+            if (!bypassPolicy)
+            {
+                if (player.Level < guild.RequiredLevel)
+                    return new GuildJoinResultDto { Success = false, Message = $"Required level {guild.RequiredLevel}" };
+                if (guild.JoinPolicy == GuildJoinPolicy.InviteOnly)
+                    return new GuildJoinResultDto { Success = false, Message = "This guild is invite only" };
+            }
+
+            // Open policy or Invited: join directly
+            if (bypassPolicy || guild.JoinPolicy == GuildJoinPolicy.Open)
             {
                 _context.GuildMembers.Add(new GuildMember
                 {
@@ -344,6 +392,24 @@ namespace BLL.Services
                     JoinedAt = DateTime.UtcNow
                 });
                 AddLog(guildId, GuildLogAction.Join, playerProfileId, player.DisplayName);
+                
+                // Mark the invitation as accepted
+                if (activeInvitation != null)
+                {
+                    activeInvitation.Status = "Accepted";
+                    activeInvitation.RespondedAt = DateTime.UtcNow;
+                    
+                    // Optional: Reject other pending invitations for this player
+                    var otherInvitations = await _context.GuildInvitations
+                        .Where(i => i.InviteeId == playerProfileId && i.Status == "Pending" && i.GuildInvitationId != activeInvitation.GuildInvitationId)
+                        .ToListAsync();
+                    foreach (var otherInv in otherInvitations)
+                    {
+                        otherInv.Status = "Declined";
+                        otherInv.RespondedAt = DateTime.UtcNow;
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 return new GuildJoinResultDto { Success = true, Message = "Joined guild" };
             }
