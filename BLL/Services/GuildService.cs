@@ -620,15 +620,17 @@ namespace BLL.Services
         {
             var executor = await _context.GuildMembers.Include(m => m.PlayerProfile)
                 .FirstOrDefaultAsync(m => m.GuildId == guildId && m.PlayerProfileId == playerProfileId);
-            if (executor == null || !IsLeaderOrOfficer(executor)) return false;
+            if (executor == null || !IsLeaderOrOfficer(executor)) throw new Exception("You don't have permission to invite.");
 
             var guild = await _context.Guilds.Include(g => g.Members)
                 .FirstOrDefaultAsync(g => g.GuildId == guildId && g.IsActive);
-            if (guild == null || guild.Members.Count >= guild.MaxMembers) return false;
+            if (guild == null) throw new Exception("Guild not found.");
+            if (guild.Members.Count >= guild.MaxMembers) throw new Exception("Guild is full.");
 
             var invitee = await _context.PlayerProfiles.Include(p => p.GuildMember)
                 .FirstOrDefaultAsync(p => p.PlayerProfileId == inviteeProfileId);
-            if (invitee == null || invitee.GuildMember != null) return false;
+            if (invitee == null) throw new Exception("Player not found.");
+            if (invitee.GuildMember != null) throw new Exception("Player is already in a guild.");
 
             // Expire old invitations first
             var now = DateTime.UtcNow;
@@ -641,7 +643,7 @@ namespace BLL.Services
             var exists = await _context.GuildInvitations.AnyAsync(i =>
                 i.GuildId == guildId && i.InviteeId == inviteeProfileId
                 && i.Status == "Pending" && i.ExpiresAt >= now);
-            if (exists) return false;
+            if (exists) throw new Exception("Player already has a pending invitation from this guild.");
 
             _context.GuildInvitations.Add(new GuildInvitation
             {
