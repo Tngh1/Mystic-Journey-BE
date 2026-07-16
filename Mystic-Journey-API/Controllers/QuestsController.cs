@@ -3,6 +3,7 @@ using BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mystic_Journey_API.Extensions;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
@@ -26,6 +27,13 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/quests/{id} ───────────────────────────────────────
         // Lấy chi tiết quest theo ID.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("npc-options")]
+        public async Task<IActionResult> GetNpcOptions([FromQuery] string? mapName = null)
+        {
+            var npcs = await _questService.GetQuestNpcOptions(mapName);
+            return Ok(new ApiResponse<List<NPCResponseDto>> { Success = true, Data = npcs });
+        }
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -58,7 +66,17 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
-        // NOTE: Create endpoint removed - managed via seeding.
+        // Tao quest moi.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] UpdateQuestRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var quest = await _questService.CreateQuest(request);
+            return CreatedAtAction(nameof(GetById), new { id = quest.QuestId }, new ApiResponse<QuestResponseDto> { Success = true, Data = quest });
+        }
 
         // ── PUT /api/quests/{id} ───────────────────────────────────────
         // Cập nhật quest hiện có.

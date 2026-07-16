@@ -27,6 +27,10 @@ namespace DAL.Repositories
         {
             return await _context.Quests
                 .Include(q => q.RewardItem)
+                .Include(q => q.RewardItems)
+                    .ThenInclude(r => r.Item)
+                .Include(q => q.RewardSkills)
+                    .ThenInclude(r => r.Skill)
                 .Include(q => q.RewardSkill)
                 .FirstOrDefaultAsync(q => q.QuestId == id);
         }
@@ -34,10 +38,22 @@ namespace DAL.Repositories
         public async Task<List<Quest>> GetActiveQuests()
         {
             return await _context.Quests
+                .Include(q => q.RewardItem)
+                .Include(q => q.RewardItems)
+                    .ThenInclude(r => r.Item)
+                .Include(q => q.RewardSkills)
+                    .ThenInclude(r => r.Skill)
+                .Include(q => q.RewardSkill)
                 .Where(q => q.IsActive)
                 .ToListAsync();
         }
 
+        public async Task<Quest> AddQuest(Quest quest)
+        {
+            _context.Quests.Add(quest);
+            await _context.SaveChangesAsync();
+            return quest;
+        }
         public async Task<Quest> UpdateQuest(Quest quest)
         {
             _context.Quests.Update(quest);
@@ -45,11 +61,66 @@ namespace DAL.Repositories
             return quest;
         }
 
+        public async Task<NPCDialogue?> GetQuestDialogueByQuestId(int questId)
+        {
+            return await _context.NPCDialogues
+                .Include(d => d.NPC)
+                .Include(d => d.LinkedQuest)
+                .Where(d => d.LinkedQuestId == questId && d.ResponseType == "Quest")
+                .OrderByDescending(d => d.IsActive)
+                .ThenBy(d => d.DisplayOrder)
+                .ThenBy(d => d.NPCDialogueId)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<NPC?> GetNpcByNameAndMap(string? npcName, string mapName)
+        {
+            if (string.IsNullOrWhiteSpace(npcName))
+                return null;
+
+            var normalizedName = npcName.Trim();
+            return await _context.NPCs
+                .Where(n => n.Name == normalizedName && n.MapName == mapName)
+                .OrderByDescending(n => n.IsActive)
+                .FirstOrDefaultAsync()
+                ?? await _context.NPCs
+                    .Where(n => n.Name == normalizedName)
+                    .OrderByDescending(n => n.IsActive)
+                    .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<NPC>> GetQuestNpcOptions(string? mapName)
+        {
+            var query = _context.NPCs
+                .AsNoTracking()
+                .Where(n => n.IsActive);
+
+            if (!string.IsNullOrWhiteSpace(mapName))
+            {
+                var normalizedMapName = mapName.Trim();
+                query = query.Where(n => n.MapName == normalizedMapName);
+            }
+
+            return await query
+                .OrderBy(n => n.MapName)
+                .ThenBy(n => n.Name)
+                .ThenBy(n => n.NPCId)
+                .Take(200)
+                .ToListAsync();
+        }
+        public void AddQuestDialogue(NPCDialogue dialogue)
+        {
+            _context.NPCDialogues.Add(dialogue);
+        }
 
         public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null)
         {
             var query = _context.Quests
                 .Include(q => q.RewardItem)
+                .Include(q => q.RewardItems)
+                    .ThenInclude(r => r.Item)
+                .Include(q => q.RewardSkills)
+                    .ThenInclude(r => r.Skill)
                 .Include(q => q.RewardSkill)
                 .AsNoTracking();
 
