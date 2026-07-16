@@ -36,10 +36,12 @@ namespace DAL.Models
 
         public int? RewardItemId { get; set; }
         public Item? RewardItem { get; set; }
+        public ICollection<QuestRewardItem> RewardItems { get; set; } = new List<QuestRewardItem>();
         
         // Optional: skill rewarded when quest claimed
         public int? RewardSkillId { get; set; }
         public Skill? RewardSkill { get; set; }
+        public ICollection<QuestRewardSkill> RewardSkills { get; set; } = new List<QuestRewardSkill>();
 
         public bool IsActive { get; set; } = true;
 

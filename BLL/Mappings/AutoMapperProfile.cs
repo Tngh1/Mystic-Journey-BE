@@ -96,7 +96,17 @@ namespace BLL.Mappings
             // ═══════════════════════════════════════════════════════════════════════
 
             // Ánh xạ nhiệm vụ sang response.
-            CreateMap<Quest, QuestResponseDto>();
+            CreateMap<QuestRewardItem, QuestRewardItemDto>()
+                .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
+                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null));
+            CreateMap<QuestRewardSkill, QuestRewardSkillDto>()
+                .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.Name : null))
+                .ForMember(dest => dest.ClassRequirement, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.ClassRequirement : null))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.Type : null))
+                .ForMember(dest => dest.DamageType, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.DamageType : null));
+            CreateMap<Quest, QuestResponseDto>()
+                .ForMember(dest => dest.RewardItems, opt => opt.MapFrom(src => src.RewardItems))
+                .ForMember(dest => dest.RewardSkills, opt => opt.MapFrom(src => src.RewardSkills));
             // Ánh xạ yêu cầu cập nhật nhiệm vụ.
             CreateMap<UpdateQuestRequestDto, Quest>();
 
@@ -359,6 +369,8 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.RewardGems, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.RewardGems : 0))
                 .ForMember(dest => dest.RewardItemId, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.RewardItemId : null))
                 .ForMember(dest => dest.RewardItemName, opt => opt.MapFrom(src => src.Quest != null && src.Quest.RewardItem != null ? src.Quest.RewardItem.Name : null))
+                .ForMember(dest => dest.RewardItems, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.RewardItems : Enumerable.Empty<QuestRewardItem>()))
+                .ForMember(dest => dest.RewardSkills, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.RewardSkills : Enumerable.Empty<QuestRewardSkill>()))
                 .ForMember(dest => dest.RewardSkillId, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.RewardSkillId : null))
                 .ForMember(dest => dest.RewardSkillName, opt => opt.MapFrom(src => src.Quest != null && src.Quest.RewardSkill != null ? src.Quest.RewardSkill.Name : null));
 

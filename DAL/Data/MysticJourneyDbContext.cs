@@ -20,6 +20,8 @@ namespace DAL.Data
         public DbSet<Skill> Skills => Set<Skill>();
         public DbSet<PlayerSkill> PlayerSkills => Set<PlayerSkill>();
         public DbSet<Quest> Quests => Set<Quest>();
+        public DbSet<QuestRewardItem> QuestRewardItems => Set<QuestRewardItem>();
+        public DbSet<QuestRewardSkill> QuestRewardSkills => Set<QuestRewardSkill>();
         public DbSet<PlayerQuest> PlayerQuests => Set<PlayerQuest>();
         public DbSet<NPC> NPCs => Set<NPC>();
         public DbSet<NPCDialogue> NPCDialogues => Set<NPCDialogue>();
@@ -133,15 +135,49 @@ namespace DAL.Data
                 .HasForeignKey(q => q.BossMonsterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<QuestRewardItem>()
+                .HasOne(r => r.Quest)
+                .WithMany(q => q.RewardItems)
+                .HasForeignKey(r => r.QuestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<QuestRewardItem>()
+                .HasOne(r => r.Item)
+                .WithMany()
+                .HasForeignKey(r => r.ItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<QuestRewardItem>()
+                .HasIndex(r => new { r.QuestId, r.ItemId })
+                .IsUnique();
+
+
+            modelBuilder.Entity<QuestRewardSkill>()
+                .HasOne(r => r.Quest)
+                .WithMany(q => q.RewardSkills)
+                .HasForeignKey(r => r.QuestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<QuestRewardSkill>()
+                .HasOne(r => r.Skill)
+                .WithMany()
+                .HasForeignKey(r => r.SkillId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<QuestRewardSkill>()
+                .HasIndex(r => new { r.QuestId, r.SkillId })
+                .IsUnique();
             modelBuilder.Entity<ChatMessage>()
                 .HasOne(m => m.ReportedBy)
                 .WithMany()
                 .HasForeignKey(m => m.ReportedById)
                 .OnDelete(DeleteBehavior.SetNull);
 
+
             modelBuilder.Entity<ChatMessage>()
                 .Property(m => m.ReportReason)
                 .HasMaxLength(500);
+
 
             modelBuilder.Entity<ChatMessage>()
                 .HasIndex(m => m.ReportedById);

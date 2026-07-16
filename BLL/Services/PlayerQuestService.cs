@@ -258,17 +258,46 @@ namespace BLL.Services
             await _playerProfileRepo.UpdatePlayerProfile(profile);
 
             // Quest items are now consumed in CompleteQuest
-            if (quest.RewardItemId.HasValue)
-                await AddItemToInventory(playerProfileId, quest.RewardItemId.Value, 1);
+            var rewardItems = quest.RewardItems
+                .Where(item => item.ItemId > 0 && item.Quantity > 0)
+                .GroupBy(item => item.ItemId)
+                .Select(group => new
+                {
+                    ItemId = group.Key,
+                    Quantity = group.Sum(item => Math.Max(1, item.Quantity))
+                })
+                .ToList();
 
-            // If quest grants a skill, add it to player's skills (if not already owned).
-            var owned = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
-            if (quest.RewardSkillId.HasValue && !owned.Any(ps => ps.SkillId == quest.RewardSkillId.Value))
+            if (rewardItems.Count > 0)
             {
+                foreach (var rewardItem in rewardItems)
+                    await AddItemToInventory(playerProfileId, rewardItem.ItemId, rewardItem.Quantity);
+            }
+            else if (quest.RewardItemId.HasValue)
+            {
+                await AddItemToInventory(playerProfileId, quest.RewardItemId.Value, 1);
+            }
+
+            // If quest grants skills, add them to player's skills (if not already owned).
+            var owned = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
+            var rewardSkillIds = quest.RewardSkills
+                .Where(skill => skill.SkillId > 0)
+                .Select(skill => skill.SkillId)
+                .Distinct()
+                .ToList();
+
+            if (rewardSkillIds.Count == 0 && quest.RewardSkillId.HasValue)
+                rewardSkillIds.Add(quest.RewardSkillId.Value);
+
+            foreach (var rewardSkillId in rewardSkillIds)
+            {
+                if (owned.Any(ps => ps.SkillId == rewardSkillId))
+                    continue;
+
                 var newPlayerSkill = await _skillRepo.CreatePlayerSkill(new PlayerSkill
                 {
                     PlayerProfileId = playerProfileId,
-                    SkillId = quest.RewardSkillId.Value,
+                    SkillId = rewardSkillId,
                     Level = 1,
                     Experience = 0,
                     EquippedSlot = null,
@@ -277,8 +306,7 @@ namespace BLL.Services
 
                 owned.Add(newPlayerSkill);
             }
-
-            // [HACK] Tutorial: Nhận đủ 3 skill cơ bản khi xong Quest Hái Hoa
+// [HACK] Tutorial: Nhận đủ 3 skill cơ bản khi xong Quest Hái Hoa
             if (quest.Title != null && quest.Title.Contains("Gather White Flowers", StringComparison.OrdinalIgnoreCase))
             {
                 var allSkills = await _skillRepo.GetAllSkillsAsync();

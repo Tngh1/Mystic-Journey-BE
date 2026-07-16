@@ -27,7 +27,17 @@ namespace DAL.Repositories.Interfaces
         // ═══════════════════════════════════════════════════════════════════════
 
         // Cập nhật thông tin nhiệm vụ.
+        Task<Quest> AddQuest(Quest quest);
+
         Task<Quest> UpdateQuest(Quest quest);
+
+        Task<NPCDialogue?> GetQuestDialogueByQuestId(int questId);
+
+        Task<NPC?> GetNpcByNameAndMap(string? npcName, string mapName);
+
+        Task<List<NPC>> GetQuestNpcOptions(string? mapName);
+
+        void AddQuestDialogue(NPCDialogue dialogue);
 
         // Lấy danh sách nhiệm vụ có phân trang, lọc theo tìm kiếm, loại, trạng thái và bản đồ.
         Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null);

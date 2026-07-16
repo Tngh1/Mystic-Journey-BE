@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716042040_AddQuestRewardItems")]
+    partial class AddQuestRewardItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2431,30 +2434,6 @@ namespace DAL.Migrations
                     b.ToTable("QuestRewardItems");
                 });
 
-            modelBuilder.Entity("DAL.Models.QuestRewardSkill", b =>
-                {
-                    b.Property<int>("QuestRewardSkillId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuestRewardSkillId"));
-
-                    b.Property<int>("QuestId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SkillId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("QuestRewardSkillId");
-
-                    b.HasIndex("SkillId");
-
-                    b.HasIndex("QuestId", "SkillId")
-                        .IsUnique();
-
-                    b.ToTable("QuestRewardSkills");
-                });
-
             modelBuilder.Entity("DAL.Models.Role", b =>
                 {
                     b.Property<int>("RoleId")
@@ -3517,25 +3496,6 @@ namespace DAL.Migrations
                     b.Navigation("Quest");
                 });
 
-            modelBuilder.Entity("DAL.Models.QuestRewardSkill", b =>
-                {
-                    b.HasOne("DAL.Models.Quest", "Quest")
-                        .WithMany("RewardSkills")
-                        .HasForeignKey("QuestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DAL.Models.Skill", "Skill")
-                        .WithMany()
-                        .HasForeignKey("SkillId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Quest");
-
-                    b.Navigation("Skill");
-                });
-
             modelBuilder.Entity("DAL.Models.ShopItem", b =>
                 {
                     b.HasOne("DAL.Models.Item", "Item")
@@ -3686,8 +3646,6 @@ namespace DAL.Migrations
                     b.Navigation("PlayerQuests");
 
                     b.Navigation("RewardItems");
-
-                    b.Navigation("RewardSkills");
                 });
 
             modelBuilder.Entity("DAL.Models.Role", b =>
