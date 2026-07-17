@@ -370,7 +370,7 @@ namespace BLL.Services
                     : chest.GoldMinReward;
 
                 profile.Gold += goldEarned;
-                profile.ExperiencePoints += chest.ExperienceReward;
+                profile.AddExperience(chest.ExperienceReward);
 
                 var openedItems = new List<ChestOpenedItemDto>();
                 foreach (var chestItem in chest.ChestItems)

@@ -251,7 +251,7 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
 
             profile.Gold += quest.RewardGold;
-            ApplyExperience(profile, quest.RewardExperience);
+            profile.AddExperience(quest.RewardExperience);
             if (quest.RewardGems > 0)
                 profile.Gems += quest.RewardGems;
 
@@ -530,16 +530,7 @@ namespace BLL.Services
                     : normalized;
         }
 
-        private static void ApplyExperience(PlayerProfile profile, int rewardExperience)
-        {
-            profile.ExperiencePoints += Math.Max(0, rewardExperience);
-
-            while (profile.Level < 100 && profile.ExperiencePoints >= RequiredTotalExperienceForLevel(profile.Level + 1))
-                profile.Level++;
-        }
-
-        private static int RequiredTotalExperienceForLevel(int level)
-            => Math.Max(0, (level - 1) * 100);
+        // Methods ApplyExperience and RequiredTotalExperienceForLevel have been moved to PlayerProfile model
 
 
     }

@@ -304,7 +304,7 @@ namespace BLL.Services
 
                 // Step 5 — Apply gold + XP to profile
                 profile.Gold += goldEarned;
-                profile.ExperiencePoints += experienceEarned;
+                profile.AddExperience(experienceEarned);
                 profile.UpdatedAt = DateTime.UtcNow;
                 await _profileRepository.UpdatePlayerProfile(profile);
 
