@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Mystic_Journey_API.Extensions;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System;
 
 namespace Mystic_Journey_API.Controllers
 {
@@ -185,6 +187,27 @@ namespace Mystic_Journey_API.Controllers
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new ApiResponse<object> { Success = false, ErrorCode = "UNAUTHORIZED", Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
+            }
+        }
+
+        // ── POST /api/characters/buffs ────────────────────────────
+        [HttpPost("buffs")]
+        [Authorize]
+        public async Task<IActionResult> SyncBuffs([FromBody] UpdatePlayerBuffsRequest request)
+        {
+            try
+            {
+                var playerProfileId = GetPlayerProfileId();
+                await _characterService.SyncBuffs(playerProfileId, request);
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Buffs synchronized successfully."
+                });
             }
             catch (Exception ex)
             {

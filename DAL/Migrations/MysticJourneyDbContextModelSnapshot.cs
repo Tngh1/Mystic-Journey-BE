@@ -81,6 +81,10 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AchievementId"));
 
+                    b.Property<string>("BuffDescription")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -444,7 +448,7 @@ namespace DAL.Migrations
                         new
                         {
                             ClassConfigId = 1,
-                            Atk = 30,
+                            Atk = 50,
                             AttackSpeed = 100,
                             ClassName = "Knight",
                             CritDamage = 150,
@@ -457,7 +461,7 @@ namespace DAL.Migrations
                         new
                         {
                             ClassConfigId = 2,
-                            Atk = 40,
+                            Atk = 70,
                             AttackSpeed = 100,
                             ClassName = "Archer",
                             CritDamage = 150,
@@ -470,7 +474,7 @@ namespace DAL.Migrations
                         new
                         {
                             ClassConfigId = 3,
-                            Atk = 50,
+                            Atk = 90,
                             AttackSpeed = 100,
                             ClassName = "Mage",
                             CritDamage = 150,
@@ -1798,6 +1802,40 @@ namespace DAL.Migrations
                     b.ToTable("PlayerAnnouncements");
                 });
 
+            modelBuilder.Entity("DAL.Models.PlayerBuff", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BuffName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<float>("DurationRemaining")
+                        .HasColumnType("real");
+
+                    b.Property<string>("IconName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsDebuff")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PlayerProfileId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerProfileId");
+
+                    b.ToTable("PlayerBuffs");
+                });
+
             modelBuilder.Entity("DAL.Models.PlayerChest", b =>
                 {
                     b.Property<int>("PlayerChestId")
@@ -1985,6 +2023,9 @@ namespace DAL.Migrations
 
                     b.Property<decimal>("Gold")
                         .HasColumnType("numeric");
+
+                    b.Property<bool>("HasChangedName")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("LastActiveTime")
                         .HasColumnType("timestamp with time zone");
@@ -3296,6 +3337,17 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
+            modelBuilder.Entity("DAL.Models.PlayerBuff", b =>
+                {
+                    b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
+                        .WithMany("PlayerBuffs")
+                        .HasForeignKey("PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlayerProfile");
+                });
+
             modelBuilder.Entity("DAL.Models.PlayerChest", b =>
                 {
                     b.HasOne("DAL.Models.Chest", "Chest")
@@ -3673,6 +3725,8 @@ namespace DAL.Migrations
                     b.Navigation("Mails");
 
                     b.Navigation("PlayerAchievements");
+
+                    b.Navigation("PlayerBuffs");
 
                     b.Navigation("PlayerQuests");
 

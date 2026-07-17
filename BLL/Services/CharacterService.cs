@@ -2,6 +2,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -14,17 +15,20 @@ namespace BLL.Services
         private readonly IPlayerStatRepository _statRepository;
         private readonly IPlayerProfileService _playerProfileService;
         private readonly IClassConfigRepository _classConfigRepository;
+        private readonly DAL.Data.MysticJourneyDbContext _context;
 
         public CharacterService(
             IPlayerProfileRepository profileRepository,
             IPlayerStatRepository statRepository,
             IPlayerProfileService playerProfileService,
-            IClassConfigRepository classConfigRepository)
+            IClassConfigRepository classConfigRepository,
+            DAL.Data.MysticJourneyDbContext context)
         {
             _profileRepository = profileRepository;
             _statRepository = statRepository;
             _playerProfileService = playerProfileService;
             _classConfigRepository = classConfigRepository;
+            _context = context;
         }
 
         // ── 1. Create Character ────────────────────────────────────────────────────────
@@ -55,7 +59,6 @@ namespace BLL.Services
             {
                 PlayerProfileId = playerProfileId,
                 CurrentHp     = template.MaxHp, // Start with full HP
-                MaxHp         = template.MaxHp,
                 Atk           = template.Atk,
                 Def           = template.Def,
                 MoveSpeed     = template.MoveSpeed,
@@ -75,12 +78,18 @@ namespace BLL.Services
 
         public async Task<PlayerStatsResponseDto> GetStats(int playerProfileId)
         {
-            var stat = await _statRepository.GetByPlayerProfileId(playerProfileId)
+            var profile = await _context.PlayerProfiles
+                .Include(p => p.PlayerStats)
+                .Include(p => p.PlayerBuffs)
+                .Include(p => p.PlayerAchievements)
+                    .ThenInclude(pa => pa.Achievement)
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == playerProfileId)
                 ?? throw new KeyNotFoundException("Character stats not found. Please create a character first.");
 
-            var dto = MapToStatsDto(stat);
+            var stat = profile.PlayerStats;
+            var dto = MapToStatsDto(stat, profile.PlayerBuffs);
 
-            // Tích hợp chỉ số từ trang bị (nếu có)
+            // 1. Tích hợp chỉ số từ trang bị (nếu có)
             var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(playerProfileId);
             if (snapshot != null)
             {
@@ -92,12 +101,55 @@ namespace BLL.Services
                 dto.CritRate += snapshot.CritRate;
                 dto.CritDamage += snapshot.CritDamage;
                 dto.DamageBonus += snapshot.DamageBonus;
+            }
+
+            // 2. Tích hợp chỉ số ẩn (Passive Buffs) từ danh hiệu
+            if (profile.PlayerAchievements != null && profile.PlayerAchievements.Any())
+            {
+                var completedBuffs = profile.PlayerAchievements
+                    .Where(pa => pa.IsCompleted && pa.Achievement != null && !string.IsNullOrEmpty(pa.Achievement.BuffDescription))
+                    .Select(pa => pa.Achievement!.BuffDescription);
+
+                var totals = BLL.Helpers.AchievementBuffCalculator.ParseMany(completedBuffs);
+
+                // Áp dụng phần trăm tổng (ví dụ: 1 + 0.02 = 1.02)
+                dto.MaxHp = (int)(dto.MaxHp * (1m + totals.MaxHpPercent));
+                dto.Atk = (int)(dto.Atk * (1m + totals.AtkPercent));
+                dto.Def = (int)(dto.Def * (1m + totals.DefPercent));
+                dto.MoveSpeed = (int)(dto.MoveSpeed * (1m + totals.MoveSpeedPercent));
+                dto.AttackSpeed = (int)(dto.AttackSpeed * (1m + totals.AttackSpeedPercent));
+                
+                // CritRate, DamageBonus là các chỉ số cộng thẳng % nên ta cộng trực tiếp
+                dto.CritRate += (int)totals.CritRatePercent;
+                dto.DamageBonus += (int)totals.DamageBonusPercent;
+            }
                 
                 // Đảm bảo CurrentHp luôn tăng theo MaxHp (tuỳ logic game, ở đây có thể cập nhật)
                 // (Chưa cập nhật CurrentHp ở đây vì CurrentHp do logic hồi máu/chịu đòn quyết định)
             }
 
             return dto;
+        }
+
+        public async Task SyncBuffs(int playerProfileId, UpdatePlayerBuffsRequest request)
+        {
+            var existingBuffs = await _context.PlayerBuffs.Where(b => b.PlayerProfileId == playerProfileId).ToListAsync();
+            _context.PlayerBuffs.RemoveRange(existingBuffs);
+
+            if (request.Buffs != null && request.Buffs.Any())
+            {
+                var newBuffs = request.Buffs.Select(b => new PlayerBuff
+                {
+                    PlayerProfileId = playerProfileId,
+                    BuffName = b.BuffName,
+                    IconName = b.IconName,
+                    DurationRemaining = b.DurationRemaining,
+                    IsDebuff = b.IsDebuff
+                });
+                await _context.PlayerBuffs.AddRangeAsync(newBuffs);
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         // ── 3. Upgrade Character ───────────────────────────────────────────────────────
@@ -124,7 +176,7 @@ namespace BLL.Services
                 UpgradedAttribute   = request.AttributeName,
                 AmountSpent         = request.Amount,
                 RemainingSkillPoints = stat.SkillPoints,
-                Stats               = MapToStatsDto(stat)
+                Stats               = MapToStatsDto(stat, (await _context.PlayerProfiles.Include(p => p.PlayerBuffs).FirstAsync(p => p.PlayerProfileId == playerProfileId)).PlayerBuffs)
             };
         }
 
@@ -187,7 +239,7 @@ namespace BLL.Services
             await _statRepository.Update(stat);
         }
 
-        private static PlayerStatsResponseDto MapToStatsDto(PlayerStat stat)
+        private static PlayerStatsResponseDto MapToStatsDto(PlayerStat stat, ICollection<PlayerBuff> buffs = null)
         {
             return new PlayerStatsResponseDto
             {
@@ -204,7 +256,14 @@ namespace BLL.Services
                 TotalWins   = stat.TotalWins,
                 TotalLosses = stat.TotalLosses,
                 TotalKills  = stat.TotalKills,
-                TotalDeaths = stat.TotalDeaths
+                TotalDeaths = stat.TotalDeaths,
+                ActiveBuffs = buffs != null ? buffs.Select(b => new PlayerBuffDTO
+                {
+                    BuffName = b.BuffName,
+                    IconName = b.IconName,
+                    DurationRemaining = b.DurationRemaining,
+                    IsDebuff = b.IsDebuff
+                }).ToList() : new List<PlayerBuffDTO>()
             };
         }
 
@@ -224,7 +283,7 @@ namespace BLL.Services
                 MaxEnergy       = profile.MaxEnergy,
                 LastEnergyUpdateTime = profile.LastEnergyUpdateTime,
                 CreatedAt       = profile.CreatedAt,
-                Stats           = MapToStatsDto(stat)
+                Stats           = MapToStatsDto(stat, profile.PlayerBuffs)
             };
         }
         // ── 5. Get Class Configs ───────────────────────────────────────────────────────

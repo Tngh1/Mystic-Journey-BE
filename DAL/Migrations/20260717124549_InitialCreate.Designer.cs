@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260715150941_AddTotalFeatsToGuild")]
-    partial class AddTotalFeatsToGuild
+    [Migration("20260717124549_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -83,6 +83,10 @@ namespace DAL.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AchievementId"));
+
+                    b.Property<string>("BuffDescription")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -447,7 +451,7 @@ namespace DAL.Migrations
                         new
                         {
                             ClassConfigId = 1,
-                            Atk = 30,
+                            Atk = 50,
                             AttackSpeed = 100,
                             ClassName = "Knight",
                             CritDamage = 150,
@@ -460,7 +464,7 @@ namespace DAL.Migrations
                         new
                         {
                             ClassConfigId = 2,
-                            Atk = 40,
+                            Atk = 70,
                             AttackSpeed = 100,
                             ClassName = "Archer",
                             CritDamage = 150,
@@ -473,7 +477,7 @@ namespace DAL.Migrations
                         new
                         {
                             ClassConfigId = 3,
-                            Atk = 50,
+                            Atk = 90,
                             AttackSpeed = 100,
                             ClassName = "Mage",
                             CritDamage = 150,
@@ -1801,6 +1805,40 @@ namespace DAL.Migrations
                     b.ToTable("PlayerAnnouncements");
                 });
 
+            modelBuilder.Entity("DAL.Models.PlayerBuff", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BuffName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<float>("DurationRemaining")
+                        .HasColumnType("real");
+
+                    b.Property<string>("IconName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsDebuff")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PlayerProfileId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerProfileId");
+
+                    b.ToTable("PlayerBuffs");
+                });
+
             modelBuilder.Entity("DAL.Models.PlayerChest", b =>
                 {
                     b.Property<int>("PlayerChestId")
@@ -1989,6 +2027,9 @@ namespace DAL.Migrations
                     b.Property<decimal>("Gold")
                         .HasColumnType("numeric");
 
+                    b.Property<bool>("HasChangedName")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("LastActiveTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -2071,6 +2112,37 @@ namespace DAL.Migrations
                     b.HasIndex("QuestId");
 
                     b.ToTable("PlayerQuests");
+                });
+
+            modelBuilder.Entity("DAL.Models.PlayerShopRefreshState", b =>
+                {
+                    b.Property<int>("PlayerShopRefreshStateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerShopRefreshStateId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastRefreshAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PlayerProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RefreshCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ShopDateUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PlayerShopRefreshStateId");
+
+                    b.HasIndex("PlayerProfileId", "ShopDateUtc")
+                        .IsUnique();
+
+                    b.ToTable("PlayerShopRefreshStates");
                 });
 
             modelBuilder.Entity("DAL.Models.PlayerSkill", b =>
@@ -2376,6 +2448,57 @@ namespace DAL.Migrations
                     b.ToTable("Quests");
                 });
 
+            modelBuilder.Entity("DAL.Models.QuestRewardItem", b =>
+                {
+                    b.Property<int>("QuestRewardItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuestRewardItemId"));
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QuestId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("QuestRewardItemId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("QuestId", "ItemId")
+                        .IsUnique();
+
+                    b.ToTable("QuestRewardItems");
+                });
+
+            modelBuilder.Entity("DAL.Models.QuestRewardSkill", b =>
+                {
+                    b.Property<int>("QuestRewardSkillId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuestRewardSkillId"));
+
+                    b.Property<int>("QuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkillId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("QuestRewardSkillId");
+
+                    b.HasIndex("SkillId");
+
+                    b.HasIndex("QuestId", "SkillId")
+                        .IsUnique();
+
+                    b.ToTable("QuestRewardSkills");
+                });
+
             modelBuilder.Entity("DAL.Models.Role", b =>
                 {
                     b.Property<int>("RoleId")
@@ -2440,6 +2563,13 @@ namespace DAL.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("ShopSection")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("Fixed");
+
                     b.Property<int>("Stock")
                         .HasColumnType("integer");
 
@@ -2449,6 +2579,8 @@ namespace DAL.Migrations
                     b.HasKey("ShopItemId");
 
                     b.HasIndex("ItemId");
+
+                    b.HasIndex("ShopSection");
 
                     b.ToTable("ShopItems");
                 });
@@ -3208,6 +3340,17 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
+            modelBuilder.Entity("DAL.Models.PlayerBuff", b =>
+                {
+                    b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
+                        .WithMany("PlayerBuffs")
+                        .HasForeignKey("PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlayerProfile");
+                });
+
             modelBuilder.Entity("DAL.Models.PlayerChest", b =>
                 {
                     b.HasOne("DAL.Models.Chest", "Chest")
@@ -3296,6 +3439,17 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
 
                     b.Navigation("Quest");
+                });
+
+            modelBuilder.Entity("DAL.Models.PlayerShopRefreshState", b =>
+                {
+                    b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
+                        .WithMany()
+                        .HasForeignKey("PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlayerProfile");
                 });
 
             modelBuilder.Entity("DAL.Models.PlayerSkill", b =>
@@ -3397,6 +3551,44 @@ namespace DAL.Migrations
                     b.Navigation("RewardItem");
 
                     b.Navigation("RewardSkill");
+                });
+
+            modelBuilder.Entity("DAL.Models.QuestRewardItem", b =>
+                {
+                    b.HasOne("DAL.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Models.Quest", "Quest")
+                        .WithMany("RewardItems")
+                        .HasForeignKey("QuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Quest");
+                });
+
+            modelBuilder.Entity("DAL.Models.QuestRewardSkill", b =>
+                {
+                    b.HasOne("DAL.Models.Quest", "Quest")
+                        .WithMany("RewardSkills")
+                        .HasForeignKey("QuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Models.Skill", "Skill")
+                        .WithMany()
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Quest");
+
+                    b.Navigation("Skill");
                 });
 
             modelBuilder.Entity("DAL.Models.ShopItem", b =>
@@ -3537,6 +3729,8 @@ namespace DAL.Migrations
 
                     b.Navigation("PlayerAchievements");
 
+                    b.Navigation("PlayerBuffs");
+
                     b.Navigation("PlayerQuests");
 
                     b.Navigation("PlayerSkills");
@@ -3547,6 +3741,10 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.Quest", b =>
                 {
                     b.Navigation("PlayerQuests");
+
+                    b.Navigation("RewardItems");
+
+                    b.Navigation("RewardSkills");
                 });
 
             modelBuilder.Entity("DAL.Models.Role", b =>

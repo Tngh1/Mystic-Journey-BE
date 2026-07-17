@@ -100,7 +100,8 @@ namespace BLL.Services
                 AvatarUrl = profile.AvatarUrl,
                 Title = "Novice",
                 LastOnline = profile.UpdatedAt ?? profile.CreatedAt,
-                IsOnline = IsPlayerOnline(profile.Account)
+                IsOnline = IsPlayerOnline(profile.Account),
+                HasChangedName = profile.HasChangedName
             };
         }
 

@@ -34,5 +34,6 @@ namespace BLL.Services.Interfaces
 
         // Tính toán lại năng lượng hiện tại của player (dựa trên thời gian).
         bool RecalculateEnergy(PlayerProfile profile);
+        Task<PlayerProfileDetailResponseDto> ChangeName(int accountId, ChangeNameRequestDto request);
     }
 }

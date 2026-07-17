@@ -15,6 +15,9 @@ namespace DAL.Models
         public string Type { get; set; } = "Combat";
 
         public string? IconUrl { get; set; }
+        
+        [MaxLength(200)]
+        public string? BuffDescription { get; set; }
 
         public int RequiredValue { get; set; } = 1;
 

@@ -139,5 +139,31 @@ namespace BLL.Services
             var friends = await _friendRepository.GetFriends(playerProfileId);
             return _mapper.Map<List<PlayerProfileResponseDto>>(friends);
         }
+        public async Task<PlayerProfileDetailResponseDto> ChangeName(int accountId, ChangeNameRequestDto request)
+        {
+            var profile = await _repository.GetByAccountId(accountId)
+                ?? throw new KeyNotFoundException("Player profile not found.");
+
+            if (!profile.HasChangedName)
+            {
+                // First time is free
+                profile.DisplayName = request.NewName;
+                profile.HasChangedName = true;
+            }
+            else
+            {
+                // Costs 500 Gems
+                if (profile.Gems < 500)
+                    throw new InvalidOperationException("Not enough gems to change name. You need 500 gems.");
+
+                profile.Gems -= 500;
+                profile.DisplayName = request.NewName;
+            }
+
+            profile.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdatePlayerProfile(profile);
+
+            return _mapper.Map<PlayerProfileDetailResponseDto>(profile);
+        }
     }
 }

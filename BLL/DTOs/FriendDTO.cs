@@ -36,11 +36,12 @@ namespace BLL.DTOs
         public string Class { get; set; } = string.Empty;
         public int Level { get; set; }
         public int Power { get; set; }
-        public string Guild { get; set; } = "No Guild";
-        public string AvatarUrl { get; set; } = string.Empty;
+        public string? Guild { get; set; }
+        public string? AvatarUrl { get; set; }
         public string Title { get; set; } = "Novice";
-        public DateTime? LastOnline { get; set; }
+        public DateTime LastOnline { get; set; }
         public bool IsOnline { get; set; }
+        public bool HasChangedName { get; set; }
     }
 
     public enum FriendRelationshipStatus

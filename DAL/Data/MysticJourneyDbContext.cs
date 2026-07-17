@@ -14,6 +14,7 @@ namespace DAL.Data
         public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
         public DbSet<PlayerStat> PlayerStats => Set<PlayerStat>();
         public DbSet<PlayerStatsSnapshot> PlayerStatsSnapshots => Set<PlayerStatsSnapshot>();
+        public DbSet<PlayerBuff> PlayerBuffs => Set<PlayerBuff>();
         public DbSet<Item> Items => Set<Item>();
         public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
         public DbSet<EquipmentStats> EquipmentStats => Set<EquipmentStats>();
@@ -79,9 +80,9 @@ namespace DAL.Data
             new Role { RoleId = 3, Name = "SuperAdmin" });
 
             modelBuilder.Entity<ClassConfig>().HasData(
-                new ClassConfig { ClassConfigId = 1, ClassName = "Knight", MaxHp = 500, Atk = 30, Def = 40, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
-                new ClassConfig { ClassConfigId = 2, ClassName = "Archer", MaxHp = 350, Atk = 40, Def = 20, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
-                new ClassConfig { ClassConfigId = 3, ClassName = "Mage", MaxHp = 300, Atk = 50, Def = 15, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 }
+                new ClassConfig { ClassConfigId = 1, ClassName = "Knight", MaxHp = 500, Atk = 50, Def = 40, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
+                new ClassConfig { ClassConfigId = 2, ClassName = "Archer", MaxHp = 350, Atk = 70, Def = 20, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
+                new ClassConfig { ClassConfigId = 3, ClassName = "Mage", MaxHp = 300, Atk = 90, Def = 15, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 }
             );
 
             modelBuilder.Entity<ShopItem>()

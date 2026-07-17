@@ -43,5 +43,12 @@ namespace DAL.Repositories
             await _context.SaveChangesAsync();
             return playerAchievement;
         }
+
+        /// <summary>Thêm nhiều thành tích người chơi cùng lúc.</summary>
+        public async Task AddRange(IEnumerable<PlayerAchievement> achievements)
+        {
+            await _context.PlayerAchievements.AddRangeAsync(achievements);
+            await _context.SaveChangesAsync();
+        }
     }
 }

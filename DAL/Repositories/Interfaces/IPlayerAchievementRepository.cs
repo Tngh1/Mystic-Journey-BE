@@ -19,5 +19,8 @@ namespace DAL.Repositories.Interfaces
 
         // Cập nhật một thành tích người chơi.
         Task<PlayerAchievement> Update(PlayerAchievement playerAchievement);
+
+        // Thêm nhiều thành tích người chơi cùng lúc.
+        Task AddRange(IEnumerable<PlayerAchievement> achievements);
     }
 }

@@ -66,9 +66,36 @@ namespace BLL.Services
 
         public async Task<PlayerMeAchievementsResponseDto> GetMeAchievements(int playerProfileId)
         {
-            var achievements = await _playerAchievementRepository.GetByPlayerProfileId(playerProfileId);
+            var allAchievements = await _repository.GetAllActiveAchievements();
+            var existingPA = await _playerAchievementRepository.GetByPlayerProfileId(playerProfileId);
+            var existingIds = existingPA.Select(pa => pa.AchievementId).ToHashSet();
 
-            var dtos = _mapper.Map<List<PlayerAchievementResponseDto>>(achievements);
+            var newPAs = new List<PlayerAchievement>();
+            foreach(var ach in allAchievements)
+            {
+                if (!existingIds.Contains(ach.AchievementId))
+                {
+                    var pa = new PlayerAchievement
+                    {
+                        PlayerProfileId = playerProfileId,
+                        AchievementId = ach.AchievementId,
+                        Progress = 0,
+                        IsCompleted = false,
+                        UnlockedAt = DateTime.UtcNow
+                    };
+                    newPAs.Add(pa);
+                }
+            }
+
+            if (newPAs.Any())
+            {
+                await _playerAchievementRepository.AddRange(newPAs);
+                
+                // Re-fetch to include the Navigation properties like Achievement.IconUrl, etc.
+                existingPA = await _playerAchievementRepository.GetByPlayerProfileId(playerProfileId);
+            }
+
+            var dtos = _mapper.Map<List<PlayerAchievementResponseDto>>(existingPA);
 
             return new PlayerMeAchievementsResponseDto
             {
