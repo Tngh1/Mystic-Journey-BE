@@ -62,12 +62,6 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(p => p.DisplayName == playerName);
         }
 
-        /// <summary>Lấy snapshot chỉ số của người chơi.</summary>
-        public async Task<PlayerStatsSnapshot?> GetSnapshotByPlayerProfileId(int playerProfileId)
-        {
-            return await _context.PlayerStatsSnapshots.FirstOrDefaultAsync(s => s.PlayerProfileId == playerProfileId);
-        }
-
         /// <summary>Lấy tất cả hồ sơ người chơi trong hệ thống.</summary>
         public async Task<List<PlayerProfile>> GetAllPlayerProfiles()
         {

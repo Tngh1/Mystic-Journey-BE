@@ -3,7 +3,6 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using DAL.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
@@ -81,7 +80,7 @@ namespace BLL.Services
             return summary;
         }
 
-        public async Task<InventoryItemResponseDto> EquipItem(int actorPlayerProfileId, EquipItemRequestDto request)
+        public async Task<InventoryActionResultDto> EquipItem(int actorPlayerProfileId, EquipItemRequestDto request)
         {
             var inv = await _inventoryRepository.GetById(request.InventoryItemId)
                 ?? throw new KeyNotFoundException("Inventory item not found.");
@@ -91,7 +90,7 @@ namespace BLL.Services
 
             var slot = inv.Item?.Slot ?? inv.EquippedSlot;
 
-            return await _transactionManager.ExecuteInTransactionAsync(async () =>
+            var (updatedInv, finalSnapshot) = await _transactionManager.ExecuteInTransactionAsync<(InventoryItem, PlayerStatsSnapshot?)>(async () =>
             {
                 if (!string.IsNullOrEmpty(slot))
                 {
@@ -109,8 +108,6 @@ namespace BLL.Services
                 inv.EquippedSlot = slot;
                 var updated = await _inventoryRepository.UpdateItem(inv);
 
-                // recompute and persist player stats snapshot
-                // get equipped items after update
                 var allPlayerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
                 var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();
 
@@ -126,11 +123,11 @@ namespace BLL.Services
                 int totalBonusDef = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDef ?? 0);
                 int totalEnhDef = equippedItems.Sum(i => i.EnhancementLevel * DEF_ENHANCEMENT_PER_LEVEL);
 
-                // EquipmentStats are stored as SCALED integers (see StatScale). Sum them directly.
-                int totalCritRate = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritRate ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * CRITRATE_ENHANCEMENT_PER_LEVEL_SCALED);
-                int totalCritDamage = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritDamage ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED);
+                int totalCritRate = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritRate ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * CRITRATE_ENHANCEMENT_PER_LEVEL_SCALED);
+                int totalCritDamage = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritDamage ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED);
 
-                // persist snapshot into PlayerStatsSnapshots table
                 var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
                 bool isNewSnapshot = false;
                 if (snapshot == null)
@@ -142,29 +139,50 @@ namespace BLL.Services
                 snapshot.MaxHp = totalBaseHp + totalBonusHp + totalEnhHp;
                 snapshot.Atk = totalBaseAtk + totalBonusAtk + totalEnhAtk;
                 snapshot.Def = totalBaseDef + totalBonusDef + totalEnhDef;
-                // scaled integer assignments
-                // EquipmentStats fields are already stored as scaled integers, and enhancement contributions above are scaled too.
                 snapshot.CritRate = totalCritRate;
                 snapshot.CritDamage = totalCritDamage;
-                snapshot.MoveSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusMoveSpeed ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * MOVE_SPEED_ENH_PER_LEVEL_SCALED);
-                snapshot.AttackSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusAttackSpeed ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * ATTACK_SPEED_ENH_PER_LEVEL_SCALED);
-                snapshot.DamageBonus = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDamageBonus ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * DAMAGEBONUS_ENH_PER_LEVEL_SCALED);
+                snapshot.MoveSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusMoveSpeed ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * MOVE_SPEED_ENH_PER_LEVEL_SCALED);
+                snapshot.AttackSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusAttackSpeed ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * ATTACK_SPEED_ENH_PER_LEVEL_SCALED);
+                snapshot.DamageBonus = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDamageBonus ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * DAMAGEBONUS_ENH_PER_LEVEL_SCALED);
                 snapshot.UpdatedAt = DateTime.UtcNow;
 
                 if (isNewSnapshot)
-                {
                     await _statRepository.CreateSnapshot(snapshot);
-                }
                 else
-                {
                     await _statRepository.UpdateSnapshot(snapshot);
-                }
 
-                return _mapper.Map<InventoryItemResponseDto>(updated);
+                return (updated, snapshot);
             });
+
+            var stats = finalSnapshot == null ? null : new PlayerStatsResponseDto
+            {
+                CurrentHp = finalSnapshot.MaxHp,
+                MaxHp = finalSnapshot.MaxHp,
+                Atk = finalSnapshot.Atk,
+                Def = finalSnapshot.Def,
+                MoveSpeed = (int)StatHelper.FromScaled(finalSnapshot.MoveSpeed, StatScale.MoveSpeed),
+                AttackSpeed = (int)StatHelper.FromScaled(finalSnapshot.AttackSpeed, StatScale.AttackSpeed),
+                CritRate = (int)StatHelper.FromScaled(finalSnapshot.CritRate, StatScale.CritRate),
+                CritDamage = (int)StatHelper.FromScaled(finalSnapshot.CritDamage, StatScale.CritRate),
+                DamageBonus = (int)StatHelper.FromScaled(finalSnapshot.DamageBonus, StatScale.DamageBonus),
+                SkillPoints = 0,
+                TotalWins = 0,
+                TotalLosses = 0,
+                TotalKills = 0,
+                TotalDeaths = 0
+            };
+
+            return new InventoryActionResultDto
+            {
+                Item = _mapper.Map<InventoryItemResponseDto>(updatedInv),
+                PlayerStats = stats
+            };
         }
 
-        public async Task<InventoryItemResponseDto> UnequipItem(int actorPlayerProfileId, UnequipItemRequestDto request)
+        public async Task<InventoryActionResultDto> UnequipItem(int actorPlayerProfileId, UnequipItemRequestDto request)
         {
             var inv = await _inventoryRepository.GetById(request.InventoryItemId)
                 ?? throw new KeyNotFoundException("Inventory item not found.");
@@ -172,13 +190,12 @@ namespace BLL.Services
             if (inv.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("Item does not belong to player.");
 
-            return await _transactionManager.ExecuteInTransactionAsync(async () =>
+            var (updatedInv, finalSnapshot) = await _transactionManager.ExecuteInTransactionAsync<(InventoryItem, PlayerStatsSnapshot?)>(async () =>
             {
                 inv.IsEquipped = false;
                 inv.EquippedSlot = null;
                 var updated = await _inventoryRepository.UpdateItem(inv);
 
-                // recompute and persist player stats snapshot after unequip
                 var allPlayerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
                 var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();
 
@@ -194,8 +211,10 @@ namespace BLL.Services
                 int totalBonusDef = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDef ?? 0);
                 int totalEnhDef = equippedItems.Sum(i => i.EnhancementLevel * DEF_ENHANCEMENT_PER_LEVEL);
 
-                int totalCritRate = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritRate ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * CRITRATE_ENHANCEMENT_PER_LEVEL_SCALED);
-                int totalCritDamage = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritDamage ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED);
+                int totalCritRate = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritRate ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * CRITRATE_ENHANCEMENT_PER_LEVEL_SCALED);
+                int totalCritDamage = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusCritDamage ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED);
 
                 var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
                 bool isNewSnapshot = false;
@@ -210,22 +229,45 @@ namespace BLL.Services
                 snapshot.Def = totalBaseDef + totalBonusDef + totalEnhDef;
                 snapshot.CritRate = totalCritRate;
                 snapshot.CritDamage = totalCritDamage;
-                snapshot.MoveSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusMoveSpeed ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * MOVE_SPEED_ENH_PER_LEVEL_SCALED);
-                snapshot.AttackSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusAttackSpeed ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * ATTACK_SPEED_ENH_PER_LEVEL_SCALED);
-                snapshot.DamageBonus = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDamageBonus ?? 0) + equippedItems.Sum(i => i.EnhancementLevel * DAMAGEBONUS_ENH_PER_LEVEL_SCALED);
+                snapshot.MoveSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusMoveSpeed ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * MOVE_SPEED_ENH_PER_LEVEL_SCALED);
+                snapshot.AttackSpeed = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusAttackSpeed ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * ATTACK_SPEED_ENH_PER_LEVEL_SCALED);
+                snapshot.DamageBonus = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusDamageBonus ?? 0)
+                    + equippedItems.Sum(i => i.EnhancementLevel * DAMAGEBONUS_ENH_PER_LEVEL_SCALED);
                 snapshot.UpdatedAt = DateTime.UtcNow;
 
                 if (isNewSnapshot)
-                {
                     await _statRepository.CreateSnapshot(snapshot);
-                }
                 else
-                {
                     await _statRepository.UpdateSnapshot(snapshot);
-                }
 
-                return _mapper.Map<InventoryItemResponseDto>(updated);
+                return (updated, snapshot);
             });
+
+            var stats = finalSnapshot == null ? null : new PlayerStatsResponseDto
+            {
+                CurrentHp = finalSnapshot.MaxHp,
+                MaxHp = finalSnapshot.MaxHp,
+                Atk = finalSnapshot.Atk,
+                Def = finalSnapshot.Def,
+                MoveSpeed = (int)StatHelper.FromScaled(finalSnapshot.MoveSpeed, StatScale.MoveSpeed),
+                AttackSpeed = (int)StatHelper.FromScaled(finalSnapshot.AttackSpeed, StatScale.AttackSpeed),
+                CritRate = (int)StatHelper.FromScaled(finalSnapshot.CritRate, StatScale.CritRate),
+                CritDamage = (int)StatHelper.FromScaled(finalSnapshot.CritDamage, StatScale.CritRate),
+                DamageBonus = (int)StatHelper.FromScaled(finalSnapshot.DamageBonus, StatScale.DamageBonus),
+                SkillPoints = 0,
+                TotalWins = 0,
+                TotalLosses = 0,
+                TotalKills = 0,
+                TotalDeaths = 0
+            };
+
+            return new InventoryActionResultDto
+            {
+                Item = _mapper.Map<InventoryItemResponseDto>(updatedInv),
+                PlayerStats = stats
+            };
         }
 
         public async Task ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request)

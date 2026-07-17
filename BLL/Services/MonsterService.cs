@@ -2,7 +2,6 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
-using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using System.Linq;

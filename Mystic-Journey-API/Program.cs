@@ -164,6 +164,9 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 // Daily Login Reward Services
 builder.Services.AddScoped<IDailyLoginRewardRepository, DailyLoginRewardRepository>();
 builder.Services.AddScoped<IDailyLoginRewardService, DailyLoginRewardService>();
+
+// Guild Services
+builder.Services.AddScoped<IGuildRepository, GuildRepository>();
 builder.Services.AddScoped<BLL.Services.Interfaces.IGuildService, BLL.Services.GuildService>();
 
 // Background Jobs
