@@ -19,6 +19,9 @@ namespace DAL.Repositories.Interfaces
         // Lấy thành tích kèm vật phẩm thưởng.
         Task<Achievement?> GetAchievementByIdWithReward(int id);
 
+        // Lấy toàn bộ thành tích đang hoạt động
+        Task<List<Achievement>> GetAllActiveAchievements();
+
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════

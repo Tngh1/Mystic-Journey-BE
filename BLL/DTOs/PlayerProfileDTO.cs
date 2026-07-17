@@ -23,6 +23,8 @@ namespace BLL.DTOs
         public float CorruptionLevel { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? LastFreeGachaTime { get; set; }
+        public bool HasChangedName { get; set; }
     }
 
     public class PlayerProfileDetailResponseDto : PlayerProfileResponseDto
@@ -46,6 +48,7 @@ namespace BLL.DTOs
         public int TotalLosses { get; set; }
         public int TotalKills { get; set; }
         public int TotalDeaths { get; set; }
+        public List<PlayerBuffDTO> ActiveBuffs { get; set; } = new List<PlayerBuffDTO>();
     }
 
     public class UpdatePlayerProfileRequestDto
@@ -60,6 +63,13 @@ namespace BLL.DTOs
         public int Energy { get; set; }
         public int MaxEnergy { get; set; }
         public float? CorruptionLevel { get; set; }
+    }
+
+    public class ChangeNameRequestDto
+    {
+        [Required(ErrorMessage = "New name is required.")]
+        [StringLength(16, MinimumLength = 3, ErrorMessage = "Character name must be between 3 and 16 characters.")]
+        public string NewName { get; set; } = string.Empty;
     }
 
     // ============ PlayerProfile API Response ============
@@ -172,5 +182,6 @@ namespace BLL.DTOs
         // Timestamps
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? LastFreeGachaTime { get; set; }
     }
 }

@@ -19,7 +19,6 @@ namespace BLL.DTOs
         public float BonusCritRate { get; set; }
         public float BonusCritDamage { get; set; }
         public float BonusDamageBonus { get; set; }
-
         public int TotalHp => BaseHp + BonusHp;
         public int TotalAtk => BaseAtk + BonusAtk;
         public int TotalDef => BaseDef + BonusDef;
@@ -56,5 +55,7 @@ namespace BLL.DTOs
         public int BonusCritRate { get; set; }
         public int BonusCritDamage { get; set; }
         public int BonusDamageBonus { get; set; }
+        public int BonusPhysicalPower { get; set; }
+        public int BonusMagicPower { get; set; }
     }
 }

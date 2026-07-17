@@ -662,51 +662,16 @@ namespace Mystic_Journey_API.Controllers
             {
                 var achievementList = new List<Achievement>
                 {
-                    new Achievement
-                    {
-                        Name = "Novice",
-                        Description = "Danh hiệu khởi đầu cho những nhà mạo hiểm mới.",
-                        Point = 0,
-                        IconUrl = "",
-                        RequiredValue = 1,
-                        RewardGold = 100,
-                        Type = "Combat",
-                        IsActive = true
-                    },
-                    new Achievement
-                    {
-                        Name = "Goblin Slayer",
-                        Description = "Kẻ tiêu diệt yêu tinh. Yêu cầu giết 100 con Goblin.",
-                        Point = 100,
-                        IconUrl = "",
-                        RequiredValue = 100,
-                        RewardGold = 500,
-                        Type = "Combat",
-                        IsActive = true
-                    },
-                    new Achievement
-                    {
-                        Name = "Dragon Fear",
-                        Description = "Chạm trán Rồng Thủ Lĩnh và sống sót.",
-                        Point = 500,
-                        IconUrl = "",
-                        RequiredValue = 1,
-                        RewardGem = 50,
-                        Type = "Combat",
-                        IsActive = true
-                    },
-                    new Achievement
-                    {
-                        Name = "Flower Picker",
-                        Description = "Nhiệm vụ nhặt bông. Yêu cầu nhặt 50 bông hoa.",
-                        Point = 50,
-                        IconUrl = "",
-                        RequiredValue = 50,
-                        RewardGold = 200,
-                        RewardGem = 5,
-                        Type = "Gathering",
-                        IsActive = true
-                    }
+                    new Achievement { Name = "Pioneer", Description = "Complete the first chapter", BuffDescription = "+2% Max HP", RequiredValue = 1, Type = "Progression", IconUrl = "pioneer" },
+                    new Achievement { Name = "Monster Hunter", Description = "Defeat 1,000 monsters", BuffDescription = "+2% Attack", RequiredValue = 1000, Type = "Combat", IconUrl = "monster_hunter" },
+                    new Achievement { Name = "Deadeye", Description = "Reach the required cumulative Critical Rate", BuffDescription = "+2% Critical Rate", RequiredValue = 100, Type = "Progression", IconUrl = "deadeye" },
+                    new Achievement { Name = "The Unyielding", Description = "Die fewer than 10 times before Level 30", BuffDescription = "+3% Defense", RequiredValue = 1, Type = "Progression", IconUrl = "unyielding" },
+                    new Achievement { Name = "Swift Wanderer", Description = "Explore every region on the map", BuffDescription = "+3% Movement Speed", RequiredValue = 1, Type = "Exploration", IconUrl = "swift_wanderer" },
+                    new Achievement { Name = "Treasure Seeker", Description = "Open 500 treasure chests", BuffDescription = "+5% Gold Gain", RequiredValue = 500, Type = "Collection", IconUrl = "treasure_seeker" },
+                    new Achievement { Name = "Adventurer", Description = "Complete 100 quests", BuffDescription = "+3% EXP Gain", RequiredValue = 100, Type = "Progression", IconUrl = "adventurer" },
+                    new Achievement { Name = "Faithful Companion", Description = "Complete 100 co-op dungeons", BuffDescription = "+2% Max HP, +2% Defense", RequiredValue = 100, Type = "Social", IconUrl = "faithful_companion" },
+                    new Achievement { Name = "Conqueror", Description = "Defeat every Boss at least once", BuffDescription = "+3% Damage to Bosses", RequiredValue = 1, Type = "Combat", IconUrl = "conqueror" },
+                    new Achievement { Name = "Legend of Elarion", Description = "Reach the maximum level and complete the main storyline", BuffDescription = "+2% to All Stats (HP, ATK, DEF)", RequiredValue = 1, Type = "Progression", IconUrl = "legend_elarion" }
                 };
 
                 foreach (var a in achievementList)
@@ -719,10 +684,9 @@ namespace Mystic_Journey_API.Controllers
                     else
                     {
                         existing.Description = a.Description;
-                        existing.Point = a.Point;
+                        existing.BuffDescription = a.BuffDescription;
+                        existing.IconUrl = a.IconUrl;
                         existing.RequiredValue = a.RequiredValue;
-                        existing.RewardGold = a.RewardGold;
-                        existing.RewardGem = a.RewardGem;
                         existing.Type = a.Type;
                         existing.IsActive = a.IsActive;
                     }
@@ -800,7 +764,7 @@ namespace Mystic_Journey_API.Controllers
                     .Where(s => s.ItemId == sword.ItemId || s.ItemId == armor.ItemId)
                     .ToListAsync();
 
-                void UpsertEquipmentStats(Item item, int baseHp, int baseAtk, int baseDef, int bonusHp, int bonusAtk, int bonusDef)
+                void UpsertEquipmentStats(Item item, int baseHp, int baseAtk, int baseDef, int bonusHp, int bonusAtk, int bonusDef, int bonusPhysical, int bonusMagic)
                 {
                     var stats = existingEquipmentStats.FirstOrDefault(s => s.ItemId == item.ItemId);
                     if (stats == null)
@@ -822,8 +786,8 @@ namespace Mystic_Journey_API.Controllers
                     stats.BonusDamageBonus = 0;
                 }
 
-                UpsertEquipmentStats(sword, 0, 30, 0, 0, 5, 0);
-                UpsertEquipmentStats(armor, 50, 0, 12, 10, 0, 2);
+                UpsertEquipmentStats(sword, 0, 30, 0, 0, 5, 0, 15, 0);
+                UpsertEquipmentStats(armor, 50, 0, 12, 10, 0, 2, 5, 5);
                 await _ctx.SaveChangesAsync();
 
                 // 2. Upsert skins, same reason as items: player skin ownership can reference them.

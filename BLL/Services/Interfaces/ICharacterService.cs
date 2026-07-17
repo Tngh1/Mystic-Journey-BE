@@ -25,6 +25,9 @@ namespace BLL.Services.Interfaces
         // Cập nhật HP hiện tại của nhân vật (đồng bộ từ client).
         Task UpdateHp(int playerProfileId, int currentHp);
 
+        // Đồng bộ danh sách Buff/Debuff của người chơi
+        Task SyncBuffs(int playerProfileId, UpdatePlayerBuffsRequest request);
+
         // Nâng cấp thuộc tính nhân vật bằng Skill Points.
         // Skill Points được cấp tự động khi lên level (3 điểm mỗi level).
         Task<UpgradeAttributeResponseDto> UpgradeAttribute(int playerProfileId, UpgradeAttributeRequestDto request);

@@ -10,6 +10,7 @@ namespace BLL.DTOs
         public string? Description { get; set; }
         public string Type { get; set; } = "Combat";
         public string? IconUrl { get; set; }
+        public string? BuffDescription { get; set; }
         public int RequiredValue { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }

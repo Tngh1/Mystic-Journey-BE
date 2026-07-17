@@ -13,6 +13,8 @@ namespace DAL.Models
         public string DisplayName { get; set; } = string.Empty;
 
         public string AvatarUrl { get; set; } = string.Empty;
+        
+        public bool HasChangedName { get; set; } = false;
 
         // Classes: Knight, Archer, Mage
         public string Class { get; set; } = string.Empty;
@@ -50,6 +52,7 @@ namespace DAL.Models
         public ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
         public ICollection<PlayerSkill> PlayerSkills { get; set; } = new List<PlayerSkill>();
         public ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();
+        public ICollection<PlayerBuff> PlayerBuffs { get; set; } = new List<PlayerBuff>();
         public ICollection<Mail> Mails { get; set; } = new List<Mail>();
         public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
         public GuildMember? GuildMember { get; set; }

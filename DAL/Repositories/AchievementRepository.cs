@@ -37,6 +37,14 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(a => a.AchievementId == id);
         }
 
+        /// <summary>Lấy toàn bộ thành tích đang hoạt động.</summary>
+        public async Task<List<Achievement>> GetAllActiveAchievements()
+        {
+            return await _context.Achievements
+                .Where(a => a.IsActive)
+                .ToListAsync();
+        }
+
         // ── CRUD ──
 
         /// <summary>Cập nhật thông tin thành tích.</summary>

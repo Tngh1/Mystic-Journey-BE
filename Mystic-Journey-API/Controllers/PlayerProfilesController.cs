@@ -60,6 +60,20 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PlayerProfileResponseDto> { Success = true, Data = result });
         }
 
+        // ── POST /api/playerprofiles/change-name ────────────────────────────
+        // Đổi tên nhân vật (Miễn phí lần đầu, 500 Gems các lần sau)
+        [Authorize]
+        [HttpPost("change-name")]
+        public async Task<IActionResult> ChangeName([FromBody] ChangeNameRequestDto request)
+        {
+            var accountId = GetCurrentAccountId();
+            if (accountId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Not logged in.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var result = await _playerProfileService.ChangeName(accountId, request);
+            return Ok(new ApiResponse<PlayerProfileDetailResponseDto> { Success = true, Data = result });
+        }
+
         // ── GET /api/playerprofiles/me/friends ────────────────────────────────
         // Lấy danh sách bạn bè của player đang đăng nhập.
         [Authorize]
