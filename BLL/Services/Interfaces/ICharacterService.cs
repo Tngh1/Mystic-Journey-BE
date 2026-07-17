@@ -32,6 +32,12 @@ namespace BLL.Services.Interfaces
         // Skill Points được cấp tự động khi lên level (3 điểm mỗi level).
         Task<UpgradeAttributeResponseDto> UpgradeAttribute(int playerProfileId, UpgradeAttributeRequestDto request);
 
+        // Lấy danh sách 5 lựa chọn nâng cấp chỉ số ngẫu nhiên (dùng AvailableStatPoints)
+        Task<List<string>> GetLevelUpOptions(int playerProfileId);
+
+        // Xác nhận nâng cấp 1 chỉ số từ danh sách 5 lựa chọn ngẫu nhiên
+        Task<PlayerStatsResponseDto> AllocateStat(int playerProfileId, string statName);
+
         // Lấy danh sách chỉ số khởi điểm của các Class (dành cho Web Wiki)
         Task<IEnumerable<ClassConfig>> GetAllClassConfigs();
     }

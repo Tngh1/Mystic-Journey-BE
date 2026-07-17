@@ -215,6 +215,57 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        [HttpGet("level-up-options")]
+        public async Task<IActionResult> GetLevelUpOptions()
+        {
+            try
+            {
+                var profileId = GetPlayerProfileId();
+                var options = await _characterService.GetLevelUpOptions(profileId);
+                return Ok(new ApiResponse<List<string>>
+                {
+                    Success = true,
+                    Message = "Level up options generated.",
+                    Data = options
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "NO_STAT_POINTS", Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
+            }
+        }
+
+        [HttpPost("allocate-stat")]
+        public async Task<IActionResult> AllocateStat([FromBody] AllocateStatRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var profileId = GetPlayerProfileId();
+                var result = await _characterService.AllocateStat(profileId, request.StatName);
+                return Ok(new ApiResponse<PlayerStatsResponseDto>
+                {
+                    Success = true,
+                    Message = "Stat allocated successfully.",
+                    Data = result
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<object> { Success = false, ErrorCode = "INVALID_ALLOCATION", Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
+            }
+        }
+
         // ── Helper ─────────────────────────────────────────────────
         // Đọc playerProfileId từ JWT token.
         private int GetPlayerProfileId()

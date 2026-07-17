@@ -126,7 +126,6 @@ namespace BLL.Services
                 
                 // Đảm bảo CurrentHp luôn tăng theo MaxHp (tuỳ logic game, ở đây có thể cập nhật)
                 // (Chưa cập nhật CurrentHp ở đây vì CurrentHp do logic hồi máu/chịu đòn quyết định)
-            }
 
             return dto;
         }
@@ -286,6 +285,80 @@ namespace BLL.Services
                 Stats           = MapToStatsDto(stat, profile.PlayerBuffs)
             };
         }
+
+        // ── 4. Level Up Stat Allocation ────────────────────────────────────────────────
+        public async Task<List<string>> GetLevelUpOptions(int playerProfileId)
+        {
+            var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == playerProfileId)
+                ?? throw new KeyNotFoundException("PlayerProfile not found.");
+
+            if (profile.AvailableStatPoints <= 0)
+                throw new InvalidOperationException("No stat points available.");
+
+            if (!string.IsNullOrEmpty(profile.CachedStatRolls))
+            {
+                return profile.CachedStatRolls.Split(',').ToList();
+            }
+
+            // Roll 5 new stats out of 8
+            var allStats = new List<string> { "MaxHp", "Atk", "Def", "MoveSpeed", "AttackSpeed", "CritRate", "CritDamage", "DamageBonus" };
+            var random = new Random();
+            var rolledStats = allStats.OrderBy(x => random.Next()).Take(5).ToList();
+            
+            profile.CachedStatRolls = string.Join(",", rolledStats);
+            await _context.SaveChangesAsync();
+
+            return rolledStats;
+        }
+
+        public async Task<PlayerStatsResponseDto> AllocateStat(int playerProfileId, string statName)
+        {
+            var profile = await _context.PlayerProfiles
+                .Include(p => p.PlayerStats)
+                .Include(p => p.PlayerBuffs)
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == playerProfileId)
+                ?? throw new KeyNotFoundException("PlayerProfile not found.");
+
+            if (profile.AvailableStatPoints <= 0)
+                throw new InvalidOperationException("No stat points available.");
+
+            if (string.IsNullOrEmpty(profile.CachedStatRolls))
+                throw new InvalidOperationException("No cached stats to allocate. Please request level up options first.");
+
+            var availableOptions = profile.CachedStatRolls.Split(',').Select(s => s.ToLowerInvariant()).ToList();
+            if (!availableOptions.Contains(statName.ToLowerInvariant()))
+                throw new InvalidOperationException($"Stat '{statName}' is not a valid option for this roll.");
+
+            if (profile.PlayerStats == null)
+                throw new InvalidOperationException("Character stats not found.");
+
+            int amount = GetStatIncrementAmount(statName);
+            ApplyAttributeUpgrade(profile.PlayerStats, statName, amount);
+
+            profile.AvailableStatPoints--;
+            profile.CachedStatRolls = string.Empty;
+
+            await _context.SaveChangesAsync();
+
+            return MapToStatsDto(profile.PlayerStats, profile.PlayerBuffs);
+        }
+
+        private static int GetStatIncrementAmount(string statName)
+        {
+            switch (statName.ToLowerInvariant())
+            {
+                case "maxhp": return 20;
+                case "atk": return 3;
+                case "def": return 2;
+                case "movespeed": return 1;
+                case "attackspeed": return 1;
+                case "critrate": return 1;
+                case "critdamage": return 2;
+                case "damagebonus": return 1;
+                default: return 1;
+            }
+        }
+
         // ── 5. Get Class Configs ───────────────────────────────────────────────────────
 
         public async Task<IEnumerable<ClassConfig>> GetAllClassConfigs()

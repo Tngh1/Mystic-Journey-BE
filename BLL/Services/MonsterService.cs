@@ -321,7 +321,7 @@ namespace BLL.Services
 
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
-                profile.ExperiencePoints += monster.ExperienceReward;
+                profile.AddExperience(monster.ExperienceReward);
                 profile.Gold += monster.GoldReward;
                 profile.UpdatedAt = DateTime.UtcNow;
 

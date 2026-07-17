@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace DAL.Models
@@ -21,6 +23,24 @@ namespace DAL.Models
 
         public int Level { get; set; } = 1;
         public int ExperiencePoints { get; set; } = 0;
+        
+        public int AvailableStatPoints { get; set; } = 0;
+        [MaxLength(200)]
+        public string CachedStatRolls { get; set; } = string.Empty;
+
+        public void AddExperience(int exp)
+        {
+            if (exp <= 0) return;
+            ExperiencePoints += exp;
+            while (Level < 100 && ExperiencePoints >= RequiredTotalExperienceForLevel(Level + 1))
+            {
+                Level++;
+                AvailableStatPoints++;
+            }
+        }
+
+        public static int RequiredTotalExperienceForLevel(int level)
+            => Math.Max(0, (level - 1) * 100);
 
         public decimal Gold { get; set; } = 0;
         public decimal Gems { get; set; } = 0;

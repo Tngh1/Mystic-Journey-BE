@@ -15,6 +15,7 @@ namespace BLL.DTOs
         public string PlayerClass { get; set; } = string.Empty;
         public int Level { get; set; }
         public int ExperiencePoints { get; set; }
+        public int AvailableStatPoints { get; set; }
         public decimal Gold { get; set; }
         public decimal Gems { get; set; }
         public int Energy { get; set; }
@@ -110,6 +111,7 @@ namespace BLL.DTOs
         public string PlayerClass { get; set; } = string.Empty;
         public int Level { get; set; }
         public int ExperiencePoints { get; set; }
+        public int AvailableStatPoints { get; set; }
         public decimal Gold { get; set; }
         public decimal Gems { get; set; }
         public int Energy { get; set; }
@@ -162,6 +164,7 @@ namespace BLL.DTOs
         public string PlayerClass { get; set; } = "Knight";
         public int Level { get; set; }
         public int ExperiencePoints { get; set; }
+        public int AvailableStatPoints { get; set; }
 
         // Currency
         public decimal Gold { get; set; }
@@ -183,5 +186,11 @@ namespace BLL.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastFreeGachaTime { get; set; }
+    }
+
+    public class AllocateStatRequestDto
+    {
+        [Required(ErrorMessage = "StatName is required.")]
+        public string StatName { get; set; } = string.Empty;
     }
 }
