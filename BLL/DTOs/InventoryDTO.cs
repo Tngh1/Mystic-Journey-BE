@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BLL.DTOs
 {
-    // ============ InventoryItem ============
     public class InventoryItemResponseDto
     {
         public int InventoryItemId { get; set; }
@@ -34,30 +33,13 @@ namespace BLL.DTOs
         [Required]
         public int PlayerSkinId { get; set; }
     }
+
     public class UnequipItemRequestDto
     {
         [Required]
         public int InventoryItemId { get; set; }
     }
 
-    public class EnhanceItemRequestDto
-    {
-        [Required]
-        public int InventoryItemId { get; set; }
-    }
-
-    public class EnhanceResultDto
-    {
-        public bool Success { get; set; }
-        public int NewEnhancementLevel { get; set; }
-        public int BonusHpGained { get; set; }
-        public int BonusAtkGained { get; set; }
-        public int BonusDefGained { get; set; }
-        public decimal Cost { get; set; }
-        public string? Message { get; set; }
-    }
-
-    // ============ Inventory Summary ============
     public class InventorySummaryDto
     {
         public int TotalItems { get; set; }
@@ -68,7 +50,6 @@ namespace BLL.DTOs
         public int BagCapacity { get; set; }
     }
 
-    // ============ Additional Inventory Requests ============
     public class AddInventoryItemRequestDto
     {
         [Required(ErrorMessage = "PlayerProfileId is required.")]
@@ -111,7 +92,6 @@ namespace BLL.DTOs
         public PlayerStatsResponseDto? PlayerStats { get; set; }
     }
 
-    // ============ Player Me Inventory (GET /api/inventory/me/full) ============
     public class PlayerMeInventoryResponseDto
     {
         public int PlayerProfileId { get; set; }

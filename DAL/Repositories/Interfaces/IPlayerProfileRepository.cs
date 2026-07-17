@@ -27,9 +27,6 @@ namespace DAL.Repositories.Interfaces
 
         Task<PlayerProfile?> GetPlayerProfileByName(string playerName);
 
-        // Lấy snapshot chỉ số của người chơi.
-        Task<PlayerStatsSnapshot?> GetSnapshotByPlayerProfileId(int playerProfileId);
-
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════

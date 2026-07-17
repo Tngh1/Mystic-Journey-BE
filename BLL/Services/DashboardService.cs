@@ -1,10 +1,8 @@
 using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
-using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;

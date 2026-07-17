@@ -18,10 +18,12 @@ namespace BLL.Services.Interfaces
         Task<PlayerMeInventoryResponseDto> GetMeInventory(int playerProfileId);
 
         // Trang bị item từ inventory vào slot tương ứng.
-        Task<InventoryItemResponseDto> EquipItem(int actorPlayerProfileId, EquipItemRequestDto request);
+        // Trả về item đã trang bị kèm stats hiện tại của player sau khi trang bị.
+        Task<InventoryActionResultDto> EquipItem(int actorPlayerProfileId, EquipItemRequestDto request);
 
         // Gỡ item đã trang bị và trả về inventory.
-        Task<InventoryItemResponseDto> UnequipItem(int actorPlayerProfileId, UnequipItemRequestDto request);
+        // Trả về item đã gỡ kèm stats hiện tại của player sau khi gỡ.
+        Task<InventoryActionResultDto> UnequipItem(int actorPlayerProfileId, UnequipItemRequestDto request);
 
         // Sử dụng item có thể tiêu thụ (consumable). Giảm số lượng item trong inventory.
         Task ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request);
