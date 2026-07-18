@@ -108,7 +108,12 @@ namespace DAL.Repositories
                 query = query.Where(p => p.Class == playerClass);
             }
 
-            return await query.ToListAsync();
+            if (string.IsNullOrWhiteSpace(keyword) && string.IsNullOrWhiteSpace(playerClass))
+            {
+                return await query.OrderBy(x => Guid.NewGuid()).Take(10).ToListAsync();
+            }
+
+            return await query.Take(20).ToListAsync();
         }
 
         /// <summary>Đếm tổng số hồ sơ người chơi trong hệ thống.</summary>
