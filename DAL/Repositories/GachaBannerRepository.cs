@@ -31,6 +31,13 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(b => b.GachaBannerId == id);
         }
 
+        public async Task<GachaBanner> CreateGachaBanner(GachaBanner banner)
+        {
+            await _context.GachaBanners.AddAsync(banner);
+            await _context.SaveChangesAsync();
+            return banner;
+        }
+
         public async Task<GachaBanner> UpdateGachaBanner(GachaBanner banner)
         {
 _context.GachaBanners.Update(banner);
@@ -44,6 +51,16 @@ _context.GachaBanners.Update(banner);
             await _context.GachaBannerItems.AddAsync(item);
             await _context.SaveChangesAsync();
             return item;
+        }
+
+        public async Task<bool> RemoveBannerItem(int bannerId, int bannerItemId)
+        {
+            var item = await _context.GachaBannerItems
+                .FirstOrDefaultAsync(i => i.GachaBannerItemId == bannerItemId && i.GachaBannerId == bannerId);
+            if (item == null) return false;
+            _context.GachaBannerItems.Remove(item);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<GachaBannerItem>> GetBannerItems(int bannerId)
@@ -135,5 +152,49 @@ _context.GachaBanners.Update(banner);
 
             return (totalCount, items);
         }
+
+        public async Task<(int TotalCount, List<GachaPullHistory> Items)> GetAllGachaPullHistoryPaged(int page, int pageSize, int? bannerId, string? rarity)
+        {
+            var query = _context.GachaPullHistories
+                .Include(h => h.GachaBanner)
+                .Include(h => h.RewardItem)
+                .Include(h => h.PlayerProfile)
+                .AsNoTracking();
+
+            if (bannerId.HasValue)
+                query = query.Where(h => h.GachaBannerId == bannerId.Value);
+
+            if (!string.IsNullOrEmpty(rarity))
+                query = query.Where(h => h.RewardItem != null && h.RewardItem.Rarity == rarity);
+
+            query = query.OrderByDescending(h => h.PulledAt);
+
+            int totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (totalCount, items);
+        }
+
+        public async Task<(int TotalPulls, decimal TotalCost, int LegendaryPulls, string PlayerName, int AccountId)?> GetPlayerGachaStatsAsync(int playerProfileId)
+        {
+            var profile = await _context.PlayerProfiles
+                .Where(p => p.PlayerProfileId == playerProfileId)
+                .Select(p => new { p.DisplayName, p.AccountId })
+                .FirstOrDefaultAsync();
+
+            if (profile == null) return null;
+
+            var histories = await _context.GachaPullHistories
+                .Include(h => h.RewardItem)
+                .Where(h => h.PlayerProfileId == playerProfileId)
+                .ToListAsync();
+
+            int totalPulls = histories.Sum(h => h.PullCount);
+            decimal totalCost = histories.Sum(h => h.CostSpent);
+            int legendaryPulls = histories.Count(h => h.RewardItem != null && h.RewardItem.Rarity == "Legendary");
+            decimal actualRate = totalPulls > 0 ? ((decimal)legendaryPulls / totalPulls) * 100 : 0;
+
+            return (totalPulls, totalCost, legendaryPulls, profile.DisplayName, profile.AccountId);
+        }
     }
 }
+

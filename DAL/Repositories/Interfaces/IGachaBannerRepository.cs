@@ -1,50 +1,63 @@
 using DAL.Models;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace DAL.Repositories.Interfaces
 {
-    // Quản lý gacha banners (banner gacha/quay thưởng).
-    // Game APIs: Xem danh sách, xem chi tiết banner.
-    // Admin APIs: Tạo, cập nhật banner và thêm items.
+    // Qu?n l� gacha banners (banner gacha/quay thu?ng).
+    // Game APIs: Xem danh s�ch, xem chi ti?t banner.
+    // Admin APIs: T?o, c?p nh?t banner v� th�m items.
     public interface IGachaBannerRepository
     {
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
+        // -----------------------------------------------------------------------
+        // GAME APIs (Ngu?i choi)
+        // -----------------------------------------------------------------------
 
-        // Lấy banner gacha theo mã định danh.
+        // L?y banner gacha theo m� d?nh danh.
         Task<GachaBanner?> GetGachaBannerById(int id);
 
-        // Lấy banner gacha kèm danh sách vật phẩm có thể quay.
+        // L?y banner gacha k�m danh s�ch v?t ph?m c� th? quay.
         Task<GachaBanner?> GetGachaBannerByIdWithItems(int id);
 
-        // Lấy danh sách vật phẩm trong banner.
+        // L?y danh s�ch v?t ph?m trong banner.
         Task<List<GachaBannerItem>> GetBannerItems(int bannerId);
 
-        // Lấy danh sách vật phẩm trong banner có phân trang.
+        // L?y danh s�ch v?t ph?m trong banner c� ph�n trang.
         Task<(int TotalCount, List<GachaBannerItem> Items)> GetBannerItemsPaged(int page, int pageSize);
 
-        // ═══════════════════════════════════════════════════════════════════════
+        // -----------------------------------------------------------------------
         // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
+        // -----------------------------------------------------------------------
 
-        // Cập nhật banner gacha.
+        // T?o banner gacha m?i.
+        Task<GachaBanner> CreateGachaBanner(GachaBanner banner);
+
+        // C?p nh?t banner gacha.
         Task<GachaBanner> UpdateGachaBanner(GachaBanner banner);
 
-        // Tạo vật phẩm trong banner gacha.
+        // X�a v?t ph?m kh?i banner.
+        Task<bool> RemoveBannerItem(int bannerId, int bannerItemId);
+
+        // T?o v?t ph?m trong banner gacha.
         Task<GachaBannerItem> CreateBannerItem(GachaBannerItem item);
 
-        // Lấy danh sách banner có phân trang, lọc theo tìm kiếm, loại và trạng thái.
+        // L?y danh s�ch banner c� ph�n trang, l?c theo t�m ki?m, lo?i v� tr?ng th�i.
         Task<(int TotalCount, List<GachaBanner> Items)> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
-        // Lưu lịch sử quay
+        // Luu l?ch s? quay
         Task<GachaPullHistory> AddGachaPullHistory(GachaPullHistory history);
 
-        // Lấy lịch sử quay theo player và banner để tính pity
+        // L?y l?ch s? quay theo player v� banner d? t�nh pity
         Task<List<GachaPullHistory>> GetPullHistoryByPlayerAndBanner(int playerProfileId, int bannerId);
 
-        // Lấy danh sách lịch sử quay của người chơi
+        // L?y danh s�ch l?ch s? quay c?a ngu?i choi
         Task<(int TotalCount, List<GachaPullHistory> Items)> GetGachaPullHistoryPaged(int playerProfileId, int page, int pageSize);
+
+        // Admin: L?y to�n b? l?ch s? quay c?a t?t c? ngu?i choi
+        Task<(int TotalCount, List<GachaPullHistory> Items)> GetAllGachaPullHistoryPaged(int page, int pageSize, int? bannerId, string? rarity);
+
+        // L?y th?ng k� gacha c?a ngu?i choi
+        Task<(int TotalPulls, decimal TotalCost, int LegendaryPulls, string PlayerName, int AccountId)?> GetPlayerGachaStatsAsync(int playerProfileId);
     }
 }

@@ -31,6 +31,19 @@ namespace BLL.DTOs
         public bool IsFeatured { get; set; }
     }
 
+    public class CreateGachaBannerRequestDto
+    {
+        [Required]
+        [StringLength(150)]
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = "Standard";
+        public int PullCost { get; set; } = 100;
+        public int PityLimit { get; set; } = 90;
+        public bool IsActive { get; set; } = true;
+        public DateTime StartAt { get; set; }
+        public DateTime EndAt { get; set; }
+    }
+
     public class UpdateGachaBannerRequestDto
     {
         [Required]

@@ -88,7 +88,10 @@ namespace BLL.Mappings
             CreateMap<UpdateGachaBannerRequestDto, GachaBanner>();
 
             // Ánh xạ item trong banner gacha.
-            CreateMap<GachaBannerItem, GachaBannerItemResponseDto>();
+            CreateMap<GachaBannerItem, GachaBannerItemResponseDto>()
+                .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
+                .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
+                .ForMember(dest => dest.ItemRarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : null));
             CreateMap<CreateGachaBannerItemRequestDto, GachaBannerItem>();
 
             // ═══════════════════════════════════════════════════════════════════════

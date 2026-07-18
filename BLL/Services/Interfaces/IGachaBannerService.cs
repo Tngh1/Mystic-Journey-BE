@@ -31,10 +31,22 @@ namespace BLL.Services.Interfaces
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
+        // Tạo gacha banner mới.
+        Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request);
+
         // Cập nhật gacha banner hiện có.
         Task<GachaBannerResponseDto> UpdateBanner(int id, UpdateGachaBannerRequestDto request);
 
         // Thêm item vào banner.
         Task<GachaBannerItemResponseDto> AddBannerItem(int bannerId, CreateGachaBannerItemRequestDto request);
+
+        // Xóa item khỏi banner.
+        Task<bool> RemoveBannerItem(int bannerId, int bannerItemId);
+
+        // Admin: Lấy toàn bộ lịch sử quay của tất cả người chơi
+        Task<PagedResultDto<GachaPullHistoryResponseDto>> GetAllHistoryPaged(int page, int pageSize, int? bannerId, string? rarity);
+
+        // Lấy thống kê quay gacha của một người chơi
+        Task<PlayerGachaStatsDto?> GetPlayerGachaStats(int playerProfileId);
     }
 }

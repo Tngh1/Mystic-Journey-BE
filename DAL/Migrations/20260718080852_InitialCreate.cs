@@ -168,6 +168,7 @@ namespace DAL.Migrations
                     CritDamage = table.Column<int>(type: "integer", nullable: false),
                     ExperienceReward = table.Column<int>(type: "integer", nullable: false),
                     GoldReward = table.Column<decimal>(type: "numeric", nullable: false),
+                    GemReward = table.Column<decimal>(type: "numeric", nullable: false),
                     ImageUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -379,6 +380,8 @@ namespace DAL.Migrations
                     DailyLoginRewardId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     DayNumber = table.Column<int>(type: "integer", nullable: false),
+                    Month = table.Column<int>(type: "integer", nullable: true),
+                    Year = table.Column<int>(type: "integer", nullable: true),
                     RewardType = table.Column<string>(type: "text", nullable: false),
                     RewardValue = table.Column<decimal>(type: "numeric", nullable: false),
                     RewardItemId = table.Column<int>(type: "integer", nullable: true),
@@ -705,6 +708,8 @@ namespace DAL.Migrations
                     Class = table.Column<string>(type: "text", nullable: false),
                     Level = table.Column<int>(type: "integer", nullable: false),
                     ExperiencePoints = table.Column<int>(type: "integer", nullable: false),
+                    AvailableStatPoints = table.Column<int>(type: "integer", nullable: false),
+                    CachedStatRolls = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Gold = table.Column<decimal>(type: "numeric", nullable: false),
                     Gems = table.Column<decimal>(type: "numeric", nullable: false),
                     CurrentEnergy = table.Column<int>(type: "integer", nullable: false),
@@ -1829,6 +1834,52 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Items",
+                columns: new[] { "ItemId", "BaseValue", "CorruptionReduction", "CreatedAt", "Description", "IconUrl", "IsActive", "MaxStack", "Name", "Rarity", "Slot", "Type" },
+                values: new object[,]
+                {
+                    { 901, 100m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A sharp sword dropped by the SwampDemon.", null, true, 1, "Swamp Sword", "Rare", "Weapon", "Weapon" },
+                    { 902, 150m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A sturdy armor dropped by the SwampDemon.", null, true, 1, "Swamp Armor", "Rare", "Armor", "Armor" },
+                    { 903, 500m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A legendary sword dropped by DragonBossIdle.", null, true, 1, "Dragon Boss Sword", "Legendary", "Weapon", "Weapon" },
+                    { 904, 600m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A legendary armor dropped by DragonBossIdle.", null, true, 1, "Dragon Boss Armor", "Legendary", "Armor", "Armor" },
+                    { 905, 800m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Heavy stone gloves dropped by GolemBoss.", null, true, 1, "Golem Boss Gloves", "Legendary", "Gloves", "Armor" },
+                    { 906, 1000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A massive stone armor dropped by GolemBoss.", null, true, 1, "Golem Boss Armor", "Legendary", "Armor", "Armor" },
+                    { 907, 1500m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A royal cursed sword dropped by UnderKing.", null, true, 1, "UnderKing Sword", "Legendary", "Weapon", "Weapon" },
+                    { 908, 2000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The crown of the UnderKing.", null, true, 1, "UnderKing Crown", "Legendary", "Helmet", "Armor" },
+                    { 909, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.", null, true, 1, "Swamp Seal Book", "Legendary", "None", "QuestItem" },
+                    { 910, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.", null, true, 1, "Dragon Seal Book", "Legendary", "None", "QuestItem" },
+                    { 911, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.", null, true, 1, "Golem Seal Book", "Legendary", "None", "QuestItem" },
+                    { 912, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The final magic book to seal the Origin Tree, guarded by UnderKing.", null, true, 1, "UnderKing Seal Book", "Legendary", "None", "QuestItem" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Monsters",
+                columns: new[] { "MonsterId", "Atk", "AttackSpeed", "CreatedAt", "CritDamage", "CritRate", "Def", "Description", "ExperienceReward", "GemReward", "GoldReward", "ImageUrl", "IsActive", "Level", "MaxHp", "MoveSpeed", "Name", "Type" },
+                values: new object[,]
+                {
+                    { 1, 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 5, 10, 2, "A basic slime monster.", 5, 0m, 15m, null, true, 1, 50, 1, "SlimeLittle", "Normal" },
+                    { 2, 20, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 20, 10, "A dangerous swamp demon.", 100, 0m, 200m, null, true, 10, 500, 1, "SwampDemon", "Boss" },
+                    { 3, 15, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 8, 10, 5, "A water elemental monster.", 10, 0m, 30m, null, true, 5, 80, 1, "WaterElemental", "Normal" },
+                    { 4, 30, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 8, 20, 15, "A fierce dragon.", 20, 0m, 50m, null, true, 5, 200, 1, "Dragon", "Normal" },
+                    { 5, 35, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 20, 20, "A frosty blue dragon.", 22, 0m, 55m, null, true, 6, 250, 5, "BlueDragonFrost", "Normal" },
+                    { 6, 37, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 15, 12, 25, "A forest green dragon.", 25, 0m, 62m, null, true, 7, 270, 6, "GreenDragonForest", "Normal" },
+                    { 7, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 25, 30, 35, "A terrifying boss dragon.", 300, 0m, 1000m, null, true, 20, 1000, 0, "DragonBossIdle", "Boss" },
+                    { 8, 25, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 15, 12, 50, "An icy slime.", 30, 0m, 70m, null, true, 8, 300, 1, "Slime_ice", "Normal" },
+                    { 9, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 25, 70, "An icy dragon.", 32, 0m, 100m, null, true, 9, 350, 2, "Ice_Dragon", "Normal" },
+                    { 10, 150, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 15, 30, 70, "A giant stone golem boss.", 1500, 10m, 2000m, null, true, 15, 3000, 3, "GolemBoss", "Boss" },
+                    { 11, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 25, 100, "An undead orc skeleton.", 40, 0m, 70m, null, true, 5, 400, 2, "OrcSkeleton", "Normal" },
+                    { 12, 70, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 15, 70, "A melee skeleton warrior.", 42, 0m, 74m, null, true, 6, 350, 3, "SkeletonMelee", "Normal" },
+                    { 13, 100, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 25, 30, "A ranged skeleton archer.", 38, 0m, 78m, null, true, 6, 250, 3, "SkeletonArcher", "Normal" },
+                    { 14, 90, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 12, 30, 150, "A floating ghost.", 45, 0m, 85m, null, true, 5, 300, 4, "Ghost", "Normal" },
+                    { 15, 200, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 20, 40, 300, "The supreme skeleton king.", 900, 500m, 2500m, null, true, 20, 10000, 4, "UnderKing", "Boss" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Quests",
+                columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
+                values: new object[] { 5, null, "NotStarted", "Collect the 4 Seal Books to purify the cursed Origin Tree.", true, "ElfForest", null, null, "Collect", null, null, 1, 0, 0m, 0m, null, null, 4, "Purify the Origin Tree", "Main" });
+
+            migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "RoleId", "Name" },
                 values: new object[,]
@@ -1836,6 +1887,51 @@ namespace DAL.Migrations
                     { 1, "Player" },
                     { 2, "Admin" },
                     { 3, "SuperAdmin" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "EquipmentStats",
+                columns: new[] { "EquipmentStatsId", "BaseAtk", "BaseDef", "BaseHp", "BonusAtk", "BonusAttackSpeed", "BonusCritDamage", "BonusCritRate", "BonusDamageBonus", "BonusDef", "BonusHp", "BonusMoveSpeed", "ItemId" },
+                values: new object[,]
+                {
+                    { 901, 15, 0, 0, 0, 0, 10, 5, 0, 0, 0, 0, 901 },
+                    { 902, 0, 20, 100, 0, 0, 0, 0, 0, 0, 0, 0, 902 },
+                    { 903, 100, 0, 0, 0, 0, 20, 15, 0, 0, 0, 0, 903 },
+                    { 904, 0, 100, 500, 0, 0, 0, 0, 0, 0, 0, 0, 904 },
+                    { 905, 50, 50, 200, 0, 0, 5, 5, 0, 0, 0, 0, 905 },
+                    { 906, 0, 200, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 906 },
+                    { 907, 200, 0, 0, 0, 0, 20, 20, 0, 0, 0, 0, 907 },
+                    { 908, 50, 300, 1000, 0, 0, 10, 10, 0, 0, 0, 0, 908 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "MonsterDrops",
+                columns: new[] { "MonsterDropId", "DropRate", "IsActive", "IsGuaranteed", "ItemId", "MaxQuantity", "MinQuantity", "MonsterId" },
+                values: new object[,]
+                {
+                    { 901, 100.0, true, true, 901, 1, 1, 2 },
+                    { 902, 100.0, true, true, 902, 1, 1, 2 },
+                    { 903, 100.0, true, true, 903, 1, 1, 7 },
+                    { 904, 100.0, true, true, 904, 1, 1, 7 },
+                    { 905, 100.0, true, true, 905, 1, 1, 10 },
+                    { 906, 100.0, true, true, 906, 1, 1, 10 },
+                    { 907, 100.0, true, true, 907, 1, 1, 15 },
+                    { 908, 100.0, true, true, 908, 1, 1, 15 },
+                    { 909, 100.0, true, true, 909, 1, 1, 2 },
+                    { 910, 100.0, true, true, 910, 1, 1, 7 },
+                    { 911, 100.0, true, true, 911, 1, 1, 10 },
+                    { 912, 100.0, true, true, 912, 1, 1, 15 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Quests",
+                columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
+                values: new object[,]
+                {
+                    { 1, 2, "NotStarted", "Defeat the Swamp Demon to retrieve the Swamp Seal Book.", true, "Swamp", null, null, "Defeat", null, null, 1, 0, 0m, 0m, null, null, 1, "Defeat the Swamp Demon", "Main" },
+                    { 2, 7, "NotStarted", "Defeat the Dragon Boss to retrieve the Dragon Seal Book.", true, "Volcano", null, null, "Defeat", null, null, 1, 0, 0m, 0m, null, null, 1, "Slay the Dragon Boss", "Main" },
+                    { 3, 10, "NotStarted", "Defeat the Golem Boss to retrieve the Golem Seal Book.", true, "Desert", null, null, "Defeat", null, null, 1, 0, 0m, 0m, null, null, 1, "Crush the Golem Boss", "Main" },
+                    { 4, 15, "NotStarted", "Defeat the UnderKing to retrieve the final Seal Book.", true, "Underworld", null, null, "Defeat", null, null, 1, 0, 0m, 0m, null, null, 1, "Vanquish the UnderKing", "Main" }
                 });
 
             migrationBuilder.CreateIndex(
