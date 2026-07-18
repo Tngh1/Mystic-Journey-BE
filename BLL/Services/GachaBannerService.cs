@@ -42,6 +42,22 @@ namespace BLL.Services
             return _mapper.Map<GachaBannerDetailResponseDto>(banner);
         }
 
+        public async Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request)
+        {
+            var banner = new GachaBanner
+            {
+                Name = request.Name,
+                Type = request.Type,
+                PullCost = request.PullCost,
+                PityLimit = request.PityLimit,
+                IsActive = request.IsActive,
+                StartAt = request.StartAt.ToUniversalTime(),
+                EndAt = request.EndAt.ToUniversalTime()
+            };
+            var created = await _repository.CreateGachaBanner(banner);
+            return _mapper.Map<GachaBannerResponseDto>(created);
+        }
+
         public async Task<GachaBannerResponseDto> UpdateBanner(int id, UpdateGachaBannerRequestDto request)
         {
             var banner = await _repository.GetGachaBannerById(id)
@@ -52,8 +68,8 @@ namespace BLL.Services
             banner.PullCost = request.PullCost;
             banner.PityLimit = request.PityLimit;
             banner.IsActive = request.IsActive;
-            banner.StartAt = request.StartAt;
-            banner.EndAt = request.EndAt;
+            banner.StartAt = request.StartAt.ToUniversalTime();
+            banner.EndAt = request.EndAt.ToUniversalTime();
 
             var updated = await _repository.UpdateGachaBanner(banner);
             return _mapper.Map<GachaBannerResponseDto>(updated);
@@ -301,6 +317,53 @@ namespace BLL.Services
             }).ToList();
 
             return new PagedResultDto<GachaPullHistoryResponseDto>(totalCount, dtos);
+        }
+
+        public async Task<bool> RemoveBannerItem(int bannerId, int bannerItemId)
+        {
+            return await _repository.RemoveBannerItem(bannerId, bannerItemId);
+        }
+
+        public async Task<PagedResultDto<GachaPullHistoryResponseDto>> GetAllHistoryPaged(int page, int pageSize, int? bannerId, string? rarity)
+        {
+            var (totalCount, items) = await _repository.GetAllGachaPullHistoryPaged(page, pageSize, bannerId, rarity);
+            var dtos = items.Select(h => new GachaPullHistoryResponseDto
+            {
+                GachaPullHistoryId = h.GachaPullHistoryId,
+                PlayerProfileId = h.PlayerProfileId,
+                GachaBannerId = h.GachaBannerId,
+                BannerName = h.GachaBanner?.Name,
+                RewardItemId = h.RewardItemId,
+                RewardItemName = h.RewardItem?.Name,
+                RewardItemIconUrl = h.RewardItem?.IconUrl,
+                RewardItemRarity = h.RewardItem?.Rarity,
+                PullCount = h.PullCount,
+                CostSpent = h.CostSpent,
+                PulledAt = h.PulledAt
+            }).ToList();
+            return new PagedResultDto<GachaPullHistoryResponseDto>(totalCount, dtos);
+        }
+
+        public async Task<PlayerGachaStatsDto?> GetPlayerGachaStats(int playerProfileId)
+        {
+            var stats = await _repository.GetPlayerGachaStatsAsync(playerProfileId);
+            if (stats == null) return null;
+
+            decimal actualRate = stats.Value.TotalPulls > 0 
+                ? ((decimal)stats.Value.LegendaryPulls / stats.Value.TotalPulls) * 100 
+                : 0;
+
+            return new PlayerGachaStatsDto
+            {
+                PlayerProfileId = playerProfileId,
+                PlayerName = stats.Value.PlayerName,
+                AccountId = stats.Value.AccountId,
+                TotalPulls = stats.Value.TotalPulls,
+                TotalCost = stats.Value.TotalCost,
+                LegendaryPulls = stats.Value.LegendaryPulls,
+                ActualLegendaryRate = Math.Round(actualRate, 2),
+                SystemLegendaryRate = 1.0m
+            };
         }
     }
 }

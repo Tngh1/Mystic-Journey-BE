@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSkeletonMeleeSeed : Migration
+    public partial class AddOrcWarlord : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -14,7 +14,7 @@ namespace DAL.Migrations
             migrationBuilder.InsertData(
                 table: "Monsters",
                 columns: new[] { "MonsterId", "Atk", "AttackSpeed", "CreatedAt", "CritDamage", "CritRate", "Def", "Description", "ExperienceReward", "GemReward", "GoldReward", "ImageUrl", "IsActive", "Level", "MaxHp", "MoveSpeed", "Name", "Type" },
-                values: new object[] { 12, 70, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 15, 70, "A melee skeleton warrior.", 42, 0m, 74m, null, true, 6, 350, 3, "SkeletonMelee", "Normal" });
+                values: new object[] { 20, 100, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 175, 28, 80, "A formidable orc warlord.", 55, 0m, 100m, null, true, 7, 600, 3, "OrcWarlord", "Normal" });
         }
 
         /// <inheritdoc />
@@ -23,7 +23,7 @@ namespace DAL.Migrations
             migrationBuilder.DeleteData(
                 table: "Monsters",
                 keyColumn: "MonsterId",
-                keyValue: 12);
+                keyValue: 20);
         }
     }
 }

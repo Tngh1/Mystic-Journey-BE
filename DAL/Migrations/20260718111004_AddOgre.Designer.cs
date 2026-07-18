@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260718040632_AddOrcSkeletonSeed")]
-    partial class AddOrcSkeletonSeed
+    [Migration("20260718111004_AddOgre")]
+    partial class AddOgre
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.28")
+                .HasAnnotation("ProductVersion", "8.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -565,6 +565,9 @@ namespace DAL.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("Month")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("RewardItemId")
                         .HasColumnType("integer");
 
@@ -577,6 +580,9 @@ namespace DAL.Migrations
 
                     b.Property<decimal>("RewardValue")
                         .HasColumnType("numeric");
+
+                    b.Property<int?>("Year")
+                        .HasColumnType("integer");
 
                     b.HasKey("DailyLoginRewardId");
 
@@ -899,6 +905,38 @@ namespace DAL.Migrations
                             BonusHp = 0,
                             BonusMoveSpeed = 0,
                             ItemId = 906
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 907,
+                            BaseAtk = 200,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 20,
+                            BonusCritRate = 20,
+                            BonusDamageBonus = 0,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 907
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 908,
+                            BaseAtk = 50,
+                            BaseDef = 300,
+                            BaseHp = 1000,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 10,
+                            BonusCritRate = 10,
+                            BonusDamageBonus = 0,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 908
                         });
                 });
 
@@ -1607,6 +1645,90 @@ namespace DAL.Migrations
                             Rarity = "Legendary",
                             Slot = "Armor",
                             Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 907,
+                            BaseValue = 1500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A royal cursed sword dropped by UnderKing.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "UnderKing Sword",
+                            Rarity = "Legendary",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 908,
+                            BaseValue = 2000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "The crown of the UnderKing.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "UnderKing Crown",
+                            Rarity = "Legendary",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 909,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Swamp Seal Book",
+                            Rarity = "Legendary",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 910,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Dragon Seal Book",
+                            Rarity = "Legendary",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 911,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Golem Seal Book",
+                            Rarity = "Legendary",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 912,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "UnderKing Seal Book",
+                            Rarity = "Legendary",
+                            Slot = "None",
+                            Type = "QuestItem"
                         });
                 });
 
@@ -1765,7 +1887,7 @@ namespace DAL.Migrations
                             Atk = 5,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 5,
+                            CritDamage = 187,
                             CritRate = 10,
                             Def = 2,
                             Description = "A basic slime monster.",
@@ -1785,7 +1907,7 @@ namespace DAL.Migrations
                             Atk = 20,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
+                            CritDamage = 130,
                             CritRate = 20,
                             Def = 10,
                             Description = "A dangerous swamp demon.",
@@ -1805,7 +1927,7 @@ namespace DAL.Migrations
                             Atk = 15,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 8,
+                            CritDamage = 183,
                             CritRate = 10,
                             Def = 5,
                             Description = "A water elemental monster.",
@@ -1825,7 +1947,7 @@ namespace DAL.Migrations
                             Atk = 30,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 8,
+                            CritDamage = 180,
                             CritRate = 20,
                             Def = 15,
                             Description = "A fierce dragon.",
@@ -1845,7 +1967,7 @@ namespace DAL.Migrations
                             Atk = 35,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
+                            CritDamage = 156,
                             CritRate = 20,
                             Def = 20,
                             Description = "A frosty blue dragon.",
@@ -1865,7 +1987,7 @@ namespace DAL.Migrations
                             Atk = 37,
                             AttackSpeed = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 15,
+                            CritDamage = 160,
                             CritRate = 12,
                             Def = 25,
                             Description = "A forest green dragon.",
@@ -1885,7 +2007,7 @@ namespace DAL.Migrations
                             Atk = 50,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 25,
+                            CritDamage = 250,
                             CritRate = 30,
                             Def = 35,
                             Description = "A terrifying boss dragon.",
@@ -1905,7 +2027,7 @@ namespace DAL.Migrations
                             Atk = 25,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 15,
+                            CritDamage = 160,
                             CritRate = 12,
                             Def = 50,
                             Description = "An icy slime.",
@@ -1925,7 +2047,7 @@ namespace DAL.Migrations
                             Atk = 50,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
+                            CritDamage = 170,
                             CritRate = 25,
                             Def = 70,
                             Description = "An icy dragon.",
@@ -1945,7 +2067,7 @@ namespace DAL.Migrations
                             Atk = 150,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 15,
+                            CritDamage = 150,
                             CritRate = 30,
                             Def = 70,
                             Description = "A giant stone golem boss.",
@@ -1965,7 +2087,7 @@ namespace DAL.Migrations
                             Atk = 50,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
+                            CritDamage = 166,
                             CritRate = 25,
                             Def = 100,
                             Description = "An undead orc skeleton.",
@@ -1977,6 +2099,166 @@ namespace DAL.Migrations
                             MaxHp = 400,
                             MoveSpeed = 2,
                             Name = "OrcSkeleton",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            MonsterId = 12,
+                            Atk = 70,
+                            AttackSpeed = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 164,
+                            CritRate = 15,
+                            Def = 70,
+                            Description = "A melee skeleton warrior.",
+                            ExperienceReward = 42,
+                            GemReward = 0m,
+                            GoldReward = 74m,
+                            IsActive = true,
+                            Level = 6,
+                            MaxHp = 350,
+                            MoveSpeed = 3,
+                            Name = "SkeletonMelee",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            MonsterId = 13,
+                            Atk = 100,
+                            AttackSpeed = 3,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 163,
+                            CritRate = 25,
+                            Def = 30,
+                            Description = "A ranged skeleton archer.",
+                            ExperienceReward = 38,
+                            GemReward = 0m,
+                            GoldReward = 78m,
+                            IsActive = true,
+                            Level = 6,
+                            MaxHp = 250,
+                            MoveSpeed = 3,
+                            Name = "SkeletonArcher",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            MonsterId = 14,
+                            Atk = 90,
+                            AttackSpeed = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 185,
+                            CritRate = 30,
+                            Def = 150,
+                            Description = "A floating ghost.",
+                            ExperienceReward = 45,
+                            GemReward = 0m,
+                            GoldReward = 85m,
+                            IsActive = true,
+                            Level = 5,
+                            MaxHp = 300,
+                            MoveSpeed = 4,
+                            Name = "Ghost",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            MonsterId = 15,
+                            Atk = 200,
+                            AttackSpeed = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 20,
+                            CritRate = 40,
+                            Def = 300,
+                            Description = "The supreme skeleton king.",
+                            ExperienceReward = 900,
+                            GemReward = 500m,
+                            GoldReward = 2500m,
+                            IsActive = true,
+                            Level = 20,
+                            MaxHp = 10000,
+                            MoveSpeed = 4,
+                            Name = "UnderKing",
+                            Type = "Boss"
+                        },
+                        new
+                        {
+                            MonsterId = 16,
+                            Atk = 70,
+                            AttackSpeed = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 150,
+                            CritRate = 40,
+                            Def = 30,
+                            Description = "A terrifying demon.",
+                            ExperienceReward = 50,
+                            GemReward = 0m,
+                            GoldReward = 100m,
+                            IsActive = true,
+                            Level = 8,
+                            MaxHp = 500,
+                            MoveSpeed = 2,
+                            Name = "Demon",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            MonsterId = 17,
+                            Atk = 70,
+                            AttackSpeed = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 150,
+                            CritRate = 20,
+                            Def = 80,
+                            Description = "A strong goblin warrior.",
+                            ExperienceReward = 50,
+                            GemReward = 0m,
+                            GoldReward = 100m,
+                            IsActive = true,
+                            Level = 6,
+                            MaxHp = 450,
+                            MoveSpeed = 3,
+                            Name = "GoblinWarrior",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            MonsterId = 18,
+                            Atk = 50,
+                            AttackSpeed = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 150,
+                            CritRate = 20,
+                            Def = 40,
+                            Description = "A goblin spearman.",
+                            ExperienceReward = 50,
+                            GemReward = 0m,
+                            GoldReward = 100m,
+                            IsActive = true,
+                            Level = 6,
+                            MaxHp = 450,
+                            MoveSpeed = 3,
+                            Name = "GoblinSpear",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            MonsterId = 19,
+                            Atk = 50,
+                            AttackSpeed = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CritDamage = 150,
+                            CritRate = 20,
+                            Def = 40,
+                            Description = "A fierce ogre.",
+                            ExperienceReward = 50,
+                            GemReward = 0m,
+                            GoldReward = 100m,
+                            IsActive = true,
+                            Level = 6,
+                            MaxHp = 450,
+                            MoveSpeed = 3,
+                            Name = "Ogre",
                             Type = "Normal"
                         });
                 });
@@ -2084,6 +2366,72 @@ namespace DAL.Migrations
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 10
+                        },
+                        new
+                        {
+                            MonsterDropId = 907,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 907,
+                            MaxQuantity = 1,
+                            MinQuantity = 1,
+                            MonsterId = 15
+                        },
+                        new
+                        {
+                            MonsterDropId = 908,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 908,
+                            MaxQuantity = 1,
+                            MinQuantity = 1,
+                            MonsterId = 15
+                        },
+                        new
+                        {
+                            MonsterDropId = 909,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 909,
+                            MaxQuantity = 1,
+                            MinQuantity = 1,
+                            MonsterId = 2
+                        },
+                        new
+                        {
+                            MonsterDropId = 910,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 910,
+                            MaxQuantity = 1,
+                            MinQuantity = 1,
+                            MonsterId = 7
+                        },
+                        new
+                        {
+                            MonsterDropId = 911,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 911,
+                            MaxQuantity = 1,
+                            MinQuantity = 1,
+                            MonsterId = 10
+                        },
+                        new
+                        {
+                            MonsterDropId = 912,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 912,
+                            MaxQuantity = 1,
+                            MinQuantity = 1,
+                            MonsterId = 15
                         });
                 });
 
@@ -2931,6 +3279,92 @@ namespace DAL.Migrations
                     b.HasIndex("RewardSkillId");
 
                     b.ToTable("Quests");
+
+                    b.HasData(
+                        new
+                        {
+                            QuestId = 1,
+                            BossMonsterId = 2,
+                            DefaultStatus = "NotStarted",
+                            Description = "Defeat the Swamp Demon to retrieve the Swamp Seal Book.",
+                            IsActive = true,
+                            MapName = "Swamp",
+                            ObjectiveType = "Defeat",
+                            RequiredLevel = 1,
+                            RewardExperience = 0,
+                            RewardGems = 0m,
+                            RewardGold = 0m,
+                            TargetAmount = 1,
+                            Title = "Defeat the Swamp Demon",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 2,
+                            BossMonsterId = 7,
+                            DefaultStatus = "NotStarted",
+                            Description = "Defeat the Dragon Boss to retrieve the Dragon Seal Book.",
+                            IsActive = true,
+                            MapName = "Volcano",
+                            ObjectiveType = "Defeat",
+                            RequiredLevel = 1,
+                            RewardExperience = 0,
+                            RewardGems = 0m,
+                            RewardGold = 0m,
+                            TargetAmount = 1,
+                            Title = "Slay the Dragon Boss",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 3,
+                            BossMonsterId = 10,
+                            DefaultStatus = "NotStarted",
+                            Description = "Defeat the Golem Boss to retrieve the Golem Seal Book.",
+                            IsActive = true,
+                            MapName = "Desert",
+                            ObjectiveType = "Defeat",
+                            RequiredLevel = 1,
+                            RewardExperience = 0,
+                            RewardGems = 0m,
+                            RewardGold = 0m,
+                            TargetAmount = 1,
+                            Title = "Crush the Golem Boss",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 4,
+                            BossMonsterId = 15,
+                            DefaultStatus = "NotStarted",
+                            Description = "Defeat the UnderKing to retrieve the final Seal Book.",
+                            IsActive = true,
+                            MapName = "Underworld",
+                            ObjectiveType = "Defeat",
+                            RequiredLevel = 1,
+                            RewardExperience = 0,
+                            RewardGems = 0m,
+                            RewardGold = 0m,
+                            TargetAmount = 1,
+                            Title = "Vanquish the UnderKing",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 5,
+                            DefaultStatus = "NotStarted",
+                            Description = "Collect the 4 Seal Books to purify the cursed Origin Tree.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveType = "Collect",
+                            RequiredLevel = 1,
+                            RewardExperience = 0,
+                            RewardGems = 0m,
+                            RewardGold = 0m,
+                            TargetAmount = 4,
+                            Title = "Purify the Origin Tree",
+                            Type = "Main"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.QuestRewardItem", b =>

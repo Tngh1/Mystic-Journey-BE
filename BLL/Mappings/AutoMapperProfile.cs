@@ -88,7 +88,10 @@ namespace BLL.Mappings
             CreateMap<UpdateGachaBannerRequestDto, GachaBanner>();
 
             // Ánh xạ item trong banner gacha.
-            CreateMap<GachaBannerItem, GachaBannerItemResponseDto>();
+            CreateMap<GachaBannerItem, GachaBannerItemResponseDto>()
+                .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
+                .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
+                .ForMember(dest => dest.ItemRarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : null));
             CreateMap<CreateGachaBannerItemRequestDto, GachaBannerItem>();
 
             // ═══════════════════════════════════════════════════════════════════════
@@ -194,7 +197,9 @@ namespace BLL.Mappings
             CreateMap<CreateAccountAdminRequestDto, Account>();
             CreateMap<UpdateAccountAdminRequestDto, Account>();
             // Ánh xạ tài khoản sang response admin.
-            CreateMap<Account, AccountAdminResponseDto>();
+            CreateMap<Account, AccountAdminResponseDto>()
+                .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? (int?)src.PlayerProfile.PlayerProfileId : null))
+                .ForMember(dest => dest.PlayerDisplayName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null));
 
             // ═══════════════════════════════════════════════════════════════════════
             // PHẦN THƯỞNG ĐĂNG NHẬP HÀNG NGÀY (Daily Login Reward)

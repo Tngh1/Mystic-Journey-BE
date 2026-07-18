@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSlimeMonsterSeed : Migration
+    public partial class AddDemonMonster : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.InsertData(
                 table: "Monsters",
-                columns: new[] { "MonsterId", "Atk", "AttackSpeed", "CreatedAt", "CritDamage", "CritRate", "Def", "Description", "ExperienceReward", "GoldReward", "ImageUrl", "IsActive", "Level", "MaxHp", "MoveSpeed", "Name", "Type" },
-                values: new object[] { 1, 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 5, 10, 2, "Quái vật cơ bản", 5, 15m, null, true, 1, 50, 1, "SlimeLittle", "Normal" });
+                columns: new[] { "MonsterId", "Atk", "AttackSpeed", "CreatedAt", "CritDamage", "CritRate", "Def", "Description", "ExperienceReward", "GemReward", "GoldReward", "ImageUrl", "IsActive", "Level", "MaxHp", "MoveSpeed", "Name", "Type" },
+                values: new object[] { 16, 70, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 40, 30, "A terrifying demon.", 50, 0m, 100m, null, true, 8, 500, 2, "Demon", "Boss" });
         }
 
         /// <inheritdoc />
@@ -23,7 +23,7 @@ namespace DAL.Migrations
             migrationBuilder.DeleteData(
                 table: "Monsters",
                 keyColumn: "MonsterId",
-                keyValue: 1);
+                keyValue: 16);
         }
     }
 }

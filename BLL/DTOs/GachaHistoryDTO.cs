@@ -47,4 +47,16 @@ namespace BLL.DTOs
         public List<GachaPullResultDto> PulledItems { get; set; } = new();
         public decimal TotalCost { get; set; }
     }
+
+    public class PlayerGachaStatsDto
+    {
+        public int PlayerProfileId { get; set; }
+        public string PlayerName { get; set; } = string.Empty;
+        public int AccountId { get; set; }
+        public int TotalPulls { get; set; }
+        public decimal TotalCost { get; set; }
+        public int LegendaryPulls { get; set; }
+        public decimal ActualLegendaryRate { get; set; }
+        public decimal SystemLegendaryRate { get; set; }
+    }
 }

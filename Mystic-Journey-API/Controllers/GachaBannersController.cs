@@ -144,5 +144,54 @@ namespace Mystic_Journey_API.Controllers
             var bannerItem = await _gachaBannerService.AddBannerItem(id, request);
             return Ok(new ApiResponse<GachaBannerItemResponseDto> { Success = true, Data = bannerItem });
         }
+        // ══ POST /api/gachabanners ══════════════════════════════
+        // Tạo gacha banner mới.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateGachaBannerRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            var banner = await _gachaBannerService.CreateBanner(request);
+            return Ok(new ApiResponse<GachaBannerResponseDto> { Success = true, Data = banner });
+        }
+
+        // ══ DELETE /api/gachabanners/{bannerId}/items/{bannerItemId} ══
+        // Xóa item khỏi banner.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpDelete("{bannerId}/items/{bannerItemId}")]
+        public async Task<IActionResult> RemoveBannerItem(int bannerId, int bannerItemId)
+        {
+            var removed = await _gachaBannerService.RemoveBannerItem(bannerId, bannerItemId);
+            if (!removed)
+                return NotFound(new ApiResponse<object> { Success = false, Message = "Banner item not found.", ErrorCode = ErrorCodes.NotFound });
+            return Ok(new ApiResponse<object> { Success = true, Message = "Item removed from banner." });
+        }
+
+        // ══ GET /api/gachabanners/history/admin ═══════════════
+        // Admin xem toàn bộ lịch sử quay.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("history/admin")]
+        public async Task<IActionResult> GetAllHistory(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] int? bannerId = null,
+            [FromQuery] string? rarity = null)
+        {
+            var result = await _gachaBannerService.GetAllHistoryPaged(page, pageSize, bannerId, rarity);
+            return Ok(new ApiResponse<PagedResultDto<GachaPullHistoryResponseDto>> { Success = true, Data = result });
+        }
+        // ══ GET /api/gachabanners/history/admin/stats/{playerProfileId} ══
+        // Admin xem thống kê gacha của người chơi.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("history/admin/stats/{playerProfileId}")]
+        public async Task<IActionResult> GetPlayerGachaStats(int playerProfileId)
+        {
+            var stats = await _gachaBannerService.GetPlayerGachaStats(playerProfileId);
+            if (stats == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.NotFound });
+            return Ok(new ApiResponse<PlayerGachaStatsDto> { Success = true, Data = stats });
+        }
     }
 }
