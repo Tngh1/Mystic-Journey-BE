@@ -744,72 +744,6 @@ namespace DAL.Data
                 new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 912, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true }
             );
 
-            modelBuilder.Entity<Quest>().HasData(
-                new Quest
-                {
-                    QuestId = 1,
-                    Title = "Defeat the Swamp Demon",
-                    Description = "Defeat the Swamp Demon to retrieve the Swamp Seal Book.",
-                    Type = "Main",
-                    DefaultStatus = "NotStarted",
-                    MapName = "Swamp",
-                    ObjectiveType = "Defeat",
-                    TargetAmount = 1,
-                    BossMonsterId = 2, // SwampDemon
-                    IsActive = true
-                },
-                new Quest
-                {
-                    QuestId = 2,
-                    Title = "Slay the Dragon Boss",
-                    Description = "Defeat the Dragon Boss to retrieve the Dragon Seal Book.",
-                    Type = "Main",
-                    DefaultStatus = "NotStarted",
-                    MapName = "Volcano",
-                    ObjectiveType = "Defeat",
-                    TargetAmount = 1,
-                    BossMonsterId = 7, // DragonBossIdle
-                    IsActive = true
-                },
-                new Quest
-                {
-                    QuestId = 3,
-                    Title = "Crush the Golem Boss",
-                    Description = "Defeat the Golem Boss to retrieve the Golem Seal Book.",
-                    Type = "Main",
-                    DefaultStatus = "NotStarted",
-                    MapName = "Desert",
-                    ObjectiveType = "Defeat",
-                    TargetAmount = 1,
-                    BossMonsterId = 10, // GolemBoss
-                    IsActive = true
-                },
-                new Quest
-                {
-                    QuestId = 4,
-                    Title = "Vanquish the UnderKing",
-                    Description = "Defeat the UnderKing to retrieve the final Seal Book.",
-                    Type = "Main",
-                    DefaultStatus = "NotStarted",
-                    MapName = "Underworld",
-                    ObjectiveType = "Defeat",
-                    TargetAmount = 1,
-                    BossMonsterId = 15, // UnderKing
-                    IsActive = true
-                },
-                new Quest
-                {
-                    QuestId = 5,
-                    Title = "Purify the Origin Tree",
-                    Description = "Collect the 4 Seal Books to purify the cursed Origin Tree.",
-                    Type = "Main",
-                    DefaultStatus = "NotStarted",
-                    MapName = "ElfForest",
-                    ObjectiveType = "Collect",
-                    TargetAmount = 4, // 4 books
-                    IsActive = true
-                }
-            );
 
             modelBuilder.Entity<ShopItem>()
                 .Property(s => s.ShopSection)
@@ -1042,6 +976,19 @@ namespace DAL.Data
 
             modelBuilder.Entity<GuildLog>()
                 .HasIndex(l => l.GuildId);
+
+            modelBuilder.Entity<Skill>().HasData(
+                new Skill { SkillId = 1, Name = "Accelerationarrow", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 15, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 2, Name = "ArrowofLight", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 20, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 3, Name = "Holymagic", Description = "Heals allies within range.", Type = "Buff", DamageType = "Magical", TargetType = "Ally", ClassRequirement = "Mage", CooldownSeconds = 10, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 4, Name = "Purification", Description = "Casts a spell in the direction the character is facing.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "Mage", CooldownSeconds = 10, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 5, Name = "Stardust", Description = "Selects and attacks a random monster within range.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "Mage", CooldownSeconds = 10, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 6, Name = "Lightsabers", Description = "Selects a target with the monster tag to attack.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 20, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 7, Name = "LightWaves", Description = "Casts a spell in the direction the character is facing.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 15, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 8, Name = "ProtectiveShield", Description = "Protects all allies within range.", Type = "Buff", DamageType = "Magical", TargetType = "Ally", ClassRequirement = "Knight", CooldownSeconds = 20, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 9, Name = "DarkExplosion", Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "All", CooldownSeconds = 90, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 15, IsActive = true },
+                new Skill { SkillId = 10, Name = "DarkPoisonZone", Description = "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "All", CooldownSeconds = 60, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 10, IsActive = true }
+            );
         }
     }
 }
