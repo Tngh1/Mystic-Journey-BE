@@ -69,7 +69,8 @@ namespace BLL.Services
 
             var mainChain = activeMapQuests
                 .Where(IsMainQuest)
-                .OrderBy(q => q.QuestId)
+                .OrderBy(q => q.RequiredLevel)
+                .ThenBy(q => q.QuestId)
                 .ToList();
 
             for (var i = 0; i < mainChain.Count; i++)
@@ -472,7 +473,8 @@ namespace BLL.Services
         {
             var mainChain = (await _questRepo.GetActiveQuests())
                 .Where(q => string.Equals(q.MapName, quest.MapName, StringComparison.OrdinalIgnoreCase) && IsMainQuest(q))
-                .OrderBy(q => q.QuestId)
+                .OrderBy(q => q.RequiredLevel)
+                .ThenBy(q => q.QuestId)
                 .ToList();
 
             var index = mainChain.FindIndex(q => q.QuestId == quest.QuestId);

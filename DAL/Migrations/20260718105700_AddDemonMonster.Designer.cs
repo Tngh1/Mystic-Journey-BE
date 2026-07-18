@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718105700_AddDemonMonster")]
+    partial class AddDemonMonster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1884,7 +1887,7 @@ namespace DAL.Migrations
                             Atk = 5,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 187,
+                            CritDamage = 5,
                             CritRate = 10,
                             Def = 2,
                             Description = "A basic slime monster.",
@@ -1904,7 +1907,7 @@ namespace DAL.Migrations
                             Atk = 20,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 130,
+                            CritDamage = 10,
                             CritRate = 20,
                             Def = 10,
                             Description = "A dangerous swamp demon.",
@@ -1924,7 +1927,7 @@ namespace DAL.Migrations
                             Atk = 15,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 183,
+                            CritDamage = 8,
                             CritRate = 10,
                             Def = 5,
                             Description = "A water elemental monster.",
@@ -1944,7 +1947,7 @@ namespace DAL.Migrations
                             Atk = 30,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 180,
+                            CritDamage = 8,
                             CritRate = 20,
                             Def = 15,
                             Description = "A fierce dragon.",
@@ -1964,7 +1967,7 @@ namespace DAL.Migrations
                             Atk = 35,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 156,
+                            CritDamage = 10,
                             CritRate = 20,
                             Def = 20,
                             Description = "A frosty blue dragon.",
@@ -1984,7 +1987,7 @@ namespace DAL.Migrations
                             Atk = 37,
                             AttackSpeed = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 160,
+                            CritDamage = 15,
                             CritRate = 12,
                             Def = 25,
                             Description = "A forest green dragon.",
@@ -2004,7 +2007,7 @@ namespace DAL.Migrations
                             Atk = 50,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 250,
+                            CritDamage = 25,
                             CritRate = 30,
                             Def = 35,
                             Description = "A terrifying boss dragon.",
@@ -2024,7 +2027,7 @@ namespace DAL.Migrations
                             Atk = 25,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 160,
+                            CritDamage = 15,
                             CritRate = 12,
                             Def = 50,
                             Description = "An icy slime.",
@@ -2044,7 +2047,7 @@ namespace DAL.Migrations
                             Atk = 50,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 170,
+                            CritDamage = 10,
                             CritRate = 25,
                             Def = 70,
                             Description = "An icy dragon.",
@@ -2064,7 +2067,7 @@ namespace DAL.Migrations
                             Atk = 150,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 150,
+                            CritDamage = 15,
                             CritRate = 30,
                             Def = 70,
                             Description = "A giant stone golem boss.",
@@ -2084,7 +2087,7 @@ namespace DAL.Migrations
                             Atk = 50,
                             AttackSpeed = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 166,
+                            CritDamage = 10,
                             CritRate = 25,
                             Def = 100,
                             Description = "An undead orc skeleton.",
@@ -2104,7 +2107,7 @@ namespace DAL.Migrations
                             Atk = 70,
                             AttackSpeed = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 164,
+                            CritDamage = 10,
                             CritRate = 15,
                             Def = 70,
                             Description = "A melee skeleton warrior.",
@@ -2124,7 +2127,7 @@ namespace DAL.Migrations
                             Atk = 100,
                             AttackSpeed = 3,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 163,
+                            CritDamage = 10,
                             CritRate = 25,
                             Def = 30,
                             Description = "A ranged skeleton archer.",
@@ -2144,7 +2147,7 @@ namespace DAL.Migrations
                             Atk = 90,
                             AttackSpeed = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 185,
+                            CritDamage = 12,
                             CritRate = 30,
                             Def = 150,
                             Description = "A floating ghost.",
@@ -2196,87 +2199,7 @@ namespace DAL.Migrations
                             MaxHp = 500,
                             MoveSpeed = 2,
                             Name = "Demon",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 17,
-                            Atk = 70,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 150,
-                            CritRate = 20,
-                            Def = 80,
-                            Description = "A strong goblin warrior.",
-                            ExperienceReward = 50,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 6,
-                            MaxHp = 450,
-                            MoveSpeed = 3,
-                            Name = "GoblinWarrior",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 18,
-                            Atk = 50,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 150,
-                            CritRate = 20,
-                            Def = 40,
-                            Description = "A goblin spearman.",
-                            ExperienceReward = 50,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 6,
-                            MaxHp = 450,
-                            MoveSpeed = 3,
-                            Name = "GoblinSpear",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 19,
-                            Atk = 50,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 150,
-                            CritRate = 20,
-                            Def = 40,
-                            Description = "A fierce ogre.",
-                            ExperienceReward = 50,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 6,
-                            MaxHp = 450,
-                            MoveSpeed = 3,
-                            Name = "Ogre",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 20,
-                            Atk = 100,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 175,
-                            CritRate = 28,
-                            Def = 80,
-                            Description = "A formidable orc warlord.",
-                            ExperienceReward = 55,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 7,
-                            MaxHp = 600,
-                            MoveSpeed = 3,
-                            Name = "OrcWarlord",
-                            Type = "Normal"
+                            Type = "Boss"
                         });
                 });
 

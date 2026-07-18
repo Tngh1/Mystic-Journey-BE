@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718110708_AddGoblinWarrior")]
+    partial class AddGoblinWarrior
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2196,7 +2199,7 @@ namespace DAL.Migrations
                             MaxHp = 500,
                             MoveSpeed = 2,
                             Name = "Demon",
-                            Type = "Normal"
+                            Type = "Boss"
                         },
                         new
                         {
@@ -2216,67 +2219,7 @@ namespace DAL.Migrations
                             MaxHp = 450,
                             MoveSpeed = 3,
                             Name = "GoblinWarrior",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 18,
-                            Atk = 50,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 150,
-                            CritRate = 20,
-                            Def = 40,
-                            Description = "A goblin spearman.",
-                            ExperienceReward = 50,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 6,
-                            MaxHp = 450,
-                            MoveSpeed = 3,
-                            Name = "GoblinSpear",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 19,
-                            Atk = 50,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 150,
-                            CritRate = 20,
-                            Def = 40,
-                            Description = "A fierce ogre.",
-                            ExperienceReward = 50,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 6,
-                            MaxHp = 450,
-                            MoveSpeed = 3,
-                            Name = "Ogre",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 20,
-                            Atk = 100,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 175,
-                            CritRate = 28,
-                            Def = 80,
-                            Description = "A formidable orc warlord.",
-                            ExperienceReward = 55,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 7,
-                            MaxHp = 600,
-                            MoveSpeed = 3,
-                            Name = "OrcWarlord",
-                            Type = "Normal"
+                            Type = "Boss"
                         });
                 });
 
