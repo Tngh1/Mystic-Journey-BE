@@ -1,0 +1,29 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace DAL.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddSkeletonArcherSeed : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.InsertData(
+                table: "Monsters",
+                columns: new[] { "MonsterId", "Atk", "AttackSpeed", "CreatedAt", "CritDamage", "CritRate", "Def", "Description", "ExperienceReward", "GemReward", "GoldReward", "ImageUrl", "IsActive", "Level", "MaxHp", "MoveSpeed", "Name", "Type" },
+                values: new object[] { 13, 100, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, 25, 30, "A ranged skeleton archer.", 38, 0m, 78m, null, true, 6, 250, 3, "SkeletonArcher", "Normal" });
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DeleteData(
+                table: "Monsters",
+                keyColumn: "MonsterId",
+                keyValue: 13);
+        }
+    }
+}
