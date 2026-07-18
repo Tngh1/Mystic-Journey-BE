@@ -17,26 +17,82 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public async Task<(int TotalCount, List<DailyLoginReward> Items)> GetDailyLoginRewardsPaged(int page, int pageSize)
-        {
-            var query = _context.DailyLoginRewards
-                .Include(r => r.RewardItem)
-                .AsNoTracking();
+        // ── Base query helper ────────────────────────────────────────────────
+        private IQueryable<DailyLoginReward> BaseQuery() =>
+            _context.DailyLoginRewards.Include(r => r.RewardItem).AsNoTracking();
 
-            int totalCount = await query.CountAsync();
-            var items = await query.OrderBy(r => r.DayNumber).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            return (totalCount, items);
-        }
+        // ── GAME APIs ────────────────────────────────────────────────────────
 
         public async Task<DailyLoginReward?> GetDailyLoginRewardById(int id)
         {
-            return await _context.DailyLoginRewards.FirstOrDefaultAsync(r => r.DailyLoginRewardId == id);
+            return await BaseQuery().FirstOrDefaultAsync(r => r.DailyLoginRewardId == id);
         }
 
-        public async Task<DailyLoginReward?> GetDailyLoginRewardByDayNumber(int dayNumber)
+        // Lấy override cho ngày + tháng/năm cụ thể (không fallback).
+        public async Task<DailyLoginReward?> GetByDayAndMonth(int dayNumber, int month, int year)
         {
-            return await _context.DailyLoginRewards.FirstOrDefaultAsync(r => r.DayNumber == dayNumber);
+            return await BaseQuery().FirstOrDefaultAsync(r =>
+                r.DayNumber == dayNumber &&
+                r.Month == month &&
+                r.Year == year &&
+                r.IsActive);
+        }
+
+        // Lấy default cho ngày (Month=null, Year=null).
+        public async Task<DailyLoginReward?> GetDefaultByDayNumber(int dayNumber)
+        {
+            return await BaseQuery().FirstOrDefaultAsync(r =>
+                r.DayNumber == dayNumber &&
+                r.Month == null &&
+                r.Year == null &&
+                r.IsActive);
+        }
+
+        // Lấy tất cả overrides của một tháng/năm cụ thể.
+        public async Task<List<DailyLoginReward>> GetOverridesByMonth(int month, int year)
+        {
+            return await BaseQuery()
+                .Where(r => r.Month == month && r.Year == year && r.IsActive)
+                .OrderBy(r => r.DayNumber)
+                .ToListAsync();
+        }
+
+        // Lấy tất cả default (Month=null, Year=null).
+        public async Task<List<DailyLoginReward>> GetAllDefaults()
+        {
+            return await BaseQuery()
+                .Where(r => r.Month == null && r.Year == null && r.IsActive)
+                .OrderBy(r => r.DayNumber)
+                .ToListAsync();
+        }
+
+        // ── ADMIN APIs ───────────────────────────────────────────────────────
+
+        // Phân trang: month=null → lấy defaults; month có giá trị → lấy overrides tháng đó.
+        public async Task<(int TotalCount, List<DailyLoginReward> Items)> GetDailyLoginRewardsPaged(
+            int page, int pageSize, int? month = null, int? year = null)
+        {
+            IQueryable<DailyLoginReward> query;
+
+            if (month == null || year == null)
+            {
+                // Lấy default records (Month IS NULL AND Year IS NULL)
+                query = BaseQuery().Where(r => r.Month == null && r.Year == null);
+            }
+            else
+            {
+                // Lấy override records của tháng/năm cụ thể
+                query = BaseQuery().Where(r => r.Month == month && r.Year == year);
+            }
+
+            int totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(r => r.DayNumber)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (totalCount, items);
         }
 
         public async Task<DailyLoginReward> CreateDailyLoginReward(DailyLoginReward reward)
@@ -53,5 +109,15 @@ namespace DAL.Repositories
             return reward;
         }
 
+        public async Task DeleteDailyLoginReward(int id)
+        {
+            var reward = await _context.DailyLoginRewards.FindAsync(id);
+            if (reward != null)
+            {
+                reward.IsActive = false;
+                _context.DailyLoginRewards.Update(reward);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
