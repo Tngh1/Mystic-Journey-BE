@@ -32,6 +32,7 @@ namespace DAL.Models
 
         public int ExperienceReward { get; set; } = 10;
         public decimal GoldReward { get; set; } = 5;
+        public decimal GemReward { get; set; } = 0;
 
         public string? ImageUrl { get; set; }
         public bool IsActive { get; set; } = true;

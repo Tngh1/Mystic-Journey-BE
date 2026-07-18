@@ -85,6 +85,632 @@ namespace DAL.Data
                 new ClassConfig { ClassConfigId = 3, ClassName = "Mage", MaxHp = 300, Atk = 90, Def = 15, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 }
             );
 
+            modelBuilder.Entity<Monster>().HasData(
+                new Monster
+                {
+                    MonsterId = 1,
+                    Name = "SlimeLittle",
+                    Type = "Normal",
+                    Description = "A basic slime monster.",
+                    Level = 1,
+                    MaxHp = 50,
+                    Atk = 5,
+                    Def = 2,
+                    MoveSpeed = 1,
+                    AttackSpeed = 1,
+                    CritRate = 10,
+                    CritDamage = 5,
+                    ExperienceReward = 5,
+                    GoldReward = 15m, // Trung bình của 10-20
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 2,
+                    Name = "SwampDemon",
+                    Type = "Boss",
+                    Description = "A dangerous swamp demon.",
+                    Level = 10,
+                    MaxHp = 500,
+                    Atk = 20,
+                    Def = 10,
+                    MoveSpeed = 1,
+                    AttackSpeed = 1,
+                    CritRate = 20,
+                    CritDamage = 10,
+                    ExperienceReward = 100,
+                    GoldReward = 200m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 3,
+                    Name = "WaterElemental",
+                    Type = "Normal",
+                    Description = "A water elemental monster.",
+                    Level = 5,
+                    MaxHp = 80,
+                    Atk = 15,
+                    Def = 5,
+                    MoveSpeed = 1,
+                    AttackSpeed = 1,
+                    CritRate = 10,
+                    CritDamage = 8,
+                    ExperienceReward = 10,
+                    GoldReward = 30m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 4,
+                    Name = "Dragon",
+                    Type = "Normal",
+                    Description = "A fierce dragon.",
+                    Level = 5,
+                    MaxHp = 200,
+                    Atk = 30,
+                    Def = 15,
+                    MoveSpeed = 1,
+                    AttackSpeed = 1,
+                    CritRate = 20,
+                    CritDamage = 8,
+                    ExperienceReward = 20,
+                    GoldReward = 50m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 5,
+                    Name = "BlueDragonFrost",
+                    Type = "Normal",
+                    Description = "A frosty blue dragon.",
+                    Level = 6,
+                    MaxHp = 250,
+                    Atk = 35,
+                    Def = 20,
+                    MoveSpeed = 5,
+                    AttackSpeed = 1,
+                    CritRate = 20,
+                    CritDamage = 10,
+                    ExperienceReward = 22,
+                    GoldReward = 55m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 6,
+                    Name = "GreenDragonForest",
+                    Type = "Normal",
+                    Description = "A forest green dragon.",
+                    Level = 7,
+                    MaxHp = 270,
+                    Atk = 37,
+                    Def = 25,
+                    MoveSpeed = 6,
+                    AttackSpeed = 2,
+                    CritRate = 12,
+                    CritDamage = 15,
+                    ExperienceReward = 25,
+                    GoldReward = 62m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 7,
+                    Name = "DragonBossIdle",
+                    Type = "Boss",
+                    Description = "A terrifying boss dragon.",
+                    Level = 20,
+                    MaxHp = 1000,
+                    Atk = 50,
+                    Def = 35,
+                    MoveSpeed = 0,
+                    AttackSpeed = 1,
+                    CritRate = 30,
+                    CritDamage = 25,
+                    ExperienceReward = 300,
+                    GoldReward = 1000m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 8,
+                    Name = "Slime_ice",
+                    Type = "Normal",
+                    Description = "An icy slime.",
+                    Level = 8,
+                    MaxHp = 300,
+                    Atk = 25,
+                    Def = 50,
+                    MoveSpeed = 1,
+                    AttackSpeed = 1,
+                    CritRate = 12,
+                    CritDamage = 15,
+                    ExperienceReward = 30,
+                    GoldReward = 70m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 9,
+                    Name = "Ice_Dragon",
+                    Type = "Normal",
+                    Description = "An icy dragon.",
+                    Level = 9,
+                    MaxHp = 350,
+                    Atk = 50,
+                    Def = 70,
+                    MoveSpeed = 2,
+                    AttackSpeed = 1,
+                    CritRate = 25,
+                    CritDamage = 10,
+                    ExperienceReward = 32,
+                    GoldReward = 100m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 10,
+                    Name = "GolemBoss",
+                    Type = "Boss",
+                    Description = "A giant stone golem boss.",
+                    Level = 15,
+                    MaxHp = 3000,
+                    Atk = 150,
+                    Def = 70,
+                    MoveSpeed = 3,
+                    AttackSpeed = 1,
+                    CritRate = 30,
+                    CritDamage = 15,
+                    ExperienceReward = 1500,
+                    GoldReward = 2000m,
+                    GemReward = 10m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 11,
+                    Name = "OrcSkeleton",
+                    Type = "Normal",
+                    Description = "An undead orc skeleton.",
+                    Level = 5,
+                    MaxHp = 400,
+                    Atk = 50,
+                    Def = 100,
+                    MoveSpeed = 2,
+                    AttackSpeed = 1,
+                    CritRate = 25,
+                    CritDamage = 10,
+                    ExperienceReward = 40,
+                    GoldReward = 70m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 12,
+                    Name = "SkeletonMelee",
+                    Type = "Normal",
+                    Description = "A melee skeleton warrior.",
+                    Level = 6,
+                    MaxHp = 350,
+                    Atk = 70,
+                    Def = 70,
+                    MoveSpeed = 3,
+                    AttackSpeed = 2,
+                    CritRate = 15,
+                    CritDamage = 10,
+                    ExperienceReward = 42,
+                    GoldReward = 74m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 13,
+                    Name = "SkeletonArcher",
+                    Type = "Normal",
+                    Description = "A ranged skeleton archer.",
+                    Level = 6,
+                    MaxHp = 250,
+                    Atk = 100,
+                    Def = 30,
+                    MoveSpeed = 3,
+                    AttackSpeed = 3,
+                    CritRate = 25,
+                    CritDamage = 10,
+                    ExperienceReward = 38,
+                    GoldReward = 78m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 14,
+                    Name = "Ghost",
+                    Type = "Normal",
+                    Description = "A floating ghost.",
+                    Level = 5,
+                    MaxHp = 300,
+                    Atk = 90,
+                    Def = 150,
+                    MoveSpeed = 4,
+                    AttackSpeed = 2,
+                    CritRate = 30,
+                    CritDamage = 12,
+                    ExperienceReward = 45,
+                    GoldReward = 85m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 15,
+                    Name = "UnderKing",
+                    Type = "Boss",
+                    Description = "The supreme skeleton king.",
+                    Level = 20,
+                    MaxHp = 10000,
+                    Atk = 200,
+                    Def = 300,
+                    MoveSpeed = 4,
+                    AttackSpeed = 2,
+                    CritRate = 40,
+                    CritDamage = 20,
+                    ExperienceReward = 900,
+                    GoldReward = 2500m,
+                    GemReward = 500m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<Item>().HasData(
+                new Item
+                {
+                    ItemId = 901,
+                    Name = "Swamp Sword",
+                    Description = "A sharp sword dropped by the SwampDemon.",
+                    Type = "Weapon",
+                    Rarity = "Rare",
+                    Slot = "Weapon",
+                    BaseValue = 100m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 902,
+                    Name = "Swamp Armor",
+                    Description = "A sturdy armor dropped by the SwampDemon.",
+                    Type = "Armor",
+                    Rarity = "Rare",
+                    Slot = "Armor",
+                    BaseValue = 150m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 903,
+                    Name = "Dragon Boss Sword",
+                    Description = "A legendary sword dropped by DragonBossIdle.",
+                    Type = "Weapon",
+                    Rarity = "Legendary",
+                    Slot = "Weapon",
+                    BaseValue = 500m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 904,
+                    Name = "Dragon Boss Armor",
+                    Description = "A legendary armor dropped by DragonBossIdle.",
+                    Type = "Armor",
+                    Rarity = "Legendary",
+                    Slot = "Armor",
+                    BaseValue = 600m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 905,
+                    Name = "Golem Boss Gloves",
+                    Description = "Heavy stone gloves dropped by GolemBoss.",
+                    Type = "Armor",
+                    Rarity = "Legendary",
+                    Slot = "Gloves",
+                    BaseValue = 800m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 906,
+                    Name = "Golem Boss Armor",
+                    Description = "A massive stone armor dropped by GolemBoss.",
+                    Type = "Armor",
+                    Rarity = "Legendary",
+                    Slot = "Armor",
+                    BaseValue = 1000m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 907,
+                    Name = "UnderKing Sword",
+                    Description = "A royal cursed sword dropped by UnderKing.",
+                    Type = "Weapon",
+                    Rarity = "Legendary",
+                    Slot = "Weapon",
+                    BaseValue = 1500m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 908,
+                    Name = "UnderKing Crown",
+                    Description = "The crown of the UnderKing.",
+                    Type = "Armor",
+                    Rarity = "Legendary",
+                    Slot = "Helmet",
+                    BaseValue = 2000m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 909,
+                    Name = "Swamp Seal Book",
+                    Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
+                    Type = "QuestItem",
+                    Rarity = "Legendary",
+                    Slot = "None",
+                    BaseValue = 0m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 910,
+                    Name = "Dragon Seal Book",
+                    Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
+                    Type = "QuestItem",
+                    Rarity = "Legendary",
+                    Slot = "None",
+                    BaseValue = 0m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 911,
+                    Name = "Golem Seal Book",
+                    Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
+                    Type = "QuestItem",
+                    Rarity = "Legendary",
+                    Slot = "None",
+                    BaseValue = 0m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Item
+                {
+                    ItemId = 912,
+                    Name = "UnderKing Seal Book",
+                    Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
+                    Type = "QuestItem",
+                    Rarity = "Legendary",
+                    Slot = "None",
+                    BaseValue = 0m,
+                    MaxStack = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<EquipmentStats>().HasData(
+                new EquipmentStats { EquipmentStatsId = 901, ItemId = 901, BaseAtk = 15, BaseHp = 0, BaseDef = 0, BonusCritRate = 5, BonusCritDamage = 10 },
+                new EquipmentStats { EquipmentStatsId = 902, ItemId = 902, BaseAtk = 0, BaseHp = 100, BaseDef = 20, BonusCritRate = 0, BonusCritDamage = 0 },
+                new EquipmentStats { EquipmentStatsId = 903, ItemId = 903, BaseAtk = 100, BaseHp = 0, BaseDef = 0, BonusCritRate = 15, BonusCritDamage = 20 },
+                new EquipmentStats { EquipmentStatsId = 904, ItemId = 904, BaseAtk = 0, BaseHp = 500, BaseDef = 100, BonusCritRate = 0, BonusCritDamage = 0 },
+                new EquipmentStats { EquipmentStatsId = 905, ItemId = 905, BaseAtk = 50, BaseHp = 200, BaseDef = 50, BonusCritRate = 5, BonusCritDamage = 5 },
+                new EquipmentStats { EquipmentStatsId = 906, ItemId = 906, BaseAtk = 0, BaseHp = 1000, BaseDef = 200, BonusCritRate = 0, BonusCritDamage = 0 },
+                new EquipmentStats { EquipmentStatsId = 907, ItemId = 907, BaseAtk = 200, BaseHp = 0, BaseDef = 0, BonusCritRate = 20, BonusCritDamage = 20 },
+                new EquipmentStats { EquipmentStatsId = 908, ItemId = 908, BaseAtk = 50, BaseHp = 1000, BaseDef = 300, BonusCritRate = 10, BonusCritDamage = 10 }
+            );
+
+            modelBuilder.Entity<MonsterDrop>().HasData(
+                new MonsterDrop
+                {
+                    MonsterDropId = 901,
+                    MonsterId = 2, // Gắn với SwampDemon
+                    ItemId = 901,  // Rớt ra Swamp Sword
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop
+                {
+                    MonsterDropId = 902,
+                    MonsterId = 2, // Gắn với SwampDemon
+                    ItemId = 902,  // Rớt ra Swamp Armor
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop
+                {
+                    MonsterDropId = 903,
+                    MonsterId = 7, // Gắn với DragonBossIdle
+                    ItemId = 903,  // Rớt ra Dragon Boss Sword
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop
+                {
+                    MonsterDropId = 904,
+                    MonsterId = 7, // Gắn với DragonBossIdle
+                    ItemId = 904,  // Rớt ra Dragon Boss Armor
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop
+                {
+                    MonsterDropId = 905,
+                    MonsterId = 10, // Gắn với GolemBoss
+                    ItemId = 905,  // Rớt ra Golem Boss Gloves
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop
+                {
+                    MonsterDropId = 906,
+                    MonsterId = 10, // Gắn với GolemBoss
+                    ItemId = 906,  // Rớt ra Golem Boss Armor
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop
+                {
+                    MonsterDropId = 907,
+                    MonsterId = 15, // Gắn với UnderKing
+                    ItemId = 907,  // Rớt ra UnderKing Sword
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop
+                {
+                    MonsterDropId = 908,
+                    MonsterId = 15, // Gắn với UnderKing
+                    ItemId = 908,  // Rớt ra UnderKing Crown
+                    DropRate = 100, // Tỉ lệ 100%
+                    MinQuantity = 1,
+                    MaxQuantity = 1,
+                    IsGuaranteed = true,
+                    IsActive = true
+                },
+                new MonsterDrop { MonsterDropId = 909, MonsterId = 2, ItemId = 909, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 910, MonsterId = 7, ItemId = 910, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 911, MonsterId = 10, ItemId = 911, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 912, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true }
+            );
+
+            modelBuilder.Entity<Quest>().HasData(
+                new Quest
+                {
+                    QuestId = 1,
+                    Title = "Defeat the Swamp Demon",
+                    Description = "Defeat the Swamp Demon to retrieve the Swamp Seal Book.",
+                    Type = "Main",
+                    DefaultStatus = "NotStarted",
+                    MapName = "Swamp",
+                    ObjectiveType = "Defeat",
+                    TargetAmount = 1,
+                    BossMonsterId = 2, // SwampDemon
+                    IsActive = true
+                },
+                new Quest
+                {
+                    QuestId = 2,
+                    Title = "Slay the Dragon Boss",
+                    Description = "Defeat the Dragon Boss to retrieve the Dragon Seal Book.",
+                    Type = "Main",
+                    DefaultStatus = "NotStarted",
+                    MapName = "Volcano",
+                    ObjectiveType = "Defeat",
+                    TargetAmount = 1,
+                    BossMonsterId = 7, // DragonBossIdle
+                    IsActive = true
+                },
+                new Quest
+                {
+                    QuestId = 3,
+                    Title = "Crush the Golem Boss",
+                    Description = "Defeat the Golem Boss to retrieve the Golem Seal Book.",
+                    Type = "Main",
+                    DefaultStatus = "NotStarted",
+                    MapName = "Desert",
+                    ObjectiveType = "Defeat",
+                    TargetAmount = 1,
+                    BossMonsterId = 10, // GolemBoss
+                    IsActive = true
+                },
+                new Quest
+                {
+                    QuestId = 4,
+                    Title = "Vanquish the UnderKing",
+                    Description = "Defeat the UnderKing to retrieve the final Seal Book.",
+                    Type = "Main",
+                    DefaultStatus = "NotStarted",
+                    MapName = "Underworld",
+                    ObjectiveType = "Defeat",
+                    TargetAmount = 1,
+                    BossMonsterId = 15, // UnderKing
+                    IsActive = true
+                },
+                new Quest
+                {
+                    QuestId = 5,
+                    Title = "Purify the Origin Tree",
+                    Description = "Collect the 4 Seal Books to purify the cursed Origin Tree.",
+                    Type = "Main",
+                    DefaultStatus = "NotStarted",
+                    MapName = "ElfForest",
+                    ObjectiveType = "Collect",
+                    TargetAmount = 4, // 4 books
+                    IsActive = true
+                }
+            );
+
             modelBuilder.Entity<ShopItem>()
                 .Property(s => s.ShopSection)
                 .HasMaxLength(30)

@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718035537_AddGreenDragonForestSeed")]
+    partial class AddGreenDragonForestSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -832,102 +835,6 @@ namespace DAL.Migrations
                             BonusHp = 0,
                             BonusMoveSpeed = 0,
                             ItemId = 902
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 903,
-                            BaseAtk = 100,
-                            BaseDef = 0,
-                            BaseHp = 0,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 20,
-                            BonusCritRate = 15,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 903
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 904,
-                            BaseAtk = 0,
-                            BaseDef = 100,
-                            BaseHp = 500,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 0,
-                            BonusCritRate = 0,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 904
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 905,
-                            BaseAtk = 50,
-                            BaseDef = 50,
-                            BaseHp = 200,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 5,
-                            BonusCritRate = 5,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 905
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 906,
-                            BaseAtk = 0,
-                            BaseDef = 200,
-                            BaseHp = 1000,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 0,
-                            BonusCritRate = 0,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 906
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 907,
-                            BaseAtk = 200,
-                            BaseDef = 0,
-                            BaseHp = 0,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 20,
-                            BonusCritRate = 20,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 907
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 908,
-                            BaseAtk = 50,
-                            BaseDef = 300,
-                            BaseHp = 1000,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 10,
-                            BonusCritRate = 10,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 908
                         });
                 });
 
@@ -1580,146 +1487,6 @@ namespace DAL.Migrations
                             Rarity = "Rare",
                             Slot = "Armor",
                             Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 903,
-                            BaseValue = 500m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A legendary sword dropped by DragonBossIdle.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Dragon Boss Sword",
-                            Rarity = "Legendary",
-                            Slot = "Weapon",
-                            Type = "Weapon"
-                        },
-                        new
-                        {
-                            ItemId = 904,
-                            BaseValue = 600m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A legendary armor dropped by DragonBossIdle.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Dragon Boss Armor",
-                            Rarity = "Legendary",
-                            Slot = "Armor",
-                            Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 905,
-                            BaseValue = 800m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Heavy stone gloves dropped by GolemBoss.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Golem Boss Gloves",
-                            Rarity = "Legendary",
-                            Slot = "Gloves",
-                            Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 906,
-                            BaseValue = 1000m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A massive stone armor dropped by GolemBoss.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Golem Boss Armor",
-                            Rarity = "Legendary",
-                            Slot = "Armor",
-                            Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 907,
-                            BaseValue = 1500m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A royal cursed sword dropped by UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Sword",
-                            Rarity = "Legendary",
-                            Slot = "Weapon",
-                            Type = "Weapon"
-                        },
-                        new
-                        {
-                            ItemId = 908,
-                            BaseValue = 2000m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "The crown of the UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Crown",
-                            Rarity = "Legendary",
-                            Slot = "Helmet",
-                            Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 909,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Swamp Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 910,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Dragon Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 911,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Golem Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 912,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
                         });
                 });
 
@@ -1837,9 +1604,6 @@ namespace DAL.Migrations
                     b.Property<int>("ExperienceReward")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("GemReward")
-                        .HasColumnType("numeric");
-
                     b.Property<decimal>("GoldReward")
                         .HasColumnType("numeric");
 
@@ -1883,7 +1647,6 @@ namespace DAL.Migrations
                             Def = 2,
                             Description = "A basic slime monster.",
                             ExperienceReward = 5,
-                            GemReward = 0m,
                             GoldReward = 15m,
                             IsActive = true,
                             Level = 1,
@@ -1903,7 +1666,6 @@ namespace DAL.Migrations
                             Def = 10,
                             Description = "A dangerous swamp demon.",
                             ExperienceReward = 100,
-                            GemReward = 0m,
                             GoldReward = 200m,
                             IsActive = true,
                             Level = 10,
@@ -1923,7 +1685,6 @@ namespace DAL.Migrations
                             Def = 5,
                             Description = "A water elemental monster.",
                             ExperienceReward = 10,
-                            GemReward = 0m,
                             GoldReward = 30m,
                             IsActive = true,
                             Level = 5,
@@ -1943,7 +1704,6 @@ namespace DAL.Migrations
                             Def = 15,
                             Description = "A fierce dragon.",
                             ExperienceReward = 20,
-                            GemReward = 0m,
                             GoldReward = 50m,
                             IsActive = true,
                             Level = 5,
@@ -1963,7 +1723,6 @@ namespace DAL.Migrations
                             Def = 20,
                             Description = "A frosty blue dragon.",
                             ExperienceReward = 22,
-                            GemReward = 0m,
                             GoldReward = 55m,
                             IsActive = true,
                             Level = 6,
@@ -1983,7 +1742,6 @@ namespace DAL.Migrations
                             Def = 25,
                             Description = "A forest green dragon.",
                             ExperienceReward = 25,
-                            GemReward = 0m,
                             GoldReward = 62m,
                             IsActive = true,
                             Level = 7,
@@ -1991,186 +1749,6 @@ namespace DAL.Migrations
                             MoveSpeed = 6,
                             Name = "GreenDragonForest",
                             Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 7,
-                            Atk = 50,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 25,
-                            CritRate = 30,
-                            Def = 35,
-                            Description = "A terrifying boss dragon.",
-                            ExperienceReward = 300,
-                            GemReward = 0m,
-                            GoldReward = 1000m,
-                            IsActive = true,
-                            Level = 20,
-                            MaxHp = 1000,
-                            MoveSpeed = 0,
-                            Name = "DragonBossIdle",
-                            Type = "Boss"
-                        },
-                        new
-                        {
-                            MonsterId = 8,
-                            Atk = 25,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 15,
-                            CritRate = 12,
-                            Def = 50,
-                            Description = "An icy slime.",
-                            ExperienceReward = 30,
-                            GemReward = 0m,
-                            GoldReward = 70m,
-                            IsActive = true,
-                            Level = 8,
-                            MaxHp = 300,
-                            MoveSpeed = 1,
-                            Name = "Slime_ice",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 9,
-                            Atk = 50,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
-                            CritRate = 25,
-                            Def = 70,
-                            Description = "An icy dragon.",
-                            ExperienceReward = 32,
-                            GemReward = 0m,
-                            GoldReward = 100m,
-                            IsActive = true,
-                            Level = 9,
-                            MaxHp = 350,
-                            MoveSpeed = 2,
-                            Name = "Ice_Dragon",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 10,
-                            Atk = 150,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 15,
-                            CritRate = 30,
-                            Def = 70,
-                            Description = "A giant stone golem boss.",
-                            ExperienceReward = 1500,
-                            GemReward = 10m,
-                            GoldReward = 2000m,
-                            IsActive = true,
-                            Level = 15,
-                            MaxHp = 3000,
-                            MoveSpeed = 3,
-                            Name = "GolemBoss",
-                            Type = "Boss"
-                        },
-                        new
-                        {
-                            MonsterId = 11,
-                            Atk = 50,
-                            AttackSpeed = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
-                            CritRate = 25,
-                            Def = 100,
-                            Description = "An undead orc skeleton.",
-                            ExperienceReward = 40,
-                            GemReward = 0m,
-                            GoldReward = 70m,
-                            IsActive = true,
-                            Level = 5,
-                            MaxHp = 400,
-                            MoveSpeed = 2,
-                            Name = "OrcSkeleton",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 12,
-                            Atk = 70,
-                            AttackSpeed = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
-                            CritRate = 15,
-                            Def = 70,
-                            Description = "A melee skeleton warrior.",
-                            ExperienceReward = 42,
-                            GemReward = 0m,
-                            GoldReward = 74m,
-                            IsActive = true,
-                            Level = 6,
-                            MaxHp = 350,
-                            MoveSpeed = 3,
-                            Name = "SkeletonMelee",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 13,
-                            Atk = 100,
-                            AttackSpeed = 3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 10,
-                            CritRate = 25,
-                            Def = 30,
-                            Description = "A ranged skeleton archer.",
-                            ExperienceReward = 38,
-                            GemReward = 0m,
-                            GoldReward = 78m,
-                            IsActive = true,
-                            Level = 6,
-                            MaxHp = 250,
-                            MoveSpeed = 3,
-                            Name = "SkeletonArcher",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 14,
-                            Atk = 90,
-                            AttackSpeed = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 12,
-                            CritRate = 30,
-                            Def = 150,
-                            Description = "A floating ghost.",
-                            ExperienceReward = 45,
-                            GemReward = 0m,
-                            GoldReward = 85m,
-                            IsActive = true,
-                            Level = 5,
-                            MaxHp = 300,
-                            MoveSpeed = 4,
-                            Name = "Ghost",
-                            Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 15,
-                            Atk = 200,
-                            AttackSpeed = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 20,
-                            CritRate = 40,
-                            Def = 300,
-                            Description = "The supreme skeleton king.",
-                            ExperienceReward = 900,
-                            GemReward = 500m,
-                            GoldReward = 2500m,
-                            IsActive = true,
-                            Level = 20,
-                            MaxHp = 10000,
-                            MoveSpeed = 4,
-                            Name = "UnderKing",
-                            Type = "Boss"
                         });
                 });
 
@@ -2233,116 +1811,6 @@ namespace DAL.Migrations
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 2
-                        },
-                        new
-                        {
-                            MonsterDropId = 903,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 903,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 7
-                        },
-                        new
-                        {
-                            MonsterDropId = 904,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 904,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 7
-                        },
-                        new
-                        {
-                            MonsterDropId = 905,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 905,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 10
-                        },
-                        new
-                        {
-                            MonsterDropId = 906,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 906,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 10
-                        },
-                        new
-                        {
-                            MonsterDropId = 907,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 907,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 15
-                        },
-                        new
-                        {
-                            MonsterDropId = 908,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 908,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 15
-                        },
-                        new
-                        {
-                            MonsterDropId = 909,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 909,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 2
-                        },
-                        new
-                        {
-                            MonsterDropId = 910,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 910,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 7
-                        },
-                        new
-                        {
-                            MonsterDropId = 911,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 911,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 10
-                        },
-                        new
-                        {
-                            MonsterDropId = 912,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 912,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 15
                         });
                 });
 
@@ -3190,92 +2658,6 @@ namespace DAL.Migrations
                     b.HasIndex("RewardSkillId");
 
                     b.ToTable("Quests");
-
-                    b.HasData(
-                        new
-                        {
-                            QuestId = 1,
-                            BossMonsterId = 2,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the Swamp Demon to retrieve the Swamp Seal Book.",
-                            IsActive = true,
-                            MapName = "Swamp",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Defeat the Swamp Demon",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 2,
-                            BossMonsterId = 7,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the Dragon Boss to retrieve the Dragon Seal Book.",
-                            IsActive = true,
-                            MapName = "Volcano",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Slay the Dragon Boss",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 3,
-                            BossMonsterId = 10,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the Golem Boss to retrieve the Golem Seal Book.",
-                            IsActive = true,
-                            MapName = "Desert",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Crush the Golem Boss",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 4,
-                            BossMonsterId = 15,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the UnderKing to retrieve the final Seal Book.",
-                            IsActive = true,
-                            MapName = "Underworld",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Vanquish the UnderKing",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 5,
-                            DefaultStatus = "NotStarted",
-                            Description = "Collect the 4 Seal Books to purify the cursed Origin Tree.",
-                            IsActive = true,
-                            MapName = "ElfForest",
-                            ObjectiveType = "Collect",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 4,
-                            Title = "Purify the Origin Tree",
-                            Type = "Main"
-                        });
                 });
 
             modelBuilder.Entity("DAL.Models.QuestRewardItem", b =>

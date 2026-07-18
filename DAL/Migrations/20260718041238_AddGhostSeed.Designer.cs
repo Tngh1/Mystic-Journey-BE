@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718041238_AddGhostSeed")]
+    partial class AddGhostSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -896,38 +899,6 @@ namespace DAL.Migrations
                             BonusHp = 0,
                             BonusMoveSpeed = 0,
                             ItemId = 906
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 907,
-                            BaseAtk = 200,
-                            BaseDef = 0,
-                            BaseHp = 0,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 20,
-                            BonusCritRate = 20,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 907
-                        },
-                        new
-                        {
-                            EquipmentStatsId = 908,
-                            BaseAtk = 50,
-                            BaseDef = 300,
-                            BaseHp = 1000,
-                            BonusAtk = 0,
-                            BonusAttackSpeed = 0,
-                            BonusCritDamage = 10,
-                            BonusCritRate = 10,
-                            BonusDamageBonus = 0,
-                            BonusDef = 0,
-                            BonusHp = 0,
-                            BonusMoveSpeed = 0,
-                            ItemId = 908
                         });
                 });
 
@@ -1636,90 +1607,6 @@ namespace DAL.Migrations
                             Rarity = "Legendary",
                             Slot = "Armor",
                             Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 907,
-                            BaseValue = 1500m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A royal cursed sword dropped by UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Sword",
-                            Rarity = "Legendary",
-                            Slot = "Weapon",
-                            Type = "Weapon"
-                        },
-                        new
-                        {
-                            ItemId = 908,
-                            BaseValue = 2000m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "The crown of the UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Crown",
-                            Rarity = "Legendary",
-                            Slot = "Helmet",
-                            Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 909,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Swamp Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 910,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Dragon Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 911,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Golem Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 912,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
                         });
                 });
 
@@ -2151,26 +2038,6 @@ namespace DAL.Migrations
                             MoveSpeed = 4,
                             Name = "Ghost",
                             Type = "Normal"
-                        },
-                        new
-                        {
-                            MonsterId = 15,
-                            Atk = 200,
-                            AttackSpeed = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CritDamage = 20,
-                            CritRate = 40,
-                            Def = 300,
-                            Description = "The supreme skeleton king.",
-                            ExperienceReward = 900,
-                            GemReward = 500m,
-                            GoldReward = 2500m,
-                            IsActive = true,
-                            Level = 20,
-                            MaxHp = 10000,
-                            MoveSpeed = 4,
-                            Name = "UnderKing",
-                            Type = "Boss"
                         });
                 });
 
@@ -2277,72 +2144,6 @@ namespace DAL.Migrations
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 10
-                        },
-                        new
-                        {
-                            MonsterDropId = 907,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 907,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 15
-                        },
-                        new
-                        {
-                            MonsterDropId = 908,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 908,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 15
-                        },
-                        new
-                        {
-                            MonsterDropId = 909,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 909,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 2
-                        },
-                        new
-                        {
-                            MonsterDropId = 910,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 910,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 7
-                        },
-                        new
-                        {
-                            MonsterDropId = 911,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 911,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 10
-                        },
-                        new
-                        {
-                            MonsterDropId = 912,
-                            DropRate = 100.0,
-                            IsActive = true,
-                            IsGuaranteed = true,
-                            ItemId = 912,
-                            MaxQuantity = 1,
-                            MinQuantity = 1,
-                            MonsterId = 15
                         });
                 });
 
@@ -3190,92 +2991,6 @@ namespace DAL.Migrations
                     b.HasIndex("RewardSkillId");
 
                     b.ToTable("Quests");
-
-                    b.HasData(
-                        new
-                        {
-                            QuestId = 1,
-                            BossMonsterId = 2,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the Swamp Demon to retrieve the Swamp Seal Book.",
-                            IsActive = true,
-                            MapName = "Swamp",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Defeat the Swamp Demon",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 2,
-                            BossMonsterId = 7,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the Dragon Boss to retrieve the Dragon Seal Book.",
-                            IsActive = true,
-                            MapName = "Volcano",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Slay the Dragon Boss",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 3,
-                            BossMonsterId = 10,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the Golem Boss to retrieve the Golem Seal Book.",
-                            IsActive = true,
-                            MapName = "Desert",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Crush the Golem Boss",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 4,
-                            BossMonsterId = 15,
-                            DefaultStatus = "NotStarted",
-                            Description = "Defeat the UnderKing to retrieve the final Seal Book.",
-                            IsActive = true,
-                            MapName = "Underworld",
-                            ObjectiveType = "Defeat",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 1,
-                            Title = "Vanquish the UnderKing",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 5,
-                            DefaultStatus = "NotStarted",
-                            Description = "Collect the 4 Seal Books to purify the cursed Origin Tree.",
-                            IsActive = true,
-                            MapName = "ElfForest",
-                            ObjectiveType = "Collect",
-                            RequiredLevel = 1,
-                            RewardExperience = 0,
-                            RewardGems = 0m,
-                            RewardGold = 0m,
-                            TargetAmount = 4,
-                            Title = "Purify the Origin Tree",
-                            Type = "Main"
-                        });
                 });
 
             modelBuilder.Entity("DAL.Models.QuestRewardItem", b =>
