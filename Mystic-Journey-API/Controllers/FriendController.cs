@@ -63,9 +63,8 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> SearchPlayers([FromQuery] string keyword)
+        public async Task<IActionResult> SearchPlayers([FromQuery] string? keyword)
         {
-            if (string.IsNullOrWhiteSpace(keyword)) return Ok(new List<FriendSearchDto>());
             var playerId = GetPlayerProfileId();
             var results = await _friendService.SearchPlayers(playerId, keyword);
             return Ok(results);
