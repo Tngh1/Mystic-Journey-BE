@@ -53,8 +53,10 @@ namespace Mystic_Journey_API.Controllers
             _ctx = ctx;
         }
 
+
         // ─────────────────────────────────────────────────────────────────────────
         // POST /api/seed/inventory  → Seed toàn bộ dữ liệu mẫu UC 20
+        // Dùng item từ system migration (không tạo mới item trong seed)
         // ─────────────────────────────────────────────────────────────────────────
         [HttpPost("inventory")]
         public async Task<IActionResult> SeedInventory()
@@ -62,84 +64,17 @@ namespace Mystic_Journey_API.Controllers
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
             {
-                // ── 1. Items (game items) ──────────────────────────────────────
-                var existingItems = await _ctx.Items
-                    .Where(i => EF.Functions.Like(i.Name, "[SEED]%"))
-                    .ToListAsync();
-                _ctx.Items.RemoveRange(existingItems);
-                await _ctx.SaveChangesAsync();
+                // ── 1. Lookup system items (từ migration, không tự tạo) ──────────
+                var potion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var sword  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+                var helm   = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Helmet");
 
-                // 1a. Health Potion – Consumable
-                var potion = new Item
-                {
-                    Name        = "[SEED] Health Potion",
-                    Description = "Hồi phục 200 HP tức thì.",
-                    Type        = "Consumable",
-                    Rarity      = "Common",
-                    Slot        = "None",
-                    BaseValue   = 50,
-                    MaxStack    = 99,
-                    IsActive    = true,
-                };
-                _ctx.Items.Add(potion);
-
-                // 1b. Sword of Dawn – Weapon (+ATK)
-                var sword = new Item
-                {
-                    Name        = "[SEED] Sword of Dawn",
-                    Description = "Kiếm bình minh, ánh sáng phá tan bóng tối.",
-                    Type        = "Weapon",
-                    Rarity      = "Rare",
-                    Slot        = "Weapon",
-                    BaseValue   = 500,
-                    MaxStack    = 1,
-                    IsActive    = true,
-                };
-                _ctx.Items.Add(sword);
-
-                // 1c. Iron Helm – Helmet (+DEF, chỉ tăng chỉ số, không thay đổi ngoại hình)
-                var helm = new Item
-                {
-                    Name        = "[SEED] Iron Helm",
-                    Description = "Mũ sắt kiên cố, tăng phòng thủ.",
-                    Type        = "Armor",
-                    Rarity      = "Uncommon",
-                    Slot        = "Helmet",
-                    BaseValue   = 300,
-                    MaxStack    = 1,
-                    IsActive    = true,
-                };
-                _ctx.Items.Add(helm);
-
-                await _ctx.SaveChangesAsync();
-
-                // Gắn EquipmentStats cho Sword
-                _ctx.EquipmentStats.Add(new EquipmentStats
-                {
-                    ItemId   = sword.ItemId,
-                    BaseHp   = 0,
-                    BaseAtk  = 45,
-                    BaseDef  = 0,
-                    BonusHp  = 0,
-                    BonusAtk = 10,
-                    BonusDef = 0,
-                    BonusCritRate   = 50,   // 5.0% (scale=10)
-                    BonusCritDamage = 100,  // 10.0%
-                });
-
-                // Gắn EquipmentStats cho Helm
-                _ctx.EquipmentStats.Add(new EquipmentStats
-                {
-                    ItemId   = helm.ItemId,
-                    BaseHp   = 100,
-                    BaseAtk  = 0,
-                    BaseDef  = 30,
-                    BonusHp  = 20,
-                    BonusAtk = 0,
-                    BonusDef = 8,
-                });
-
-                await _ctx.SaveChangesAsync();
+                if (potion == null || sword == null || helm == null)
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "System items chưa có trong DB. Hãy chạy migration trước: 'Small Health Potion', 'Iron Sword', 'Iron Helmet'."
+                    });
 
                 // ── 2. Skins ─────────────────────────────────────────────────
                 var existingSkins = await _ctx.Skins
@@ -378,29 +313,31 @@ namespace Mystic_Journey_API.Controllers
                 });
                 await _ctx.SaveChangesAsync();
 
-                // ── 5. Inventory của player test ─────────────────────────────
-                // 5a. Iron Helm – EQUIPPED (Helmet)
-                _ctx.InventoryItems.Add(new InventoryItem
-                {
-                    PlayerProfileId  = pid,
-                    ItemId           = helm.ItemId,
-                    Quantity         = 1,
-                    IsEquipped       = true,
-                    IsSkin           = false,
-                    EquippedSlot     = "Helmet",
-                    EnhancementLevel = 0,
-                });
+                // ── 5. Inventory của player test (dùng system items) ──────────
+                // 5a. Iron Helmet – EQUIPPED (Helmet)
+                if (helm != null)
+                    _ctx.InventoryItems.Add(new InventoryItem
+                    {
+                        PlayerProfileId  = pid,
+                        ItemId           = helm.ItemId,
+                        Quantity         = 1,
+                        IsEquipped       = true,
+                        IsSkin           = false,
+                        EquippedSlot     = "Helmet",
+                        EnhancementLevel = 0,
+                    });
 
-                // 5b. Health Potion – 2 bình (trong túi)
-                _ctx.InventoryItems.Add(new InventoryItem
-                {
-                    PlayerProfileId  = pid,
-                    ItemId           = potion.ItemId,
-                    Quantity         = 2,
-                    IsEquipped       = false,
-                    IsSkin           = false,
-                    EnhancementLevel = 0,
-                });
+                // 5b. Small Health Potion – 2 bình (trong túi)
+                if (potion != null)
+                    _ctx.InventoryItems.Add(new InventoryItem
+                    {
+                        PlayerProfileId  = pid,
+                        ItemId           = potion.ItemId,
+                        Quantity         = 2,
+                        IsEquipped       = false,
+                        IsSkin           = false,
+                        EnhancementLevel = 0,
+                    });
 
                 await _ctx.SaveChangesAsync();
 
@@ -470,12 +407,12 @@ namespace Mystic_Journey_API.Controllers
                         accountEmail    = TEST_EMAIL,
                         password        = "Abc@12345",
                         playerProfileId = pid,
-                        level           = 3,
+                        level           = 1,
                         playerClass     = "Knight",
                         items = new[]
                         {
-                            new { name = "[SEED] Iron Helm",      type = "Armor (Helmet)",   status = "EQUIPPED"  },
-                            new { name = "[SEED] Health Potion",  type = "Consumable",        status = "BAG x2"    },
+                            new { name = helm?.Name   ?? "(không tìm thấy)", type = "Armor (Helmet)", status = "EQUIPPED" },
+                            new { name = potion?.Name ?? "(không tìm thấy)", type = "Consumable",     status = "BAG x2"  },
                         },
                         skins = new[]
                         {
@@ -488,18 +425,18 @@ namespace Mystic_Journey_API.Controllers
                             new { title = "[SEED] Map 2 – Dark Caverns",         requiredLevel = 2 },
                             new { title = "[SEED] Map 3 – Dragon Lair",          requiredLevel = 3 },
                         },
-                        seedItems_available_in_admin = new[]
+                        systemItemsUsed = new[]
                         {
-                            new { name = "[SEED] Health Potion", itemId = potion.ItemId },
-                            new { name = "[SEED] Sword of Dawn", itemId = sword.ItemId  },
-                            new { name = "[SEED] Iron Helm",     itemId = helm.ItemId   },
+                            new { name = potion?.Name ?? "(null)", itemId = potion?.ItemId },
+                            new { name = sword?.Name  ?? "(null)", itemId = sword?.ItemId  },
+                            new { name = helm?.Name   ?? "(null)", itemId = helm?.ItemId   },
                         },
                         gacha = new
                         {
-                            bannerId = gachaSeed.BannerId,
+                            bannerId     = gachaSeed.BannerId,
                             ticketItemId = gachaSeed.TicketItemId,
-                            ticketCount = 11,
-                            targetEmail = TEST_EMAIL,
+                            ticketCount  = 11,
+                            targetEmail  = TEST_EMAIL,
                         },
                     }
                 });
@@ -720,75 +657,29 @@ namespace Mystic_Journey_API.Controllers
             {
                 await EnsureElfForestSchema();
 
-                // 1. Upsert ElfForest items. Keep IDs stable so existing inventory/rewards do not break.
-                var itemNames = new[]
-                {
-                    "[ELF] Health Potion",
-                    "[ELF] Short Sword",
-                    "[ELF] Leather Armor",
-                    "[ELF] White Flower",
-                    "[ELF] Old Willow Branch"
-                };
-                var existingItems = await _ctx.Items
-                    .Where(i => itemNames.Contains(i.Name))
-                    .ToListAsync();
+                // 1. Lookup system items từ migration (không tạo item mới trong seed)
+                var potion      = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var sword       = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+                var armor       = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Leather Armor");
+                var whiteFlower = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "White Flower");
+                var upgradeStone = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Skill Upgrade Stone");
 
-                Item UpsertItem(string name, string description, string type, string rarity, string slot, decimal baseValue, int maxStack)
-                {
-                    var item = existingItems.FirstOrDefault(i => i.Name == name);
-                    if (item == null)
+                var missingItems = new List<string>();
+                if (potion == null)      missingItems.Add("Small Health Potion");
+                if (sword == null)       missingItems.Add("Iron Sword");
+                if (armor == null)       missingItems.Add("Leather Armor");
+                if (whiteFlower == null) missingItems.Add("White Flower");
+                if (upgradeStone == null) missingItems.Add("Skill Upgrade Stone");
+
+                if (missingItems.Count > 0)
+                    return BadRequest(new ApiResponse<object>
                     {
-                        item = new Item { Name = name };
-                        _ctx.Items.Add(item);
-                    }
+                        Success = false,
+                        Message = $"System items chưa có trong DB. Hãy chạy migration items trước. Thiếu: {string.Join(", ", missingItems)}"
+                    });
 
-                    item.Description = description;
-                    item.Type = type;
-                    item.Rarity = rarity;
-                    item.Slot = slot;
-                    item.BaseValue = baseValue;
-                    item.MaxStack = maxStack;
-                    item.IsActive = true;
-                    return item;
-                }
-
-                var potion = UpsertItem("[ELF] Health Potion", "Restores 150 HP.", "Consumable", "Common", "None", 30, 99);
-                var sword = UpsertItem("[ELF] Short Sword", "A short sword used by forest scouts.", "Weapon", "Uncommon", "Weapon", 200, 1);
-                var armor = UpsertItem("[ELF] Leather Armor", "Light leather armor that grants a small defense bonus.", "Armor", "Common", "Armor", 180, 1);
-                UpsertItem("[ELF] White Flower", "A white flower used for the ElfForest tutorial quest.", "QuestItem", "Common", "None", 0, 99);
-                UpsertItem("[ELF] Old Willow Branch", "A branch from the old willow, used for ElfForest quest objectives.", "QuestItem", "Common", "None", 0, 99);
-                var upgradeStone = UpsertItem("Skill Upgrade Stone", "A magical stone used to upgrade skills.", "Material", "Rare", "None", 50, 999);
-                await _ctx.SaveChangesAsync();
-
-                var existingEquipmentStats = await _ctx.EquipmentStats
-                    .Where(s => s.ItemId == sword.ItemId || s.ItemId == armor.ItemId)
-                    .ToListAsync();
-
-                void UpsertEquipmentStats(Item item, int baseHp, int baseAtk, int baseDef, int bonusHp, int bonusAtk, int bonusDef, int bonusPhysical, int bonusMagic)
-                {
-                    var stats = existingEquipmentStats.FirstOrDefault(s => s.ItemId == item.ItemId);
-                    if (stats == null)
-                    {
-                        stats = new EquipmentStats { ItemId = item.ItemId };
-                        _ctx.EquipmentStats.Add(stats);
-                    }
-
-                    stats.BaseHp = baseHp;
-                    stats.BaseAtk = baseAtk;
-                    stats.BaseDef = baseDef;
-                    stats.BonusHp = bonusHp;
-                    stats.BonusAtk = bonusAtk;
-                    stats.BonusDef = bonusDef;
-                    stats.BonusMoveSpeed = 0;
-                    stats.BonusAttackSpeed = 0;
-                    stats.BonusCritRate = 0;
-                    stats.BonusCritDamage = 0;
-                    stats.BonusDamageBonus = 0;
-                }
-
-                UpsertEquipmentStats(sword, 0, 30, 0, 0, 5, 0, 15, 0);
-                UpsertEquipmentStats(armor, 50, 0, 12, 10, 0, 2, 5, 5);
-                await _ctx.SaveChangesAsync();
+                // EquipmentStats đã được tạo sẵn qua migration cùng với item
+                // Không cần upsert lại ở đây
 
                 // 2. Upsert skins, same reason as items: player skin ownership can reference them.
                 var skinNames = new[] { 
@@ -953,9 +844,9 @@ namespace Mystic_Journey_API.Controllers
                     return ex;
                 }
 
-                UpsertDrop(sprout, potion.ItemId, 40);
-                UpsertDrop(wolf, sword.ItemId, 20);
-                UpsertDrop(sproutKing, sword.ItemId, 100, 1, 1, true);
+                if (potion != null)  UpsertDrop(sprout,     potion.ItemId, 40);
+                if (sword != null)   UpsertDrop(wolf,        sword.ItemId,  20);
+                if (sword != null)   UpsertDrop(sproutKing,  sword.ItemId,  100, 1, 1, true);
                 await _ctx.SaveChangesAsync();
 
                 // 3c. Upsert spawns
@@ -1056,7 +947,7 @@ namespace Mystic_Journey_API.Controllers
                         RewardExperience = 120,
                         RewardGold = 80,
                         RewardGems = 25,
-                        RewardItemId = potion.ItemId,
+                        RewardItemId = potion?.ItemId,
                         RewardSkillId = null,
                         IsActive = true,
                     },
@@ -1323,41 +1214,45 @@ namespace Mystic_Journey_API.Controllers
                     });
                     await _ctx.SaveChangesAsync();
 
-                    // inventory: sword (equipped), armor (equipped or in bag), potion x3, optional extra potion
-                    _ctx.InventoryItems.Add(new InventoryItem
-                    {
-                        PlayerProfileId = pid,
-                        ItemId = sword.ItemId,
-                        Quantity = 1,
-                        IsEquipped = true,
-                        IsSkin = false,
-                        EquippedSlot = "Weapon",
-                    });
-                    _ctx.InventoryItems.Add(new InventoryItem
-                    {
-                        PlayerProfileId = pid,
-                        ItemId = armor.ItemId,
-                        Quantity = 1,
-                        IsEquipped = true,
-                        IsSkin = false,
-                        EquippedSlot = "Armor",
-                    });
-                    _ctx.InventoryItems.Add(new InventoryItem
-                    {
-                        PlayerProfileId = pid,
-                        ItemId = potion.ItemId,
-                        Quantity = 3,
-                        IsEquipped = false,
-                        IsSkin = false,
-                    });
-                    _ctx.InventoryItems.Add(new InventoryItem
-                    {
-                        PlayerProfileId = pid,
-                        ItemId = upgradeStone.ItemId,
-                        Quantity = 99,
-                        IsEquipped = false,
-                        IsSkin = false,
-                    });
+                    // inventory: dùng system items từ migration
+                    if (sword != null)
+                        _ctx.InventoryItems.Add(new InventoryItem
+                        {
+                            PlayerProfileId = pid,
+                            ItemId = sword.ItemId,
+                            Quantity = 1,
+                            IsEquipped = true,
+                            IsSkin = false,
+                            EquippedSlot = "Weapon",
+                        });
+                    if (armor != null)
+                        _ctx.InventoryItems.Add(new InventoryItem
+                        {
+                            PlayerProfileId = pid,
+                            ItemId = armor.ItemId,
+                            Quantity = 1,
+                            IsEquipped = true,
+                            IsSkin = false,
+                            EquippedSlot = "Armor",
+                        });
+                    if (potion != null)
+                        _ctx.InventoryItems.Add(new InventoryItem
+                        {
+                            PlayerProfileId = pid,
+                            ItemId = potion.ItemId,
+                            Quantity = 3,
+                            IsEquipped = false,
+                            IsSkin = false,
+                        });
+                    if (upgradeStone != null)
+                        _ctx.InventoryItems.Add(new InventoryItem
+                        {
+                            PlayerProfileId = pid,
+                            ItemId = upgradeStone.ItemId,
+                            Quantity = 99,
+                            IsEquipped = false,
+                            IsSkin = false,
+                        });
 
                     // player skin: default equipped + one extra skin in bag
                     _ctx.PlayerSkins.Add(new PlayerSkin
@@ -1473,101 +1368,34 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
             }
 
-            var existingItems = await _ctx.Items
+            // Lookup system items từ migration (không tạo item mới trong gacha seed)
+            var systemItems = await _ctx.Items
                 .Where(i => new[]
                 {
-                    "[GACHA] Lucky Ticket",
-                    "[GACHA] Celestial Blade",
-                    "[GACHA] Moonlit Cloak",
-                    "[GACHA] Forest Rune",
-                    "[GACHA] Iron Shard",
-                    "[GACHA] Health Potion",
+                    "Lucky Ticket",
+                    "Elven Blade",
+                    "Phantom Cloak",
+                    "Skill Upgrade Stone",
+                    "Gem",
+                    "Small Health Potion",
                     "Gold"
                 }.Contains(i.Name))
-                .ToListAsync();
+                .ToDictionaryAsync(i => i.Name);
 
-            Item UpsertItem(string name, string description, string type, string rarity, string slot, decimal baseValue, int maxStack)
+            Item GetItem(string name)
             {
-                var item = existingItems.FirstOrDefault(i => i.Name == name);
-                if (item == null)
-                {
-                    item = new Item { Name = name };
-                    _ctx.Items.Add(item);
-                    existingItems.Add(item);
-                }
-
-                item.Description = description;
-                item.Type = type;
-                item.Rarity = rarity;
-                item.Slot = slot;
-                item.BaseValue = baseValue;
-                item.MaxStack = maxStack;
-                item.IsActive = true;
-                return item;
+                if (systemItems.TryGetValue(name, out var item))
+                    return item;
+                throw new InvalidOperationException($"System item '{name}' chưa có trong DB. Hãy chạy migration items trước.");
             }
 
-            var ticketItem = UpsertItem(
-                "[GACHA] Lucky Ticket",
-                "Vé quay dùng cho banner gacha thử nghiệm.",
-                "Consumable",
-                "Rare",
-                "None",
-                1,
-                99);
-
-            var featuredItem = UpsertItem(
-                "[GACHA] Celestial Blade",
-                "Vật phẩm hiếm nhất trong banner, tỷ lệ xuất hiện cực thấp.",
-                "Weapon",
-                "Legendary",
-                "Weapon",
-                1000,
-                1);
-
-            var cloakItem = UpsertItem(
-                "[GACHA] Moonlit Cloak",
-                "Áo choàng ánh trăng cho người may mắn.",
-                "Armor",
-                "Epic",
-                "Armor",
-                700,
-                1);
-
-            var runeItem = UpsertItem(
-                "[GACHA] Forest Rune",
-                "Ngọc rune từ khu rừng cổ.",
-                "Material",
-                "Rare",
-                "None",
-                300,
-                99);
-
-            var shardItem = UpsertItem(
-                "[GACHA] Iron Shard",
-                "Mảnh sắt dùng cho crafting.",
-                "Material",
-                "Uncommon",
-                "None",
-                150,
-                99);
-
-            var potionItem = UpsertItem(
-                "[GACHA] Health Potion",
-                "Bình máu nhỏ dùng trong gacha.",
-                "Consumable",
-                "Common",
-                "None",
-                100,
-                99);
-
-            var goldItem = UpsertItem(
-                "Gold",
-                "Tiền tệ trong game, rơi từ banner gacha.",
-                "Currency",
-                "Common",
-                "None",
-                100,
-                int.MaxValue);
+            var ticketItem   = GetItem("Lucky Ticket");
+            var featuredItem = GetItem("Elven Blade");
+            var cloakItem    = GetItem("Phantom Cloak");
+            var runeItem     = GetItem("Skill Upgrade Stone");
+            var shardItem    = GetItem("Gem");
+            var potionItem   = GetItem("Small Health Potion");
+            var goldItem     = GetItem("Gold");
 
             await _ctx.SaveChangesAsync();
 
@@ -1660,13 +1488,10 @@ namespace Mystic_Journey_API.Controllers
                 _ctx.DailyLoginRewards.RemoveRange(existingRewards);
                 await _ctx.SaveChangesAsync();
 
-                // Tìm một số item mẫu để dùng làm phần thưởng ngày đặc biệt
-                var potion = await _ctx.Items.FirstOrDefaultAsync(i =>
-                    i.Name == "[SEED] Health Potion" || i.Name == "[ELF] Health Potion");
-                var sword = await _ctx.Items.FirstOrDefaultAsync(i =>
-                    i.Name == "[SEED] Sword of Dawn" || i.Name == "[ELF] Short Sword");
-                var helm = await _ctx.Items.FirstOrDefaultAsync(i =>
-                    i.Name == "[SEED] Iron Helm" || i.Name == "[ELF] Leather Armor");
+                // Dùng system items từ migration làm phần thưởng
+                var potion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var sword  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+                var helm   = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Helmet");
 
                 // Định nghĩa phần thưởng cho 30 ngày
                 // RewardType: Gold | Gems | Energy | Item
@@ -1874,9 +1699,9 @@ namespace Mystic_Journey_API.Controllers
                     await _ctx.SaveChangesAsync();
                 }
 
-                // Add some items to this chest (Upsert logic)
-                var healthPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "[SEED] Health Potion" || i.Name == "Health Potion");
-                var basicSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "[SEED] Sword of Dawn" || i.Name == "Basic Sword");
+                // Add some items to this chest – dùng system items từ migration
+                var healthPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var basicSword   = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
                 
                 if (healthPotion != null)
                 {

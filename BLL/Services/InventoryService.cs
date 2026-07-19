@@ -270,7 +270,7 @@ namespace BLL.Services
             };
         }
 
-        public async Task ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request)
+        public async Task<ConsumeItemResultDto> ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request)
         {
             var inv = await _inventoryRepository.GetById(request.InventoryItemId)
                 ?? throw new KeyNotFoundException("Inventory item not found.");
@@ -284,6 +284,14 @@ namespace BLL.Services
             if (request.Quantity <= 0)
                 throw new ArgumentException("Quantity must be at least 1.");
 
+            var result = new ConsumeItemResultDto
+            {
+                ItemName          = inv.Item.Name ?? string.Empty,
+                EffectType        = "None",
+                EffectValue       = 0,
+                RemainingQuantity = Math.Max(0, inv.Quantity - request.Quantity),
+            };
+
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 if (inv.Quantity < request.Quantity)
@@ -291,39 +299,95 @@ namespace BLL.Services
 
                 inv.Quantity -= request.Quantity;
                 if (inv.Quantity <= 0)
-                {
                     await _inventoryRepository.DeleteItem(inv.InventoryItemId);
-                }
                 else
-                {
                     await _inventoryRepository.UpdateItem(inv);
-                }
 
-                // Apply consumable effects (e.g., Health Potion)
-                if (inv.Item != null && inv.Item.Name != null && inv.Item.Name.Contains("Health Potion", StringComparison.OrdinalIgnoreCase))
+                // ── Apply item effects by name ────────────────────────────────────────
+                if (inv.Item?.Name != null)
                 {
-                    var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
-                    if (stat != null)
+                    var itemName = inv.Item.Name;
+
+                    // Small Health Potion: restores 80 HP
+                    if (itemName.Equals("Small Health Potion", StringComparison.OrdinalIgnoreCase))
                     {
-                        int healAmount = 150 * request.Quantity;
-                        stat.CurrentHp = Math.Min(stat.CurrentHp + healAmount, stat.MaxHp);
-                        stat.UpdatedAt = DateTime.UtcNow;
-                        await _statRepository.Update(stat);
+                        var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
+                        if (stat != null)
+                        {
+                            int heal = 80 * request.Quantity;
+                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, stat.MaxHp);
+                            stat.UpdatedAt = DateTime.UtcNow;
+                            await _statRepository.Update(stat);
+                            result.EffectType  = "Heal";
+                            result.EffectValue = heal;
+                            result.CurrentHp   = stat.CurrentHp;
+                            result.MaxHp       = stat.MaxHp;
+                        }
                     }
-                }
-
-                // Apply corruption reduction
-                if (inv.Item != null && inv.Item.CorruptionReduction > 0)
-                {
-                    var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
-                    if (profile != null && profile.CorruptionLevel > 0)
+                    // Large Health Potion: restores 200 HP
+                    else if (itemName.Equals("Large Health Potion", StringComparison.OrdinalIgnoreCase))
                     {
-                        profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - (inv.Item.CorruptionReduction * request.Quantity));
-                        await _playerProfileRepository.UpdatePlayerProfile(profile);
+                        var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
+                        if (stat != null)
+                        {
+                            int heal = 200 * request.Quantity;
+                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, stat.MaxHp);
+                            stat.UpdatedAt = DateTime.UtcNow;
+                            await _statRepository.Update(stat);
+                            result.EffectType  = "Heal";
+                            result.EffectValue = heal;
+                            result.CurrentHp   = stat.CurrentHp;
+                            result.MaxHp       = stat.MaxHp;
+                        }
+                    }
+                    // Fallback: any item whose name contains "Health Potion" (legacy compatibility)
+                    else if (itemName.Contains("Health Potion", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
+                        if (stat != null)
+                        {
+                            int heal = 100 * request.Quantity;
+                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, stat.MaxHp);
+                            stat.UpdatedAt = DateTime.UtcNow;
+                            await _statRepository.Update(stat);
+                            result.EffectType  = "Heal";
+                            result.EffectValue = heal;
+                            result.CurrentHp   = stat.CurrentHp;
+                            result.MaxHp       = stat.MaxHp;
+                        }
+                    }
+                    // Energy Elixir: restores 60 Energy
+                    else if (itemName.Equals("Energy Elixir", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
+                        if (profile != null)
+                        {
+                            int energyGain = 60 * request.Quantity;
+                            profile.CurrentEnergy = Math.Min(profile.CurrentEnergy + energyGain, profile.MaxEnergy);
+                            await _playerProfileRepository.UpdatePlayerProfile(profile);
+                            result.EffectType     = "Energy";
+                            result.EffectValue    = energyGain;
+                            result.CurrentEnergy  = profile.CurrentEnergy;
+                            result.MaxEnergy      = profile.MaxEnergy;
+                        }
+                    }
+
+                    // Corruption Reduction (applied when item has CorruptionReduction > 0)
+                    if (inv.Item.CorruptionReduction > 0)
+                    {
+                        var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
+                        if (profile != null && profile.CorruptionLevel > 0)
+                        {
+                            profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - (inv.Item.CorruptionReduction * request.Quantity));
+                            await _playerProfileRepository.UpdatePlayerProfile(profile);
+                        }
                     }
                 }
             });
+
+            return result;
         }
+
 
         public async Task<PlayerSkinResponseDto> EquipSkin(int actorPlayerProfileId, BLL.DTOs.EquipSkinRequestDto request)
         {
@@ -365,7 +429,7 @@ namespace BLL.Services
                 skin.IsEquipped = false;
                 await _inventoryRepository.UpdatePlayerSkin(skin);
 
-                // Tự động mặc lại skin Default nếu có
+                // Auto re-equip the Default skin if available
                 var defaultSkin = playerSkins.FirstOrDefault(ps => ps.Skin != null && ps.Skin.Name.Contains("Default"));
 
                 if (defaultSkin != null && defaultSkin.PlayerSkinId != request.PlayerSkinId)

@@ -3,38 +3,39 @@ using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
-    // Quản lý inventory (hành trang) của người chơi.
-    // Cho phép xem, trang bị, gỡ trang bị, và sử dụng item.
+    // Manages the player's inventory.
+    // Supports viewing, equipping, unequipping, and consuming items.
     public interface IInventoryService
     {
         // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
+        // GAME APIs (Player)
         // ═══════════════════════════════════════════════════════════════════════
 
-        // Lấy tóm tắt inventory của player (số lượng items, skins, dung lượng túi).
+        // Returns a summary of the player's inventory (item counts, skins, bag capacity).
         Task<InventorySummaryDto> GetInventory(int playerProfileId);
 
-        // Lấy inventory đầy đủ của player với chi tiết từng item.
+        // Returns the player's full inventory with detailed item information.
         Task<PlayerMeInventoryResponseDto> GetMeInventory(int playerProfileId);
 
-        // Trang bị item từ inventory vào slot tương ứng.
-        // Trả về item đã trang bị kèm stats hiện tại của player sau khi trang bị.
+        // Equips an item from the inventory into the corresponding slot.
+        // Returns the equipped item along with the player's current stats after equipping.
         Task<InventoryActionResultDto> EquipItem(int actorPlayerProfileId, EquipItemRequestDto request);
 
-        // Gỡ item đã trang bị và trả về inventory.
-        // Trả về item đã gỡ kèm stats hiện tại của player sau khi gỡ.
+        // Unequips a currently equipped item.
+        // Returns the unequipped item along with the player's current stats after unequipping.
         Task<InventoryActionResultDto> UnequipItem(int actorPlayerProfileId, UnequipItemRequestDto request);
 
-        // Sử dụng item có thể tiêu thụ (consumable). Giảm số lượng item trong inventory.
-        Task ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request);
+        // Consumes a consumable item, reducing its quantity in the inventory.
+        // Returns the applied effect (HP restored, Energy restored, etc.) so the client can update the UI.
+        Task<ConsumeItemResultDto> ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request);
 
-        // Thêm item vào inventory của player.
+        // Adds an item to the player's inventory.
         Task<InventoryItemResponseDto> AddItemToInventory(int playerProfileId, int itemId, int quantity);
 
-        // Trang bị skin cho nhân vật.
+        // Equips a skin for the player's character.
         Task<PlayerSkinResponseDto> EquipSkin(int actorPlayerProfileId, BLL.DTOs.EquipSkinRequestDto request);
 
-        // Gỡ skin đang trang bị.
+        // Unequips the currently equipped skin.
         Task UnequipSkin(int actorPlayerProfileId, BLL.DTOs.UnequipSkinRequestDto request);
     }
 }
