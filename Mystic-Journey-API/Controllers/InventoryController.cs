@@ -72,9 +72,15 @@ namespace Mystic_Journey_API.Controllers
         public async Task<IActionResult> ConsumeItem([FromBody] ConsumeItemRequestDto request)
         {
             var profileId = GetPlayerProfileId();
-            await _inventoryService.ConsumeItem(profileId, request);
-            return Ok(new ApiResponse<object> { Success = true, Message = "Item consumed successfully." });
+            var result = await _inventoryService.ConsumeItem(profileId, request);
+            return Ok(new ApiResponse<ConsumeItemResultDto>
+            {
+                Success = true,
+                Message = $"Used {result.ItemName} successfully.",
+                Data    = result
+            });
         }
+
 
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs

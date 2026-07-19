@@ -86,6 +86,18 @@ namespace BLL.DTOs
         public int Quantity { get; set; } = 1;
     }
 
+    public class ConsumeItemResultDto
+    {
+        public string ItemName { get; set; } = string.Empty;
+        public string EffectType { get; set; } = string.Empty; // "Heal", "Energy", "None"
+        public int EffectValue { get; set; }       // amount of HP or Energy restored
+        public int? CurrentHp { get; set; }        // HP after consuming (if heal effect)
+        public int? MaxHp { get; set; }            // max HP (if heal effect)
+        public int? CurrentEnergy { get; set; }    // Energy after consuming (if energy effect)
+        public int? MaxEnergy { get; set; }        // max Energy (if energy effect)
+        public int RemainingQuantity { get; set; } // remaining stack count in bag
+    }
+
     public class InventoryActionResultDto
     {
         public InventoryItemResponseDto? Item { get; set; }
