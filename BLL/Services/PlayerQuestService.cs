@@ -288,7 +288,29 @@ namespace BLL.Services
                 .ToList();
 
             if (rewardSkillIds.Count == 0 && quest.RewardSkillId.HasValue)
-                rewardSkillIds.Add(quest.RewardSkillId.Value);
+            {
+                // Dynamic class skill reward for Q3: Deliver White Flowers
+                if (quest.Title != null && quest.Title.Contains("Deliver White Flowers"))
+                {
+                    string classSkillName = profile.Class switch
+                    {
+                        "Mage" => "AP_Skill",
+                        "Archer" => "Skill_Ad",
+                        "Knight" => "Skill_Knight Attack",
+                        _ => "Dark Poison Zone"
+                    };
+
+                    var classSkill = await _skillRepo.GetSkillByName(classSkillName);
+                    if (classSkill != null)
+                        rewardSkillIds.Add(classSkill.SkillId);
+                    else
+                        rewardSkillIds.Add(quest.RewardSkillId.Value);
+                }
+                else
+                {
+                    rewardSkillIds.Add(quest.RewardSkillId.Value);
+                }
+            }
 
             foreach (var rewardSkillId in rewardSkillIds)
             {
@@ -369,45 +391,89 @@ namespace BLL.Services
 
         private async Task ConsumeQuestTurnInItemsIfNeeded(int playerProfileId, Quest? quest)
         {
-            var requirement = ResolveQuestTurnInRequirement(quest);
-            if (requirement == null)
+            var requirements = ResolveQuestTurnInRequirement(quest);
+            if (requirements == null || requirements.Count == 0)
                 return;
 
-            var (itemName, quantity) = requirement.Value;
             var invItems = await _inventoryRepo.GetByPlayerId(playerProfileId);
-            var targetItem = invItems.FirstOrDefault(i =>
-                i.Item != null &&
-                string.Equals(i.Item.Type, "QuestItem", StringComparison.OrdinalIgnoreCase) &&
-                Contains(i.Item.Name, itemName));
 
-            var available = targetItem?.Quantity ?? 0;
-            var consumedQuantity = Math.Min(available, quantity);
-            if (targetItem == null || consumedQuantity <= 0)
-                return;
-
-            if (targetItem.Quantity <= consumedQuantity)
-                await _inventoryRepo.DeleteItem(targetItem.InventoryItemId);
-            else
+            foreach (var req in requirements)
             {
-                targetItem.Quantity -= consumedQuantity;
-                await _inventoryRepo.UpdateItem(targetItem);
+                var targetItem = invItems.FirstOrDefault(i =>
+                    i.Item != null &&
+                    string.Equals(i.Item.Type, "QuestItem", StringComparison.OrdinalIgnoreCase) &&
+                    Contains(i.Item.Name, req.itemName));
+
+                var available = targetItem?.Quantity ?? 0;
+                var consumedQuantity = Math.Min(available, req.quantity);
+                if (targetItem == null || consumedQuantity <= 0)
+                    continue;
+
+                if (targetItem.Quantity <= consumedQuantity)
+                    await _inventoryRepo.DeleteItem(targetItem.InventoryItemId);
+                else
+                {
+                    targetItem.Quantity -= consumedQuantity;
+                    await _inventoryRepo.UpdateItem(targetItem);
+                }
             }
         }
 
-        private static (string itemName, int quantity)? ResolveQuestTurnInRequirement(Quest? quest)
+        private static List<(string itemName, int quantity)> ResolveQuestTurnInRequirement(Quest? quest)
         {
-            var text = $"{quest?.Title} {quest?.Description} {quest?.ObjectiveTarget} {quest?.ObjectiveLocation}";
-            var isTurnInQuest = Contains(text, "Report") || Contains(text, "Return") || Contains(text, "Hand over") || Contains(text, "Handed over");
-            if (!isTurnInQuest)
-                return null;
+            var reqs = new List<(string, int)>();
+            if (quest == null) return reqs;
 
+            var text = $"{quest.Title} {quest.Description} {quest.ObjectiveTarget} {quest.ObjectiveLocation}";
+            
+            // For Q25: use the 4 Seal Books
+            if (Contains(text, "cleanse the tree") || Contains(text, "4 Seal Books"))
+            {
+                reqs.Add(("Swamp Seal Book", 1));
+                reqs.Add(("Dragon Seal Book", 1));
+                reqs.Add(("Golem Seal Book", 1));
+                reqs.Add(("UnderKing Seal Book", 1));
+            }
+
+            // For Q22: Deserted Island (Consumes Mystic Key)
+            if (Contains(text, "Deserted Island") || Contains(text, "Elf Guard"))
+            {
+                // Only deduct if this is the Deserted Island quest
+                if (Contains(text, "collect 5 Ancient Leaves"))
+                {
+                    reqs.Add(("Mystic Key", 1));
+                }
+            }
+
+            var isTurnInQuest = Contains(text, "Report") || Contains(text, "Return") || Contains(text, "Hand over") || Contains(text, "Handed over") || Contains(text, "Help") || Contains(text, "Deliver") || Contains(text, "Bury");
+            
+            if (!isTurnInQuest && reqs.Count == 0)
+                return reqs;
+            
             if (Contains(text, "White Flower") || Contains(text, "White Flowers"))
-                return ("White Flower", 3);
+                reqs.Add(("White Flower", 3));
 
             if (Contains(text, "Old Willow Branch") || Contains(text, "Willow Branch"))
-                return ("Old Willow Branch", Math.Max(1, quest?.TargetAmount ?? 1));
+                reqs.Add(("Old Willow Branch", Math.Max(1, quest.TargetAmount)));
 
-            return null;
+            if (Contains(text, "Pumpkin") || Contains(text, "Enchanted Pumpkin"))
+                reqs.Add(("Enchanted Pumpkin", Math.Max(1, quest.TargetAmount)));
+
+            if (Contains(text, "Flour") || Contains(text, "Magic Flour"))
+                reqs.Add(("Magic Flour", Math.Max(1, quest.TargetAmount)));
+
+            if (Contains(text, "Skull") || Contains(text, "Spirit Skull") || Contains(text, "remains") || Contains(text, "Natalie"))
+                reqs.Add(("Spirit Skull", 1));
+
+            if (Contains(text, "Leaves") || Contains(text, "Ancient Leaves"))
+            {
+                if (isTurnInQuest || Contains(text, "collect 5 Ancient Leaves"))
+                {
+                    reqs.Add(("Ancient Leaves", Math.Max(1, quest.TargetAmount)));
+                }
+            }
+            
+            return reqs;
         }
 
         private static bool Contains(string? source, string value)
