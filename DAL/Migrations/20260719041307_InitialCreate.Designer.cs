@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260718140924_InitialCreate")]
+    [Migration("20260719041307_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

@@ -2465,6 +2465,151 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             }
         }
 
+        // ─────────────────────────────────────────────────────────────────────────
+        // POST /api/seed/testcoopskill
+        // ─────────────────────────────────────────────────────────────────────────
+        [HttpPost("testcoopskill")]
+        public async Task<IActionResult> SeedTestCoopSkill()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var targetEmails = new[] { "elf3@mystic.test", "elf4@mystic.test" };
+                
+                // Cleanup existing
+                var existingAccounts = await _ctx.Accounts
+                    .Include(a => a.PlayerProfile)
+                    .Where(a => targetEmails.Contains(a.Email))
+                    .ToListAsync();
+                
+                foreach (var acc in existingAccounts)
+                {
+                    var pp = acc.PlayerProfile;
+                    if (pp != null)
+                    {
+                        _ctx.PlayerSkills.RemoveRange(_ctx.PlayerSkills.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
+                        _ctx.PlayerProfiles.Remove(pp);
+                    }
+                    _ctx.Accounts.Remove(acc);
+                }
+                await _ctx.SaveChangesAsync();
+
+                // Create Elf3 (Mage)
+                var elf3Account = new Account { UserName = "elf3", Email = "elf3@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Accounts.Add(elf3Account);
+                await _ctx.SaveChangesAsync();
+
+                var elf3Profile = new PlayerProfile { AccountId = elf3Account.AccountId, DisplayName = "Elf 3 Mage", Class = "Mage", Level = 10, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
+                _ctx.PlayerProfiles.Add(elf3Profile);
+                await _ctx.SaveChangesAsync();
+
+                _ctx.PlayerStats.Add(new PlayerStat
+                {
+                    PlayerProfileId = elf3Profile.PlayerProfileId,
+                    CurrentHp = 500, MaxHp = 500,
+                    Atk = 60, Def = 30,
+                    MoveSpeed = 50, AttackSpeed = 10,
+                    CritRate = 50, CritDamage = 150,
+                    DamageBonus = 0,
+                    SkillPoints = 10,
+                });
+                await _ctx.SaveChangesAsync();
+
+                // Create Elf4 (Archer)
+                var elf4Account = new Account { UserName = "elf4", Email = "elf4@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Accounts.Add(elf4Account);
+                await _ctx.SaveChangesAsync();
+
+                var elf4Profile = new PlayerProfile { AccountId = elf4Account.AccountId, DisplayName = "Elf 4 Knight", Class = "Knight", Level = 10, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
+                _ctx.PlayerProfiles.Add(elf4Profile);
+                await _ctx.SaveChangesAsync();
+
+                _ctx.PlayerStats.Add(new PlayerStat
+                {
+                    PlayerProfileId = elf4Profile.PlayerProfileId,
+                    CurrentHp = 500, MaxHp = 500,
+                    Atk = 60, Def = 30,
+                    MoveSpeed = 50, AttackSpeed = 10,
+                    CritRate = 50, CritDamage = 150,
+                    DamageBonus = 0,
+                    SkillPoints = 10,
+                });
+                await _ctx.SaveChangesAsync();
+
+                // Add skills for Mage (Elf 3)
+                var mageSkills = await _ctx.Skills.Where(s => s.ClassRequirement == "Mage" || s.ClassRequirement == "All").ToListAsync();
+                int slot = 0;
+                foreach (var skill in mageSkills)
+                {
+                    _ctx.PlayerSkills.Add(new PlayerSkill
+                    {
+                        PlayerProfileId = elf3Profile.PlayerProfileId,
+                        SkillId = skill.SkillId,
+                        Level = 1,
+                        EquippedSlot = slot < 3 ? slot : (int?)null
+                    });
+                    slot++;
+                }
+
+                // Add skins for Knight (Elf 4)
+                var knightSkills = await _ctx.Skills.Where(s => s.ClassRequirement == "Knight" || s.ClassRequirement == "All").ToListAsync();
+                slot = 0;
+                foreach (var skill in knightSkills)
+                {
+                    _ctx.PlayerSkills.Add(new PlayerSkill
+                    {
+                        PlayerProfileId = elf4Profile.PlayerProfileId,
+                        SkillId = skill.SkillId,
+                        Level = 1,
+                        EquippedSlot = slot < 3 ? slot : (int?)null
+                    });
+                    slot++;
+                }
+
+                // Equip skin for Mage
+                var mageSkin = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name.Contains("Mage") || s.Name.Contains("Elven Blade"));
+                if (mageSkin != null)
+                {
+                    _ctx.PlayerSkins.Add(new PlayerSkin
+                    {
+                        PlayerProfileId = elf3Profile.PlayerProfileId,
+                        SkinId = mageSkin.SkinId,
+                        IsEquipped = true,
+                        UnlockedAt = DateTime.UtcNow
+                    });
+                }
+
+                // Equip skin for Knight
+                var knightSkin = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name.Contains("Knight") || s.Name.Contains("ElfForest Default"));
+                if (knightSkin != null)
+                {
+                    _ctx.PlayerSkins.Add(new PlayerSkin
+                    {
+                        PlayerProfileId = elf4Profile.PlayerProfileId,
+                        SkinId = knightSkin.SkinId,
+                        IsEquipped = true,
+                        UnlockedAt = DateTime.UtcNow
+                    });
+                }
+
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Seeded elf3 (Mage) and elf4 (Knight) successfully with full skills!"
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
         private static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
