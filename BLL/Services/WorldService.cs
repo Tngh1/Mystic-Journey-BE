@@ -667,6 +667,18 @@ namespace BLL.Services
             if (Contains(searchText, "Old Willow Branch") || Contains(searchText, "OldWillowBranch") || Contains(searchText, "Branch") || Contains(searchText, "Willow"))
                 return await FindQuestItemByNames("[ELF] Old Willow Branch", "Old Willow Branch");
 
+            if (Contains(searchText, "Pumpkin") || Contains(searchText, "Enchanted Pumpkin"))
+                return await FindQuestItemByNames("Enchanted Pumpkin");
+
+            if (Contains(searchText, "Flour") || Contains(searchText, "Magic Flour"))
+                return await FindQuestItemByNames("Magic Flour");
+
+            if (Contains(searchText, "Spirit Skull") || Contains(searchText, "Strange Object") || Contains(searchText, "cục kì lạ"))
+                return await FindQuestItemByNames("Spirit Skull");
+
+            if (Contains(searchText, "Leaves") || Contains(searchText, "Ancient Leaves"))
+                return await FindQuestItemByNames("Ancient Leaves");
+
             var normalizedSearch = NormalizeToken(searchText);
             var questItems = await _itemRepository.GetQuestItems();
 
@@ -684,7 +696,13 @@ namespace BLL.Services
                    IsCollectQuest(quest) ||
                    Contains(request.ObjectKey, "Flower") ||
                    Contains(request.ObjectKey, "Branch") ||
-                   Contains(request.ObjectKey, "Willow");
+                   Contains(request.ObjectKey, "Willow") ||
+                   Contains(request.ObjectKey, "Spirit Skull") ||
+                   Contains(request.ObjectKey, "Strange Object") ||
+                   Contains(request.ObjectKey, "cục kì lạ") ||
+                   Contains(request.ObjectKey, "Pumpkin") ||
+                   Contains(request.ObjectKey, "Flour") ||
+                   Contains(request.ObjectKey, "Leaves");
         }
 
         private static bool IsCollectQuest(Quest? quest)
