@@ -1618,8 +1618,19 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     new Dungeon { DungeonId = 3, Name = "Sào huyệt Ogre (Khó)", Description = "Thử thách cực đại", IsRepeatable = true }
                 };
                 
-                // Set identity insert if needed, but in PG/EF Core usually works directly
                 _ctx.Dungeons.AddRange(dungeons);
+
+                var existingConfigs = await _ctx.DungeonConfigs.ToListAsync();
+                _ctx.DungeonConfigs.RemoveRange(existingConfigs);
+
+                var dungeonConfigs = new List<DungeonConfig>
+                {
+                    new DungeonConfig { DungeonConfigId = 1, Name = "Hầm ngục Slime (Dễ)", Description = "Nơi đầy rẫy Slime", Type = "Normal", LevelRequirement = 1, MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100, IsActive = true },
+                    new DungeonConfig { DungeonConfigId = 2, Name = "Nghĩa địa Xương (Vừa)", Description = "Bộ xương khô khắp nơi", Type = "Normal", LevelRequirement = 5, MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 200, IsActive = true },
+                    new DungeonConfig { DungeonConfigId = 3, Name = "Sào huyệt Ogre (Khó)", Description = "Thử thách cực đại", Type = "Boss", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 500, IsActive = true }
+                };
+
+                _ctx.DungeonConfigs.AddRange(dungeonConfigs);
                 await _ctx.SaveChangesAsync();
 
                 // 4. Tạo Spawns cho từng Dungeon (MapName là "HollowCryptDungeon" như Unity đã fix cứng)
