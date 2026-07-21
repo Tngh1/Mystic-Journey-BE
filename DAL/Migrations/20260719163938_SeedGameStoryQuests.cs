@@ -77,7 +77,7 @@ BEGIN
 
     -- Q2
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""IsActive"")
-    VALUES ('[Chapter 1] Gather White Flowers', 'Collect 3 White Flowers from the forest.', 'Main', 'NotStarted', 'ElfForest', 1, 3, 120, 80, 0, 'Collect', 'White Flower', 'Elf Forest', true) RETURNING ""QuestId"" INTO q_id;
+    VALUES ('[Chapter 1] Gather White Flowers', 'Collect 3 White Flowers from the forest.', 'Main', 'NotStarted', 'ElfForest', 1, 3, 100, 80, 0, 'Collect', 'White Flower', 'Elf Forest', true) RETURNING ""QuestId"" INTO q_id;
     INSERT INTO ""NPCDialogues"" (""NPCId"", ""LinkedQuestId"", ""ResponseType"", ""Content"", ""DisplayOrder"", ""IsActive"")
     VALUES 
     (npc_rowan1, q_id, 'None', 'Before we can confront the darkness, we need to prepare some basic remedies.', 1, true),
@@ -113,7 +113,7 @@ BEGIN
 
     -- Q6
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""BossMonsterId"", ""IsActive"")
-    VALUES ('[Chapter 1] The Swamp Demon', 'Slay the Swamp Demon and obtain its Seal Book.', 'Main', 'NotStarted', 'ElfForest', 2, 1, 300, 500, 0, 'Defeat', 'SwampDemon', 'Deep Woods', 2, true) RETURNING ""QuestId"" INTO q_id;
+    VALUES ('[Chapter 1] The Swamp Demon', 'Slay the Swamp Demon and obtain its Seal Book.', 'Main', 'NotStarted', 'ElfForest', 2, 1, 250, 500, 0, 'Defeat', 'SwampDemon', 'Deep Woods', 2, true) RETURNING ""QuestId"" INTO q_id;
     INSERT INTO ""NPCDialogues"" (""NPCId"", ""LinkedQuestId"", ""ResponseType"", ""Content"", ""DisplayOrder"", ""IsActive"")
     VALUES 
     (npc_rowan1, q_id, 'None', 'You handled those slimes well. But a much greater threat lurks in the deep woods.', 1, true),
@@ -141,12 +141,12 @@ BEGIN
     -- MAP 2
     -- Q9
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""IsActive"")
-    VALUES ('[Chapter 2] Where Are We?', 'Teleported onto the beach, proceed to the castle and ask Elder Rowan where this is. After introductions, realize you have no money and ask for work to buy food. Collect 15 Enchanted Pumpkins and hand them to farmer Fa, who will ask you to deliver them to the ruined city.', 'Main', 'NotStarted', 'AutumnPumpkin', 3, 15, 200, 200, 0, 'Collect', 'Enchanted Pumpkin', 'Pumpkin Town', true) RETURNING ""QuestId"" INTO q_id;
+    VALUES ('[Chapter 2] Where Are We?', 'Teleported onto the beach, proceed to the castle and ask Elder Rowan where this is. After introductions, realize you have no money and ask for work to buy food. Collect 8 Enchanted Pumpkins and hand them to farmer Fa, who will ask you to deliver them to the ruined city.', 'Main', 'NotStarted', 'AutumnPumpkin', 3, 8, 150, 200, 0, 'Collect', 'Enchanted Pumpkin', 'Pumpkin Town', true) RETURNING ""QuestId"" INTO q_id;
     INSERT INTO ""NPCDialogues"" (""NPCId"", ""LinkedQuestId"", ""ResponseType"", ""Content"", ""DisplayOrder"", ""IsActive"")
     VALUES 
     (npc_rowan2, q_id, 'None', 'Welcome to the beach. We were teleported here by the portal.', 1, true),
     (npc_rowan2, q_id, 'None', 'You seem to have no money for food. Why don''t you look for some work?', 2, true),
-    (npc_rowan2, q_id, 'Quest', 'Go talk to Fa, he needs help collecting 15 Enchanted Pumpkins.', 3, true);
+    (npc_rowan2, q_id, 'Quest', 'Go talk to Fa, he needs help collecting 8 Enchanted Pumpkins.', 3, true);
 
     -- Q10
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""IsActive"")
@@ -159,7 +159,7 @@ BEGIN
 
     -- Q11
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""RewardSkillId"", ""RewardItemId"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""IsActive"")
-    VALUES ('[Chapter 2] The Silver Knight''s Training', 'Follow the guard''s words and find the silver paladin Arthur. Learn about his sealed power and train under him. Enter dungeons to level up. Receive DarkExplosion and Silver Necklace, then defeat 20 evil monsters.', 'Main', 'NotStarted', 'AutumnPumpkin', 4, 20, 300, 300, 0, (SELECT ""SkillId"" FROM ""Skills"" WHERE ""Name"" = 'DarkExplosion' LIMIT 1), (SELECT ""ItemId"" FROM ""Items"" WHERE ""Name"" = 'Silver Necklace' LIMIT 1), 'Defeat', 'Ghost/RobberAssassin/RedGuard/GoblinSpear/GoblinWarrior/RobberArcher/NecromancerCast', 'Ruined City', true) RETURNING ""QuestId"" INTO q_id;
+    VALUES ('[Chapter 2] The Silver Knight''s Training', 'Follow the guard''s words and find the silver paladin Arthur. Learn about his sealed power and train under him. Enter dungeons to level up. Receive DarkExplosion and Silver Necklace, then defeat 20 evil monsters.', 'Main', 'NotStarted', 'AutumnPumpkin', 12, 20, 300, 300, 0, (SELECT ""SkillId"" FROM ""Skills"" WHERE ""Name"" = 'DarkExplosion' LIMIT 1), (SELECT ""ItemId"" FROM ""Items"" WHERE ""Name"" = 'Silver Necklace' LIMIT 1), 'Defeat', 'Ghost/RobberAssassin/RedGuard/GoblinSpear/GoblinWarrior/RobberArcher/NecromancerCast', 'Ruined City', true) RETURNING ""QuestId"" INTO q_id;
     INSERT INTO ""NPCDialogues"" (""NPCId"", ""LinkedQuestId"", ""ResponseType"", ""Content"", ""DisplayOrder"", ""IsActive"")
     VALUES 
     (npc_arthur, q_id, 'None', 'Greetings, warrior. I am Arthur, the silver knight.', 1, true),
