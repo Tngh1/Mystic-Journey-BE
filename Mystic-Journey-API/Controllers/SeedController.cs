@@ -1677,15 +1677,57 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 };
                 _ctx.Dungeons.AddRange(dungeons);
 
-                // ─── 4. Tạo DungeonConfig khớp với Unity ─────────────────────────────
+                // ─── 4. Tạo Chest và DungeonConfig khớp với Unity ─────────────────────────────
+                
+                // Clear old chests associated with old dungeon configs
+                var chestIdsToRemove = existingConfigs.Where(c => c.ChestId.HasValue).Select(c => c.ChestId.Value).ToList();
+                if (chestIdsToRemove.Any())
+                {
+                    var chestsToRemove = await _ctx.Chests.Where(c => chestIdsToRemove.Contains(c.ChestId)).ToListAsync();
+                    _ctx.Chests.RemoveRange(chestsToRemove);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // Create chests for each dungeon
+                var chest1 = new Chest { Name = "Rương Đầm lầy Slime", Description = "Phần thưởng Đầm lầy Slime", Type = "Normal", GoldMinReward = 50, GoldMaxReward = 100, ExperienceReward = 50, IsActive = true };
+                var chest2 = new Chest { Name = "Rương Sào huyệt Rồng", Description = "Phần thưởng Sào huyệt Rồng", Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200, ExperienceReward = 150, IsActive = true };
+                var chest3 = new Chest { Name = "Rương Cung điện Băng giá", Description = "Phần thưởng Cung điện Băng", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 300, IsActive = true };
+                var chest4 = new Chest { Name = "Rương Nghĩa địa Bóng tối", Description = "Phần thưởng Nghĩa địa", Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400, ExperienceReward = 450, IsActive = true };
+                var chest5 = new Chest { Name = "Rương Doanh trại Goblin", Description = "Phần thưởng Doanh trại", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 350, IsActive = true };
+                var chest6 = new Chest { Name = "Rương Cổng địa ngục", Description = "Phần thưởng Cổng địa ngục", Type = "Epic", GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true };
+                
+                _ctx.Chests.AddRange(chest1, chest2, chest3, chest4, chest5, chest6);
+                await _ctx.SaveChangesAsync();
+
+                // Add item drops to these chests
+                var hpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var mpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Mana Potion");
+                var ironSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+
+                var chestItems = new List<ChestItem>();
+                foreach (var chest in new[] { chest1, chest2, chest3, chest4, chest5, chest6 })
+                {
+                    if (hpPotion != null)
+                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = hpPotion.ItemId, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 });
+                    if (mpPotion != null)
+                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = mpPotion.ItemId, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 });
+                    if (ironSword != null && chest.Type == "Epic") // Cổng địa ngục is Epic
+                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = ironSword.ItemId, DropRate = 30.0m, QuantityMin = 1, QuantityMax = 1 });
+                }
+                if (chestItems.Any())
+                {
+                    _ctx.ChestItems.AddRange(chestItems);
+                    await _ctx.SaveChangesAsync();
+                }
+
                 var dungeonConfigs = new List<DungeonConfig>
                 {
-                    new DungeonConfig { DungeonConfigId = 1, Name = "Đầm lầy Slime",      Description = "Vương quốc của những con Slime nguy hiểm",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true },
-                    new DungeonConfig { DungeonConfigId = 2, Name = "Sào huyệt Rồng",      Description = "Hang ổ của những con rồng hung tàn",                  Type = "Normal", LevelRequirement = 5,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true },
-                    new DungeonConfig { DungeonConfigId = 3, Name = "Cung điện Băng giá",  Description = "Pháo đài băng của Golem khổng lồ",                    Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true },
-                    new DungeonConfig { DungeonConfigId = 4, Name = "Nghĩa địa Bóng tối", Description = "Vương quốc ngầm của Vua Xương",                       Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true },
-                    new DungeonConfig { DungeonConfigId = 5, Name = "Doanh trại Goblin",   Description = "Pháo đài kiên cố của bầy Goblin và Ogre",             Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true },
-                    new DungeonConfig { DungeonConfigId = 6, Name = "Cổng địa ngục",       Description = "Cánh cổng dẫn đến thế giới của Quỷ và Chiến binh Orc", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true },
+                    new DungeonConfig { DungeonConfigId = 1, Name = "Đầm lầy Slime",      Description = "Vương quốc của những con Slime nguy hiểm",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true, ChestId = chest1.ChestId },
+                    new DungeonConfig { DungeonConfigId = 2, Name = "Sào huyệt Rồng",      Description = "Hang ổ của những con rồng hung tàn",                  Type = "Normal", LevelRequirement = 5,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true, ChestId = chest2.ChestId },
+                    new DungeonConfig { DungeonConfigId = 3, Name = "Cung điện Băng giá",  Description = "Pháo đài băng của Golem khổng lồ",                    Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true, ChestId = chest3.ChestId },
+                    new DungeonConfig { DungeonConfigId = 4, Name = "Nghĩa địa Bóng tối", Description = "Vương quốc ngầm của Vua Xương",                       Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true, ChestId = chest4.ChestId },
+                    new DungeonConfig { DungeonConfigId = 5, Name = "Doanh trại Goblin",   Description = "Pháo đài kiên cố của bầy Goblin và Ogre",             Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true, ChestId = chest5.ChestId },
+                    new DungeonConfig { DungeonConfigId = 6, Name = "Cổng địa ngục",       Description = "Cánh cổng dẫn đến thế giới của Quỷ và Chiến binh Orc", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true, ChestId = chest6.ChestId },
                 };
                 _ctx.DungeonConfigs.AddRange(dungeonConfigs);
                 await _ctx.SaveChangesAsync();
