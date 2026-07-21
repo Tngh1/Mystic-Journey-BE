@@ -28,7 +28,7 @@ namespace BLL.Services
             if (!lastSeen.HasValue)
                 return false;
 
-            return lastSeen.Value >= DateTime.UtcNow.AddMinutes(-1);
+            return lastSeen.Value >= DateTime.UtcNow.AddMinutes(-5);
         }
     }
 }

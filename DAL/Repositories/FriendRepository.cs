@@ -43,7 +43,9 @@ namespace DAL.Repositories
         {
             return await _context.Friends
                 .Include(f => f.Requester)
+                    .ThenInclude(p => p!.Account)
                 .Include(f => f.Addressee)
+                    .ThenInclude(p => p!.Account)
                 .Where(f => (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) && f.Status == "Accepted")
                 .ToListAsync();
         }
@@ -52,7 +54,9 @@ namespace DAL.Repositories
         {
             return await _context.Friends
                 .Include(f => f.Requester)
+                    .ThenInclude(p => p!.Account)
                 .Include(f => f.Addressee)
+                    .ThenInclude(p => p!.Account)
                 .Where(f => f.AddresseeId == playerProfileId && f.Status == "Pending")
                 .ToListAsync();
         }
