@@ -168,12 +168,21 @@ BEGIN
 
     -- Q12
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""QuestGiverName"", ""IsActive"")
-    VALUES ('[Chapter 2] The Ruined City', 'Discover that the people in the castle have all been killed. Report back to guard Tristan and go find the silver knight Arthur.', 'Main', 'NotStarted', 'AutumnPumpkin', 3, 1, 50, 50, 0, 'Talk', 'Arthur', 'Ruined City', 'Tristan', true) RETURNING ""QuestId"" INTO q_id;
+    VALUES ('[Chapter 2] The Ruined City', 'Enter the city and investigate the dead bodies, then report back to guard Tristan.', 'Main', 'NotStarted', 'AutumnPumpkin', 3, 5, 50, 50, 0, 'Interact', 'Corpse', 'Ruined City', 'Tristan', true) RETURNING ""QuestId"" INTO q_id;
     INSERT INTO ""NPCDialogues"" (""NPCId"", ""LinkedQuestId"", ""ResponseType"", ""Content"", ""DisplayOrder"", ""IsActive"")
     VALUES 
     (npc_tristan, q_id, 'None', 'Halt! Who goes there? Ah, you brought pumpkins from Fa?', 1, true),
-    (npc_tristan, q_id, 'None', 'I have terrible news. The people in the castle... they have all been massacred.', 2, true),
-    (npc_tristan, q_id, 'Quest', 'This is a disaster. Please, go find the silver knight Arthur and report this!', 3, true);
+    (npc_tristan, q_id, 'None', 'Something is wrong in the city... It is too quiet.', 2, true),
+    (npc_tristan, q_id, 'Quest', 'Please go inside and investigate. Let me know if you find anything suspicious.', 3, true);
+
+    -- Q12_B
+    INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""QuestGiverName"", ""IsActive"")
+    VALUES ('[Chapter 2] Seek the Silver Knight', 'Report the massacre to Tristan. He asks you to find the silver knight Arthur for help.', 'Main', 'NotStarted', 'AutumnPumpkin', 3, 1, 50, 50, 0, 'Talk', 'Arthur', 'Ruined City', 'Tristan', true) RETURNING ""QuestId"" INTO q_id;
+    INSERT INTO ""NPCDialogues"" (""NPCId"", ""LinkedQuestId"", ""ResponseType"", ""Content"", ""DisplayOrder"", ""IsActive"")
+    VALUES 
+    (npc_tristan, q_id, 'None', 'What?! The people inside have all been massacred? Corpses everywhere?', 1, true),
+    (npc_tristan, q_id, 'None', 'This is a disaster. We need someone strong to handle this.', 2, true),
+    (npc_tristan, q_id, 'Quest', 'Please, go find the silver knight Arthur and report this!', 3, true);
 
     -- Q13
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""RewardSkillId"", ""RewardItemId"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""QuestGiverName"", ""IsActive"")

@@ -2176,8 +2176,35 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 _ctx.Accounts.Add(elf3Account);
                 await _ctx.SaveChangesAsync();
 
-                var elf3Profile = new PlayerProfile { AccountId = elf3Account.AccountId, DisplayName = "Elf 3 Mage", Class = "Mage", Level = 10, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
+                var elf3Profile = new PlayerProfile { AccountId = elf3Account.AccountId, DisplayName = "Elf 3 Mage", Class = "Mage", Level = 12, ExperiencePoints = 1100, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "AutumnPumpkin", PositionX = 0, PositionY = 0, AvatarUrl = "" };
                 _ctx.PlayerProfiles.Add(elf3Profile);
+                await _ctx.SaveChangesAsync();
+
+                // Seed completed Quests Q1..Q15 for elf3; Q15 is Slay the Dragon, and Q16 is Claimed
+                for (int qId = 1; qId <= 15; qId++)
+                {
+                    _ctx.PlayerQuests.Add(new PlayerQuest
+                    {
+                        PlayerProfileId = elf3Profile.PlayerProfileId,
+                        QuestId = qId,
+                        Status = "Claimed",
+                        Progress = qId == 15 ? 10 : 1,
+                        AcceptedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow,
+                        ClaimedAt = DateTime.UtcNow
+                    });
+                }
+                _ctx.PlayerQuests.Add(new PlayerQuest
+                {
+                    PlayerProfileId = elf3Profile.PlayerProfileId,
+                    QuestId = 16,
+                    Status = "Claimed",
+                    Progress = 1,
+                    TargetValue = 1,
+                    AcceptedAt = DateTime.UtcNow,
+                    CompletedAt = DateTime.UtcNow,
+                    ClaimedAt = DateTime.UtcNow
+                });
                 await _ctx.SaveChangesAsync();
 
                 _ctx.PlayerStats.Add(new PlayerStat
