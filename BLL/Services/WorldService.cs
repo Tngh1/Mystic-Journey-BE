@@ -113,7 +113,7 @@ namespace BLL.Services
             var playerQuests = await _playerQuestService.GetMyQuests(playerProfileId);
             var linkedQuests = playerQuests
                 .Where(q => linkedQuestIds.Contains(q.QuestId)
-                    || (string.Equals(q.QuestGiverName, npc.Name, StringComparison.OrdinalIgnoreCase)
+                    || ((string.Equals(q.QuestGiverName, npc.Name, StringComparison.OrdinalIgnoreCase) || string.Equals(q.ObjectiveTarget, npc.Name, StringComparison.OrdinalIgnoreCase))
                         && string.Equals(NormalizeMapName(q.MapName), npcMapName, StringComparison.OrdinalIgnoreCase)))
                 .GroupBy(q => q.QuestId)
                 .Select(g => g.First())
