@@ -58,6 +58,7 @@ namespace BLL.Services
             var stat = new PlayerStat
             {
                 PlayerProfileId = playerProfileId,
+                MaxHp         = template.MaxHp, // Initialize MaxHp
                 CurrentHp     = template.MaxHp, // Start with full HP
                 Atk           = template.Atk,
                 Def           = template.Def,
