@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace DAL.Repositories
 
         public async Task<List<Quest>> GetActiveQuests()
         {
-            return await _context.Quests
+            var quests = await _context.Quests
                 .Include(q => q.RewardItem)
                 .Include(q => q.RewardItems)
                     .ThenInclude(r => r.Item)
@@ -46,6 +47,47 @@ namespace DAL.Repositories
                 .Include(q => q.RewardSkill)
                 .Where(q => q.IsActive)
                 .ToListAsync();
+
+            bool modified = false;
+            foreach (var q in quests)
+            {
+                if (q.Title != null && q.Title.Contains("Where Are We", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (q.ObjectiveTarget != "Elder Rowan" || q.QuestGiverName != "Elder Rowan")
+                    {
+                        q.ObjectiveTarget = "Elder Rowan";
+                        q.QuestGiverName = "Elder Rowan";
+                        modified = true;
+                    }
+                }
+                else if (q.Title != null && q.Title.Contains("Work for Food", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (q.QuestGiverName != "Fa") { q.QuestGiverName = "Fa"; modified = true; }
+                }
+                else if (q.Title != null && q.Title.Contains("Delivery to the City", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (q.QuestGiverName != "Fa") { q.QuestGiverName = "Fa"; modified = true; }
+                }
+                else if (q.Title != null && q.Title.Contains("The Ruined City", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (q.QuestGiverName != "Tristan") { q.QuestGiverName = "Tristan"; modified = true; }
+                }
+                else if (q.Title != null && q.Title.Contains("Silver Knight", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (q.QuestGiverName != "Arthur") { q.QuestGiverName = "Arthur"; modified = true; }
+                }
+                else if (q.Title != null && q.Title.Contains("Defeat the Evil Monsters", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (q.QuestGiverName != "Arthur") { q.QuestGiverName = "Arthur"; modified = true; }
+                }
+            }
+
+            if (modified)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return quests;
         }
 
         public async Task<Quest> AddQuest(Quest quest)
@@ -54,6 +96,7 @@ namespace DAL.Repositories
             await _context.SaveChangesAsync();
             return quest;
         }
+
         public async Task<Quest> UpdateQuest(Quest quest)
         {
             _context.Quests.Update(quest);
@@ -80,7 +123,7 @@ namespace DAL.Repositories
 
             var normalizedName = npcName.Trim();
             return await _context.NPCs
-                .Where(n => n.Name == normalizedName && n.MapName == mapName)
+                .Where(n => n.Name == normalizedName && (n.MapName == mapName || (mapName.StartsWith("Autumn") && n.MapName.StartsWith("Autumn"))))
                 .OrderByDescending(n => n.IsActive)
                 .FirstOrDefaultAsync()
                 ?? await _context.NPCs
@@ -98,7 +141,15 @@ namespace DAL.Repositories
             if (!string.IsNullOrWhiteSpace(mapName))
             {
                 var normalizedMapName = mapName.Trim();
-                query = query.Where(n => n.MapName == normalizedMapName);
+                if (normalizedMapName.Equals("AutumnTown", StringComparison.OrdinalIgnoreCase) ||
+                    normalizedMapName.Equals("AutumnPumpkin", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(n => n.MapName == "AutumnTown" || n.MapName == "AutumnPumpkin");
+                }
+                else
+                {
+                    query = query.Where(n => n.MapName == normalizedMapName);
+                }
             }
 
             return await query
@@ -108,6 +159,7 @@ namespace DAL.Repositories
                 .Take(200)
                 .ToListAsync();
         }
+
         public void AddQuestDialogue(NPCDialogue dialogue)
         {
             _context.NPCDialogues.Add(dialogue);
@@ -138,7 +190,15 @@ namespace DAL.Repositories
             }
             if (!string.IsNullOrEmpty(mapName))
             {
-                query = query.Where(x => x.MapName == mapName);
+                if (mapName.Equals("AutumnTown", StringComparison.OrdinalIgnoreCase) ||
+                    mapName.Equals("AutumnPumpkin", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => x.MapName == "AutumnTown" || x.MapName == "AutumnPumpkin");
+                }
+                else
+                {
+                    query = query.Where(x => x.MapName == mapName);
+                }
             }
 
             bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);

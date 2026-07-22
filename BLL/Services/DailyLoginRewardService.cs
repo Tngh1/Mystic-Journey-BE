@@ -53,13 +53,12 @@ namespace BLL.Services
             int targetYear  = year  ?? now.Year;
             int daysInMonth = DateTime.DaysInMonth(targetYear, targetMonth);
 
-            // Tải song song override và default
-            var overridesTask = _repository.GetOverridesByMonth(targetMonth, targetYear);
-            var defaultsTask  = _repository.GetAllDefaults();
-            await Task.WhenAll(overridesTask, defaultsTask);
+            // Tải override và default (chạy tuần tự để tránh lỗi EF Core DbContext concurrent operation)
+            var overrides = await _repository.GetOverridesByMonth(targetMonth, targetYear);
+            var defaults  = await _repository.GetAllDefaults();
 
-            var overrideByDay = (await overridesTask).ToDictionary(r => r.DayNumber);
-            var defaultByDay  = (await defaultsTask).ToDictionary(r => r.DayNumber);
+            var overrideByDay = overrides.ToDictionary(r => r.DayNumber);
+            var defaultByDay  = defaults.ToDictionary(r => r.DayNumber);
 
             var result = new List<DailyLoginRewardResponseDto>(daysInMonth);
 
