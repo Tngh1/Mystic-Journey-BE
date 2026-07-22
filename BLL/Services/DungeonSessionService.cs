@@ -213,13 +213,29 @@ namespace BLL.Services
             var session = await _sessionRepository.GetById(sessionId)
                 ?? throw new KeyNotFoundException($"Dungeon session {sessionId} not found.");
 
-            // Ownership check
-            if (session.PlayerProfileId != playerProfileId)
-                throw new UnauthorizedAccessException("You do not own this dungeon session.");
+            // Ownership and party member check
+            bool isOwner = session.PlayerProfileId == playerProfileId;
+            bool isPartyMember = false;
+            
+            if (!string.IsNullOrEmpty(session.PartyMembers))
+            {
+                var partyIds = session.PartyMembers.Split(',');
+                isPartyMember = partyIds.Contains(playerProfileId.ToString());
+            }
+
+            if (!isOwner && !isPartyMember)
+                throw new UnauthorizedAccessException("You do not own this dungeon session and you are not a party member.");
 
             // Guard against duplicate claims
-            if (session.IsRewardClaimed)
-                throw new InvalidOperationException("CONFLICT: Rewards have already been claimed for this session.");
+            bool hasClaimed = false;
+            if (!string.IsNullOrEmpty(session.ClaimedByMembers))
+            {
+                var claimedIds = session.ClaimedByMembers.Split(',');
+                hasClaimed = claimedIds.Contains(playerProfileId.ToString());
+            }
+
+            if (hasClaimed)
+                throw new InvalidOperationException("CONFLICT: Rewards have already been claimed by this player for this session.");
 
             // BR-08: Session must be Completed
             if (session.Status != "Completed")
@@ -310,9 +326,19 @@ namespace BLL.Services
 
                 // Step 6 — Mark session as RewardClaimed
                 session.IsRewardClaimed = true;
-                session.Status = "RewardClaimed";
+                // Step 7 — Mark as claimed for this player
+                if (string.IsNullOrEmpty(session.ClaimedByMembers))
+                {
+                    session.ClaimedByMembers = playerProfileId.ToString();
+                }
+                else
+                {
+                    session.ClaimedByMembers += "," + playerProfileId;
+                }
+
                 session.ClaimedAt = DateTime.UtcNow;
-                session.UpdatedAt = DateTime.UtcNow;
+                session.IsRewardClaimed = true; // Legacy flag, might be true as soon as one claims
+
                 await _sessionRepository.Update(session);
 
                 var timeTakenSeconds = session.CompletedTime.HasValue 
