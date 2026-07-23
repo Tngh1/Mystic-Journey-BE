@@ -37,6 +37,12 @@ namespace DAL.Models
 
         public string? PartyMembers { get; set; }
 
+        /// <summary>
+        /// Comma-separated list of profile IDs who have successfully claimed rewards for this session.
+        /// Used to prevent duplicate claims by the same party member.
+        /// </summary>
+        public string? ClaimedByMembers { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

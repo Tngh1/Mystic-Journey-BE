@@ -47,8 +47,7 @@ namespace BLL.Services
             var mapName = NormalizeMapName(profile.LastMapName);
             var activeMapQuests = (await _questRepo.GetActiveQuests())
                 .Where(q => string.Equals(q.MapName, mapName, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(q => q.RequiredLevel)
-                .ThenBy(q => q.QuestId)
+                .OrderBy(q => q.QuestId)
                 .ToList();
 
             var records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
@@ -69,8 +68,7 @@ namespace BLL.Services
 
             var mainChain = activeMapQuests
                 .Where(IsMainQuest)
-                .OrderBy(q => q.RequiredLevel)
-                .ThenBy(q => q.QuestId)
+                .OrderBy(q => q.QuestId)
                 .ToList();
 
             for (var i = 0; i < mainChain.Count; i++)
@@ -116,7 +114,7 @@ namespace BLL.Services
             var sortedVisible = visible
                 .GroupBy(pq => pq.QuestId)
                 .Select(g => g.First())
-                .OrderBy(pq => pq.Quest?.RequiredLevel ?? 1)
+                .OrderBy(pq => IsMainQuest(pq.Quest) ? 0 : 1)
                 .ThenBy(pq => pq.QuestId)
                 .ToList();
 
@@ -539,8 +537,7 @@ namespace BLL.Services
         {
             var mainChain = (await _questRepo.GetActiveQuests())
                 .Where(q => string.Equals(q.MapName, quest.MapName, StringComparison.OrdinalIgnoreCase) && IsMainQuest(q))
-                .OrderBy(q => q.RequiredLevel)
-                .ThenBy(q => q.QuestId)
+                .OrderBy(q => q.QuestId)
                 .ToList();
 
             var index = mainChain.FindIndex(q => q.QuestId == quest.QuestId);

@@ -246,7 +246,7 @@ namespace Mystic_Journey_API.Controllers
                     PlayerProfileId = pid,
                     CurrentHp = 350, MaxHp = 350,
                     Atk = 45, Def = 20,
-                    MoveSpeed = 50, AttackSpeed = 10,
+                    MoveSpeed = 50, AttackSpeed = 100,
                     CritRate = 50, CritDamage = 150,
                     DamageBonus = 0,
                     SkillPoints = 3,
@@ -901,7 +901,7 @@ namespace Mystic_Journey_API.Controllers
                         Atk = 25,
                         Def = 10,
                         MoveSpeed = 50,
-                        AttackSpeed = 10,
+                        AttackSpeed = 100,
                         CritRate = 50,
                         CritDamage = 150,
                     });
@@ -1590,70 +1590,216 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
         {
             try
             {
-                // 1. Xoá dữ liệu cũ
+                // ─── 1. Xoá dữ liệu dungeon cũ ───────────────────────────────────────
                 var existingSpawns = await _ctx.MonsterSpawns.Where(ms => ms.DungeonId != null).ToListAsync();
                 _ctx.MonsterSpawns.RemoveRange(existingSpawns);
 
                 var existingDungeons = await _ctx.Dungeons.ToListAsync();
                 _ctx.Dungeons.RemoveRange(existingDungeons);
-                await _ctx.SaveChangesAsync();
-
-                // 2. Đảm bảo 3 con quái (Slime=4, Skeleton=5, Ogre Boss=8) tồn tại
-                var slime = await _ctx.Monsters.FindAsync(4);
-                if (slime == null) _ctx.Monsters.Add(new Monster { MonsterId = 4, Name = "Slime", Type = "Normal", MaxHp = 50, Atk = 5, Def = 2 });
-
-                var skeleton = await _ctx.Monsters.FindAsync(5);
-                if (skeleton == null) _ctx.Monsters.Add(new Monster { MonsterId = 5, Name = "SkeletonMelee", Type = "Normal", MaxHp = 100, Atk = 10, Def = 5 });
-
-                var ogre = await _ctx.Monsters.FindAsync(8);
-                if (ogre == null) _ctx.Monsters.Add(new Monster { MonsterId = 8, Name = "Ogre", Type = "Boss", MaxHp = 1000, Atk = 50, Def = 20 });
-
-                await _ctx.SaveChangesAsync();
-
-                // 3. Tạo 3 Dungeon mẫu (Ép ID = 1, 2, 3 để khớp với Unity config)
-                var dungeons = new List<Dungeon>
-                {
-                    new Dungeon { DungeonId = 1, Name = "Hầm ngục Slime (Dễ)", Description = "Nơi đầy rẫy Slime", IsRepeatable = true },
-                    new Dungeon { DungeonId = 2, Name = "Nghĩa địa Xương (Vừa)", Description = "Bộ xương khô khắp nơi", IsRepeatable = true },
-                    new Dungeon { DungeonId = 3, Name = "Sào huyệt Ogre (Khó)", Description = "Thử thách cực đại", IsRepeatable = true }
-                };
-                
-                _ctx.Dungeons.AddRange(dungeons);
 
                 var existingConfigs = await _ctx.DungeonConfigs.ToListAsync();
                 _ctx.DungeonConfigs.RemoveRange(existingConfigs);
 
+                await _ctx.SaveChangesAsync();
+
+                // ─── 2. Đảm bảo tất cả monsters tồn tại (theo MonsterDatabaseSO) ────
+                //  ID  |  Tên                  | Type
+                //  1   |  SlimeLittle          | Normal
+                //  2   |  SwampDemon           | Boss
+                //  3   |  WaterElemental       | Normal
+                //  4   |  Dragon               | Normal
+                //  5   |  BlueDragonFrost      | Normal
+                //  6   |  GreenDragonForest    | Normal
+                //  7   |  DragonBossIdle       | Boss
+                //  8   |  Slime_ice            | Normal
+                //  9   |  Ice_Dragon           | Normal
+                //  10  |  GolemBoss            | Boss
+                //  11  |  OrcSkeleton          | Normal
+                //  12  |  SkeletonMelee        | Normal
+                //  13  |  SkeletonArcher       | Normal
+                //  14  |  Ghost                | Normal
+                //  15  |  UnderKing            | Boss
+                //  16  |  Demon                | Normal
+                //  17  |  GoblinWarrior        | Normal
+                //  18  |  GoblinSpear          | Normal
+                //  19  |  Ogre                 | Boss
+                //  20  |  OrcWarlord           | Boss
+
+                void EnsureMonster(int id, string name, string type, int hp, int atk, int def)
+                {
+                    var m = _ctx.Monsters.Local.FirstOrDefault(x => x.MonsterId == id)
+                         ?? _ctx.Monsters.Find(id);
+                    if (m == null)
+                    {
+                        _ctx.Monsters.Add(new Monster
+                        {
+                            MonsterId = id, Name = name, Type = type,
+                            MaxHp = hp, Atk = atk, Def = def, IsActive = true
+                        });
+                    }
+                }
+
+                // Normal monsters
+                EnsureMonster(1,  "SlimeLittle",       "Normal", 80,   8,  3);
+                EnsureMonster(3,  "WaterElemental",    "Normal", 150, 12,  6);
+                EnsureMonster(4,  "Dragon",            "Normal", 500, 40, 20);
+                EnsureMonster(5,  "BlueDragonFrost",   "Normal", 450, 35, 18);
+                EnsureMonster(6,  "GreenDragonForest", "Normal", 400, 30, 15);
+                EnsureMonster(8,  "Slime_ice",         "Normal", 120, 10,  5);
+                EnsureMonster(9,  "Ice_Dragon",        "Normal", 600, 50, 25);
+                EnsureMonster(11, "OrcSkeleton",       "Normal", 200, 20,  8);
+                EnsureMonster(12, "SkeletonMelee",     "Normal", 180, 18,  7);
+                EnsureMonster(13, "SkeletonArcher",    "Normal", 140, 22,  5);
+                EnsureMonster(14, "Ghost",             "Normal", 160, 25,  4);
+                EnsureMonster(16, "Demon",             "Normal", 800, 70, 30);
+                EnsureMonster(17, "GoblinWarrior",     "Normal", 220, 22, 10);
+                EnsureMonster(18, "GoblinSpear",       "Normal", 180, 18,  8);
+
+                // Boss monsters
+                EnsureMonster(2,  "SwampDemon",   "Boss", 1500, 80,  30);
+                EnsureMonster(7,  "DragonBossIdle","Boss",3000, 150, 60);
+                EnsureMonster(10, "GolemBoss",    "Boss", 2500, 120, 80);
+                EnsureMonster(15, "UnderKing",    "Boss", 2800, 130, 50);
+                EnsureMonster(19, "Ogre",         "Boss", 2000, 100, 40);
+                EnsureMonster(20, "OrcWarlord",   "Boss", 3500, 160, 70);
+
+                await _ctx.SaveChangesAsync();
+
+                // ─── 3. Tạo 6 Dungeon (ID phải khớp với Unity DungeonConfig) ────────
+                var dungeons = new List<Dungeon>
+                {
+                    new Dungeon { DungeonId = 1, Name = "Đầm lầy Slime",          Description = "Vương quốc của những con Slime nguy hiểm",           IsRepeatable = true },
+                    new Dungeon { DungeonId = 2, Name = "Sào huyệt Rồng",          Description = "Hang ổ của những con rồng hung tàn",                  IsRepeatable = true },
+                    new Dungeon { DungeonId = 3, Name = "Cung điện Băng giá",      Description = "Pháo đài băng của Golem khổng lồ",                    IsRepeatable = true },
+                    new Dungeon { DungeonId = 4, Name = "Nghĩa địa Bóng tối",     Description = "Vương quốc ngầm của Vua Xương",                       IsRepeatable = true },
+                    new Dungeon { DungeonId = 5, Name = "Doanh trại Goblin",       Description = "Pháo đài kiên cố của bầy Goblin và Ogre",             IsRepeatable = true },
+                    new Dungeon { DungeonId = 6, Name = "Cổng địa ngục",           Description = "Cánh cổng dẫn đến thế giới của Quỷ và Chiến binh Orc", IsRepeatable = true },
+                };
+                _ctx.Dungeons.AddRange(dungeons);
+
+                // ─── 4. Tạo Chest và DungeonConfig khớp với Unity ─────────────────────────────
+                
+                // Clear old chests associated with old dungeon configs
+                var chestIdsToRemove = existingConfigs.Where(c => c.ChestId.HasValue).Select(c => c.ChestId.Value).ToList();
+                if (chestIdsToRemove.Any())
+                {
+                    var chestsToRemove = await _ctx.Chests.Where(c => chestIdsToRemove.Contains(c.ChestId)).ToListAsync();
+                    _ctx.Chests.RemoveRange(chestsToRemove);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // Create chests for each dungeon
+                var chest1 = new Chest { Name = "Rương Đầm lầy Slime", Description = "Phần thưởng Đầm lầy Slime", Type = "Normal", GoldMinReward = 50, GoldMaxReward = 100, ExperienceReward = 50, IsActive = true };
+                var chest2 = new Chest { Name = "Rương Sào huyệt Rồng", Description = "Phần thưởng Sào huyệt Rồng", Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200, ExperienceReward = 150, IsActive = true };
+                var chest3 = new Chest { Name = "Rương Cung điện Băng giá", Description = "Phần thưởng Cung điện Băng", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 300, IsActive = true };
+                var chest4 = new Chest { Name = "Rương Nghĩa địa Bóng tối", Description = "Phần thưởng Nghĩa địa", Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400, ExperienceReward = 450, IsActive = true };
+                var chest5 = new Chest { Name = "Rương Doanh trại Goblin", Description = "Phần thưởng Doanh trại", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 350, IsActive = true };
+                var chest6 = new Chest { Name = "Rương Cổng địa ngục", Description = "Phần thưởng Cổng địa ngục", Type = "Epic", GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true };
+                
+                _ctx.Chests.AddRange(chest1, chest2, chest3, chest4, chest5, chest6);
+                await _ctx.SaveChangesAsync();
+
+                // Add item drops to these chests
+                var hpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var mpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Mana Potion");
+                var ironSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+
+                var chestItems = new List<ChestItem>();
+                foreach (var chest in new[] { chest1, chest2, chest3, chest4, chest5, chest6 })
+                {
+                    if (hpPotion != null)
+                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = hpPotion.ItemId, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 });
+                    if (mpPotion != null)
+                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = mpPotion.ItemId, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 });
+                    if (ironSword != null && chest.Type == "Epic") // Cổng địa ngục is Epic
+                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = ironSword.ItemId, DropRate = 30.0m, QuantityMin = 1, QuantityMax = 1 });
+                }
+                if (chestItems.Any())
+                {
+                    _ctx.ChestItems.AddRange(chestItems);
+                    await _ctx.SaveChangesAsync();
+                }
+
                 var dungeonConfigs = new List<DungeonConfig>
                 {
-                    new DungeonConfig { DungeonConfigId = 1, Name = "Hầm ngục Slime (Dễ)", Description = "Nơi đầy rẫy Slime", Type = "Normal", LevelRequirement = 1, MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100, IsActive = true },
-                    new DungeonConfig { DungeonConfigId = 2, Name = "Nghĩa địa Xương (Vừa)", Description = "Bộ xương khô khắp nơi", Type = "Normal", LevelRequirement = 5, MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 200, IsActive = true },
-                    new DungeonConfig { DungeonConfigId = 3, Name = "Sào huyệt Ogre (Khó)", Description = "Thử thách cực đại", Type = "Boss", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 500, IsActive = true }
+                    new DungeonConfig { DungeonConfigId = 1, Name = "Đầm lầy Slime",      Description = "Vương quốc của những con Slime nguy hiểm",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true, ChestId = chest1.ChestId },
+                    new DungeonConfig { DungeonConfigId = 2, Name = "Sào huyệt Rồng",      Description = "Hang ổ của những con rồng hung tàn",                  Type = "Normal", LevelRequirement = 5,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true, ChestId = chest2.ChestId },
+                    new DungeonConfig { DungeonConfigId = 3, Name = "Cung điện Băng giá",  Description = "Pháo đài băng của Golem khổng lồ",                    Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true, ChestId = chest3.ChestId },
+                    new DungeonConfig { DungeonConfigId = 4, Name = "Nghĩa địa Bóng tối", Description = "Vương quốc ngầm của Vua Xương",                       Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true, ChestId = chest4.ChestId },
+                    new DungeonConfig { DungeonConfigId = 5, Name = "Doanh trại Goblin",   Description = "Pháo đài kiên cố của bầy Goblin và Ogre",             Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true, ChestId = chest5.ChestId },
+                    new DungeonConfig { DungeonConfigId = 6, Name = "Cổng địa ngục",       Description = "Cánh cổng dẫn đến thế giới của Quỷ và Chiến binh Orc", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true, ChestId = chest6.ChestId },
                 };
-
                 _ctx.DungeonConfigs.AddRange(dungeonConfigs);
                 await _ctx.SaveChangesAsync();
 
-                // 4. Tạo Spawns cho từng Dungeon (MapName là "HollowCryptDungeon" như Unity đã fix cứng)
+                // ─── 5. Tạo MonsterSpawns cho từng Dungeon ───────────────────────────
+                // MapName phải khớp với scene name trong Unity
                 string mapName = "HollowCryptDungeon";
+
                 var spawns = new List<MonsterSpawn>
                 {
-                    // Dungeon 1: 3 Slimes, 1 Boss Ogre
-                    new MonsterSpawn { DungeonId = 1, MonsterId = 4, SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 1, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true },
+                    // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
+                    // Quái thường: SlimeLittle (1) + WaterElemental (3)
+                    // Boss: SwampDemon (2)
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 3,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = mapName, IsActive = true },
 
-                    // Dungeon 2: 5 Skeletons, 1 Boss Ogre
-                    new MonsterSpawn { DungeonId = 2, MonsterId = 5, SpawnCount = 5, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 2, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true },
+                    // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────
+                    // Quái thường: Dragon (4) + BlueDragonFrost (5) + GreenDragonForest (6)
+                    // Boss: DragonBossIdle (7)
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 4,  SpawnCount = 2, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 5,  SpawnCount = 2, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 6,  SpawnCount = 2, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 2, MonsterId = 7,  SpawnCount = 1, MapName = mapName, IsActive = true },
 
-                    // Dungeon 3: 3 Slimes, 3 Skeletons, 1 Boss Ogre
-                    new MonsterSpawn { DungeonId = 3, MonsterId = 4, SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 3, MonsterId = 5, SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 3, MonsterId = 8, SpawnCount = 1, MapName = mapName, IsActive = true }
+                    // ── Dungeon 3: Cung điện Băng giá ────────────────────────────────
+                    // Quái thường: Slime_ice (8) + Ice_Dragon (9)
+                    // Boss: GolemBoss (10)
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 9,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 3, MonsterId = 10, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                    // ── Dungeon 4: Nghĩa địa Bóng tối ────────────────────────────────
+                    // Quái thường: SkeletonMelee (12) + SkeletonArcher (13) + OrcSkeleton (11)
+                    // Boss: UnderKing (15)
+                    new MonsterSpawn { DungeonId = 4, MonsterId = 12, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 4, MonsterId = 13, SpawnCount = 2, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 4, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 4, MonsterId = 15, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                    // ── Dungeon 5: Doanh trại Goblin ─────────────────────────────────
+                    // Quái thường: GoblinWarrior (17) + GoblinSpear (18)
+                    // Boss: Ogre (19)
+                    new MonsterSpawn { DungeonId = 5, MonsterId = 17, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 5, MonsterId = 18, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 5, MonsterId = 19, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                    // ── Dungeon 6: Cổng địa ngục ─────────────────────────────────────
+                    // Quái thường: Ghost (14) + Demon (16) + OrcSkeleton (11)
+                    // Boss: OrcWarlord (20)
+                    new MonsterSpawn { DungeonId = 6, MonsterId = 14, SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 6, MonsterId = 16, SpawnCount = 2, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 6, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 6, MonsterId = 20, SpawnCount = 1, MapName = mapName, IsActive = true },
                 };
+
                 _ctx.MonsterSpawns.AddRange(spawns);
                 await _ctx.SaveChangesAsync();
 
-                return Ok(new { message = "Đã tạo 3 Dungeons mẫu (ID: 1, 2, 3) và MonsterSpawns thành công!" });
+                return Ok(new
+                {
+                    message = "Đã seed 6 Dungeons thành công!",
+                    dungeons = new[]
+                    {
+                        "D1: Đầm lầy Slime      → SlimeLittle×3, Slime_ice×3,     Boss: SwampDemon",
+                        "D2: Sào huyệt Rồng     → Dragon×2, BlueDragon×2, GreenDragon×2, Boss: DragonBossIdle",
+                        "D3: Cung điện Băng giá → WaterElemental×3, Ice_Dragon×3,  Boss: GolemBoss",
+                        "D4: Nghĩa địa Bóng tối → SkeletonMelee×3, Archer×2, Orc×2, Boss: UnderKing",
+                        "D5: Doanh trại Goblin  → GoblinWarrior×3, GoblinSpear×3, Boss: Ogre",
+                        "D6: Cổng địa ngục      → Ghost×3, Demon×2, OrcSkeleton×2, Boss: OrcWarlord"
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -2030,8 +2176,35 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 _ctx.Accounts.Add(elf3Account);
                 await _ctx.SaveChangesAsync();
 
-                var elf3Profile = new PlayerProfile { AccountId = elf3Account.AccountId, DisplayName = "Elf 3 Mage", Class = "Mage", Level = 10, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
+                var elf3Profile = new PlayerProfile { AccountId = elf3Account.AccountId, DisplayName = "Elf 3 Mage", Class = "Mage", Level = 12, ExperiencePoints = 1100, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "AutumnPumpkin", PositionX = 0, PositionY = 0, AvatarUrl = "" };
                 _ctx.PlayerProfiles.Add(elf3Profile);
+                await _ctx.SaveChangesAsync();
+
+                // Seed completed Quests Q1..Q15 for elf3; Q15 is Slay the Dragon, and Q16 is Claimed
+                for (int qId = 1; qId <= 15; qId++)
+                {
+                    _ctx.PlayerQuests.Add(new PlayerQuest
+                    {
+                        PlayerProfileId = elf3Profile.PlayerProfileId,
+                        QuestId = qId,
+                        Status = "Claimed",
+                        Progress = qId == 15 ? 10 : 1,
+                        AcceptedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow,
+                        ClaimedAt = DateTime.UtcNow
+                    });
+                }
+                _ctx.PlayerQuests.Add(new PlayerQuest
+                {
+                    PlayerProfileId = elf3Profile.PlayerProfileId,
+                    QuestId = 16,
+                    Status = "Claimed",
+                    Progress = 1,
+                    TargetValue = 1,
+                    AcceptedAt = DateTime.UtcNow,
+                    CompletedAt = DateTime.UtcNow,
+                    ClaimedAt = DateTime.UtcNow
+                });
                 await _ctx.SaveChangesAsync();
 
                 _ctx.PlayerStats.Add(new PlayerStat
@@ -2039,7 +2212,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     PlayerProfileId = elf3Profile.PlayerProfileId,
                     CurrentHp = 500, MaxHp = 500,
                     Atk = 60, Def = 30,
-                    MoveSpeed = 50, AttackSpeed = 10,
+                    MoveSpeed = 50, AttackSpeed = 100,
                     CritRate = 50, CritDamage = 150,
                     DamageBonus = 0,
                     SkillPoints = 10,
@@ -2060,7 +2233,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     PlayerProfileId = elf4Profile.PlayerProfileId,
                     CurrentHp = 500, MaxHp = 500,
                     Atk = 60, Def = 30,
-                    MoveSpeed = 50, AttackSpeed = 10,
+                    MoveSpeed = 50, AttackSpeed = 100,
                     CritRate = 50, CritDamage = 150,
                     DamageBonus = 0,
                     SkillPoints = 10,

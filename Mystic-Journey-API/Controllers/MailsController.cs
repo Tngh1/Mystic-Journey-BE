@@ -65,9 +65,16 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
+            var playerProfileId = GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
             var mail = await _mailService.GetMailById(id);
             if (mail == null)
                 return NotFound(new ApiResponse<object> { Success = false, Message = $"Mail with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
+
+            if (mail.PlayerProfileId != playerProfileId)
+                return Forbid();
 
             return Ok(new ApiResponse<MailDetailDto> { Success = true, Data = mail });
         }
@@ -78,8 +85,19 @@ namespace Mystic_Journey_API.Controllers
         [HttpPost("{id}/read")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
-            var mail = await _mailService.MarkMailAsRead(id);
-            return Ok(new ApiResponse<MailDetailDto> { Success = true, Data = mail });
+            var playerProfileId = GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var mail = await _mailService.GetMailById(id);
+            if (mail == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Mail with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
+
+            if (mail.PlayerProfileId != playerProfileId)
+                return Forbid();
+
+            var updated = await _mailService.MarkMailAsRead(id);
+            return Ok(new ApiResponse<MailDetailDto> { Success = true, Data = updated });
         }
 
         // ── POST /api/mails/{id}/claim ─────────────────────────────────────────
@@ -88,8 +106,19 @@ namespace Mystic_Journey_API.Controllers
         [HttpPost("{id}/claim")]
         public async Task<IActionResult> ClaimReward(int id)
         {
-            var mail = await _mailService.ClaimMailReward(id);
-            return Ok(new ApiResponse<MailDetailDto> { Success = true, Data = mail });
+            var playerProfileId = GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
+
+            var mail = await _mailService.GetMailById(id);
+            if (mail == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Mail with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
+
+            if (mail.PlayerProfileId != playerProfileId)
+                return Forbid();
+
+            var updated = await _mailService.ClaimMailReward(id);
+            return Ok(new ApiResponse<MailDetailDto> { Success = true, Data = updated });
         }
 
         // ── DELETE /api/mails/{id} ─────────────────────────────────────────────

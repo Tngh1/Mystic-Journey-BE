@@ -96,6 +96,14 @@ namespace BLL.Services
             {
                 foreach (var rewardItem in mail.AttachedItems)
                 {
+                    // "Exp" là item Currency đại diện cho điểm kinh nghiệm -> cộng thẳng vào
+                    // level thay vì bỏ vào inventory (khớp cách quest/dungeon áp EXP).
+                    if (string.Equals(rewardItem.Item?.Name, "Exp", StringComparison.OrdinalIgnoreCase))
+                    {
+                        playerProfile.AddExperience(rewardItem.Quantity);
+                        continue;
+                    }
+
                     await _inventoryService.AddItemToInventory(
                         mail.PlayerProfileId,
                         rewardItem.ItemId,
