@@ -237,16 +237,16 @@ BEGIN
     VALUES 
     (npc_queen, q_id, 'None', 'Your efforts have not gone unnoticed. The slimes are thinning out.', 1, true),
     (npc_queen, q_id, 'None', 'However, our Priest Zephyr requires supplies for a ritual.', 2, true),
-    (npc_queen, q_id, 'Quest', 'Take this Magic Flour and deliver it to him at the mountain peak.', 3, true);
+    (npc_queen, q_id, 'Quest', 'Take this Magic Flour and deliver it to him at the mountain peak.', 3, true),
+    (npc_zephyr, q_id, 'None', 'Ah, the flour from the Queen! Thank you, traveler.', 1, true);
 
     -- Q19
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""QuestGiverName"", ""IsActive"")
     VALUES ('[Chapter 3] Dragons of Snow', 'Meet Zephyr and slay 5 Ice Dragons on the mountain.', 'Main', 'NotStarted', 'FrozenMountain', 7, 5, 400, 400, 0, 'Defeat', 'Ice_Dragon', 'Frozen Mountain', 'Zephyr', true) RETURNING ""QuestId"" INTO q_id;
     INSERT INTO ""NPCDialogues"" (""NPCId"", ""LinkedQuestId"", ""ResponseType"", ""Content"", ""DisplayOrder"", ""IsActive"")
     VALUES 
-    (npc_zephyr, q_id, 'None', 'Ah, the flour from the Queen! Thank you, traveler.', 1, true),
-    (npc_zephyr, q_id, 'None', 'The codex has warped the creatures here. The beasts have become feral and dangerous.', 2, true),
-    (npc_zephyr, q_id, 'Quest', 'To secure our borders, go slay 5 Ice Dragons on the mountain.', 3, true);
+    (npc_zephyr, q_id, 'None', 'The codex has warped the creatures here. The beasts have become feral and dangerous.', 1, true),
+    (npc_zephyr, q_id, 'Quest', 'To secure our borders, go slay 5 Ice Dragons on the mountain.', 2, true);
 
     -- Q20
     INSERT INTO ""Quests"" (""Title"", ""Description"", ""Type"", ""DefaultStatus"", ""MapName"", ""RequiredLevel"", ""TargetAmount"", ""RewardExperience"", ""RewardGold"", ""RewardGems"", ""ObjectiveType"", ""ObjectiveTarget"", ""ObjectiveLocation"", ""QuestGiverName"", ""IsActive"")
