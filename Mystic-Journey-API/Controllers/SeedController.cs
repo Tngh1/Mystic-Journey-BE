@@ -1035,10 +1035,21 @@ namespace Mystic_Journey_API.Controllers
 
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
+                
+                var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Knight 3", "Knight");
+                var p4 = await CreatePlayer("elf_user4", "elf4@mystic.test", "Tutorial Knight 4", "Knight");
+
+                var allSkillIds = await _ctx.Skills.Select(s => s.SkillId).ToListAsync();
+                foreach (var skillId in allSkillIds)
+                {
+                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p3, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p4, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+                }
+                await _ctx.SaveChangesAsync();
 
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2, p3, p4 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
             }
             catch (Exception ex)
             {

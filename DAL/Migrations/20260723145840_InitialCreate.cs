@@ -907,6 +907,7 @@ namespace DAL.Migrations
                     Status = table.Column<string>(type: "text", nullable: false),
                     IsRewardClaimed = table.Column<bool>(type: "boolean", nullable: false),
                     PartyMembers = table.Column<string>(type: "text", nullable: true),
+                    ClaimedByMembers = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -1903,7 +1904,12 @@ namespace DAL.Migrations
                     { 7, 0.0, "Knight", 15, 0f, 0.0, 0.0, "Physical", "Casts a spell in the direction the character is facing.", true, "LightWaves", "Area", "Active", 1 },
                     { 8, 0.0, "Knight", 20, 0f, 0.0, 0.0, "Magical", "Protects all allies within range.", true, "ProtectiveShield", "Ally", "Buff", 1 },
                     { 9, 0.0, "All", 90, 15f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", true, "DarkExplosion", "Area", "Active", 1 },
-                    { 10, 0.0, "All", 60, 10f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", true, "DarkPoisonZone", "Area", "Active", 1 }
+                    { 10, 0.0, "All", 60, 10f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", true, "DarkPoisonZone", "Area", "Active", 1 },
+                    { 11, 0.0, "Archer", 20, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "DeadlyCurse", "SingleTarget", "Active", 1 },
+                    { 12, 0.0, "Mage", 5, 0f, 0.0, 0.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
+                    { 13, 200.0, "All", 30, 8f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
+                    { 14, 0.0, "Knight", 6, 0f, 0.0, 0.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
+                    { 15, 38.0, "Fighter", 8, 0f, 4.0, 11.0, "Physical", "A short-range slash in the direction the character is facing.", true, "FrozenSash", "SingleTarget", "Active", 1 }
                 });
 
             migrationBuilder.InsertData(
