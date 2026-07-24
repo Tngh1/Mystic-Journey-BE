@@ -12,7 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
+<<<<<<<< HEAD:DAL/Migrations/20260723145840_InitialCreate.Designer.cs
     [Migration("20260723145840_InitialCreate")]
+========
+    [Migration("20260723160554_InitialCreate")]
+>>>>>>>> 292687177637d07666e4bba610eb46c4fcad0473:DAL/Migrations/20260723160554_InitialCreate.Designer.cs
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -940,6 +944,230 @@ namespace DAL.Migrations
                             BonusHp = 0,
                             BonusMoveSpeed = 0,
                             ItemId = 908
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 5,
+                            BaseAtk = 35,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 8,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 50,
+                            BonusCritRate = 30,
+                            BonusDamageBonus = 0,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 5
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 6,
+                            BaseAtk = 30,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 6,
+                            BonusAttackSpeed = 10,
+                            BonusCritDamage = 30,
+                            BonusCritRate = 40,
+                            BonusDamageBonus = 0,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 6
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 7,
+                            BaseAtk = 28,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 80,
+                            BonusCritRate = 20,
+                            BonusDamageBonus = 10,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 7
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 8,
+                            BaseAtk = 80,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 20,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 100,
+                            BonusCritRate = 60,
+                            BonusDamageBonus = 15,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 8
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 9,
+                            BaseAtk = 0,
+                            BaseDef = 12,
+                            BaseHp = 50,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 3,
+                            BonusHp = 10,
+                            BonusMoveSpeed = 0,
+                            ItemId = 9
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 10,
+                            BaseAtk = 0,
+                            BaseDef = 30,
+                            BaseHp = 100,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 8,
+                            BonusHp = 20,
+                            BonusMoveSpeed = 0,
+                            ItemId = 10
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 11,
+                            BaseAtk = 0,
+                            BaseDef = 5,
+                            BaseHp = 0,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 2,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 20,
+                            ItemId = 11
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 12,
+                            BaseAtk = 0,
+                            BaseDef = 120,
+                            BaseHp = 500,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 30,
+                            BonusHp = 100,
+                            BonusMoveSpeed = 0,
+                            ItemId = 12
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 13,
+                            BaseAtk = 0,
+                            BaseDef = 60,
+                            BaseHp = 0,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 15,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 15,
+                            ItemId = 13
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 14,
+                            BaseAtk = 0,
+                            BaseDef = 20,
+                            BaseHp = 0,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 120,
+                            BonusCritRate = 80,
+                            BonusDamageBonus = 0,
+                            BonusDef = 5,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 14
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 15,
+                            BaseAtk = 20,
+                            BaseDef = 5,
+                            BaseHp = 0,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 5,
+                            BonusDef = 2,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 15
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 16,
+                            BaseAtk = 15,
+                            BaseDef = 3,
+                            BaseHp = 0,
+                            BonusAtk = 3,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 1,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 5,
+                            ItemId = 16
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 17,
+                            BaseAtk = 5,
+                            BaseDef = 3,
+                            BaseHp = 30,
+                            BonusAtk = 2,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 10,
+                            BonusCritRate = 10,
+                            BonusDamageBonus = 0,
+                            BonusDef = 1,
+                            BonusHp = 5,
+                            BonusMoveSpeed = 0,
+                            ItemId = 17
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 18,
+                            BaseAtk = 0,
+                            BaseDef = 5,
+                            BaseHp = 80,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 2,
+                            BonusHp = 20,
+                            BonusMoveSpeed = 0,
+                            ItemId = 18
                         });
                 });
 
@@ -1730,6 +1958,468 @@ namespace DAL.Migrations
                             MaxStack = 1,
                             Name = "UnderKing Seal Book",
                             Rarity = "Legendary",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 1,
+                            BaseValue = 1m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "In-game gold currency.",
+                            IsActive = true,
+                            MaxStack = 2147483647,
+                            Name = "Gold",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "Currency"
+                        },
+                        new
+                        {
+                            ItemId = 2,
+                            BaseValue = 1m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Experience points for leveling up.",
+                            IsActive = true,
+                            MaxStack = 2147483647,
+                            Name = "Exp",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "Currency"
+                        },
+                        new
+                        {
+                            ItemId = 3,
+                            BaseValue = 5m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Premium gem used to purchase high-tier items.",
+                            IsActive = true,
+                            MaxStack = 2147483647,
+                            Name = "Gem",
+                            Rarity = "Rare",
+                            Slot = "None",
+                            Type = "Currency"
+                        },
+                        new
+                        {
+                            ItemId = 4,
+                            BaseValue = 1m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Lucky ticket used to spin the gacha banner.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Lucky Ticket",
+                            Rarity = "Rare",
+                            Slot = "None",
+                            Type = "Consumable"
+                        },
+                        new
+                        {
+                            ItemId = 5,
+                            BaseValue = 150m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Basic iron sword for beginner warriors.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Iron Sword",
+                            Rarity = "Common",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 6,
+                            BaseValue = 150m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A forest hunter bow, light and accurate.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Hunter Bow",
+                            Rarity = "Common",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 7,
+                            BaseValue = 150m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A novice magic staff for casting light spells.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Apprentice Staff",
+                            Rarity = "Common",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 8,
+                            BaseValue = 800m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A glowing elven blade, forged deep in the ancient forest.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Elven Blade",
+                            Rarity = "Epic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 9,
+                            BaseValue = 120m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Light leather armor that provides basic defense.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Leather Armor",
+                            Rarity = "Common",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 10,
+                            BaseValue = 100m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Sturdy iron helmet that protects the head from damage.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Iron Helmet",
+                            Rarity = "Common",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 11,
+                            BaseValue = 200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Wind-infused boots that increase movement speed.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Wind Boots",
+                            Rarity = "Uncommon",
+                            Slot = "Boots",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 12,
+                            BaseValue = 2000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Legendary dragon scale armor offering supreme defense.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Dragon Scale Armor",
+                            Rarity = "Legendary",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 13,
+                            BaseValue = 900m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Shadow cloak that boosts speed and evasion.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Phantom Cloak",
+                            Rarity = "Epic",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 14,
+                            BaseValue = 500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Dark hood that increases critical strike damage.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Shadow Hood",
+                            Rarity = "Rare",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 15,
+                            BaseValue = 120m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Iron gauntlets that increase physical damage.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Iron Gauntlets",
+                            Rarity = "Common",
+                            Slot = "Gloves",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 16,
+                            BaseValue = 100m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Soft leather gauntlets that allow flexible combat.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Leather Gauntlets",
+                            Rarity = "Common",
+                            Slot = "Gloves",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 17,
+                            BaseValue = 80m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Basic copper ring that slightly boosts stats.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Copper Ring",
+                            Rarity = "Common",
+                            Slot = "Ring",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 18,
+                            BaseValue = 200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Silver necklace that increases maximum energy.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Silver Necklace",
+                            Rarity = "Uncommon",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 19,
+                            BaseValue = 30m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Small health potion that restores 80 HP.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Small Health Potion",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "Consumable"
+                        },
+                        new
+                        {
+                            ItemId = 20,
+                            BaseValue = 80m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Large health potion that restores 200 HP.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Large Health Potion",
+                            Rarity = "Uncommon",
+                            Slot = "None",
+                            Type = "Consumable"
+                        },
+                        new
+                        {
+                            ItemId = 21,
+                            BaseValue = 60m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Energy elixir that restores 60 Energy.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Energy Elixir",
+                            Rarity = "Uncommon",
+                            Slot = "None",
+                            Type = "Consumable"
+                        },
+                        new
+                        {
+                            ItemId = 22,
+                            BaseValue = 50m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Magic stone used to upgrade player skills.",
+                            IsActive = true,
+                            MaxStack = 999,
+                            Name = "Skill Upgrade Stone",
+                            Rarity = "Rare",
+                            Slot = "None",
+                            Type = "Material"
+                        },
+                        new
+                        {
+                            ItemId = 23,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "White flower collected in the fairy forest.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "White Flower",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 24,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Logs collected from the ancient forest.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Wood Logs",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 25,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Ancient tree leaves collected from the fairy forest.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Ancient Leaves",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 26,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Dragon Seal Book. Dropped by DragonBossIdle. Collect all 4 seal books to save the World Tree.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Dragon Seal Book",
+                            Rarity = "Epic",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 27,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Golem Seal Book. Dropped by GolemBoss.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Golem Seal Book",
+                            Rarity = "Epic",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 28,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "UnderKing Seal Book. Dropped by the UnderKing boss.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "UnderKing Seal Book",
+                            Rarity = "Epic",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 29,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Swamp Demon Seal Book. Dropped by SwampDemon boss.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Swamp Seal Book",
+                            Rarity = "Epic",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 30,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A magical pumpkin glowing with autumn energy.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Enchanted Pumpkin",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 31,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Mystical flour used for special spells.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Magic Flour",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 32,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A skull radiating with ghostly presence.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Spirit Skull",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 33,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A key that opens the castle on the deserted island.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Mystic Key",
+                            Rarity = "Epic",
                             Slot = "None",
                             Type = "QuestItem"
                         });
@@ -2545,6 +3235,164 @@ namespace DAL.Migrations
                     b.HasKey("NPCId");
 
                     b.ToTable("NPCs");
+
+                    b.HasData(
+                        new
+                        {
+                            NPCId = 1,
+                            Description = "The wise guide of the Elf Forest.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            Name = "Elder Rowan",
+                            PositionX = 12.4932,
+                            PositionY = 18.61223,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 2,
+                            Description = "A spirit of the forest.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            Name = "Lyra",
+                            PositionX = 41.945869999999999,
+                            PositionY = -27.180520000000001,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 3,
+                            Description = "A mysterious figure in a cloak.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            Name = "Mysterious Figure",
+                            PositionX = 10.111940000000001,
+                            PositionY = -45.863010000000003,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 4,
+                            Description = "The wise guide, now in the pumpkin town.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            Name = "Elder Rowan (Pumpkin)",
+                            PositionX = 1.8735120000000001,
+                            PositionY = -92.815799999999996,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 5,
+                            Description = "The city gate guard.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            Name = "Tristan",
+                            PositionX = 11.62283,
+                            PositionY = -113.61579999999999,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 6,
+                            Description = "The silver knight.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            Name = "Arthur",
+                            PositionX = 77.544120000000007,
+                            PositionY = -77.443010000000001,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 7,
+                            Description = "A farmer collecting enchanted pumpkins.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            Name = "Fa",
+                            PositionX = 6.0800000000000001,
+                            PositionY = -161.90000000000001,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 8,
+                            Description = "Queen of the frozen lands.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            Name = "Roselyn Aurora Queen",
+                            PositionX = 160.8554,
+                            PositionY = -35.648600000000002,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 9,
+                            Description = "The witch and disguised priest.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            Name = "Zephyr",
+                            PositionX = 6.9968139999999996,
+                            PositionY = -0.20945549999999999,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 10,
+                            Description = "The forbidden zone guard.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            Name = "Roland",
+                            PositionX = 70.456860000000006,
+                            PositionY = 18.803540000000002,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 11,
+                            Description = "A brave warrior fighting skeletons.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            Name = "Valiant Warrior",
+                            PositionX = -10.66112,
+                            PositionY = 54.928840000000001,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 12,
+                            Description = "The ghost of a young girl.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            Name = "Natalie",
+                            PositionX = -48.921259999999997,
+                            PositionY = -21.120059999999999,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 13,
+                            Description = "The lone guard of the deserted island.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            Name = "Elf Guard",
+                            PositionX = -6.2377580000000004,
+                            PositionY = -13.13438,
+                            Type = "QuestGiver"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.NPCDialogue", b =>
@@ -2587,6 +3435,878 @@ namespace DAL.Migrations
                     b.HasIndex("NPCId");
 
                     b.ToTable("NPCDialogues");
+
+                    b.HasData(
+                        new
+                        {
+                            NPCDialogueId = 1,
+                            Content = "Ah, a new traveler. Welcome to the Elf Forest.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 1,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 2,
+                            Content = "This forest has been peaceful for centuries, but recently, dark forces have begun to gather.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 1,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 3,
+                            Content = "I need your help to protect this place. Come speak to me when you are ready to begin.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 1,
+                            NPCId = 1,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 4,
+                            Content = "Before we can confront the darkness, we need to prepare some basic remedies.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 2,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 5,
+                            Content = "The old willow clearing has some magical herbs we can use.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 2,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 6,
+                            Content = "Please head over there and gather 3 White Flowers for me.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 2,
+                            NPCId = 1,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 7,
+                            Content = "You have returned quickly. Did you find the flowers?",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 3,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 8,
+                            Content = "Excellent, these are in perfect condition. They will make fine healing poultices.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 3,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 9,
+                            Content = "Thank you! Take this as a token of my appreciation.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 3,
+                            NPCId = 1,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 10,
+                            Content = "Now that you have your reward, it is time to learn how to defend yourself.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 4,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 11,
+                            Content = "In this world, skills are essential for survival. You cannot fight with bare hands alone.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 4,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 12,
+                            Content = "Open your Skill Panel and equip your first combat skill before you face real danger.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 4,
+                            NPCId = 1,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 13,
+                            Content = "Good, you are armed and ready. It is time to test your newfound abilities.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 5,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 14,
+                            Content = "The outskirts of our forest have been overrun by strange, aggressive slimes.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 5,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 15,
+                            Content = "Head out and defeat 3 SlimeLittle monsters to prove your worth to the village.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 5,
+                            NPCId = 1,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 16,
+                            Content = "You handled those slimes well. But a much greater threat lurks in the deep woods.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 6,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 17,
+                            Content = "A terrible Swamp Demon has made its lair there, corrupting the land with its presence.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 6,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 18,
+                            Content = "You must destroy the Swamp Demon and claim the Swamp Seal Book it guards. We are counting on you!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 6,
+                            NPCId = 1,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 19,
+                            Content = "Greetings, brave warrior. I am Lyra, the spirit of the Origin Tree.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 7,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 20,
+                            Content = "As you can see, the tree has been cursed and is slowly dying.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 7,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 21,
+                            Content = "Only the 4 Seal Books can cleanse it. You have one, but you must find the remaining three!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 7,
+                            NPCId = 2,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 22,
+                            Content = "Heh... So you are the one collecting the Seal Books?",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 8,
+                            NPCId = 3,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 23,
+                            Content = "You know nothing of the true history of this world, or why the tree was cursed.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 8,
+                            NPCId = 3,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 24,
+                            Content = "If you want the truth, follow me through this portal. Don't keep me waiting.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 8,
+                            NPCId = 3,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 25,
+                            Content = "Welcome to the beach. We were teleported here by the portal.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 9,
+                            NPCId = 4,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 26,
+                            Content = "You seem to have no money for food. Why don't you look for some work?",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 9,
+                            NPCId = 4,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 27,
+                            Content = "Go talk to Fa, he is nearby and might need some help.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 9,
+                            NPCId = 4,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 28,
+                            Content = "Ah, Elder Rowan sent you? Good timing.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 10,
+                            NPCId = 7,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 29,
+                            Content = "I need someone to help me harvest the fields.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 10,
+                            NPCId = 7,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 30,
+                            Content = "Please collect 8 Enchanted Pumpkins for me.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 10,
+                            NPCId = 7,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 31,
+                            Content = "Great job with the pumpkins! You are a hard worker.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 11,
+                            NPCId = 7,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 32,
+                            Content = "Now, I need these delivered to the city gate.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 11,
+                            NPCId = 7,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 33,
+                            Content = "Please take them to guard Tristan at the ruined city.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 11,
+                            NPCId = 7,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 34,
+                            Content = "Halt! Who goes there? Ah, you brought pumpkins from Fa?",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 12,
+                            NPCId = 5,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 35,
+                            Content = "Something is wrong in the city... It is too quiet.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 12,
+                            NPCId = 5,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 36,
+                            Content = "Please go inside and investigate. Let me know if you find anything suspicious.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 12,
+                            NPCId = 5,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 37,
+                            Content = "What?! The people inside have all been massacred? Corpses everywhere?",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 13,
+                            NPCId = 5,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 38,
+                            Content = "This is a disaster. We need someone strong to handle this.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 13,
+                            NPCId = 5,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 39,
+                            Content = "Please, go find the silver knight Arthur and report this!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 13,
+                            NPCId = 5,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 40,
+                            Content = "Greetings, warrior. I am Arthur, the silver knight.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 14,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 41,
+                            Content = "I suffered severe internal injuries and my power has been sealed away.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 14,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 42,
+                            Content = "You must train in Dungeon 2 to level up and unlock your true potential. Go!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 14,
+                            NPCId = 6,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 43,
+                            Content = "Splendid! You have trained well and cleared the dungeon.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 15,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 44,
+                            Content = "As promised, take this DarkExplosion skill and Silver Necklace.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 15,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 45,
+                            Content = "Now, use your power to defeat 10 evil monsters in the Ruined City!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 15,
+                            NPCId = 6,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 46,
+                            Content = "You have returned, and you are stronger than before.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 16,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 47,
+                            Content = "I recognize your true strength now. You are ready for the ultimate challenge.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 16,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 48,
+                            Content = "A terrible dragon threatens our existence. Go and slay the DragonBossIdle!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 16,
+                            NPCId = 6,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 49,
+                            Content = "You did it! The dragon is slain. I cannot thank you enough.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 17,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 50,
+                            Content = "You ask about the mysterious figure? The one who did this?",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 17,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 51,
+                            Content = "He went towards the frozen lands devastated by the codex. Head to the Frozen Mountains next.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 17,
+                            NPCId = 6,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 52,
+                            Content = "Ah, a survivor from the ruins. I am Queen Roselyn Aurora.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 18,
+                            NPCId = 8,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 53,
+                            Content = "This land is devastated by the codex. Only volunteers remain to defend it.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 18,
+                            NPCId = 8,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 54,
+                            Content = "Please, clear out 8 ice slimes from the Snow Fields to help us.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 18,
+                            NPCId = 8,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 55,
+                            Content = "Your efforts have not gone unnoticed. The slimes are thinning out.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 19,
+                            NPCId = 8,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 56,
+                            Content = "However, our Priest Zephyr requires supplies for a ritual.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 19,
+                            NPCId = 8,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 57,
+                            Content = "Take this Magic Flour and deliver it to him at the mountain peak.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 19,
+                            NPCId = 8,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 58,
+                            Content = "Ah, the flour from the Queen! Thank you, traveler.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 19,
+                            NPCId = 9,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 59,
+                            Content = "The codex has warped the creatures here. The beasts have become feral and dangerous.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 20,
+                            NPCId = 9,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 60,
+                            Content = "To secure our borders, go slay 5 Ice Dragons on the mountain.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 20,
+                            NPCId = 9,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 61,
+                            Content = "Halt! This is the forbidden zone. None may enter.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 62,
+                            Content = "Wait... you have the aura of one who has fought the Ice Dragons.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 63,
+                            Content = "Since you made it this far, help me explore this dangerous area.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 10,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 64,
+                            Content = "We have uncovered the origin of the codex... The truth is terrifying.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 65,
+                            Content = "A massive ancient golem guards the final piece of the puzzle.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 66,
+                            Content = "Defeat the giant GolemBoss to claim the Golem Seal Book! Do not fail us.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 10,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 67,
+                            Content = "Stay back! The undead are relentless today.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 23,
+                            NPCId = 11,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 68,
+                            Content = "An ancient power is leaking, causing skeletons to multiply out of control.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 23,
+                            NPCId = 11,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 69,
+                            Content = "I can't hold them off alone. Defeat 12 of them in the valley!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 23,
+                            NPCId = 11,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 70,
+                            Content = "The animals are fleeing from the abandoned village Tide-Knell. Investigate it and find Natalie.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 24,
+                            NPCId = 11,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 71,
+                            Content = "Are you here to help me? I cannot leave this place...",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 24,
+                            NPCId = 12,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 72,
+                            Content = "Please... dig up what is buried under the small tree near the old well.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 24,
+                            NPCId = 12,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 73,
+                            Content = "Thank you for finding my remains. Now I can finally rest in peace.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 12,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 74,
+                            Content = "The ancient power leak was my doing. I am so sorry for the chaos.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 12,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 75,
+                            Content = "Take this key. It will unlock the doors to the island castle. Farewell.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 12,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 76,
+                            Content = "You actually survived the waves and made it to this deserted island.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 26,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 77,
+                            Content = "I need your assistance to prepare a ritual of return.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 26,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 78,
+                            Content = "Help me collect 5 Ancient Leaves from the Northern Plateau.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 26,
+                            NPCId = 13,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 79,
+                            Content = "We have everything we need. But a dark presence blocks our path.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 80,
+                            Content = "The UnderKing himself has awakened, and he guards the final Seal Book.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 81,
+                            Content = "You must end his reign! Defeat the UnderKing and claim the book!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 13,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 82,
+                            Content = "It is done. The UnderKing is defeated, and you have all 4 Seal Books.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 28,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 83,
+                            Content = "The fate of the Origin Tree now rests entirely in your hands.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 28,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 84,
+                            Content = "Farewell, hero. I will use my power to open a portal back to the Elf Forest. Save the tree!",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 28,
+                            NPCId = 13,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 85,
+                            Content = "You have returned! And I can sense the power of the 4 Seal Books.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 29,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 86,
+                            Content = "The curse is breaking... The Origin Tree is finally healing!",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 29,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 87,
+                            Content = "Thank you! The Origin Tree is saved. But this is not the end... To be continued.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 29,
+                            NPCId = 2,
+                            ResponseType = "Reward"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.PlayerAchievement", b =>
@@ -3302,6 +5022,568 @@ namespace DAL.Migrations
                     b.HasIndex("RewardSkillId");
 
                     b.ToTable("Quests");
+
+                    b.HasData(
+                        new
+                        {
+                            QuestId = 1,
+                            DefaultStatus = "NotStarted",
+                            Description = "Talk to Elder Rowan in the Elf Forest.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Elf Forest",
+                            ObjectiveTarget = "Elder Rowan",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 1,
+                            RewardExperience = 5,
+                            RewardGems = 5m,
+                            RewardGold = 10m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 1] Speak with Elder Rowan",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 2,
+                            DefaultStatus = "NotStarted",
+                            Description = "Collect 3 White Flowers from the forest.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Elf Forest",
+                            ObjectiveTarget = "White Flower",
+                            ObjectiveType = "Collect",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 1,
+                            RewardExperience = 10,
+                            RewardGems = 5m,
+                            RewardGold = 8m,
+                            TargetAmount = 3,
+                            Title = "[Chapter 1] Gather White Flowers",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 3,
+                            DefaultStatus = "NotStarted",
+                            Description = "Deliver the gathered flowers to Elder Rowan.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Elf Forest",
+                            ObjectiveTarget = "Elder Rowan",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 1,
+                            RewardExperience = 5,
+                            RewardGems = 5m,
+                            RewardGold = 5m,
+                            RewardSkillId = 10,
+                            TargetAmount = 1,
+                            Title = "[Chapter 1] Deliver White Flowers",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 4,
+                            DefaultStatus = "NotStarted",
+                            Description = "Equip your first combat skill.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Elf Forest",
+                            ObjectiveTarget = "Skill Panel",
+                            ObjectiveType = "EquipSkill",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 1,
+                            RewardExperience = 10,
+                            RewardGems = 5m,
+                            RewardGold = 10m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 1] Equip Your Skill",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 5,
+                            DefaultStatus = "NotStarted",
+                            Description = "Kill 3 SlimeLittle monsters in the forest.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Elf Forest",
+                            ObjectiveTarget = "SlimeLittle",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 1,
+                            RewardExperience = 15,
+                            RewardGems = 5m,
+                            RewardGold = 15m,
+                            TargetAmount = 3,
+                            Title = "[Chapter 1] Defeat Slimes",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 6,
+                            BossMonsterId = 2,
+                            DefaultStatus = "NotStarted",
+                            Description = "Slay the Swamp Demon and obtain its Seal Book.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Deep Woods",
+                            ObjectiveTarget = "SwampDemon",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 2,
+                            RewardExperience = 25,
+                            RewardGems = 5m,
+                            RewardGold = 50m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 1] The Swamp Demon",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 7,
+                            DefaultStatus = "NotStarted",
+                            Description = "Talk to Lyra about the cursed Origin Tree and the 4 Seal Books.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Origin Tree",
+                            ObjectiveTarget = "Lyra",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Lyra",
+                            RequiredLevel = 2,
+                            RewardExperience = 10,
+                            RewardGems = 5m,
+                            RewardGold = 10m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 1] The Origin Tree",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 8,
+                            DefaultStatus = "NotStarted",
+                            Description = "Follow the cloaked figure through the portal to Autumn Pumpkin.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Elf Forest",
+                            ObjectiveTarget = "Portal",
+                            ObjectiveType = "Explore",
+                            QuestGiverName = "Mysterious Figure",
+                            RequiredLevel = 2,
+                            RewardExperience = 5,
+                            RewardGems = 5m,
+                            RewardGold = 5m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 1] The Mysterious Figure",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 9,
+                            DefaultStatus = "NotStarted",
+                            Description = "Teleported onto the beach, proceed to the castle and ask Elder Rowan where this is. After introductions, realize you have no money and ask if there is work to earn food.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Autumn Pumpkin",
+                            ObjectiveTarget = "Elder Rowan",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 3,
+                            RewardExperience = 100,
+                            RewardGems = 5m,
+                            RewardGold = 5m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 2] Where Are We?",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 10,
+                            DefaultStatus = "NotStarted",
+                            Description = "Collect 8 Enchanted Pumpkins from the field and hand them over to farmer Fa.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Pumpkin Town",
+                            ObjectiveTarget = "Enchanted Pumpkin",
+                            ObjectiveType = "Collect",
+                            QuestGiverName = "Fa",
+                            RequiredLevel = 3,
+                            RewardExperience = 300,
+                            RewardGems = 5m,
+                            RewardGold = 10m,
+                            TargetAmount = 8,
+                            Title = "[Chapter 2] Work for Food",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 11,
+                            DefaultStatus = "NotStarted",
+                            Description = "Help Fa deliver the harvested pumpkins to guard Tristan at the ruined city gate.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "City Gate",
+                            ObjectiveTarget = "Tristan",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Fa",
+                            RequiredLevel = 3,
+                            RewardExperience = 200,
+                            RewardGems = 5m,
+                            RewardGold = 5m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 2] Delivery to the City",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 12,
+                            DefaultStatus = "NotStarted",
+                            Description = "Enter the city and investigate the dead bodies, then report back to guard Tristan.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Ruined City",
+                            ObjectiveTarget = "Corpse",
+                            ObjectiveType = "Interact",
+                            QuestGiverName = "Tristan",
+                            RequiredLevel = 3,
+                            RewardExperience = 250,
+                            RewardGems = 5m,
+                            RewardGold = 5m,
+                            TargetAmount = 5,
+                            Title = "[Chapter 2] The Ruined City",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 13,
+                            DefaultStatus = "NotStarted",
+                            Description = "Report the massacre to Tristan. He asks you to find the silver knight Arthur for help.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Ruined City",
+                            ObjectiveTarget = "Arthur",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Tristan",
+                            RequiredLevel = 3,
+                            RewardExperience = 250,
+                            RewardGems = 5m,
+                            RewardGold = 5m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 2] Seek the Silver Knight",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 14,
+                            DefaultStatus = "NotStarted",
+                            Description = "Speak with Arthur and learn about his internal injuries and sealed power. Enter Dungeon ID 2 to train and level up your strength.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Dungeon",
+                            ObjectiveTarget = "Dungeon_2",
+                            ObjectiveType = "Explore",
+                            QuestGiverName = "Arthur",
+                            RequiredLevel = 12,
+                            RewardExperience = 15,
+                            RewardGems = 5m,
+                            RewardGold = 15m,
+                            RewardItemId = 18,
+                            RewardSkillId = 9,
+                            TargetAmount = 1,
+                            Title = "[Chapter 2] The Silver Knight's Training",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 15,
+                            DefaultStatus = "NotStarted",
+                            Description = "Receive the DarkExplosion skill and Silver Necklace from Arthur. Take his place to defeat 10 evil monsters in the Ruined City.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Ruined City",
+                            ObjectiveTarget = "Ghost/RobberAssassin/RedGuard/GoblinSpear/GoblinWarrior/RobberArcher/NecromancerCast",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Arthur",
+                            RequiredLevel = 12,
+                            RewardExperience = 20,
+                            RewardGems = 5m,
+                            RewardGold = 20m,
+                            TargetAmount = 10,
+                            Title = "[Chapter 2] Defeat the Evil Monsters",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 16,
+                            BossMonsterId = 7,
+                            DefaultStatus = "NotStarted",
+                            Description = "Turn in the quest and get Arthur's recognition of your strength, receive quest to kill DragonBossIdle. Go kill dragon DragonBossIdle.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Ruined City",
+                            ObjectiveTarget = "DragonBossIdle",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Arthur",
+                            RequiredLevel = 5,
+                            RewardExperience = 50,
+                            RewardGems = 5m,
+                            RewardGold = 100m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 2] Slay the Dragon",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 17,
+                            DefaultStatus = "NotStarted",
+                            Description = "Talk to Arthur and receive the knight's thanks, ask about the whereabouts of the ??? and he directs you to the frozen land devastated by the codex, go to Frozen Mountains.",
+                            IsActive = true,
+                            MapName = "AutumnPumpkin",
+                            ObjectiveLocation = "Ruined City",
+                            ObjectiveTarget = "Arthur",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Arthur",
+                            RequiredLevel = 5,
+                            RewardExperience = 10,
+                            RewardGems = 5m,
+                            RewardGold = 10m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 2] The Frozen Threat",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 18,
+                            DefaultStatus = "NotStarted",
+                            Description = "Meet Queen Roselyn Aurora and defeat 8 Ice Slimes.",
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            ObjectiveLocation = "Snow Fields",
+                            ObjectiveTarget = "slime_ice",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Roselyn Aurora Queen",
+                            RequiredLevel = 6,
+                            RewardExperience = 30,
+                            RewardGems = 5m,
+                            RewardGold = 30m,
+                            RewardItemId = 31,
+                            TargetAmount = 8,
+                            Title = "[Chapter 3] The Ice Slimes",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 19,
+                            DefaultStatus = "NotStarted",
+                            Description = "Deliver Magic Flour (obtained from the Queen) to the Priest (Zephyr).",
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            ObjectiveLocation = "Frozen Mountain",
+                            ObjectiveTarget = "Zephyr",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Roselyn Aurora Queen",
+                            RequiredLevel = 6,
+                            RewardExperience = 15,
+                            RewardGems = 5m,
+                            RewardGold = 15m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 3] Magic Flour for the Priest",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 20,
+                            DefaultStatus = "NotStarted",
+                            Description = "Meet Zephyr and slay 5 Ice Dragons on the mountain.",
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            ObjectiveLocation = "Frozen Mountain",
+                            ObjectiveTarget = "Ice_Dragon",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Zephyr",
+                            RequiredLevel = 7,
+                            RewardExperience = 40,
+                            RewardGems = 5m,
+                            RewardGold = 40m,
+                            TargetAmount = 5,
+                            Title = "[Chapter 3] Dragons of Snow",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 21,
+                            DefaultStatus = "NotStarted",
+                            Description = "Head to the forbidden zone and speak with Roland to explore it.",
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            ObjectiveLocation = "Forbidden Zone",
+                            ObjectiveTarget = "Roland",
+                            ObjectiveType = "Explore",
+                            QuestGiverName = "Roland",
+                            RequiredLevel = 7,
+                            RewardExperience = 15,
+                            RewardGems = 5m,
+                            RewardGold = 15m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 3] The Forbidden Zone",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 22,
+                            BossMonsterId = 10,
+                            DefaultStatus = "NotStarted",
+                            Description = "Discover the truth of the codex and defeat GolemBoss to get the Golem Seal Book.",
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            ObjectiveLocation = "Forbidden Zone",
+                            ObjectiveTarget = "GolemBoss",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Roland",
+                            RequiredLevel = 8,
+                            RewardExperience = 80,
+                            RewardGems = 5m,
+                            RewardGold = 150m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 3] Truth of the Codex",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 23,
+                            DefaultStatus = "NotStarted",
+                            Description = "Defeat 12 skeletons in the valley for Valiant Warrior.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Valley",
+                            ObjectiveTarget = "Skeleton",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Valiant Warrior",
+                            RequiredLevel = 9,
+                            RewardExperience = 50,
+                            RewardGems = 5m,
+                            RewardGold = 50m,
+                            TargetAmount = 12,
+                            Title = "[Chapter 4] Skeleton Army",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 24,
+                            DefaultStatus = "NotStarted",
+                            Description = "Go to Tide-Knell village, meet Natalie, and dig up the skull near the old well.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Tide-Knell",
+                            ObjectiveTarget = "Skull",
+                            ObjectiveType = "Interact",
+                            QuestGiverName = "Valiant Warrior",
+                            RequiredLevel = 9,
+                            RewardExperience = 30,
+                            RewardGems = 5m,
+                            RewardGold = 30m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 4] The Abandoned Village",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 25,
+                            DefaultStatus = "NotStarted",
+                            Description = "Read Natalie's suicide letter and bury her remains under the ivy tree. Receive Mystic Key.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Tide-Knell",
+                            ObjectiveTarget = "Natalie",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Natalie",
+                            RequiredLevel = 10,
+                            RewardExperience = 40,
+                            RewardGems = 5m,
+                            RewardGold = 40m,
+                            RewardItemId = 33,
+                            TargetAmount = 1,
+                            Title = "[Chapter 4] Rest in Peace",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 26,
+                            DefaultStatus = "NotStarted",
+                            Description = "Talk to Elf Guard on the deserted island and collect 5 Ancient Leaves.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Northern Plateau",
+                            ObjectiveTarget = "Ancient Leaves",
+                            ObjectiveType = "Collect",
+                            QuestGiverName = "Elf Guard",
+                            RequiredLevel = 10,
+                            RewardExperience = 45,
+                            RewardGems = 5m,
+                            RewardGold = 45m,
+                            TargetAmount = 5,
+                            Title = "[Chapter 4] Deserted Island",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 27,
+                            BossMonsterId = 15,
+                            DefaultStatus = "NotStarted",
+                            Description = "Defeat the UnderKing to claim the final UnderKing Seal Book.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Deserted Island",
+                            ObjectiveTarget = "UnderKing",
+                            ObjectiveType = "Defeat",
+                            QuestGiverName = "Elf Guard",
+                            RequiredLevel = 11,
+                            RewardExperience = 200,
+                            RewardGems = 5m,
+                            RewardGold = 300m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 4] The UnderKing",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 28,
+                            DefaultStatus = "NotStarted",
+                            Description = "Talk to Elf Guard. He will open a portal back to the Elf Forest.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Deserted Island",
+                            ObjectiveTarget = "Elf Guard",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Elf Guard",
+                            RequiredLevel = 12,
+                            RewardExperience = 10,
+                            RewardGems = 5m,
+                            RewardGold = 10m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 4] Return to Elf Forest",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 29,
+                            DefaultStatus = "NotStarted",
+                            Description = "Talk to Lyra and use the 4 Seal Books to cleanse the tree. \"To be continued\".",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Origin Tree",
+                            ObjectiveTarget = "Lyra",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Lyra",
+                            RequiredLevel = 12,
+                            RewardExperience = 500,
+                            RewardGems = 5m,
+                            RewardGold = 500m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 1] Save the Origin Tree",
+                            Type = "Main"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.QuestRewardItem", b =>
