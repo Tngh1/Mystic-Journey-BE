@@ -73,6 +73,7 @@ namespace BLL.DTOs
         public string? PlayerName { get; set; }
         public int ShopItemId { get; set; }
         public string? ItemName { get; set; }
+        public string? ItemIconUrl { get; set; }
         public int Quantity { get; set; }
         public decimal TotalPrice { get; set; }
         public string Currency { get; set; } = string.Empty;
