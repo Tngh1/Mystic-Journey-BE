@@ -658,18 +658,8 @@ namespace Mystic_Journey_API.Controllers
                 var skinArmor = UpsertSkin("[ELF] Guardian Plate", "Sturdy plate armor worn by the forest guardians.", "Armor", "Rare");
                 await _ctx.SaveChangesAsync();
 
-                // 3. Reset ElfForest quests and dependent records in FK-safe order.
-                var existingQuests = await _ctx.Quests.Where(q => EF.Functions.Like(q.Title, "[ELFFOREST]%")).ToListAsync();
-                if (existingQuests.Count > 0)
-                {
-                    var existingQuestIds = existingQuests.Select(q => q.QuestId).ToList();
-                    _ctx.NPCDialogues.RemoveRange(_ctx.NPCDialogues.Where(d => d.LinkedQuestId.HasValue && existingQuestIds.Contains(d.LinkedQuestId.Value)));
-                    _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => existingQuestIds.Contains(pq.QuestId)));
-                    await _ctx.SaveChangesAsync();
-
-                    _ctx.Quests.RemoveRange(existingQuests);
-                    await _ctx.SaveChangesAsync();
-                }
+                // 3. Keep system quests intact (they are managed by HasData/migrations)
+                /* Legacy quest cleanup skipped to preserve system quests */
 
                 // Upsert 3 tutorial skills rewarded when player delivers 3 White Flowers
                 var elfSkillNames = new[] { 
@@ -967,7 +957,7 @@ namespace Mystic_Journey_API.Controllers
 
                     // assign quests
                     var elfQuests = await _ctx.Quests
-                        .Where(q => EF.Functions.Like(q.Title, "[ELFFOREST]%") && q.RequiredLevel <= profile.Level)
+                        .Where(q => q.MapName == "ElfForest" && q.RequiredLevel <= profile.Level)
                         .ToListAsync();
                     foreach (var q in elfQuests)
                     {
@@ -1035,6 +1025,65 @@ namespace Mystic_Journey_API.Controllers
 
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
+
+                // Update profile for elf2: Level 12, AutumnPumpkin map, completed Quest 16
+                var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
+                if (p2Profile != null)
+                {
+                    p2Profile.Level = 12;
+                    p2Profile.Gold = 5000;
+                    p2Profile.Gems = 500;
+                    p2Profile.LastMapName = "AutumnPumpkin";
+                    p2Profile.PositionX = 6.0;
+                    p2Profile.PositionY = -90.0;
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // Clear existing PlayerQuests for elf2 and seed Q1..Q16 as Claimed (Q16 is Slay the Dragon)
+                _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p2));
+                await _ctx.SaveChangesAsync();
+
+                for (int qId = 1; qId <= 16; qId++)
+                {
+                    _ctx.PlayerQuests.Add(new PlayerQuest
+                    {
+                        PlayerProfileId = p2,
+                        QuestId = qId,
+                        Status = "Claimed",
+                        TargetValue = 1,
+                        Progress = 1,
+                        AcceptedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow,
+                        ClaimedAt = DateTime.UtcNow
+                    });
+                }
+                await _ctx.SaveChangesAsync();
+
+                // Unlock skills for elf2
+                foreach (var skillId in new[] { 
+                    poisonZoneSkill.SkillId, 
+                    explosionSkill.SkillId, 
+                    apSkill.SkillId, 
+                    skillAd.SkillId, 
+                    skillKnightAttack.SkillId, 
+                    skillMuiTenBang.SkillId, 
+                    skillThapAS.SkillId 
+                })
+                {
+                    var alreadyHas = await _ctx.PlayerSkills.AnyAsync(ps => ps.PlayerProfileId == p2 && ps.SkillId == skillId);
+                    if (!alreadyHas)
+                    {
+                        _ctx.PlayerSkills.Add(new PlayerSkill
+                        {
+                            PlayerProfileId = p2,
+                            SkillId = skillId,
+                            Level = 1,
+                            Experience = 0,
+                            UnlockedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+                await _ctx.SaveChangesAsync();
 
                 await tx.CommitAsync();
 

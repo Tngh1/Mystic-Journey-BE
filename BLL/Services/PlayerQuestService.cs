@@ -45,15 +45,19 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
 
             var mapName = NormalizeMapName(profile.LastMapName);
+
+            // 1. Fetch ALL player quest records across ALL maps to preserve active/in-progress quests
+            var allPlayerQuests = await _playerQuestRepo.GetByPlayerId(playerProfileId);
+
             var activeMapQuests = (await _questRepo.GetActiveQuests())
                 .Where(q => string.Equals(q.MapName, mapName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(q => q.QuestId)
                 .ToList();
 
-            var records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
-            var existingMap = records
+            var existingMap = allPlayerQuests
                 .GroupBy(pq => pq.QuestId)
                 .ToDictionary(g => g.Key, g => g.First());
+
             var createdAny = false;
 
             foreach (var quest in activeMapQuests.Where(q => !IsMainQuest(q) && q.RequiredLevel <= profile.Level))
@@ -87,29 +91,16 @@ namespace BLL.Services
             }
 
             if (createdAny)
-                records = await _playerQuestRepo.GetByPlayerIdAndMap(playerProfileId, mapName);
+                allPlayerQuests = await _playerQuestRepo.GetByPlayerId(playerProfileId);
 
-            existingMap = records
+            existingMap = allPlayerQuests
                 .GroupBy(pq => pq.QuestId)
                 .ToDictionary(g => g.Key, g => g.First());
 
-            var visible = new List<PlayerQuest>();
-            for (var i = 0; i < mainChain.Count; i++)
-            {
-                var quest = mainChain[i];
-                if (quest.RequiredLevel > profile.Level)
-                    continue;
-                if (!existingMap.TryGetValue(quest.QuestId, out var record))
-                    continue;
-                if (!IsMainQuestUnlocked(mainChain, i, existingMap))
-                    continue;
-
-                visible.Add(record);
-            }
-
-            visible.AddRange(records.Where(pq =>
-                !IsMainQuest(pq.Quest) &&
-                (pq.Quest == null || pq.Quest.RequiredLevel <= profile.Level || !IsStatus(pq, "NotStarted"))));
+            // 2. Visible list: include all active/in-progress/completed quests AND map-specific quests
+            var visible = allPlayerQuests
+                .Where(pq => !IsStatus(pq, "NotStarted") || (pq.Quest != null && string.Equals(pq.Quest.MapName, mapName, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
 
             var sortedVisible = visible
                 .GroupBy(pq => pq.QuestId)
