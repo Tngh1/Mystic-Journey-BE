@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260725032300_UpdateElfGuardPosition")]
+    partial class UpdateElfGuardPosition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3382,8 +3385,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             Name = "Elf Guard",
-                            PositionX = -104.80000305175781,
-                            PositionY = -4.7760000228881836,
+                            PositionX = 4.9145519999999996,
+                            PositionY = 1.045023,
                             Type = "QuestGiver"
                         });
                 });

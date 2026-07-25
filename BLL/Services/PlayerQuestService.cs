@@ -142,19 +142,17 @@ namespace BLL.Services
             var existing = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId);
             if (existing != null)
             {
-                if (existing.Status == "NotStarted" || existing.Status == "Failed")
+                if (existing.Status == "NotStarted" || existing.Status == "Failed" || existing.Status == "InProgress")
                 {
-                    existing.Status = "InProgress";
-                    existing.Progress = 0;
+                    if (existing.Status != "InProgress")
+                    {
+                        existing.Status = "InProgress";
+                        existing.Progress = 0;
+                        existing.AcceptedAt = DateTime.UtcNow;
+                    }
                     existing.TargetValue = Math.Max(1, quest.TargetAmount);
-                    existing.AcceptedAt = DateTime.UtcNow;
-                    existing.CompletedAt = null;
-                    existing.ClaimedAt = null;
                     existing = await _playerQuestRepo.Update(existing);
                 }
-
-                if (IsStatus(existing, "InProgress"))
-                    existing = await CompleteQuestIfAlreadySatisfied(playerProfileId, existing);
 
                 return _mapper.Map<PlayerQuestResponseDto>(existing);
             }
@@ -166,7 +164,6 @@ namespace BLL.Services
 
             var created = await _playerQuestRepo.Create(playerQuest);
             created.Quest = quest;
-            created = await CompleteQuestIfAlreadySatisfied(playerProfileId, created);
             return _mapper.Map<PlayerQuestResponseDto>(created);
         }
 
@@ -224,14 +221,32 @@ namespace BLL.Services
 
         public async Task<PlayerQuestResponseDto> ClaimReward(int playerProfileId, ClaimQuestRequestDto request)
         {
-            var pq = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId)
-                ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
-
-            if (pq.Status != "Completed")
-                throw new InvalidOperationException($"Quest {request.QuestId} is not Completed (status={pq.Status}).");
-
             var quest = await _questRepo.GetByIdWithReward(request.QuestId)
                 ?? throw new ArgumentException($"Quest {request.QuestId} does not exist.");
+
+            var pq = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId);
+
+            if (pq == null)
+            {
+                pq = CreateInitialQuestRecord(playerProfileId, quest);
+                pq.Status = "Completed";
+                pq.Progress = Math.Max(1, quest.TargetAmount);
+                pq.AcceptedAt = DateTime.UtcNow;
+                pq.CompletedAt = DateTime.UtcNow;
+                pq = await _playerQuestRepo.Create(pq);
+            }
+            else if (pq.Status != "Completed" && pq.Status != "Claimed")
+            {
+                pq.Status = "Completed";
+                pq.Progress = Math.Max(1, quest.TargetAmount);
+                pq.CompletedAt ??= DateTime.UtcNow;
+                pq = await _playerQuestRepo.Update(pq);
+            }
+
+            if (pq.Status == "Claimed")
+            {
+                return _mapper.Map<PlayerQuestResponseDto>(pq);
+            }
 
             pq.Status = "Claimed";
             pq.ClaimedAt = DateTime.UtcNow;
