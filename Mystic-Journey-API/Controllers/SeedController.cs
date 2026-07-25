@@ -1024,26 +1024,35 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
 
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
-                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
+                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Archer 2", "Archer");
 
-                // Update profile for elf2: Level 12, AutumnPumpkin map, completed Quest 16
+                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, completed Quest 23
                 var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
                 if (p2Profile != null)
                 {
-                    p2Profile.Level = 12;
+                    p2Profile.Class = "Archer";
+                    p2Profile.Level = 15;
                     p2Profile.Gold = 5000;
                     p2Profile.Gems = 500;
-                    p2Profile.LastMapName = "AutumnPumpkin";
-                    p2Profile.PositionX = 6.0;
-                    p2Profile.PositionY = -90.0;
+                    p2Profile.LastMapName = "AbandonedCastle";
+                    p2Profile.PositionX = -10.66; // Vị trí đứng gần Valiant Warrior
+                    p2Profile.PositionY = 53.0; 
                     await _ctx.SaveChangesAsync();
                 }
 
-                // Clear existing PlayerQuests for elf2 and seed Q1..Q16 as Claimed (Q16 is Slay the Dragon)
+                // Equip Archer skin for elf2 instead of Knight default skin
+                var p2Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p2).ToListAsync();
+                foreach (var skin in p2Skins)
+                {
+                    skin.IsEquipped = (skin.SkinId == skinAlt.SkinId || skin.SkinId == 2);
+                }
+                await _ctx.SaveChangesAsync();
+
+                // Clear existing PlayerQuests for elf2 and seed Q1..Q23 as Claimed
                 _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p2));
                 await _ctx.SaveChangesAsync();
 
-                for (int qId = 1; qId <= 16; qId++)
+                for (int qId = 1; qId <= 23; qId++)
                 {
                     _ctx.PlayerQuests.Add(new PlayerQuest
                     {
