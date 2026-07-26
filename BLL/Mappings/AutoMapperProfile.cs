@@ -219,21 +219,21 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.IsDungeonRepeatable, opt => opt.MapFrom(src => src.Dungeon != null ? src.Dungeon.IsRepeatable : true));
 
             // ═══════════════════════════════════════════════════════════════════════
-            // THƯ (Mail)
+            // THƯ (Mailbox)
             // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ MailRewardItem sang DTO (kèm tên item và icon từ navigation property).
-            CreateMap<MailRewardItem, MailRewardItemDto>()
+            // Ánh xạ MailboxRewardItem sang DTO (kèm tên item và icon từ navigation property).
+            CreateMap<MailboxRewardItem, MailboxRewardItemDto>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null));
 
             // Ánh xạ thư sang chi tiết (kèm vật phẩm đính kèm).
-            CreateMap<Mail, MailDetailDto>()
+            CreateMap<Mailbox, MailboxDetailDto>()
                 .ForMember(dest => dest.PlayerName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
-                .ForMember(dest => dest.AttachedItems, opt => opt.MapFrom(src => src.AttachedItems ?? new List<MailRewardItem>()));
+                .ForMember(dest => dest.AttachedItems, opt => opt.MapFrom(src => src.AttachedItems ?? new List<MailboxRewardItem>()));
 
             // Ánh xạ thư sang tóm tắt (kèm trạng thái nhận thưởng và thời gian hết hạn).
-            CreateMap<Mail, MailSummaryDto>()
+            CreateMap<Mailbox, MailboxSummaryDto>()
                 .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => (src.AttachedItems != null && src.AttachedItems.Any()) && !src.IsClaimed))
                 .ForMember(dest => dest.RemainingDays, opt => opt.MapFrom(src => src.ExpiredAt.HasValue ? (int?)Math.Max(0, (int)(src.ExpiredAt.Value - DateTime.UtcNow).TotalDays) : null));
 

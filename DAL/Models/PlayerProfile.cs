@@ -73,7 +73,7 @@ namespace DAL.Models
         public ICollection<PlayerSkill> PlayerSkills { get; set; } = new List<PlayerSkill>();
         public ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();
         public ICollection<PlayerBuff> PlayerBuffs { get; set; } = new List<PlayerBuff>();
-        public ICollection<Mail> Mails { get; set; } = new List<Mail>();
+        public ICollection<Mailbox> Mailboxes { get; set; } = new List<Mailbox>();
         public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
         public GuildMember? GuildMember { get; set; }
     }

@@ -107,9 +107,9 @@ builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
 builder.Services.AddScoped<IContentService, ContentService>();
 
-// Mail Services
-builder.Services.AddScoped<IMailRepository, MailRepository>();
-builder.Services.AddScoped<IMailService, MailService>();
+// Mailbox Services
+builder.Services.AddScoped<IMailboxRepository, MailboxRepository>();
+builder.Services.AddScoped<IMailboxService, MailboxService>();
 
 // Inventory Services
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();

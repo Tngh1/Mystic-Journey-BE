@@ -32,8 +32,8 @@ namespace DAL.Data
         public DbSet<PlayerCurrencyLog> PlayerCurrencyLogs => Set<PlayerCurrencyLog>();
         public DbSet<ShopItem> ShopItems => Set<ShopItem>();
         public DbSet<PlayerShopRefreshState> PlayerShopRefreshStates => Set<PlayerShopRefreshState>();
-        public DbSet<Mail> Mails => Set<Mail>();
-        public DbSet<MailRewardItem> MailRewardItems => Set<MailRewardItem>();
+        public DbSet<Mailbox> Mailboxes => Set<Mailbox>();
+        public DbSet<MailboxRewardItem> MailboxRewardItems => Set<MailboxRewardItem>();
         public DbSet<Friend> Friends => Set<Friend>();
         public DbSet<FriendBlock> FriendBlocks => Set<FriendBlock>();
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
