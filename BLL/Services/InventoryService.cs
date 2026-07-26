@@ -278,11 +278,40 @@ namespace BLL.Services
             if (inv.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("Item does not belong to player.");
 
-            if (inv.Item == null || inv.Item.Type != "Consumable")
-                throw new InvalidOperationException("Item is not consumable.");
+            bool isConsumable = inv.Item != null && inv.Item.Type == "Consumable";
+            bool isQuestItem  = inv.Item != null && inv.Item.Type == "QuestItem";
+
+            if (!isConsumable && !isQuestItem)
+                throw new InvalidOperationException("Item is not consumable or a quest item.");
 
             if (request.Quantity <= 0)
                 throw new ArgumentException("Quantity must be at least 1.");
+
+            // QuestItem: chỉ xóa, không áp dụng hiệu ứng
+            if (isQuestItem)
+            {
+                var questResult = new ConsumeItemResultDto
+                {
+                    ItemName          = inv.Item!.Name ?? string.Empty,
+                    EffectType        = "None",
+                    EffectValue       = 0,
+                    RemainingQuantity = Math.Max(0, inv.Quantity - request.Quantity)
+                };
+
+                await _transactionManager.ExecuteInTransactionAsync(async () =>
+                {
+                    if (inv.Quantity < request.Quantity)
+                        throw new InvalidOperationException("Not enough quantity to remove.");
+
+                    inv.Quantity -= request.Quantity;
+                    if (inv.Quantity <= 0)
+                        await _inventoryRepository.DeleteItem(inv.InventoryItemId);
+                    else
+                        await _inventoryRepository.UpdateItem(inv);
+                });
+
+                return questResult;
+            }
 
             var result = new ConsumeItemResultDto
             {

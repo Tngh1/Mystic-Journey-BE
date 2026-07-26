@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260724175810_UpdateQuest25_InteractIvyTree")]
+    partial class UpdateQuest25_InteractIvyTree
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3382,8 +3385,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             Name = "Elf Guard",
-                            PositionX = -104.80000305175781,
-                            PositionY = -4.7760000228881836,
+                            PositionX = -6.2377580000000004,
+                            PositionY = -13.13438,
                             Type = "QuestGiver"
                         });
                 });
@@ -4178,7 +4181,7 @@ namespace DAL.Migrations
                             IsActive = true,
                             LinkedQuestId = 25,
                             NPCId = 12,
-                            ResponseType = "Quest"
+                            ResponseType = "None"
                         },
                         new
                         {
@@ -4283,30 +4286,20 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 86,
-                            Content = "Please, hurry! Use the books on the Origin Tree to cleanse the corruption.",
+                            Content = "The curse is breaking... The Origin Tree is finally healing!",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 29,
-                            NPCId = 2,
-                            ResponseType = "Quest"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 87,
-                            Content = "The curse is breaking... The Origin Tree is finally healing!",
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            LinkedQuestId = 31,
                             NPCId = 2,
                             ResponseType = "None"
                         },
                         new
                         {
-                            NPCDialogueId = 88,
+                            NPCDialogueId = 87,
                             Content = "Thank you! The Origin Tree is saved. But this is not the end... To be continued.",
-                            DisplayOrder = 2,
+                            DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 31,
+                            LinkedQuestId = 29,
                             NPCId = 2,
                             ResponseType = "Reward"
                         });
@@ -4689,9 +4682,6 @@ namespace DAL.Migrations
                     b.HasIndex("PlayerProfileId");
 
                     b.HasIndex("QuestId");
-
-                    b.HasIndex("PlayerProfileId", "QuestId")
-                        .IsUnique();
 
                     b.ToTable("PlayerQuests");
                 });
@@ -5576,7 +5566,7 @@ namespace DAL.Migrations
                         {
                             QuestId = 29,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Lyra about the 4 Seal Books.",
+                            Description = "Talk to Lyra and use the 4 Seal Books to cleanse the tree. \"To be continued\".",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Origin Tree",
@@ -5584,49 +5574,11 @@ namespace DAL.Migrations
                             ObjectiveType = "Talk",
                             QuestGiverName = "Lyra",
                             RequiredLevel = 12,
-                            RewardExperience = 50,
+                            RewardExperience = 500,
                             RewardGems = 5m,
-                            RewardGold = 50m,
+                            RewardGold = 500m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] Return with the Seals",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 30,
-                            DefaultStatus = "NotStarted",
-                            Description = "Use the 4 Seal Books on the Origin Tree.",
-                            IsActive = true,
-                            MapName = "ElfForest",
-                            ObjectiveLocation = "Elf Forest",
-                            ObjectiveTarget = "Origin Tree",
-                            ObjectiveType = "Interact",
-                            QuestGiverName = "Lyra",
-                            RequiredLevel = 12,
-                            RewardExperience = 250,
-                            RewardGems = 5m,
-                            RewardGold = 250m,
-                            TargetAmount = 1,
-                            Title = "[Chapter 1] Heal the Origin Tree",
-                            Type = "Main"
-                        },
-                        new
-                        {
-                            QuestId = 31,
-                            DefaultStatus = "NotStarted",
-                            Description = "Talk to Lyra. The Origin Tree is saved. To be continued...",
-                            IsActive = true,
-                            MapName = "ElfForest",
-                            ObjectiveLocation = "Origin Tree",
-                            ObjectiveTarget = "Lyra",
-                            ObjectiveType = "Talk",
-                            QuestGiverName = "Lyra",
-                            RequiredLevel = 12,
-                            RewardExperience = 200,
-                            RewardGems = 5m,
-                            RewardGold = 200m,
-                            TargetAmount = 1,
-                            Title = "[Chapter 1] A New Dawn",
+                            Title = "[Chapter 1] Save the Origin Tree",
                             Type = "Main"
                         });
                 });
@@ -5993,91 +5945,6 @@ namespace DAL.Migrations
                             IsActive = true,
                             Name = "DarkPoisonZone",
                             TargetType = "Area",
-                            Type = "Active",
-                            UnlockLevel = 1
-                        },
-                        new
-                        {
-                            SkillId = 11,
-                            BaseDamage = 0.0,
-                            ClassRequirement = "Archer",
-                            CooldownSeconds = 20,
-                            CorruptionCost = 0f,
-                            DamageGrowthPercent = 0.0,
-                            DamagePerLevel = 0.0,
-                            DamageType = "Physical",
-                            Description = "Automatically fires in the direction the archer is facing.",
-                            IsActive = true,
-                            Name = "DeadlyCurse",
-                            TargetType = "SingleTarget",
-                            Type = "Active",
-                            UnlockLevel = 1
-                        },
-                        new
-                        {
-                            SkillId = 12,
-                            BaseDamage = 0.0,
-                            ClassRequirement = "Mage",
-                            CooldownSeconds = 5,
-                            CorruptionCost = 0f,
-                            DamageGrowthPercent = 0.0,
-                            DamagePerLevel = 0.0,
-                            DamageType = "Magical",
-                            Description = "Selects an area within range to attack.",
-                            IsActive = true,
-                            Name = "NightMagic",
-                            TargetType = "Area",
-                            Type = "Active",
-                            UnlockLevel = 1
-                        },
-                        new
-                        {
-                            SkillId = 13,
-                            BaseDamage = 200.0,
-                            ClassRequirement = "All",
-                            CooldownSeconds = 30,
-                            CorruptionCost = 8f,
-                            DamageGrowthPercent = 0.0,
-                            DamagePerLevel = 0.0,
-                            DamageType = "Magical",
-                            Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.",
-                            IsActive = true,
-                            Name = "DeadlyExplosion",
-                            TargetType = "SingleTarget",
-                            Type = "Active",
-                            UnlockLevel = 1
-                        },
-                        new
-                        {
-                            SkillId = 14,
-                            BaseDamage = 0.0,
-                            ClassRequirement = "Knight",
-                            CooldownSeconds = 6,
-                            CorruptionCost = 0f,
-                            DamageGrowthPercent = 0.0,
-                            DamagePerLevel = 0.0,
-                            DamageType = "Physical",
-                            Description = "A short-range slash in the direction the knight is facing.",
-                            IsActive = true,
-                            Name = "BloodySlash",
-                            TargetType = "SingleTarget",
-                            Type = "Active",
-                            UnlockLevel = 1
-                        },
-                        new
-                        {
-                            SkillId = 15,
-                            BaseDamage = 38.0,
-                            ClassRequirement = "Fighter",
-                            CooldownSeconds = 8,
-                            CorruptionCost = 0f,
-                            DamageGrowthPercent = 4.0,
-                            DamagePerLevel = 11.0,
-                            DamageType = "Physical",
-                            Description = "A short-range slash in the direction the character is facing.",
-                            IsActive = true,
-                            Name = "FrozenSash",
-                            TargetType = "SingleTarget",
                             Type = "Active",
                             UnlockLevel = 1
                         });

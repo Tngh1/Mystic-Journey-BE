@@ -187,6 +187,7 @@ namespace BLL.Mappings
             CreateMap<PurchaseHistory, PurchaseHistoryResponseDto>()
                 .ForMember(dest => dest.PlayerName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.ShopItem != null && src.ShopItem.Item != null ? src.ShopItem.Item.Name : null))
+                .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.ShopItem != null && src.ShopItem.Item != null ? src.ShopItem.Item.IconUrl : null))
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.ShopItem != null ? src.ShopItem.Currency : "Unknown"));
 
             // ═══════════════════════════════════════════════════════════════════════

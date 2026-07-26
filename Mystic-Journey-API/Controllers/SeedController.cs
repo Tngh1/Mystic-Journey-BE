@@ -1024,7 +1024,7 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
 
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
-                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
+                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Archer 2", "Archer");
                 
                 var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Knight 3", "Knight");
                 var p4 = await CreatePlayer("elf_user4", "elf4@mystic.test", "Tutorial Knight 4", "Knight");
@@ -1037,24 +1037,33 @@ namespace Mystic_Journey_API.Controllers
                 }
                 await _ctx.SaveChangesAsync();
 
-                // Update profile for elf2: Level 12, AutumnPumpkin map, completed Quest 16
+                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, completed Quest 23
                 var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
                 if (p2Profile != null)
                 {
-                    p2Profile.Level = 12;
+                    p2Profile.Class = "Archer";
+                    p2Profile.Level = 15;
                     p2Profile.Gold = 5000;
                     p2Profile.Gems = 500;
-                    p2Profile.LastMapName = "AutumnPumpkin";
-                    p2Profile.PositionX = 6.0;
-                    p2Profile.PositionY = -90.0;
+                    p2Profile.LastMapName = "AbandonedCastle";
+                    p2Profile.PositionX = -10.66; // Vị trí đứng gần Valiant Warrior
+                    p2Profile.PositionY = 53.0; 
                     await _ctx.SaveChangesAsync();
                 }
 
-                // Clear existing PlayerQuests for elf2 and seed Q1..Q16 as Claimed (Q16 is Slay the Dragon)
+                // Equip Archer skin for elf2 instead of Knight default skin
+                var p2Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p2).ToListAsync();
+                foreach (var skin in p2Skins)
+                {
+                    skin.IsEquipped = (skin.SkinId == skinAlt.SkinId || skin.SkinId == 2);
+                }
+                await _ctx.SaveChangesAsync();
+
+                // Clear existing PlayerQuests for elf2 and seed Q1..Q23 as Claimed
                 _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p2));
                 await _ctx.SaveChangesAsync();
 
-                for (int qId = 1; qId <= 16; qId++)
+                for (int qId = 1; qId <= 23; qId++)
                 {
                     _ctx.PlayerQuests.Add(new PlayerQuest
                     {
@@ -2363,6 +2372,90 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 {
                     Success = true,
                     Message = "Seeded elf3 (Mage) and elf4 (Knight) successfully with full skills!"
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        [HttpPost("transactions")]
+        public async Task<IActionResult> SeedTransactions()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var emails = new[] { "elf1@mystic.test", "elf2@mystic.test" };
+                var accounts = await _ctx.Accounts.Where(a => emails.Contains(a.Email)).ToListAsync();
+                var accountIds = accounts.Select(a => a.AccountId).ToList();
+                
+                var players = await _ctx.PlayerProfiles.Where(p => accountIds.Contains(p.AccountId)).ToListAsync();
+                
+                if (!players.Any())
+                {
+                    return BadRequest(new ApiResponse<object> { Success = false, Message = $"No player profiles found for accounts: {string.Join(", ", emails)}" });
+                }
+
+                var shopItems = await _ctx.ShopItems.Include(s => s.Item).Take(5).ToListAsync();
+                if (!shopItems.Any())
+                {
+                    var dummyItem = new Item
+                    {
+                        Name = "Legendary Sword",
+                        Description = "A very shiny sword for testing UI.",
+                        Type = "Weapon",
+                        Rarity = "Legendary",
+                        IconUrl = "https://res.cloudinary.com/du72t3082/image/upload/v1731608753/icon_g8z1c5.png", // Sample image
+                        MaxStack = 1,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _ctx.Items.Add(dummyItem);
+                    await _ctx.SaveChangesAsync();
+
+                    var dummyShopItem = new ShopItem
+                    {
+                        ItemId = dummyItem.ItemId,
+                        Currency = "Gem",
+                        Price = 500,
+                        IsActive = true
+                    };
+                    _ctx.ShopItems.Add(dummyShopItem);
+                    await _ctx.SaveChangesAsync();
+                    
+                    shopItems.Add(dummyShopItem);
+                    dummyShopItem.Item = dummyItem; 
+                }
+
+                var histories = new List<PurchaseHistory>();
+                var rnd = new Random();
+
+                foreach (var p in players)
+                {
+                    for (int i = 0; i < 15; i++)
+                    {
+                        var shopItem = shopItems[rnd.Next(shopItems.Count)];
+                        int qty = rnd.Next(1, 5);
+                        histories.Add(new PurchaseHistory
+                        {
+                            PlayerProfileId = p.PlayerProfileId,
+                            ShopItemId = shopItem.ShopItemId,
+                            Quantity = qty,
+                            TotalPrice = shopItem.Price * qty,
+                            PurchasedAt = DateTime.UtcNow.AddDays(-rnd.Next(0, 10)).AddHours(-rnd.Next(0, 24))
+                        });
+                    }
+                }
+
+                _ctx.PurchaseHistories.AddRange(histories);
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"Seeded {histories.Count} transactions for {players.Count} players."
                 });
             }
             catch (Exception ex)
