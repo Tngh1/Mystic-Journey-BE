@@ -3,6 +3,7 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260725112454_UnlockChapter1SwampDemonQuest")]
+    partial class UnlockChapter1SwampDemonQuest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4690,9 +4693,6 @@ namespace DAL.Migrations
 
                     b.HasIndex("QuestId");
 
-                    b.HasIndex("PlayerProfileId", "QuestId")
-                        .IsUnique();
-
                     b.ToTable("PlayerQuests");
                 });
 
@@ -5138,7 +5138,7 @@ namespace DAL.Migrations
                             ObjectiveTarget = "SwampDemon",
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Elder Rowan",
-                            RequiredLevel = 2,
+                            RequiredLevel = 1,
                             RewardExperience = 25,
                             RewardGems = 5m,
                             RewardGold = 50m,
