@@ -123,17 +123,6 @@ namespace BLL.Mappings
             CreateMap<UpdateAchievementRequestDto, Achievement>();
 
             // ═══════════════════════════════════════════════════════════════════════
-            // CẤU HÌNH GAME (Game Setting)
-            // ═══════════════════════════════════════════════════════════════════════
-
-            // Ánh xạ cấu hình game sang response (ánh xạ tên key và người cập nhật).
-            CreateMap<GameSetting, GameSettingResponseDto>()
-                .ForMember(dest => dest.Key, opt => opt.MapFrom(src => src.Name))
-                .ForMember(dest => dest.UpdatedBy, opt => opt.MapFrom(src => src.UpdatedByAccount != null ? src.UpdatedByAccount.UserName : null));
-            // Ánh xạ yêu cầu cập nhật cấu hình game.
-            CreateMap<UpdateGameSettingRequestDto, GameSetting>();
-
-            // ═══════════════════════════════════════════════════════════════════════
             // NỘI DUNG (Content - Bài viết, Danh mục, Block)
             // ═══════════════════════════════════════════════════════════════════════
 
