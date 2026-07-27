@@ -109,7 +109,7 @@ gạch nối** (vd `AdminAccountsController` → `/api/adminaccounts`).
 | `AchievementsController` | `/api/achievements` | CRUD achievement |
 | `SkillsController` | `/api/skills` | CRUD skill |
 | `SkinsController` | `/api/skins` | CRUD skin |
-| `MailsController` | `/api/mails` | Gửi/broadcast mail, list phân trang |
+| `MailboxesController` | `/api/mailboxes` | Gửi/broadcast mail, list phân trang |
 | `DailyLoginRewardsController` | `/api/dailyloginrewards` | Phần thưởng đăng nhập |
 | `ContentsController` | `/api/contents` | CMS bài viết + block |
 | `GameSettingsController` | `/api/gamesettings` | Cấu hình game runtime |

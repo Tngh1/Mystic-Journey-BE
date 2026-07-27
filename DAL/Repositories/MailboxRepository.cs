@@ -12,11 +12,11 @@ namespace DAL.Repositories
     /// <summary>
     /// Triển khai các thao tác truy cập dữ liệu cho thư tín trong game sử dụng Entity Framework.
     /// </summary>
-    public class MailRepository : IMailRepository
+    public class MailboxRepository : IMailboxRepository
     {
         private readonly MysticJourneyDbContext _context;
 
-        public MailRepository(MysticJourneyDbContext context)
+        public MailboxRepository(MysticJourneyDbContext context)
         {
             _context = context;
         }
@@ -24,18 +24,18 @@ namespace DAL.Repositories
         // ── Query ──
 
         /// <summary>Tìm thư theo mã, kèm người nhận và vật phẩm đính kèm.</summary>
-        public async Task<Mail?> GetMailById(int id)
+        public async Task<Mailbox?> GetMailboxById(int id)
         {
-            return await _context.Mails
+            return await _context.Mailboxes
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
-                .FirstOrDefaultAsync(m => m.MailId == id);
+                .FirstOrDefaultAsync(m => m.MailboxId == id);
         }
 
         /// <summary>Lấy tất cả thư của người chơi, sắp xếp theo thời gian gửi giảm dần.</summary>
-        public async Task<List<Mail>> GetMailsByPlayerId(int playerProfileId)
+        public async Task<List<Mailbox>> GetMailboxesByPlayerId(int playerProfileId)
         {
-            return await _context.Mails
+            return await _context.Mailboxes
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .Where(m => m.PlayerProfileId == playerProfileId)
@@ -44,9 +44,9 @@ namespace DAL.Repositories
         }
 
         /// <summary>Lấy các thư chưa đọc của người chơi.</summary>
-        public async Task<List<Mail>> GetUnreadMailsByPlayerId(int playerProfileId)
+        public async Task<List<Mailbox>> GetUnreadMailboxesByPlayerId(int playerProfileId)
         {
-            return await _context.Mails
+            return await _context.Mailboxes
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .Where(m => m.PlayerProfileId == playerProfileId && !m.IsRead)
@@ -57,52 +57,52 @@ namespace DAL.Repositories
         // ── CRUD ──
 
         /// <summary>Tạo thư mới và gửi đến người chơi (tự động ghi nhận thời gian gửi).</summary>
-        public async Task<Mail> CreateMail(Mail mail)
+        public async Task<Mailbox> CreateMailbox(Mailbox mailbox)
         {
-            mail.SentAt = DateTime.UtcNow;
-            await _context.Mails.AddAsync(mail);
+            mailbox.SentAt = DateTime.UtcNow;
+            await _context.Mailboxes.AddAsync(mailbox);
             await _context.SaveChangesAsync();
-            return mail;
+            return mailbox;
         }
 
         /// <summary>Tạo nhiều thư cùng lúc (gửi hàng loạt với cùng thời gian gửi).</summary>
-        public async Task<List<Mail>> CreateBulkMails(List<Mail> mails)
+        public async Task<List<Mailbox>> CreateBulkMailboxes(List<Mailbox> mailboxes)
         {
             var now = DateTime.UtcNow;
-            foreach (var mail in mails)
+            foreach (var mailbox in mailboxes)
             {
-                mail.SentAt = now;
+                mailbox.SentAt = now;
             }
-            await _context.Mails.AddRangeAsync(mails);
+            await _context.Mailboxes.AddRangeAsync(mailboxes);
             await _context.SaveChangesAsync();
-            return mails;
+            return mailboxes;
         }
 
         /// <summary>Cập nhật thông tin thư (đánh dấu đã đọc, đã nhận vật phẩm...).</summary>
-        public async Task<Mail> UpdateMail(Mail mail)
+        public async Task<Mailbox> UpdateMailbox(Mailbox mailbox)
         {
-            _context.Mails.Update(mail);
+            _context.Mailboxes.Update(mailbox);
             await _context.SaveChangesAsync();
-            return mail;
+            return mailbox;
         }
 
         /// <summary>Xóa mềm thư (đánh dấu đã xóa và ghi nhận thời gian xóa).</summary>
-        public async Task<Mail> SoftDeleteMail(int mailId)
+        public async Task<Mailbox> SoftDeleteMailbox(int mailboxId)
         {
-            var mail = await _context.Mails.FindAsync(mailId)
-                ?? throw new KeyNotFoundException($"Mail with id {mailId} not found.");
-            mail.IsDeleted = true;
-            mail.DeletedAt = DateTime.UtcNow;
+            var mailbox = await _context.Mailboxes.FindAsync(mailboxId)
+                ?? throw new KeyNotFoundException($"Mailbox with id {mailboxId} not found.");
+            mailbox.IsDeleted = true;
+            mailbox.DeletedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-            return mail;
+            return mailbox;
         }
 
         // ── Phân trang ──
 
         /// <summary>Lấy danh sách thư có phân trang, lọc theo tìm kiếm (tiêu đề), trạng thái đọc và nhận.</summary>
-        public async Task<(int TotalCount, List<Mail> Items)> GetMailsPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null)
+        public async Task<(int TotalCount, List<Mailbox> Items)> GetMailboxesPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null)
         {
-            var query = _context.Mails
+            var query = _context.Mailboxes
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .AsNoTracking();
@@ -128,7 +128,7 @@ namespace DAL.Repositories
                 "expiresat" => desc ? query.OrderByDescending(x => x.ExpiredAt) : query.OrderBy(x => x.ExpiredAt),
                 "isread" => desc ? query.OrderByDescending(x => x.IsRead) : query.OrderBy(x => x.IsRead),
                 "isclaimed" => desc ? query.OrderByDescending(x => x.IsClaimed) : query.OrderBy(x => x.IsClaimed),
-                _ => desc ? query.OrderByDescending(x => x.MailId) : query.OrderBy(x => x.MailId),
+                _ => desc ? query.OrderByDescending(x => x.MailboxId) : query.OrderBy(x => x.MailboxId),
             };
 
             int totalCount = await query.CountAsync();
@@ -138,9 +138,9 @@ namespace DAL.Repositories
         }
 
         /// <summary>Lấy thư của một người chơi cụ thể có phân trang.</summary>
-        public async Task<(int TotalCount, List<Mail> Items)> GetMailsByPlayerIdPaged(int playerProfileId, int page, int pageSize)
+        public async Task<(int TotalCount, List<Mailbox> Items)> GetMailboxesByPlayerIdPaged(int playerProfileId, int page, int pageSize)
         {
-            var query = _context.Mails
+            var query = _context.Mailboxes
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
                 .Where(m => m.PlayerProfileId == playerProfileId && !m.IsDeleted)
