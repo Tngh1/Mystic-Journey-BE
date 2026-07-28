@@ -46,6 +46,9 @@ namespace DAL.Repositories
                     .ThenInclude(r => r.Skill)
                 .Include(q => q.RewardSkill)
                 .Where(q => q.IsActive)
+                // RewardItems × RewardSkills trong cùng một query nhân số hàng trả về.
+                // Vẫn giữ tracking vì đoạn tự-sửa dữ liệu bên dưới có thể SaveChanges.
+                .AsSplitQuery()
                 .ToListAsync();
 
             bool modified = false;
@@ -167,42 +170,48 @@ namespace DAL.Repositories
 
         public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null)
         {
-            var query = _context.Quests
-                .Include(q => q.RewardItem)
-                .Include(q => q.RewardItems)
-                    .ThenInclude(r => r.Item)
-                .Include(q => q.RewardSkills)
-                    .ThenInclude(r => r.Skill)
-                .Include(q => q.RewardSkill)
-                .AsNoTracking();
+            // Đếm trên query chưa Include: COUNT không cần join sang 4 bảng reward.
+            var filtered = _context.Quests.AsNoTracking();
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(x => x.Title.Contains(search));
+                filtered = filtered.Where(x => x.Title.Contains(search));
             }
             if (!string.IsNullOrEmpty(type))
             {
-                query = query.Where(x => x.Type == type);
+                filtered = filtered.Where(x => x.Type == type);
             }
             if (isActive.HasValue)
             {
-                query = query.Where(x => x.IsActive == isActive.Value);
+                filtered = filtered.Where(x => x.IsActive == isActive.Value);
             }
             if (!string.IsNullOrEmpty(mapName))
             {
                 if (mapName.Equals("AutumnTown", StringComparison.OrdinalIgnoreCase) ||
                     mapName.Equals("AutumnPumpkin", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(x => x.MapName == "AutumnTown" || x.MapName == "AutumnPumpkin");
+                    filtered = filtered.Where(x => x.MapName == "AutumnTown" || x.MapName == "AutumnPumpkin");
                 }
                 else
                 {
-                    query = query.Where(x => x.MapName == mapName);
+                    filtered = filtered.Where(x => x.MapName == mapName);
                 }
             }
 
+            int totalCount = await filtered.CountAsync();
+
+            var query = filtered
+                .Include(q => q.RewardItem)
+                .Include(q => q.RewardItems)
+                    .ThenInclude(r => r.Item)
+                .Include(q => q.RewardSkills)
+                    .ThenInclude(r => r.Skill)
+                .Include(q => q.RewardSkill)
+                // RewardItems × RewardSkills nhân số hàng trả về nếu gộp một query.
+                .AsSplitQuery();
+
             bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-            query = (sortBy?.ToLowerInvariant()) switch
+            IQueryable<Quest> ordered = (sortBy?.ToLowerInvariant()) switch
             {
                 "title" => desc ? query.OrderByDescending(x => x.Title) : query.OrderBy(x => x.Title),
                 "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
@@ -214,8 +223,7 @@ namespace DAL.Repositories
                 _ => desc ? query.OrderByDescending(x => x.QuestId) : query.OrderBy(x => x.QuestId),
             };
 
-            int totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return (totalCount, items);
         }

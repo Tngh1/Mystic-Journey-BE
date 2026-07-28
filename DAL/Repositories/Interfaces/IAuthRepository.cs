@@ -15,6 +15,10 @@ namespace DAL.Repositories.Interfaces
         // Lấy tài khoản theo mã định danh.
         Task<Account?> GetAccountById(int id);
 
+        // Ghi mốc "vừa online" cho tài khoản. Chỉ ghi cột LastSeen, không nạp entity —
+        // đây là đường nóng nhất của hệ thống (mỗi client ping định kỳ).
+        Task TouchLastSeen(int accountId, DateTime lastSeenUtc);
+
         // Lấy tài khoản theo username hoặc email.
         Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername);
 

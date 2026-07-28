@@ -53,9 +53,6 @@ namespace DAL.Repositories.Interfaces
         // Tạo điểm spawn mới cho quái vật.
         Task<MonsterSpawn> CreateSpawn(MonsterSpawn spawn);
 
-        // Lấy các vật phẩm rơi đang hoạt động của quái vật.
-        Task<List<MonsterDrop>> GetActiveDropsByMonsterId(int monsterId);
-
         // Lấy tất cả vật phẩm rơi của quái vật (kể cả không hoạt động).
         Task<List<MonsterDrop>> GetDropsByMonsterId(int monsterId);
 

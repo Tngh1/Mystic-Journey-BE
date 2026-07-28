@@ -861,8 +861,13 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 .Property(m => m.ReportReason)
                 .HasMaxLength(500);
 
+            // Index phủ đúng truy vấn phân trang world chat:
+            // WHERE IsHidden = false ORDER BY SentAt DESC, WorldChatMessageId DESC.
+            // Chỉ index SentAt thì Postgres vẫn phải sort lại và filter IsHidden riêng.
             modelBuilder.Entity<WorldChatMessage>()
-                .HasIndex(m => m.SentAt);
+                .HasIndex(m => new { m.IsHidden, m.SentAt, m.WorldChatMessageId })
+                .HasDatabaseName("IX_WorldChatMessages_Feed")
+                .IsDescending(false, true, true);
 
             modelBuilder.Entity<WorldChatMessage>()
                 .HasIndex(m => m.SenderId);
