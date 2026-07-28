@@ -2626,6 +2626,12 @@ namespace DAL.Migrations
                 column: "CategoryContentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_WorldChatMessages_Feed",
+                table: "WorldChatMessages",
+                columns: new[] { "IsHidden", "SentAt", "WorldChatMessageId" },
+                descending: new[] { false, true, true });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WorldChatMessages_ReportedById",
                 table: "WorldChatMessages",
                 column: "ReportedById");
@@ -2634,11 +2640,6 @@ namespace DAL.Migrations
                 name: "IX_WorldChatMessages_SenderId",
                 table: "WorldChatMessages",
                 column: "SenderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WorldChatMessages_SentAt",
-                table: "WorldChatMessages",
-                column: "SentAt");
         }
 
         /// <inheritdoc />

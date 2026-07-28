@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260727195347_WorldChatFeedIndex")]
-    partial class WorldChatFeedIndex
+    [Migration("20260728061518_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -6325,6 +6325,91 @@ namespace DAL.Migrations
                             IsActive = true,
                             Name = "DarkPoisonZone",
                             TargetType = "Area",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 11,
+                            BaseDamage = 0.0,
+                            ClassRequirement = "Archer",
+                            CooldownSeconds = 20,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Physical",
+                            Description = "Automatically fires in the direction the archer is facing.",
+                            IsActive = true,
+                            Name = "DeadlyCurse",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 12,
+                            BaseDamage = 0.0,
+                            ClassRequirement = "Mage",
+                            CooldownSeconds = 5,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Magical",
+                            Description = "Selects an area within range to attack.",
+                            IsActive = true,
+                            Name = "NightMagic",
+                            TargetType = "Area",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 13,
+                            BaseDamage = 200.0,
+                            ClassRequirement = "All",
+                            CooldownSeconds = 30,
+                            CorruptionCost = 8f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Magical",
+                            Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.",
+                            IsActive = true,
+                            Name = "DeadlyExplosion",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 14,
+                            BaseDamage = 0.0,
+                            ClassRequirement = "Knight",
+                            CooldownSeconds = 6,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Physical",
+                            Description = "A short-range slash in the direction the knight is facing.",
+                            IsActive = true,
+                            Name = "BloodySlash",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 15,
+                            BaseDamage = 38.0,
+                            ClassRequirement = "Knight",
+                            CooldownSeconds = 8,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 4.0,
+                            DamagePerLevel = 11.0,
+                            DamageType = "Physical",
+                            Description = "A short-range slash in the direction the character is facing.",
+                            IsActive = true,
+                            Name = "FrozenSash",
+                            TargetType = "SingleTarget",
                             Type = "Active",
                             UnlockLevel = 1
                         });

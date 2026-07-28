@@ -38,7 +38,7 @@ namespace DAL.Repositories
 
         public async Task<List<Quest>> GetActiveQuests()
         {
-            var quests = await _context.Quests
+            return await _context.Quests
                 .Include(q => q.RewardItem)
                 .Include(q => q.RewardItems)
                     .ThenInclude(r => r.Item)
@@ -47,50 +47,9 @@ namespace DAL.Repositories
                 .Include(q => q.RewardSkill)
                 .Where(q => q.IsActive)
                 // RewardItems × RewardSkills trong cùng một query nhân số hàng trả về.
-                // Vẫn giữ tracking vì đoạn tự-sửa dữ liệu bên dưới có thể SaveChanges.
                 .AsSplitQuery()
+                .AsNoTracking()
                 .ToListAsync();
-
-            bool modified = false;
-            foreach (var q in quests)
-            {
-                if (q.Title != null && q.Title.Contains("Where Are We", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.ObjectiveTarget != "Elder Rowan" || q.QuestGiverName != "Elder Rowan")
-                    {
-                        q.ObjectiveTarget = "Elder Rowan";
-                        q.QuestGiverName = "Elder Rowan";
-                        modified = true;
-                    }
-                }
-                else if (q.Title != null && q.Title.Contains("Work for Food", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Fa") { q.QuestGiverName = "Fa"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("Delivery to the City", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Fa") { q.QuestGiverName = "Fa"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("The Ruined City", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Tristan") { q.QuestGiverName = "Tristan"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("Silver Knight", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Arthur") { q.QuestGiverName = "Arthur"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("Defeat the Evil Monsters", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Arthur") { q.QuestGiverName = "Arthur"; modified = true; }
-                }
-            }
-
-            if (modified)
-            {
-                await _context.SaveChangesAsync();
-            }
-
-            return quests;
         }
 
         public async Task<Quest> AddQuest(Quest quest)
