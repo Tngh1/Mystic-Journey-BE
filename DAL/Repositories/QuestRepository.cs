@@ -38,7 +38,7 @@ namespace DAL.Repositories
 
         public async Task<List<Quest>> GetActiveQuests()
         {
-            var quests = await _context.Quests
+            return await _context.Quests
                 .Include(q => q.RewardItem)
                 .Include(q => q.RewardItems)
                     .ThenInclude(r => r.Item)
@@ -46,48 +46,10 @@ namespace DAL.Repositories
                     .ThenInclude(r => r.Skill)
                 .Include(q => q.RewardSkill)
                 .Where(q => q.IsActive)
+                // RewardItems × RewardSkills trong cùng một query nhân số hàng trả về.
+                .AsSplitQuery()
+                .AsNoTracking()
                 .ToListAsync();
-
-            bool modified = false;
-            foreach (var q in quests)
-            {
-                if (q.Title != null && q.Title.Contains("Where Are We", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.ObjectiveTarget != "Elder Rowan" || q.QuestGiverName != "Elder Rowan")
-                    {
-                        q.ObjectiveTarget = "Elder Rowan";
-                        q.QuestGiverName = "Elder Rowan";
-                        modified = true;
-                    }
-                }
-                else if (q.Title != null && q.Title.Contains("Work for Food", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Fa") { q.QuestGiverName = "Fa"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("Delivery to the City", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Fa") { q.QuestGiverName = "Fa"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("The Ruined City", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Tristan") { q.QuestGiverName = "Tristan"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("Silver Knight", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Arthur") { q.QuestGiverName = "Arthur"; modified = true; }
-                }
-                else if (q.Title != null && q.Title.Contains("Defeat the Evil Monsters", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (q.QuestGiverName != "Arthur") { q.QuestGiverName = "Arthur"; modified = true; }
-                }
-            }
-
-            if (modified)
-            {
-                await _context.SaveChangesAsync();
-            }
-
-            return quests;
         }
 
         public async Task<Quest> AddQuest(Quest quest)
@@ -167,42 +129,48 @@ namespace DAL.Repositories
 
         public async Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null)
         {
-            var query = _context.Quests
-                .Include(q => q.RewardItem)
-                .Include(q => q.RewardItems)
-                    .ThenInclude(r => r.Item)
-                .Include(q => q.RewardSkills)
-                    .ThenInclude(r => r.Skill)
-                .Include(q => q.RewardSkill)
-                .AsNoTracking();
+            // Đếm trên query chưa Include: COUNT không cần join sang 4 bảng reward.
+            var filtered = _context.Quests.AsNoTracking();
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(x => x.Title.Contains(search));
+                filtered = filtered.Where(x => x.Title.Contains(search));
             }
             if (!string.IsNullOrEmpty(type))
             {
-                query = query.Where(x => x.Type == type);
+                filtered = filtered.Where(x => x.Type == type);
             }
             if (isActive.HasValue)
             {
-                query = query.Where(x => x.IsActive == isActive.Value);
+                filtered = filtered.Where(x => x.IsActive == isActive.Value);
             }
             if (!string.IsNullOrEmpty(mapName))
             {
                 if (mapName.Equals("AutumnTown", StringComparison.OrdinalIgnoreCase) ||
                     mapName.Equals("AutumnPumpkin", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(x => x.MapName == "AutumnTown" || x.MapName == "AutumnPumpkin");
+                    filtered = filtered.Where(x => x.MapName == "AutumnTown" || x.MapName == "AutumnPumpkin");
                 }
                 else
                 {
-                    query = query.Where(x => x.MapName == mapName);
+                    filtered = filtered.Where(x => x.MapName == mapName);
                 }
             }
 
+            int totalCount = await filtered.CountAsync();
+
+            var query = filtered
+                .Include(q => q.RewardItem)
+                .Include(q => q.RewardItems)
+                    .ThenInclude(r => r.Item)
+                .Include(q => q.RewardSkills)
+                    .ThenInclude(r => r.Skill)
+                .Include(q => q.RewardSkill)
+                // RewardItems × RewardSkills nhân số hàng trả về nếu gộp một query.
+                .AsSplitQuery();
+
             bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-            query = (sortBy?.ToLowerInvariant()) switch
+            IQueryable<Quest> ordered = (sortBy?.ToLowerInvariant()) switch
             {
                 "title" => desc ? query.OrderByDescending(x => x.Title) : query.OrderBy(x => x.Title),
                 "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
@@ -214,8 +182,7 @@ namespace DAL.Repositories
                 _ => desc ? query.OrderByDescending(x => x.QuestId) : query.OrderBy(x => x.QuestId),
             };
 
-            int totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return (totalCount, items);
         }

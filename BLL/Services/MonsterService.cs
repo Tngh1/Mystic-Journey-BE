@@ -316,8 +316,9 @@ namespace BLL.Services
             var existingDiscovery = await _repository.GetPlayerDiscovery(playerProfileId, monsterId);
             var wasDiscovered = existingDiscovery?.IsDiscovered ?? false;
 
-            var drops = await _repository.GetActiveDropsByMonsterId(monsterId);
-            var rolledItems = RollDrops(drops);
+            // GetMonsterByIdWithDrops đã Include MonsterDrops kèm Item ở trên,
+            // lọc IsActive trong bộ nhớ thay vì bắn thêm 1 truy vấn.
+            var rolledItems = RollDrops(monster.MonsterDrops.Where(d => d.IsActive));
 
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {

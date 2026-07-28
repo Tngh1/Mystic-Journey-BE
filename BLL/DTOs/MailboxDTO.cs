@@ -2,36 +2,36 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BLL.DTOs
 {
-    // ============ GetMyMails (Danh sách mail - phân trang) ============
-    public class MailSummaryDto
+    // ============ GetMyMailboxes (Danh sách thư - phân trang) ============
+    public class MailboxSummaryDto
     {
-        public int MailId { get; set; }
+        public int MailboxId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Type { get; set; } = "System";
         public bool IsRead { get; set; }
         public bool HasClaimableReward { get; set; }
         public bool IsClaimed { get; set; }
 
-        // Số ngày còn lại trước khi mail hết hạn. Null nếu không có hạn.
+        // Số ngày còn lại trước khi thư hết hạn. Null nếu không có hạn.
         public int? RemainingDays { get; set; }
 
         public DateTime SentAt { get; set; }
         public DateTime? ExpiredAt { get; set; }
     }
 
-    public class MailListPagedDto
+    public class MailboxListPagedDto
     {
-        public int TotalMails { get; set; }
+        public int TotalMailboxes { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int TotalPages { get; set; }
-        public List<MailSummaryDto> Items { get; set; } = new();
+        public List<MailboxSummaryDto> Items { get; set; } = new();
     }
 
-    // ============ Mail Detail ============
-    public class MailDetailDto
+    // ============ Mailbox Detail ============
+    public class MailboxDetailDto
     {
-        public int MailId { get; set; }
+        public int MailboxId { get; set; }
         public int PlayerProfileId { get; set; }
         public string? PlayerName { get; set; }
         public string Title { get; set; } = string.Empty;
@@ -41,15 +41,15 @@ namespace BLL.DTOs
         public bool IsClaimed { get; set; }
         public decimal AttachedGold { get; set; }
         public decimal AttachedGems { get; set; }
-        public List<MailRewardItemDto> AttachedItems { get; set; } = new();
+        public List<MailboxRewardItemDto> AttachedItems { get; set; } = new();
         public DateTime SentAt { get; set; }
         public DateTime? ExpiredAt { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
     }
 
-    // ============ Mail Reward Item ============
-    public class MailRewardItemDto
+    // ============ Mailbox Reward Item ============
+    public class MailboxRewardItemDto
     {
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
@@ -57,8 +57,8 @@ namespace BLL.DTOs
         public int Quantity { get; set; }
     }
 
-    // ============ Send Mail (Admin) ============
-    public class SendMailByListIdDto
+    // ============ Send Mailbox (Admin) ============
+    public class SendMailboxByListIdDto
     {
         [Required]
         public List<int> PlayerProfileIds { get; set; } = new();
@@ -75,11 +75,11 @@ namespace BLL.DTOs
         public decimal AttachedGold { get; set; } = 0;
         public decimal AttachedGems { get; set; } = 0;
 
-        public List<SendMailRewardItemDto> AttachedItems { get; set; } = new();
+        public List<SendMailboxRewardItemDto> AttachedItems { get; set; } = new();
         public DateTime? ExpiredAt { get; set; }
     }
 
-    public class SendMailRewardItemDto
+    public class SendMailboxRewardItemDto
     {
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "ItemId must be greater than 0.")]
@@ -90,7 +90,7 @@ namespace BLL.DTOs
         public int Quantity { get; set; }
     }
 
-    public class SendMailToAllDto
+    public class SendMailboxToAllDto
     {
         [Required]
         [StringLength(200)]
@@ -104,7 +104,7 @@ namespace BLL.DTOs
         public decimal AttachedGold { get; set; } = 0;
         public decimal AttachedGems { get; set; } = 0;
 
-        public List<SendMailRewardItemDto> AttachedItems { get; set; } = new();
+        public List<SendMailboxRewardItemDto> AttachedItems { get; set; } = new();
         public DateTime? ExpiredAt { get; set; }
     }
 }

@@ -15,12 +15,9 @@ namespace BLL.Services
 
         public async Task UpdateLastSeenAsync(int accountId)
         {
-            var account = await _authRepository.GetAccountById(accountId);
-            if (account != null)
-            {
-                account.LastSeen = DateTime.UtcNow;
-                await _authRepository.UpdateAccount(account);
-            }
+            // Không cần đọc entity trước: nếu accountId không tồn tại thì UPDATE khớp 0 hàng,
+            // đúng bằng hành vi "account == null" của đường cũ.
+            await _authRepository.TouchLastSeen(accountId, DateTime.UtcNow);
         }
 
         public bool IsOnline(DateTime? lastSeen)

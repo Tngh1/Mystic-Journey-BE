@@ -8,7 +8,6 @@ namespace BLL.DTOs
         public int DungeonConfigId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? ImageUrl { get; set; }
         public string Type { get; set; } = "Normal";
         public int LevelRequirement { get; set; }
         public int MaxMembers { get; set; }
@@ -25,7 +24,6 @@ namespace BLL.DTOs
         [StringLength(150)]
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? ImageUrl { get; set; }
         public string Type { get; set; } = "Normal";
         public int LevelRequirement { get; set; } = 1;
         public int MaxMembers { get; set; } = 4;

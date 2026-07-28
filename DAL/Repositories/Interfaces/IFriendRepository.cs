@@ -9,6 +9,14 @@ namespace DAL.Repositories.Interfaces
         Task<List<Friend>> GetFriendListRaw(int playerProfileId);
         Task<List<Friend>> GetFriendRequests(int playerProfileId);
         Task<Friend?> GetFriendship(int id1, int id2);
+
+        // Đếm số bạn đã kết bạn — dùng cho giới hạn 100, khỏi nạp cả graph profile+account.
+        Task<int> CountFriends(int playerProfileId);
+
+        // Lấy quan hệ / block giữa một người chơi và nhiều người khác trong 1 truy vấn
+        // (tìm kiếm bạn bè trả về tới 20 kết quả, hỏi từng người là 40 round-trip).
+        Task<List<Friend>> GetFriendshipsWith(int playerProfileId, List<int> otherIds);
+        Task<List<FriendBlock>> GetFriendBlocksWith(int blockerId, List<int> blockedIds);
         Task<Friend> AddFriend(Friend friend);
         Task UpdateFriend(Friend friend);
         Task RemoveFriend(Friend friend);

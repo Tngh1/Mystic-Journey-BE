@@ -17,6 +17,7 @@ namespace BLL.Services
         private readonly IQuestRepository _questRepo;
         private readonly IInventoryRepository _inventoryRepo;
         private readonly ISkillRepository _skillRepo;
+        private readonly ITransactionManager _transactionManager;
 
         // Anti-cheat: max progress delta per batch call.
         private const int MaxProgressDeltaPerCall = 50;
@@ -29,6 +30,7 @@ namespace BLL.Services
             IQuestRepository questRepo,
             IInventoryRepository inventoryRepo,
             ISkillRepository skillRepo,
+            ITransactionManager transactionManager,
             IMapper mapper)
         {
             _playerQuestRepo = playerQuestRepo;
@@ -36,6 +38,7 @@ namespace BLL.Services
             _questRepo = questRepo;
             _inventoryRepo = inventoryRepo;
             _skillRepo = skillRepo;
+            _transactionManager = transactionManager;
             _mapper = mapper;
         }
 
@@ -49,8 +52,10 @@ namespace BLL.Services
             // 1. Fetch ALL player quest records across ALL maps to preserve active/in-progress quests
             var allPlayerQuests = await _playerQuestRepo.GetByPlayerId(playerProfileId);
 
-            var activeMapQuests = (await _questRepo.GetActiveQuests())
-                .Where(q => string.Equals(q.MapName, mapName, StringComparison.OrdinalIgnoreCase))
+            var allActiveQuests = await _questRepo.GetActiveQuests();
+
+            var activeMapQuests = allActiveQuests
+                .Where(q => string.Equals(NormalizeMapName(q.MapName), mapName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(q => q.QuestId)
                 .ToList();
 
@@ -70,7 +75,11 @@ namespace BLL.Services
                 createdAny = true;
             }
 
-            var mainChain = activeMapQuests
+            // Main chain is GLOBAL (ordered by QuestId), not per-map. Chapters run 1-8 ElfForest,
+            // 9-17 AutumnPumpkin, 18-22 FrozenMountain, 23-28 AbandonedCastle, then 29-31 back in
+            // ElfForest. A per-map chain would unlock quest 29 ("Return with the Seals") the moment
+            // quest 8 is claimed - the finale before the 4 Seal Books it turns in even exist.
+            var mainChain = allActiveQuests
                 .Where(IsMainQuest)
                 .OrderBy(q => q.QuestId)
                 .ToList();
@@ -78,8 +87,13 @@ namespace BLL.Services
             for (var i = 0; i < mainChain.Count; i++)
             {
                 var quest = mainChain[i];
-                if (quest.RequiredLevel > profile.Level)
+                // Only materialize quests of the map the player is standing in; the chain itself is global.
+                if (!string.Equals(NormalizeMapName(quest.MapName), mapName, StringComparison.OrdinalIgnoreCase))
                     continue;
+                // No level gate on the main chain: it is already paced by "previous quest claimed".
+                // Gating it by level creates dead ends whenever the chapter's own exp rewards cannot
+                // reach the next quest's RequiredLevel (e.g. quest 8 -> 9: lvl 2 with 85 exp vs lvl 3).
+                // RequiredLevel stays a suggestion the client shows as "Suggested: Level X".
                 if (!IsMainQuestUnlocked(mainChain, i, existingMap))
                     continue;
                 if (existingMap.ContainsKey(quest.QuestId))
@@ -99,7 +113,7 @@ namespace BLL.Services
 
             // 2. Visible list: include all active/in-progress/completed quests AND map-specific quests
             var visible = allPlayerQuests
-                .Where(pq => !IsStatus(pq, "NotStarted") || (pq.Quest != null && string.Equals(pq.Quest.MapName, mapName, StringComparison.OrdinalIgnoreCase)))
+                .Where(pq => !IsStatus(pq, "NotStarted") || (pq.Quest != null && string.Equals(NormalizeMapName(pq.Quest.MapName), mapName, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
             var sortedVisible = visible
@@ -130,10 +144,13 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
 
             var currentMap = NormalizeMapName(profile.LastMapName);
-            if (!string.Equals(quest.MapName, currentMap, StringComparison.OrdinalIgnoreCase))
+            // Cả 2 phía đều normalize, nếu không quest có MapName="Chapter1" sẽ không bao giờ accept được
+            // dù GetMyQuests (đã normalize) vẫn trả nó về cho client.
+            if (!string.Equals(NormalizeMapName(quest.MapName), currentMap, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException($"Quest {request.QuestId} belongs to map {quest.MapName}, but player is currently in {currentMap}.");
 
-            if (profile.Level < quest.RequiredLevel)
+            // Main quests are gated by chain order only (see GetMyQuests). Side quests keep the level gate.
+            if (!IsMainQuest(quest) && profile.Level < quest.RequiredLevel)
                 throw new InvalidOperationException($"Quest {request.QuestId} requires level {quest.RequiredLevel}.");
 
             if (IsMainQuest(quest) && !await IsMainQuestUnlocked(playerProfileId, quest))
@@ -142,19 +159,17 @@ namespace BLL.Services
             var existing = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId);
             if (existing != null)
             {
-                if (existing.Status == "NotStarted" || existing.Status == "Failed")
+                if (existing.Status == "NotStarted" || existing.Status == "Failed" || existing.Status == "InProgress")
                 {
-                    existing.Status = "InProgress";
-                    existing.Progress = 0;
+                    if (existing.Status != "InProgress")
+                    {
+                        existing.Status = "InProgress";
+                        existing.Progress = 0;
+                        existing.AcceptedAt = DateTime.UtcNow;
+                    }
                     existing.TargetValue = Math.Max(1, quest.TargetAmount);
-                    existing.AcceptedAt = DateTime.UtcNow;
-                    existing.CompletedAt = null;
-                    existing.ClaimedAt = null;
                     existing = await _playerQuestRepo.Update(existing);
                 }
-
-                if (IsStatus(existing, "InProgress"))
-                    existing = await CompleteQuestIfAlreadySatisfied(playerProfileId, existing);
 
                 return _mapper.Map<PlayerQuestResponseDto>(existing);
             }
@@ -166,7 +181,6 @@ namespace BLL.Services
 
             var created = await _playerQuestRepo.Create(playerQuest);
             created.Quest = quest;
-            created = await CompleteQuestIfAlreadySatisfied(playerProfileId, created);
             return _mapper.Map<PlayerQuestResponseDto>(created);
         }
 
@@ -222,16 +236,29 @@ namespace BLL.Services
             return results;
         }
 
-        public async Task<PlayerQuestResponseDto> ClaimReward(int playerProfileId, ClaimQuestRequestDto request)
+        // Atomic: status flips to "Claimed" first, then gold/exp/gems/items/skills are granted.
+        // Without the transaction any failure after the status write burns the quest with no reward.
+        public Task<PlayerQuestResponseDto> ClaimReward(int playerProfileId, ClaimQuestRequestDto request)
+            => _transactionManager.ExecuteInTransactionAsync(() => ClaimRewardCore(playerProfileId, request));
+
+        private async Task<PlayerQuestResponseDto> ClaimRewardCore(int playerProfileId, ClaimQuestRequestDto request)
         {
+            var quest = await _questRepo.GetByIdWithReward(request.QuestId)
+                ?? throw new ArgumentException($"Quest {request.QuestId} does not exist.");
+
+            // Trust boundary: only a quest the player actually holds and finished can be claimed.
+            // Fabricating a "Completed" record here let a client claim rewards for quests it never
+            // accepted, skipping the whole chain (and its turn-in item costs).
             var pq = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId)
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
 
-            if (pq.Status != "Completed")
-                throw new InvalidOperationException($"Quest {request.QuestId} is not Completed (status={pq.Status}).");
+            if (pq.Status == "Claimed")
+            {
+                return _mapper.Map<PlayerQuestResponseDto>(pq);
+            }
 
-            var quest = await _questRepo.GetByIdWithReward(request.QuestId)
-                ?? throw new ArgumentException($"Quest {request.QuestId} does not exist.");
+            if (pq.Status != "Completed")
+                throw new InvalidOperationException($"Quest {request.QuestId} is not completed yet.");
 
             pq.Status = "Claimed";
             pq.ClaimedAt = DateTime.UtcNow;
@@ -511,23 +538,12 @@ namespace BLL.Services
             };
         }
 
-        private async Task<PlayerQuest> CompleteQuestIfAlreadySatisfied(int playerProfileId, PlayerQuest pq)
-        {
-            if (!IsEquipSkillQuest(pq.Quest) || !await HasEquippedSkill(playerProfileId))
-                return pq;
-
-            var targetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue);
-            pq.TargetValue = targetAmount;
-            pq.Progress = targetAmount;
-            pq.Status = "Completed";
-            pq.CompletedAt ??= DateTime.UtcNow;
-            return await _playerQuestRepo.Update(pq);
-        }
-
         private async Task<bool> IsMainQuestUnlocked(int playerProfileId, Quest quest)
         {
+            // Global chain ordered by QuestId - must match GetMyQuests, otherwise a quest visible in
+            // the list would be rejected on accept (or vice versa).
             var mainChain = (await _questRepo.GetActiveQuests())
-                .Where(q => string.Equals(q.MapName, quest.MapName, StringComparison.OrdinalIgnoreCase) && IsMainQuest(q))
+                .Where(IsMainQuest)
                 .OrderBy(q => q.QuestId)
                 .ToList();
 

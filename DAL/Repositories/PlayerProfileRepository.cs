@@ -93,7 +93,11 @@ namespace DAL.Repositories
         /// <summary>Tìm kiếm hồ sơ theo từ khóa (tên hiển thị hoặc username) và/hoặc lớp nhân vật.</summary>
         public async Task<List<PlayerProfile>> Search(string? keyword = null, string? playerClass = null)
         {
-            var query = _context.PlayerProfiles.AsQueryable();
+            // Include Account: caller đọc Account.LastSeen để tính IsOnline. Thiếu Include
+            // thì Account luôn null nên mọi kết quả tìm kiếm đều hiện Offline.
+            var query = _context.PlayerProfiles
+                .Include(p => p.Account)
+                .AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
@@ -110,7 +114,17 @@ namespace DAL.Repositories
 
             if (string.IsNullOrWhiteSpace(keyword) && string.IsNullOrWhiteSpace(playerClass))
             {
-                return await query.OrderBy(x => Guid.NewGuid()).Take(10).ToListAsync();
+                // ORDER BY random() phải sort toàn bảng mới lấy được 10 hàng. Thay bằng
+                // một cửa sổ ngẫu nhiên trên index PK: chỉ seek, không sort.
+                // ponytail: 10 người liền kề nhau theo id chứ không rải đều; nếu cần rải
+                // thật thì đổi sang TABLESAMPLE hoặc bảng gợi ý dựng sẵn.
+                var total = await _context.PlayerProfiles.CountAsync();
+                var skip = total > 10 ? Random.Shared.Next(total - 9) : 0;
+                return await query
+                    .OrderBy(p => p.PlayerProfileId)
+                    .Skip(skip)
+                    .Take(10)
+                    .ToListAsync();
             }
 
             return await query.Take(20).ToListAsync();

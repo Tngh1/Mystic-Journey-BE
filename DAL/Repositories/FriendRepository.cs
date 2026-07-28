@@ -47,7 +47,18 @@ namespace DAL.Repositories
                 .Include(f => f.Addressee)
                     .ThenInclude(p => p!.Account)
                 .Where(f => (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) && f.Status == "Accepted")
+                // Chỉ đọc: cả 2 caller (GetFriends, GetFriendList) đều map sang DTO.
+                .AsNoTracking()
                 .ToListAsync();
+        }
+
+        /// <summary>Đếm số bạn đã kết bạn (dùng cho giới hạn 100).</summary>
+        public async Task<int> CountFriends(int playerProfileId)
+        {
+            return await _context.Friends
+                .CountAsync(f =>
+                    (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) &&
+                    f.Status == "Accepted");
         }
 
         public async Task<List<Friend>> GetFriendRequests(int playerProfileId)
@@ -55,9 +66,9 @@ namespace DAL.Repositories
             return await _context.Friends
                 .Include(f => f.Requester)
                     .ThenInclude(p => p!.Account)
-                .Include(f => f.Addressee)
-                    .ThenInclude(p => p!.Account)
                 .Where(f => f.AddresseeId == playerProfileId && f.Status == "Pending")
+                // Addressee chính là người đang gọi, DTO không đọc tới nên bỏ Include.
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -67,6 +78,26 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(f => 
                     (f.RequesterId == id1 && f.AddresseeId == id2) || 
                     (f.RequesterId == id2 && f.AddresseeId == id1));
+        }
+
+        /// <summary>Lấy mọi quan hệ giữa playerProfileId và danh sách người khác trong 1 truy vấn.</summary>
+        public async Task<List<Friend>> GetFriendshipsWith(int playerProfileId, List<int> otherIds)
+        {
+            return await _context.Friends
+                .Where(f =>
+                    (f.RequesterId == playerProfileId && otherIds.Contains(f.AddresseeId)) ||
+                    (f.AddresseeId == playerProfileId && otherIds.Contains(f.RequesterId)))
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        /// <summary>Lấy mọi bản ghi chặn của blockerId với danh sách người khác trong 1 truy vấn.</summary>
+        public async Task<List<FriendBlock>> GetFriendBlocksWith(int blockerId, List<int> blockedIds)
+        {
+            return await _context.FriendBlocks
+                .Where(fb => fb.BlockerId == blockerId && blockedIds.Contains(fb.BlockedId))
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<Friend> AddFriend(Friend friend)

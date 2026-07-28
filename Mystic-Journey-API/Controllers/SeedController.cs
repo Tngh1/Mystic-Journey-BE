@@ -863,7 +863,7 @@ namespace Mystic_Journey_API.Controllers
                     _ctx.PlayerCurrencyLogs.RemoveRange(_ctx.PlayerCurrencyLogs.Where(x => x.PlayerProfileId == pid));
                     _ctx.PurchaseHistories.RemoveRange(_ctx.PurchaseHistories.Where(x => x.PlayerProfileId == pid));
                     _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(x => x.PlayerProfileId == pid));
-                    _ctx.Mails.RemoveRange(_ctx.Mails.Where(x => x.PlayerProfileId == pid));
+                    _ctx.Mailboxes.RemoveRange(_ctx.Mailboxes.Where(x => x.PlayerProfileId == pid));
                     _ctx.GuildMembers.RemoveRange(_ctx.GuildMembers.Where(x => x.PlayerProfileId == pid));
                     await _ctx.SaveChangesAsync();
 
@@ -1024,26 +1024,46 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
 
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
-                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Knight 2", "Knight");
+                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Archer 2", "Archer");
+                
+                var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Knight 3", "Knight");
+                var p4 = await CreatePlayer("elf_user4", "elf4@mystic.test", "Tutorial Knight 4", "Knight");
 
-                // Update profile for elf2: Level 12, AutumnPumpkin map, completed Quest 16
+                var allSkillIds = await _ctx.Skills.Select(s => s.SkillId).ToListAsync();
+                foreach (var skillId in allSkillIds)
+                {
+                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p3, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p4, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+                }
+                await _ctx.SaveChangesAsync();
+
+                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, completed Quest 23
                 var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
                 if (p2Profile != null)
                 {
-                    p2Profile.Level = 12;
+                    p2Profile.Class = "Archer";
+                    p2Profile.Level = 15;
                     p2Profile.Gold = 5000;
                     p2Profile.Gems = 500;
-                    p2Profile.LastMapName = "AutumnPumpkin";
-                    p2Profile.PositionX = 6.0;
-                    p2Profile.PositionY = -90.0;
+                    p2Profile.LastMapName = "AbandonedCastle";
+                    p2Profile.PositionX = -10.66; // Vị trí đứng gần Valiant Warrior
+                    p2Profile.PositionY = 53.0; 
                     await _ctx.SaveChangesAsync();
                 }
 
-                // Clear existing PlayerQuests for elf2 and seed Q1..Q16 as Claimed (Q16 is Slay the Dragon)
+                // Equip Archer skin for elf2 instead of Knight default skin
+                var p2Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p2).ToListAsync();
+                foreach (var skin in p2Skins)
+                {
+                    skin.IsEquipped = (skin.SkinId == skinAlt.SkinId || skin.SkinId == 2);
+                }
+                await _ctx.SaveChangesAsync();
+
+                // Clear existing PlayerQuests for elf2 and seed Q1..Q23 as Claimed
                 _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p2));
                 await _ctx.SaveChangesAsync();
 
-                for (int qId = 1; qId <= 16; qId++)
+                for (int qId = 1; qId <= 23; qId++)
                 {
                     _ctx.PlayerQuests.Add(new PlayerQuest
                     {
@@ -1087,7 +1107,7 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2, p3, p4 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
             }
             catch (Exception ex)
             {

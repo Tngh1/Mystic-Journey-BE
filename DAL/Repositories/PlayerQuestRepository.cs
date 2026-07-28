@@ -36,29 +36,11 @@ namespace DAL.Repositories
                     .ThenInclude(q => q!.RewardSkill)
                 .Where(pq => pq.PlayerProfileId == playerProfileId)
                 .OrderByDescending(pq => pq.AcceptedAt)
-                .ToListAsync();
-        }
-
-        /// <summary>Lấy nhiệm vụ của người chơi trên một bản đồ cụ thể, sắp xếp theo cấp độ yêu cầu.</summary>
-        public async Task<List<PlayerQuest>> GetByPlayerIdAndMap(int playerProfileId, string mapName)
-        {
-            return await _context.PlayerQuests
-                .Include(pq => pq.Quest)
-                    .ThenInclude(q => q!.RewardItem)
-                .Include(pq => pq.Quest)
-                    .ThenInclude(q => q!.RewardItems)
-                        .ThenInclude(r => r.Item)
-                .Include(pq => pq.Quest)
-                    .ThenInclude(q => q!.RewardSkills)
-                        .ThenInclude(r => r.Skill)
-                .Include(pq => pq.Quest)
-                    .ThenInclude(q => q!.RewardSkill)
-                .Where(pq =>
-                    pq.PlayerProfileId == playerProfileId &&
-                    pq.Quest != null &&
-                    pq.Quest.MapName == mapName)
-                .OrderBy(pq => pq.Quest!.RequiredLevel)
-                .ThenBy(pq => pq.QuestId)
+                // Hai collection include (RewardItems, RewardSkills) trong cùng một query
+                // tạo tích Descartes: n quest × m item × k skill hàng trả về. Split query
+                // đổi thành 3 câu SELECT phẳng. Chỉ đọc nên không cần tracking.
+                .AsSplitQuery()
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -76,6 +58,8 @@ namespace DAL.Repositories
                         .ThenInclude(r => r.Skill)
                 .Include(pq => pq.Quest)
                     .ThenInclude(q => q!.RewardSkill)
+                // Vẫn giữ tracking: nhiều caller ghi lại bản ghi này qua Update.
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(pq =>
                     pq.PlayerProfileId == playerProfileId &&
                     pq.QuestId == questId);
@@ -96,6 +80,8 @@ namespace DAL.Repositories
                 .Include(pq => pq.Quest)
                     .ThenInclude(q => q!.RewardSkill)
                 .Where(pq => pq.PlayerProfileId == playerProfileId && questIds.Contains(pq.QuestId))
+                // Vẫn giữ tracking: kết quả được BatchUpdateProgress ghi lại qua UpdateRange.
+                .AsSplitQuery()
                 .ToListAsync();
         }
 

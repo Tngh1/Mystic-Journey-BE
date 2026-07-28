@@ -43,6 +43,8 @@ namespace DAL.Repositories
             return await _context.Monsters
                 .Include(m => m.MonsterDrops)
                     .ThenInclude(d => d.Item)
+                // Chỉ đọc: 3 caller đều map sang DTO, không caller nào ghi lại monster này.
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.MonsterId == id);
         }
 
@@ -114,6 +116,8 @@ namespace DAL.Repositories
 
             return await query
                 .OrderBy(s => s.MonsterSpawnId)
+                // Dữ liệu tĩnh, chỉ đọc để map sang DTO cho client.
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -126,15 +130,6 @@ namespace DAL.Repositories
                 .Select(d => d.MonsterId)
                 .ToListAsync();
             return ids.ToHashSet();
-        }
-
-        /// <summary>Lấy các vật phẩm rơi đang hoạt động của quái vật.</summary>
-        public async Task<List<MonsterDrop>> GetActiveDropsByMonsterId(int monsterId)
-        {
-            return await _context.MonsterDrops
-                .Include(d => d.Item)
-                .Where(d => d.MonsterId == monsterId && d.IsActive)
-                .ToListAsync();
         }
 
         /// <summary>Lấy tất cả vật phẩm rơi của quái vật (kể cả không hoạt động).</summary>
@@ -209,26 +204,30 @@ namespace DAL.Repositories
         /// <summary>Lấy danh sách quái vật có phân trang, lọc theo tìm kiếm (tên), loại và trạng thái hoạt động.</summary>
         public async Task<(int TotalCount, List<Monster> Items)> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var query = _context.Monsters
-                .Include(m => m.MonsterDrops)
-                    .ThenInclude(d => d.Item)
-                .AsNoTracking();
+            // Đếm trên query chưa Include: COUNT không cần join sang MonsterDrops/Item.
+            var filtered = _context.Monsters.AsNoTracking();
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(x => x.Name.Contains(search));
+                filtered = filtered.Where(x => x.Name.Contains(search));
             }
             if (!string.IsNullOrEmpty(type))
             {
-                query = query.Where(x => x.Type == type);
+                filtered = filtered.Where(x => x.Type == type);
             }
             if (isActive.HasValue)
             {
-                query = query.Where(x => x.IsActive == isActive.Value);
+                filtered = filtered.Where(x => x.IsActive == isActive.Value);
             }
 
+            int totalCount = await filtered.CountAsync();
+
+            var query = filtered
+                .Include(m => m.MonsterDrops)
+                    .ThenInclude(d => d.Item);
+
             bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-            query = (sortBy?.ToLowerInvariant()) switch
+            IQueryable<Monster> ordered = (sortBy?.ToLowerInvariant()) switch
             {
                 "name" => desc ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
                 "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
@@ -242,8 +241,7 @@ namespace DAL.Repositories
                 _ => desc ? query.OrderByDescending(x => x.MonsterId) : query.OrderBy(x => x.MonsterId),
             };
 
-            int totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return (totalCount, items);
         }
@@ -251,13 +249,17 @@ namespace DAL.Repositories
         /// <summary>Lấy danh sách vật phẩm rơi đang hoạt động có phân trang.</summary>
         public async Task<(int TotalCount, List<MonsterDrop> Items)> GetMonsterDropsPaged(int page, int pageSize)
         {
-            var query = _context.MonsterDrops
-                .Include(d => d.Item)
+            var filtered = _context.MonsterDrops
                 .Where(d => d.IsActive)
                 .AsNoTracking();
 
-            int totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            int totalCount = await filtered.CountAsync();
+            var items = await filtered
+                .Include(d => d.Item)
+                .OrderBy(d => d.MonsterDropId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             return (totalCount, items);
         }
