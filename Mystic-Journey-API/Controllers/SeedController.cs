@@ -1808,10 +1808,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 var spawns = new List<MonsterSpawn>
                 {
                     // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
-                    // Quái thường: SlimeLittle (1) + WaterElemental (3)
+                    // Quái thường: SlimeLittle (1) + Slime_ice (8)
                     // Boss: SwampDemon (2)
                     new MonsterSpawn { DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 1, MonsterId = 3,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
                     new MonsterSpawn { DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = mapName, IsActive = true },
 
                     // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────
