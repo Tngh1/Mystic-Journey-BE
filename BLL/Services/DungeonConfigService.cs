@@ -37,7 +37,6 @@ namespace BLL.Services
 
             dungeon.Name = request.Name;
             dungeon.Description = request.Description;
-            dungeon.ImageUrl = request.ImageUrl;
             dungeon.Type = request.Type;
             dungeon.LevelRequirement = request.LevelRequirement;
             dungeon.MaxMembers = request.MaxMembers;
