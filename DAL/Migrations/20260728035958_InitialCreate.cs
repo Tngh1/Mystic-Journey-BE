@@ -293,7 +293,6 @@ namespace DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
                     Type = table.Column<string>(type: "text", nullable: false),
                     LevelRequirement = table.Column<int>(type: "integer", nullable: false),
                     MaxMembers = table.Column<int>(type: "integer", nullable: false),
@@ -661,38 +660,6 @@ namespace DAL.Migrations
                         column: x => x.SubCategoryContentId,
                         principalTable: "SubCategoryContents",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "GameSettings",
-                columns: table => new
-                {
-                    GameSettingId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedByAccountId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedByAccountAccountId = table.Column<int>(type: "integer", nullable: true),
-                    UpdatedByAccountId = table.Column<Guid>(type: "uuid", nullable: true),
-                    UpdatedByAccountAccountId = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GameSettings", x => x.GameSettingId);
-                    table.ForeignKey(
-                        name: "FK_GameSettings_Accounts_CreatedByAccountAccountId",
-                        column: x => x.CreatedByAccountAccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "AccountId");
-                    table.ForeignKey(
-                        name: "FK_GameSettings_Accounts_UpdatedByAccountAccountId",
-                        column: x => x.UpdatedByAccountAccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "AccountId");
                 });
 
             migrationBuilder.CreateTable(
@@ -1930,7 +1897,7 @@ namespace DAL.Migrations
                     { 10, "The forbidden zone guard.", null, 2.5f, true, "FrozenMountain", "Roland", 70.456860000000006, 18.803540000000002, "QuestGiver" },
                     { 11, "A brave warrior fighting skeletons.", null, 2.5f, true, "AbandonedCastle", "Valiant Warrior", -10.66112, 54.928840000000001, "QuestGiver" },
                     { 12, "The ghost of a young girl.", null, 2.5f, true, "AbandonedCastle", "Natalie", -48.921259999999997, -21.120059999999999, "QuestGiver" },
-                    { 13, "The lone guard of the deserted island.", null, 2.5f, true, "AbandonedCastle", "Elf Guard", -6.2377580000000004, -13.13438, "QuestGiver" }
+                    { 13, "The lone guard of the deserted island.", null, 2.5f, true, "AbandonedCastle", "Elf Guard", -104.80000305175781, -4.7760000228881836, "QuestGiver" }
                 });
 
             migrationBuilder.InsertData(
@@ -1938,27 +1905,28 @@ namespace DAL.Migrations
                 columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
                 values: new object[,]
                 {
-                    { 1, null, "NotStarted", "Talk to Elder Rowan in the Elf Forest.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 5, 5m, 10m, null, null, 1, "[Chapter 1] Speak with Elder Rowan", "Main" },
-                    { 2, null, "NotStarted", "Collect 3 White Flowers from the forest.", true, "ElfForest", "Elf Forest", "White Flower", "Collect", "Elder Rowan", null, 1, 10, 5m, 8m, null, null, 3, "[Chapter 1] Gather White Flowers", "Main" },
-                    { 4, null, "NotStarted", "Equip your first combat skill.", true, "ElfForest", "Elf Forest", "Skill Panel", "EquipSkill", "Elder Rowan", null, 1, 10, 5m, 10m, null, null, 1, "[Chapter 1] Equip Your Skill", "Main" },
-                    { 5, null, "NotStarted", "Kill 3 SlimeLittle monsters in the forest.", true, "ElfForest", "Elf Forest", "SlimeLittle", "Defeat", "Elder Rowan", null, 1, 15, 5m, 15m, null, null, 3, "[Chapter 1] Defeat Slimes", "Main" },
-                    { 7, null, "NotStarted", "Talk to Lyra about the cursed Origin Tree and the 4 Seal Books.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 2, 10, 5m, 10m, null, null, 1, "[Chapter 1] The Origin Tree", "Main" },
-                    { 8, null, "NotStarted", "Follow the cloaked figure through the portal to Autumn Pumpkin.", true, "ElfForest", "Elf Forest", "Portal", "Explore", "Mysterious Figure", null, 2, 5, 5m, 5m, null, null, 1, "[Chapter 1] The Mysterious Figure", "Main" },
-                    { 9, null, "NotStarted", "Teleported onto the beach, proceed to the castle and ask Elder Rowan where this is. After introductions, realize you have no money and ask if there is work to earn food.", true, "AutumnPumpkin", "Autumn Pumpkin", "Elder Rowan", "Talk", "Elder Rowan", null, 3, 100, 5m, 5m, null, null, 1, "[Chapter 2] Where Are We?", "Main" },
-                    { 10, null, "NotStarted", "Collect 8 Enchanted Pumpkins from the field and hand them over to farmer Fa.", true, "AutumnPumpkin", "Pumpkin Town", "Enchanted Pumpkin", "Collect", "Fa", null, 3, 300, 5m, 10m, null, null, 8, "[Chapter 2] Work for Food", "Main" },
-                    { 11, null, "NotStarted", "Help Fa deliver the harvested pumpkins to guard Tristan at the ruined city gate.", true, "AutumnPumpkin", "City Gate", "Tristan", "Talk", "Fa", null, 3, 200, 5m, 5m, null, null, 1, "[Chapter 2] Delivery to the City", "Main" },
-                    { 12, null, "NotStarted", "Enter the city and investigate the dead bodies, then report back to guard Tristan.", true, "AutumnPumpkin", "Ruined City", "Corpse", "Interact", "Tristan", null, 3, 250, 5m, 5m, null, null, 5, "[Chapter 2] The Ruined City", "Main" },
-                    { 13, null, "NotStarted", "Report the massacre to Tristan. He asks you to find the silver knight Arthur for help.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Tristan", null, 3, 250, 5m, 5m, null, null, 1, "[Chapter 2] Seek the Silver Knight", "Main" },
-                    { 15, null, "NotStarted", "Receive the DarkExplosion skill and Silver Necklace from Arthur. Take his place to defeat 10 evil monsters in the Ruined City.", true, "AutumnPumpkin", "Ruined City", "Ghost/RobberAssassin/RedGuard/GoblinSpear/GoblinWarrior/RobberArcher/NecromancerCast", "Defeat", "Arthur", null, 12, 20, 5m, 20m, null, null, 10, "[Chapter 2] Defeat the Evil Monsters", "Main" },
-                    { 17, null, "NotStarted", "Talk to Arthur and receive the knight's thanks, ask about the whereabouts of the ??? and he directs you to the frozen land devastated by the codex, go to Frozen Mountains.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Arthur", null, 5, 10, 5m, 10m, null, null, 1, "[Chapter 2] The Frozen Threat", "Main" },
-                    { 19, null, "NotStarted", "Deliver Magic Flour (obtained from the Queen) to the Priest (Zephyr).", true, "FrozenMountain", "Frozen Mountain", "Zephyr", "Talk", "Roselyn Aurora Queen", null, 6, 15, 5m, 15m, null, null, 1, "[Chapter 3] Magic Flour for the Priest", "Main" },
-                    { 20, null, "NotStarted", "Meet Zephyr and slay 5 Ice Dragons on the mountain.", true, "FrozenMountain", "Frozen Mountain", "Ice_Dragon", "Defeat", "Zephyr", null, 7, 40, 5m, 40m, null, null, 5, "[Chapter 3] Dragons of Snow", "Main" },
-                    { 21, null, "NotStarted", "Head to the forbidden zone and speak with Roland to explore it.", true, "FrozenMountain", "Forbidden Zone", "Roland", "Explore", "Roland", null, 7, 15, 5m, 15m, null, null, 1, "[Chapter 3] The Forbidden Zone", "Main" },
-                    { 23, null, "NotStarted", "Defeat 12 skeletons in the valley for Valiant Warrior.", true, "AbandonedCastle", "Valley", "Skeleton", "Defeat", "Valiant Warrior", null, 9, 50, 5m, 50m, null, null, 12, "[Chapter 4] Skeleton Army", "Main" },
-                    { 24, null, "NotStarted", "Go to Tide-Knell village, meet Natalie, and dig up the skull near the old well.", true, "AbandonedCastle", "Tide-Knell", "Skull", "Interact", "Valiant Warrior", null, 9, 30, 5m, 30m, null, null, 1, "[Chapter 4] The Abandoned Village", "Main" },
-                    { 26, null, "NotStarted", "Talk to Elf Guard on the deserted island and collect 5 Ancient Leaves.", true, "AbandonedCastle", "Northern Plateau", "Ancient Leaves", "Collect", "Elf Guard", null, 10, 45, 5m, 45m, null, null, 5, "[Chapter 4] Deserted Island", "Main" },
-                    { 28, null, "NotStarted", "Talk to Elf Guard. He will open a portal back to the Elf Forest.", true, "AbandonedCastle", "Deserted Island", "Elf Guard", "Talk", "Elf Guard", null, 12, 10, 5m, 10m, null, null, 1, "[Chapter 4] Return to Elf Forest", "Main" },
-                    { 29, null, "NotStarted", "Talk to Lyra and use the 4 Seal Books to cleanse the tree. \"To be continued\".", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 12, 500, 5m, 500m, null, null, 1, "[Chapter 1] Save the Origin Tree", "Main" }
+                    { 1, null, "NotStarted", "You wake at the edge of the Elf Forest with no memory of how you arrived. Elder Rowan is waiting by the great roots — go to him and hear why the forest called you here.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 5, 5m, 10m, null, null, 1, "[Chapter 1] A Word with Elder Rowan", "Main" },
+                    { 2, null, "NotStarted", "The elders brew their healing draught from white flowers that only bloom in the shade of the old woods. Search the clearings and gather 3 White Flowers for Elder Rowan.", true, "ElfForest", "Elf Forest", "White Flower", "Collect", "Elder Rowan", null, 1, 10, 5m, 8m, null, null, 3, "[Chapter 1] Gather White Flowers", "Main" },
+                    { 4, null, "NotStarted", "A skill is useless until it sits in your hand. Open the Skill panel and equip the technique Elder Rowan just taught you.", true, "ElfForest", "Elf Forest", "Skill Panel", "EquipSkill", "Elder Rowan", null, 1, 10, 5m, 10m, null, null, 1, "[Chapter 1] Equip Your First Skill", "Main" },
+                    { 5, null, "NotStarted", "Little slimes have crept out of the marsh and are eating the flower beds. Put your new skill to work and defeat 3 of them.", true, "ElfForest", "Elf Forest", "SlimeLittle", "Defeat", "Elder Rowan", null, 1, 15, 5m, 15m, null, null, 3, "[Chapter 1] Cull the Little Slimes", "Main" },
+                    { 7, null, "NotStarted", "Take the Seal Book to the guardian Lyra at the Origin Tree. She alone can explain the curse rotting its roots and why four seals are needed to lift it.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 2, 10, 5m, 10m, null, null, 1, "[Chapter 1] Lyra and the Origin Tree", "Main" },
+                    { 8, null, "NotStarted", "A cloaked figure has been watching you since you woke, and now walks into a portal at the forest edge. Step through it before the way closes.", true, "ElfForest", "Elf Forest", "Portal", "Explore", "Mysterious Figure", null, 2, 5, 5m, 5m, null, null, 1, "[Chapter 1] Follow the Cloaked Figure", "Main" },
+                    { 9, null, "NotStarted", "The portal spits you onto a cold beach under an autumn sky. Climb to the castle and find Elder Rowan — or someone wearing his face — and ask what land this is.", true, "AutumnPumpkin", "Autumn Pumpkin", "Elder Rowan", "Talk", "Elder Rowan", null, 3, 100, 5m, 5m, null, null, 1, "[Chapter 2] Ask Where You Are", "Main" },
+                    { 10, null, "NotStarted", "You have no coin in this land and no one gives bread away. Farmer Fa will trade a meal for labour: pick 8 Enchanted Pumpkins from his field.", true, "AutumnPumpkin", "Pumpkin Town", "Enchanted Pumpkin", "Collect", "Fa", null, 3, 300, 5m, 10m, null, null, 8, "[Chapter 2] Harvest for Your Supper", "Main" },
+                    { 11, null, "NotStarted", "Fa is too old to make the road alone. Carry the harvest to the city gate and hand it to the guard Tristan.", true, "AutumnPumpkin", "City Gate", "Tristan", "Talk", "Fa", null, 3, 200, 5m, 5m, null, null, 1, "[Chapter 2] Deliver the Harvest", "Main" },
+                    { 12, null, "NotStarted", "Beyond the gate the city is silent and the streets are full of the dead. Examine 5 of the bodies and learn what killed them.", true, "AutumnPumpkin", "Ruined City", "Corpse", "Interact", "Tristan", null, 3, 250, 5m, 5m, null, null, 5, "[Chapter 2] Examine the Fallen", "Main" },
+                    { 13, null, "NotStarted", "Tristan pales at your report: only one man ever held these ruins. Search the city for the silver knight Arthur and ask for his help.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Tristan", null, 3, 250, 5m, 5m, null, null, 1, "[Chapter 2] Seek the Silver Knight", "Main" },
+                    { 15, null, "NotStarted", "With Arthur's dark technique and his Silver Necklace, you stand in the knight's place. Hunt down 10 of the creatures still prowling the ruins.", true, "AutumnPumpkin", "Ruined City", "Ghost/RobberAssassin/RedGuard/GoblinSpear/GoblinWarrior/RobberArcher/NecromancerCast", "Defeat", "Arthur", null, 4, 300, 5m, 20m, null, null, 10, "[Chapter 2] Purge the Ruined City", "Main" },
+                    { 17, null, "NotStarted", "Return to Arthur for the knight's thanks and ask where the cursed codex came from. He points north, to a kingdom the codex froze solid.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Arthur", null, 5, 150, 5m, 10m, null, null, 1, "[Chapter 2] Arthur's Parting Words", "Main" },
+                    { 19, null, "NotStarted", "The Queen entrusts you with Magic Flour for the mountain shrine. Carry it up to the priest Zephyr before the pass closes.", true, "FrozenMountain", "Frozen Mountain", "Zephyr", "Talk", "Roselyn Aurora Queen", null, 6, 150, 5m, 15m, null, null, 1, "[Chapter 3] Deliver the Magic Flour", "Main" },
+                    { 20, null, "NotStarted", "Zephyr cannot hold his rites while ice dragons circle the shrine. Climb the peak and bring down 5 of them.", true, "FrozenMountain", "Frozen Mountain", "Ice_Dragon", "Defeat", "Zephyr", null, 7, 250, 5m, 40m, null, null, 5, "[Chapter 3] Dragons of the Frozen Peak", "Main" },
+                    { 21, null, "NotStarted", "Zephyr says the codex's mark lies inside the forbidden zone, and only its warden may open the way. Find Roland at the boundary stones and ask for passage.", true, "FrozenMountain", "Forbidden Zone", "Roland", "Talk", "Roland", null, 7, 150, 5m, 15m, null, null, 1, "[Chapter 3] The Warden of the Ban", "Main" },
+                    { 23, null, "NotStarted", "The trail of the seals ends at a ruined castle where the dead still keep watch. The Valiant Warrior holds the valley alone — help him put down 12 skeletons.", true, "AbandonedCastle", "Valley", "Skeleton", "Defeat", "Valiant Warrior", null, 9, 300, 5m, 50m, null, null, 12, "[Chapter 4] Break the Skeleton Army", "Main" },
+                    { 26, null, "NotStarted", "Natalie's key opens the way to a deserted island where one elf guard still stands his post. He needs 5 Ancient Leaves from the plateau to break the seal below.", true, "AbandonedCastle", "Northern Plateau", "Ancient Leaves", "Collect", "Elf Guard", null, 10, 250, 5m, 45m, null, null, 5, "[Chapter 4] Ancient Leaves of the Isle", "Main" },
+                    { 28, null, "NotStarted", "All four seals are in your pack. Speak to the Elf Guard — he can open a portal back to the Elf Forest.", true, "AbandonedCastle", "Deserted Island", "Elf Guard", "Talk", "Elf Guard", null, 12, 150, 5m, 10m, null, null, 1, "[Chapter 4] Ask for the Way Home", "Main" },
+                    { 29, null, "NotStarted", "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 12, 250, 5m, 50m, null, null, 1, "[Chapter 5] Return with the Seals", "Main" },
+                    { 30, null, "NotStarted", "Lyra opens the rite and steps back — the seals must be set by the one who won them. Place the four Seal Books on the Origin Tree and break the curse.", true, "ElfForest", "Elf Forest", "Origin Tree", "Interact", "Lyra", null, 12, 400, 5m, 250m, null, null, 1, "[Chapter 5] Heal the Origin Tree", "Main" },
+                    { 31, null, "NotStarted", "The Origin Tree is green again and the forest wakes around it. Speak with Lyra one last time — the codex had a master, and that story is not finished.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 12, 300, 5m, 200m, null, null, 1, "[Chapter 5] A New Dawn", "Main" }
                 });
 
             migrationBuilder.InsertData(
@@ -1990,7 +1958,7 @@ namespace DAL.Migrations
                     { 12, 0.0, "Mage", 5, 0f, 0.0, 0.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
                     { 13, 200.0, "All", 30, 8f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
                     { 14, 0.0, "Knight", 6, 0f, 0.0, 0.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
-                    { 15, 38.0, "Fighter", 8, 0f, 4.0, 11.0, "Physical", "A short-range slash in the direction the character is facing.", true, "FrozenSash", "SingleTarget", "Active", 1 }
+                    { 15, 38.0, "Knight", 8, 0f, 4.0, 11.0, "Physical", "A short-range slash in the direction the character is facing.", true, "FrozenSash", "SingleTarget", "Active", 1 }
                 });
 
             migrationBuilder.InsertData(
@@ -2046,69 +2014,96 @@ namespace DAL.Migrations
                 columns: new[] { "NPCDialogueId", "Content", "DisplayOrder", "IsActive", "LinkedQuestId", "LinkedShopItemId", "NPCId", "ResponseType" },
                 values: new object[,]
                 {
-                    { 1, "Ah, a new traveler. Welcome to the Elf Forest.", 1, true, 1, null, 1, "None" },
-                    { 2, "This forest has been peaceful for centuries, but recently, dark forces have begun to gather.", 2, true, 1, null, 1, "None" },
-                    { 3, "I need your help to protect this place. Come speak to me when you are ready to begin.", 3, true, 1, null, 1, "Quest" },
-                    { 4, "Before we can confront the darkness, we need to prepare some basic remedies.", 1, true, 2, null, 1, "None" },
-                    { 5, "The old willow clearing has some magical herbs we can use.", 2, true, 2, null, 1, "None" },
-                    { 6, "Please head over there and gather 3 White Flowers for me.", 3, true, 2, null, 1, "Quest" },
-                    { 10, "Now that you have your reward, it is time to learn how to defend yourself.", 1, true, 4, null, 1, "None" },
-                    { 11, "In this world, skills are essential for survival. You cannot fight with bare hands alone.", 2, true, 4, null, 1, "None" },
-                    { 12, "Open your Skill Panel and equip your first combat skill before you face real danger.", 3, true, 4, null, 1, "Quest" },
-                    { 13, "Good, you are armed and ready. It is time to test your newfound abilities.", 1, true, 5, null, 1, "None" },
-                    { 14, "The outskirts of our forest have been overrun by strange, aggressive slimes.", 2, true, 5, null, 1, "None" },
-                    { 15, "Head out and defeat 3 SlimeLittle monsters to prove your worth to the village.", 3, true, 5, null, 1, "Quest" },
-                    { 19, "Greetings, brave warrior. I am Lyra, the spirit of the Origin Tree.", 1, true, 7, null, 2, "None" },
-                    { 20, "As you can see, the tree has been cursed and is slowly dying.", 2, true, 7, null, 2, "None" },
-                    { 21, "Only the 4 Seal Books can cleanse it. You have one, but you must find the remaining three!", 3, true, 7, null, 2, "Quest" },
-                    { 22, "Heh... So you are the one collecting the Seal Books?", 1, true, 8, null, 3, "None" },
-                    { 23, "You know nothing of the true history of this world, or why the tree was cursed.", 2, true, 8, null, 3, "None" },
-                    { 24, "If you want the truth, follow me through this portal. Don't keep me waiting.", 3, true, 8, null, 3, "Quest" },
-                    { 25, "Welcome to the beach. We were teleported here by the portal.", 1, true, 9, null, 4, "None" },
-                    { 26, "You seem to have no money for food. Why don't you look for some work?", 2, true, 9, null, 4, "None" },
-                    { 27, "Go talk to Fa, he is nearby and might need some help.", 3, true, 9, null, 4, "Quest" },
-                    { 28, "Ah, Elder Rowan sent you? Good timing.", 1, true, 10, null, 7, "None" },
-                    { 29, "I need someone to help me harvest the fields.", 2, true, 10, null, 7, "None" },
-                    { 30, "Please collect 8 Enchanted Pumpkins for me.", 3, true, 10, null, 7, "Quest" },
-                    { 31, "Great job with the pumpkins! You are a hard worker.", 1, true, 11, null, 7, "None" },
-                    { 32, "Now, I need these delivered to the city gate.", 2, true, 11, null, 7, "None" },
-                    { 33, "Please take them to guard Tristan at the ruined city.", 3, true, 11, null, 7, "Quest" },
-                    { 34, "Halt! Who goes there? Ah, you brought pumpkins from Fa?", 1, true, 12, null, 5, "None" },
-                    { 35, "Something is wrong in the city... It is too quiet.", 2, true, 12, null, 5, "None" },
-                    { 36, "Please go inside and investigate. Let me know if you find anything suspicious.", 3, true, 12, null, 5, "Quest" },
-                    { 37, "What?! The people inside have all been massacred? Corpses everywhere?", 1, true, 13, null, 5, "None" },
-                    { 38, "This is a disaster. We need someone strong to handle this.", 2, true, 13, null, 5, "None" },
-                    { 39, "Please, go find the silver knight Arthur and report this!", 3, true, 13, null, 5, "Quest" },
-                    { 43, "Splendid! You have trained well and cleared the dungeon.", 1, true, 15, null, 6, "None" },
-                    { 44, "As promised, take this DarkExplosion skill and Silver Necklace.", 2, true, 15, null, 6, "None" },
-                    { 45, "Now, use your power to defeat 10 evil monsters in the Ruined City!", 3, true, 15, null, 6, "Quest" },
-                    { 49, "You did it! The dragon is slain. I cannot thank you enough.", 1, true, 17, null, 6, "None" },
-                    { 50, "You ask about the mysterious figure? The one who did this?", 2, true, 17, null, 6, "None" },
-                    { 51, "He went towards the frozen lands devastated by the codex. Head to the Frozen Mountains next.", 3, true, 17, null, 6, "Quest" },
-                    { 55, "Your efforts have not gone unnoticed. The slimes are thinning out.", 1, true, 19, null, 8, "None" },
-                    { 56, "However, our Priest Zephyr requires supplies for a ritual.", 2, true, 19, null, 8, "None" },
-                    { 57, "Take this Magic Flour and deliver it to him at the mountain peak.", 3, true, 19, null, 8, "Quest" },
-                    { 58, "Ah, the flour from the Queen! Thank you, traveler.", 1, true, 19, null, 9, "None" },
-                    { 59, "The codex has warped the creatures here. The beasts have become feral and dangerous.", 1, true, 20, null, 9, "None" },
-                    { 60, "To secure our borders, go slay 5 Ice Dragons on the mountain.", 2, true, 20, null, 9, "Quest" },
-                    { 61, "Halt! This is the forbidden zone. None may enter.", 1, true, 21, null, 10, "None" },
-                    { 62, "Wait... you have the aura of one who has fought the Ice Dragons.", 2, true, 21, null, 10, "None" },
-                    { 63, "Since you made it this far, help me explore this dangerous area.", 3, true, 21, null, 10, "Quest" },
-                    { 67, "Stay back! The undead are relentless today.", 1, true, 23, null, 11, "None" },
-                    { 68, "An ancient power is leaking, causing skeletons to multiply out of control.", 2, true, 23, null, 11, "None" },
-                    { 69, "I can't hold them off alone. Defeat 12 of them in the valley!", 3, true, 23, null, 11, "Quest" },
-                    { 70, "The animals are fleeing from the abandoned village Tide-Knell. Investigate it and find Natalie.", 1, true, 24, null, 11, "Quest" },
-                    { 71, "Are you here to help me? I cannot leave this place...", 2, true, 24, null, 12, "None" },
-                    { 72, "Please... dig up what is buried under the small tree near the old well.", 3, true, 24, null, 12, "Quest" },
-                    { 76, "You actually survived the waves and made it to this deserted island.", 1, true, 26, null, 13, "None" },
-                    { 77, "I need your assistance to prepare a ritual of return.", 2, true, 26, null, 13, "None" },
-                    { 78, "Help me collect 5 Ancient Leaves from the Northern Plateau.", 3, true, 26, null, 13, "Quest" },
-                    { 82, "It is done. The UnderKing is defeated, and you have all 4 Seal Books.", 1, true, 28, null, 13, "None" },
-                    { 83, "The fate of the Origin Tree now rests entirely in your hands.", 2, true, 28, null, 13, "None" },
-                    { 84, "Farewell, hero. I will use my power to open a portal back to the Elf Forest. Save the tree!", 3, true, 28, null, 13, "Reward" },
-                    { 85, "You have returned! And I can sense the power of the 4 Seal Books.", 1, true, 29, null, 2, "None" },
-                    { 86, "The curse is breaking... The Origin Tree is finally healing!", 2, true, 29, null, 2, "None" },
-                    { 87, "Thank you! The Origin Tree is saved. But this is not the end... To be continued.", 3, true, 29, null, 2, "Reward" }
+                    { 1, "Ah... a new face, and not one born of these woods. Welcome to the Elf Forest, traveler.", 1, true, 1, null, 1, "None" },
+                    { 2, "For a thousand years this forest kept itself in peace. Now something gathers in the dark beneath the roots.", 2, true, 1, null, 1, "None" },
+                    { 3, "I am Elder Rowan, and I need your hands and your courage. Speak with me when you are ready to begin.", 4, true, 1, null, 1, "Quest" },
+                    { 4, "Before we stand against the darkness, we must be able to mend what it breaks.", 1, true, 2, null, 1, "None" },
+                    { 5, "By the old willow clearing grows a white flower that only opens where the air is still clean.", 2, true, 2, null, 1, "None" },
+                    { 6, "Go to the clearing and gather 3 White Flowers for me. Take care, even slimes wander there now.", 4, true, 2, null, 1, "Quest" },
+                    { 10, "A remedy keeps you alive. It does not keep you standing. For that you need a skill.", 1, true, 4, null, 1, "None" },
+                    { 11, "Every warrior in this world channels power through learned technique. Bare fists will not answer a demon.", 2, true, 4, null, 1, "None" },
+                    { 12, "Open your Skill Panel and equip your first combat skill. Do not step past the treeline without it.", 4, true, 4, null, 1, "Quest" },
+                    { 13, "Good. I can feel the power settled in you now. It must be tested before it is trusted.", 1, true, 5, null, 1, "None" },
+                    { 14, "The outskirts crawl with little slimes. They were harmless once, now they hunt in packs.", 2, true, 5, null, 1, "None" },
+                    { 15, "Go out and defeat 3 little slimes, then return and tell me what you felt out there.", 4, true, 5, null, 1, "Quest" },
+                    { 19, "Come closer, brave one. I am Lyra, not elf and not ghost. I am the spirit of the Origin Tree itself.", 1, true, 7, null, 2, "None" },
+                    { 20, "Look at my bark. The curse has reached my heartwood, and I am dying slowly, from the inside outward.", 2, true, 7, null, 2, "None" },
+                    { 21, "Only the 4 Seal Books can cleanse me. You hold one already, find the remaining three, and hurry!", 4, true, 7, null, 2, "Quest" },
+                    { 22, "Heh... so you are the little errand-runner gathering up the Seal Books.", 1, true, 8, null, 3, "None" },
+                    { 23, "You carry them and do not even know what they are, or whose hand cursed that tree.", 2, true, 8, null, 3, "None" },
+                    { 24, "The truth waits through this portal. Follow me, or stay and keep watering a dying tree.", 4, true, 8, null, 3, "Quest" },
+                    { 25, "Steady, traveler. That portal spat us both out here on the beach, and the cloaked one is long gone.", 1, true, 9, null, 4, "None" },
+                    { 26, "We are far from the forest now, with no coin between us and no way back that I can see.", 2, true, 9, null, 4, "None" },
+                    { 27, "Go and speak with Fa, the farmer just up the path. He always needs hands.", 4, true, 9, null, 4, "Quest" },
+                    { 28, "Elder Rowan sent you? Good timing, stranger. My back is not what it was.", 1, true, 10, null, 7, "None" },
+                    { 29, "The whole field came ripe at once, and the harvest cart leaves for the city at dusk.", 2, true, 10, null, 7, "None" },
+                    { 30, "Collect 8 Enchanted Pumpkins for me and I will see you fed tonight.", 4, true, 10, null, 7, "Quest" },
+                    { 31, "Eight, and not one bruised. You work like a farmhand born, not a wanderer.", 1, true, 11, null, 7, "None" },
+                    { 32, "Now the hard half of the job. These are owed at the city gate before nightfall.", 2, true, 11, null, 7, "None" },
+                    { 33, "Take them to the guard Tristan at the ruined city, and tell him Fa sent you.", 4, true, 11, null, 7, "Quest" },
+                    { 34, "Halt! Who goes... ah, pumpkins from Fa. Set them down, you may be the last delivery this gate sees.", 1, true, 12, null, 5, "None" },
+                    { 35, "Something is wrong inside. No bells, no market noise, no smoke from a single chimney since dawn.", 2, true, 12, null, 5, "None" },
+                    { 36, "Go in and look at the fallen with your own eyes. Then come back and tell me the truth of it.", 4, true, 12, null, 5, "Quest" },
+                    { 37, "All of them? Every soul in the city, cut down where they stood? Gods, I stood here and heard nothing.", 1, true, 13, null, 5, "None" },
+                    { 38, "No bandit crew does this in one night. Whatever walked in there was not a man with a sword.", 2, true, 13, null, 5, "None" },
+                    { 39, "Find Arthur and report what you saw. Go, before whatever did this moves on to the next town.", 4, true, 13, null, 5, "Quest" },
+                    { 43, "You walked out of that dungeon on your own two feet. Not many did, back when it was mine.", 1, true, 15, null, 6, "None" },
+                    { 44, "Then take what I can still give. My dark explosion technique, and this Silver Necklace off my own neck.", 2, true, 15, null, 6, "None" },
+                    { 45, "Cut down 10 of them in the Ruined City. Let the streets be quiet for once.", 4, true, 15, null, 6, "Quest" },
+                    { 49, "The dragon is dead. I felt it go — the whole city breathed out at once. Thank you.", 1, true, 17, null, 6, "None" },
+                    { 50, "You want to know about the cloaked one. Yes. He passed through here before the dragon ever came.", 2, true, 17, null, 6, "None" },
+                    { 51, "He went north, into the frozen lands. Follow him to the Frozen Mountains. I will hold this city.", 4, true, 17, null, 6, "Quest" },
+                    { 55, "The fields are quiet tonight. My people walked to the grain stores without an escort for the first time in a month.", 1, true, 19, null, 8, "None" },
+                    { 56, "Now the harder trouble. Priest Zephyr keeps a rite burning at the peak — it is the only thing holding the cold back.", 2, true, 19, null, 8, "None" },
+                    { 57, "Take this Magic Flour to him at the mountain peak. If the rite goes out, we all freeze with it.", 4, true, 19, null, 8, "Quest" },
+                    { 58, "The Queen's flour, and a courier still breathing. The rite can go on. You have bought this mountain another season.", 1, true, 19, null, 9, "Reward" },
+                    { 59, "Stay a moment. The codex passed over this peak too, and what it touched did not simply die — it changed.", 1, true, 20, null, 9, "None" },
+                    { 60, "Climb the peak and slay all 5. Do it, and the Queen's borders hold one more winter.", 4, true, 20, null, 9, "Quest" },
+                    { 61, "Halt. Beyond this line is under ban, and I am Roland, the warden who keeps it.", 1, true, 21, null, 10, "None" },
+                    { 62, "Wait. That cold on you — dragon frost. You came down off the peak, not up from the road.", 2, true, 21, null, 10, "None" },
+                    { 63, "Walk it with me and map what waits inside. I will not send you where I do not go myself.", 4, true, 21, null, 10, "Quest" },
+                    { 67, "Back, stranger, keep your back to the rock! They come up out of the valley floor faster than I can cut them down.", 1, true, 23, null, 11, "None" },
+                    { 68, "This is no ordinary haunting. An ancient power is leaking somewhere near, and the dead rise faster than they fall.", 2, true, 23, null, 11, "None" },
+                    { 69, "Cut down 12 of them in the valley with me. Two blades may be enough where one was not.", 4, true, 23, null, 11, "Quest" },
+                    { 70, "The animals are fleeing from the abandoned village of Tide-Knell. Look into it, and find the girl Natalie.", 5, true, 23, null, 11, "Reward" },
+                    { 76, "An outsider, with a Mystic Key, standing on my island. The sea should have kept you. Yet here you are.", 1, true, 26, null, 13, "None" },
+                    { 77, "I am the last guard of this place. I know what you carry, and I know the forest you are trying to reach.", 2, true, 26, null, 13, "None" },
+                    { 78, "Collect 5 Ancient Leaves from the Northern Plateau. Bring them, and I will begin the rite of return.", 4, true, 26, null, 13, "Quest" },
+                    { 82, "It is done. The UnderKing has fallen, and all four Seal Books are in one pair of hands for the first time in an age.", 1, true, 28, null, 13, "None" },
+                    { 83, "You want the way home. I will give it, but understand what waits: the Origin Tree is nearly gone.", 2, true, 28, null, 13, "None" },
+                    { 84, "Then go. The portal to the Elf Forest is open. Save the tree, outsider.", 4, true, 28, null, 13, "Reward" },
+                    { 85, "You came back. Through the ruins, the snow, the ban, the sea — and you are carrying all four seals.", 1, true, 29, null, 2, "None" },
+                    { 86, "Bring the four books to me here, at the roots. Hurry.", 4, true, 29, null, 2, "Quest" },
+                    { 87, "The curse is breaking... The Origin Tree is finally healing!", 1, true, 31, null, 2, "None" },
+                    { 88, "Thank you, truly. The Origin Tree is saved. But this is not the end... To be continued.", 4, true, 31, null, 2, "Reward" },
+                    { 89, "I cannot hold the rites while they circle the shrine — their shadows alone put out the candles.", 2, true, 20, null, 9, "None" },
+                    { 90, "The tree has almost no strength left. Every leaf it drops, the curse takes a little more of the forest.", 2, true, 29, null, 2, "None" },
+                    { 91, "The four seals are whole. I have opened the rite... but I cannot finish it.", 1, true, 30, null, 2, "None" },
+                    { 92, "The seals answer only to the one who won them. It must be your hand, not mine.", 2, true, 30, null, 2, "None" },
+                    { 93, "Step to the Origin Tree and set the four Seal Books upon it. Break the curse.", 4, true, 30, null, 2, "Quest" },
+                    { 94, "The Origin Tree at our heart is sickening. Its leaves fall in high summer, and the animals no longer sleep here.", 3, true, 1, null, 1, "None" },
+                    { 95, "Where those flowers still bloom, the curse has not yet reached. They are medicine and warning both.", 3, true, 2, null, 1, "None" },
+                    { 97, "Your body already holds the spark. What you lack is a shape to pour it into.", 3, true, 4, null, 1, "None" },
+                    { 98, "They are the curse's smallest children. Where they spread, the soil dies behind them.", 3, true, 5, null, 1, "None" },
+                    { 100, "Long ago the elders bound an ancient power into four books. That binding has broken, and the leak is poisoning me.", 3, true, 7, null, 2, "None" },
+                    { 101, "The elves told you a story with the ugly parts cut out. I can show you what they buried.", 3, true, 8, null, 3, "None" },
+                    { 102, "This is farming country. Folk here trade a day of work for supper, and honest work is easy to find.", 3, true, 9, null, 4, "None" },
+                    { 103, "Mind the ones that glow faintly. An enchanted pumpkin keeps a lantern lit all winter, that is why the city pays.", 3, true, 10, null, 7, "None" },
+                    { 104, "I would carry them myself, but no one from this farm has come back from that road in a week.", 3, true, 11, null, 7, "None" },
+                    { 105, "I am Tristan, and my orders bind me to this gate. I cannot take one step past it, even now.", 3, true, 12, null, 5, "None" },
+                    { 106, "There is one person left who might stand against it. Arthur, the silver knight, camped in the old ruins.", 3, true, 13, null, 5, "None" },
+                    { 108, "The city outside is still crawling. Every hour they spread further, and the dead cannot be buried while they roam.", 3, true, 15, null, 6, "None" },
+                    { 110, "He carries something that should have stayed sealed. Wherever he walks, the land sickens behind him.", 3, true, 17, null, 6, "None" },
+                    { 112, "His supplies ran out days ago and no courier of mine has come back down that road alive.", 3, true, 19, null, 8, "None" },
+                    { 113, "Ice dragons, five of them. Young, but the codex made them hungry in a way no beast should be.", 3, true, 20, null, 9, "None" },
+                    { 114, "I have watched this ban for eleven years and never once set foot inside. Now something in there has begun to stir.", 3, true, 21, null, 10, "None" },
+                    { 116, "There is a Seal Book buried under all this bone. I have felt it since the day the leak began.", 3, true, 23, null, 11, "None" },
+                    { 120, "A portal home cannot be forced. It must be grown, and for that the rite needs leaves older than the curse itself.", 3, true, 26, null, 13, "None" },
+                    { 122, "The rite will open once and close behind you. Whatever you leave undone on this side stays undone.", 3, true, 28, null, 13, "None" },
+                    { 123, "Four books, four elders, four bindings broken. Set them together and the curse has nowhere left to hide.", 3, true, 29, null, 2, "None" },
+                    { 124, "I am the tree's spirit. If the curse takes the roots, it takes me with them — so do not hesitate at the last step.", 3, true, 30, null, 2, "None" },
+                    { 125, "Look at the roots. Green, after all this time. The forest will remember the one who stood here today.", 2, true, 31, null, 2, "None" },
+                    { 126, "And yet the cloaked one was never found, and no one has said who broke the four bindings in the first place.", 3, true, 31, null, 2, "None" }
                 });
 
             migrationBuilder.InsertData(
@@ -2116,14 +2111,15 @@ namespace DAL.Migrations
                 columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
                 values: new object[,]
                 {
-                    { 3, null, "NotStarted", "Deliver the gathered flowers to Elder Rowan.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 5, 5m, 5m, null, 10, 1, "[Chapter 1] Deliver White Flowers", "Main" },
-                    { 6, 2, "NotStarted", "Slay the Swamp Demon and obtain its Seal Book.", true, "ElfForest", "Deep Woods", "SwampDemon", "Defeat", "Elder Rowan", null, 2, 25, 5m, 50m, null, null, 1, "[Chapter 1] The Swamp Demon", "Main" },
-                    { 14, null, "NotStarted", "Speak with Arthur and learn about his internal injuries and sealed power. Enter Dungeon ID 2 to train and level up your strength.", true, "AutumnPumpkin", "Dungeon", "Dungeon_2", "Explore", "Arthur", null, 12, 15, 5m, 15m, 18, 9, 1, "[Chapter 2] The Silver Knight's Training", "Main" },
-                    { 16, 7, "NotStarted", "Turn in the quest and get Arthur's recognition of your strength, receive quest to kill DragonBossIdle. Go kill dragon DragonBossIdle.", true, "AutumnPumpkin", "Ruined City", "DragonBossIdle", "Defeat", "Arthur", null, 5, 50, 5m, 100m, null, null, 1, "[Chapter 2] Slay the Dragon", "Main" },
-                    { 18, null, "NotStarted", "Meet Queen Roselyn Aurora and defeat 8 Ice Slimes.", true, "FrozenMountain", "Snow Fields", "slime_ice", "Defeat", "Roselyn Aurora Queen", null, 6, 30, 5m, 30m, 31, null, 8, "[Chapter 3] The Ice Slimes", "Main" },
-                    { 22, 10, "NotStarted", "Discover the truth of the codex and defeat GolemBoss to get the Golem Seal Book.", true, "FrozenMountain", "Forbidden Zone", "GolemBoss", "Defeat", "Roland", null, 8, 80, 5m, 150m, null, null, 1, "[Chapter 3] Truth of the Codex", "Main" },
-                    { 25, null, "NotStarted", "Read Natalie's suicide letter and bury her remains under the ivy tree. Receive Mystic Key.", true, "AbandonedCastle", "Tide-Knell", "Natalie", "Talk", "Natalie", null, 10, 40, 5m, 40m, 33, null, 1, "[Chapter 4] Rest in Peace", "Main" },
-                    { 27, 15, "NotStarted", "Defeat the UnderKing to claim the final UnderKing Seal Book.", true, "AbandonedCastle", "Deserted Island", "UnderKing", "Defeat", "Elf Guard", null, 11, 200, 5m, 300m, null, null, 1, "[Chapter 4] The UnderKing", "Main" }
+                    { 3, null, "NotStarted", "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 5, 5m, 5m, null, 10, 1, "[Chapter 1] Deliver the White Flowers", "Main" },
+                    { 6, 2, "NotStarted", "The slimes were only fleeing something worse. Deep in the woods a Swamp Demon guards the first of four Seal Books — kill it and take the seal.", true, "ElfForest", "Deep Woods", "SwampDemon", "Defeat", "Elder Rowan", null, 2, 25, 5m, 50m, null, null, 1, "[Chapter 1] Slay the Swamp Demon", "Main" },
+                    { 14, null, "NotStarted", "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.", true, "AutumnPumpkin", "Dungeon", "Dungeon_2", "Explore", "Arthur", null, 4, 250, 5m, 15m, 18, 9, 1, "[Chapter 2] Train in the Old Dungeon", "Main" },
+                    { 16, 7, "NotStarted", "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.", true, "AutumnPumpkin", "Ruined City", "DragonBossIdle", "Defeat", "Arthur", null, 5, 350, 5m, 100m, null, null, 1, "[Chapter 2] Slay the Dragon", "Main" },
+                    { 18, null, "NotStarted", "Queen Roselyn Aurora receives you in a hall of ice. Her fields are overrun before the winter stores are in — defeat 8 ice slimes for her.", true, "FrozenMountain", "Snow Fields", "slime_ice", "Defeat", "Roselyn Aurora Queen", null, 6, 200, 5m, 30m, 31, null, 8, "[Chapter 3] Slimes of the Snow Fields", "Main" },
+                    { 22, 10, "NotStarted", "Roland tells you what the kingdom buried here: the codex itself, and the golem forged to guard it. Destroy the golem and take the second Seal Book.", true, "FrozenMountain", "Forbidden Zone", "GolemBoss", "Defeat", "Roland", null, 8, 400, 5m, 150m, null, null, 1, "[Chapter 3] Break the Stone Guardian", "Main" },
+                    { 24, null, "NotStarted", "In the drowned village of Tide-Knell a girl named Natalie asks a strange favour: dig beside the old well and lift out the skull buried there.", true, "AbandonedCastle", "Tide-Knell", "Skull", "Interact", "Natalie", null, 9, 200, 5m, 30m, 32, null, 1, "[Chapter 4] The Skull by the Well", "Main" },
+                    { 25, null, "NotStarted", "The skull is hers. Read the letter she left behind, bury her remains beneath the ivy tree, and she will give you the key she died holding.", true, "AbandonedCastle", "Tide-Knell", "Ivy Tree", "Interact", "Natalie", null, 10, 200, 5m, 40m, 33, null, 1, "[Chapter 4] Lay Natalie to Rest", "Main" },
+                    { 27, 15, "NotStarted", "The leaves burn away the ward and the crypt opens. The UnderKing holds the last two Seal Books — take them from him.", true, "AbandonedCastle", "Deserted Island", "UnderKing", "Defeat", "Elf Guard", null, 11, 500, 5m, 300m, null, null, 1, "[Chapter 4] Defeat the UnderKing", "Main" }
                 });
 
             migrationBuilder.InsertData(
@@ -2131,30 +2127,42 @@ namespace DAL.Migrations
                 columns: new[] { "NPCDialogueId", "Content", "DisplayOrder", "IsActive", "LinkedQuestId", "LinkedShopItemId", "NPCId", "ResponseType" },
                 values: new object[,]
                 {
-                    { 7, "You have returned quickly. Did you find the flowers?", 1, true, 3, null, 1, "None" },
-                    { 8, "Excellent, these are in perfect condition. They will make fine healing poultices.", 2, true, 3, null, 1, "None" },
-                    { 9, "Thank you! Take this as a token of my appreciation.", 3, true, 3, null, 1, "Reward" },
-                    { 16, "You handled those slimes well. But a much greater threat lurks in the deep woods.", 1, true, 6, null, 1, "None" },
-                    { 17, "A terrible Swamp Demon has made its lair there, corrupting the land with its presence.", 2, true, 6, null, 1, "None" },
-                    { 18, "You must destroy the Swamp Demon and claim the Swamp Seal Book it guards. We are counting on you!", 3, true, 6, null, 1, "Quest" },
-                    { 40, "Greetings, warrior. I am Arthur, the silver knight.", 1, true, 14, null, 6, "None" },
-                    { 41, "I suffered severe internal injuries and my power has been sealed away.", 2, true, 14, null, 6, "None" },
-                    { 42, "You must train in Dungeon 2 to level up and unlock your true potential. Go!", 3, true, 14, null, 6, "Quest" },
-                    { 46, "You have returned, and you are stronger than before.", 1, true, 16, null, 6, "None" },
-                    { 47, "I recognize your true strength now. You are ready for the ultimate challenge.", 2, true, 16, null, 6, "None" },
-                    { 48, "A terrible dragon threatens our existence. Go and slay the DragonBossIdle!", 3, true, 16, null, 6, "Quest" },
-                    { 52, "Ah, a survivor from the ruins. I am Queen Roselyn Aurora.", 1, true, 18, null, 8, "None" },
-                    { 53, "This land is devastated by the codex. Only volunteers remain to defend it.", 2, true, 18, null, 8, "None" },
-                    { 54, "Please, clear out 8 ice slimes from the Snow Fields to help us.", 3, true, 18, null, 8, "Quest" },
-                    { 64, "We have uncovered the origin of the codex... The truth is terrifying.", 1, true, 22, null, 10, "None" },
-                    { 65, "A massive ancient golem guards the final piece of the puzzle.", 2, true, 22, null, 10, "None" },
-                    { 66, "Defeat the giant GolemBoss to claim the Golem Seal Book! Do not fail us.", 3, true, 22, null, 10, "Quest" },
-                    { 73, "Thank you for finding my remains. Now I can finally rest in peace.", 1, true, 25, null, 12, "None" },
-                    { 74, "The ancient power leak was my doing. I am so sorry for the chaos.", 2, true, 25, null, 12, "None" },
-                    { 75, "Take this key. It will unlock the doors to the island castle. Farewell.", 3, true, 25, null, 12, "Reward" },
-                    { 79, "We have everything we need. But a dark presence blocks our path.", 1, true, 27, null, 13, "None" },
-                    { 80, "The UnderKing himself has awakened, and he guards the final Seal Book.", 2, true, 27, null, 13, "None" },
-                    { 81, "You must end his reign! Defeat the UnderKing and claim the book!", 3, true, 27, null, 13, "Quest" }
+                    { 7, "Back already? Let me see your hands... ah, you found them.", 1, true, 3, null, 1, "None" },
+                    { 8, "Not a petal bruised. Crushed with spring water, these will close a wound in minutes.", 2, true, 3, null, 1, "None" },
+                    { 9, "You have earned this. Take it, with an old elf's thanks.", 4, true, 3, null, 1, "Reward" },
+                    { 16, "You handled them cleanly. But the slimes are only spillage from something far worse.", 1, true, 6, null, 1, "None" },
+                    { 17, "Deep in the swamp lies a Demon. The water rots around it, and the corruption creeps closer each night.", 2, true, 6, null, 1, "None" },
+                    { 18, "Destroy the Swamp Demon and bring back the Swamp Seal Book. Everything rests on this.", 4, true, 6, null, 1, "Quest" },
+                    { 40, "Lower your guard, I am no enemy. I am Arthur, once called the silver knight of this city.", 1, true, 14, null, 6, "None" },
+                    { 41, "I met the thing that emptied these streets. It broke something inside me and sealed my power away.", 2, true, 14, null, 6, "None" },
+                    { 42, "Clear my old training dungeon. Survive it, and I will give you everything I have left. Go!", 4, true, 14, null, 6, "Quest" },
+                    { 46, "You came back quieter than you left. That is how I know the fighting took hold in you.", 1, true, 16, null, 6, "None" },
+                    { 47, "Then hear the rest of it. The monsters were never the cause. Something older nests above the ruins.", 2, true, 16, null, 6, "None" },
+                    { 48, "Finish what I could not. Climb to its nest and slay the dragon!", 4, true, 16, null, 6, "Quest" },
+                    { 52, "A living stranger, walking in out of the snow. I am Roselyn Aurora, and what is left of this kingdom is mine to hold.", 1, true, 18, null, 8, "None" },
+                    { 53, "The codex passed over these fields and the cold turned wrong. My soldiers are gone. Only volunteers stand the walls now.", 2, true, 18, null, 8, "None" },
+                    { 54, "Clear 8 ice slimes from the Snow Fields. I would ask a knight, but I have none left to ask.", 4, true, 18, null, 8, "Quest" },
+                    { 64, "Now I know why my order was told to guard this place and never enter it. The codex did not begin in the world. It began here.", 1, true, 22, null, 10, "None" },
+                    { 65, "And it is not finished. One of the old Seal Books lies at the heart of the ban, still holding.", 2, true, 22, null, 10, "None" },
+                    { 66, "Break the stone guardian and take the Golem Seal Book. It is worth more in your hands than under my ban.", 4, true, 22, null, 10, "Quest" },
+                    { 71, "You can see me. Nobody has seen me in a very long time. My name is Natalie, and this village is Tide-Knell.", 1, true, 24, null, 12, "None" },
+                    { 72, "Please. Dig beside the old well and lift out the skull you find there. I am ready to be found.", 4, true, 24, null, 12, "Quest" },
+                    { 73, "(A weathered letter lies where Natalie once stood. It is her own hand, and it is a farewell.)", 1, true, 25, null, 12, "None" },
+                    { 74, "Thank you for bringing my remains home. Please bury me under the ivy tree in my courtyard, where I used to sit.", 3, true, 25, null, 12, "None" },
+                    { 75, "The ancient power leak was my doing, and I have paid for it here. Take this Mystic Key — it opens the castle gates on the deserted island.", 4, true, 25, null, 12, "Quest" },
+                    { 79, "The leaves are enough. The rite is ready. And yet I cannot light it — something below the castle is smothering it.", 1, true, 27, null, 13, "None" },
+                    { 80, "The UnderKing has woken. He held the last Seal Book in his hands long before you were born.", 2, true, 27, null, 13, "None" },
+                    { 81, "End his reign. Defeat the UnderKing and take the fourth book from him.", 4, true, 27, null, 13, "Quest" },
+                    { 96, "Three flowers, three doses. Keep one for yourself, out there you may be your only healer.", 3, true, 3, null, 1, "None" },
+                    { 99, "It guards a book bound in black, the Swamp Seal Book. One of four, and the tree cannot be saved without them.", 3, true, 6, null, 1, "None" },
+                    { 107, "I cannot lift my blade again. But a blade is only steel, what matters is the hand that learns to swing it.", 3, true, 14, null, 6, "None" },
+                    { 109, "A dragon. It is the thing that broke this city, and the thing that broke me. I have carried that shame for years.", 3, true, 16, null, 6, "None" },
+                    { 111, "The slimes come closer each night. They freeze whatever they touch, and my people cannot reach the grain stores.", 3, true, 18, null, 8, "None" },
+                    { 115, "A stone golem stands over it. The elders left it there to keep hands off the book — mine included.", 3, true, 22, null, 10, "None" },
+                    { 117, "I cannot leave the well. I have tried. Something of me is still down in that ground, and it holds me here.", 2, true, 24, null, 12, "None" },
+                    { 118, "The animals knew before you did. That is why they ran. They will not drink from a well with a girl in it.", 3, true, 24, null, 12, "None" },
+                    { 119, "(She writes of a book she opened as a child, of a seal she did not understand, and of the day the valley began to fill with bone.)", 2, true, 25, null, 12, "None" },
+                    { 121, "Three seals you have already. Without his, the Origin Tree cannot be cleansed and the forest ends with the tree.", 3, true, 27, null, 13, "None" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -2313,16 +2321,6 @@ namespace DAL.Migrations
                 name: "IX_GachaPullHistories_RewardItemId",
                 table: "GachaPullHistories",
                 column: "RewardItemId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GameSettings_CreatedByAccountAccountId",
-                table: "GameSettings",
-                column: "CreatedByAccountAccountId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GameSettings_UpdatedByAccountAccountId",
-                table: "GameSettings",
-                column: "UpdatedByAccountAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuildApplications_GuildId",
@@ -2518,9 +2516,10 @@ namespace DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlayerQuests_PlayerProfileId",
+                name: "IX_PlayerQuests_PlayerProfileId_QuestId",
                 table: "PlayerQuests",
-                column: "PlayerProfileId");
+                columns: new[] { "PlayerProfileId", "QuestId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerQuests_QuestId",
@@ -2677,9 +2676,6 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "GachaPullHistories");
-
-            migrationBuilder.DropTable(
-                name: "GameSettings");
 
             migrationBuilder.DropTable(
                 name: "GuildApplications");

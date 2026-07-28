@@ -633,9 +633,6 @@ namespace DAL.Migrations
                     b.Property<int>("EnergyCost")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -2369,13 +2366,14 @@ namespace DAL.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DAL.Models.Mail", b =>
+            modelBuilder.Entity("DAL.Models.Mailbox", b =>
                 {
-                    b.Property<int>("MailId")
+                    b.Property<int>("MailboxId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("MailId");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailboxId"));
 
                     b.Property<decimal>("AttachedGems")
                         .HasColumnType("numeric");
@@ -2417,35 +2415,37 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("MailId");
+                    b.HasKey("MailboxId");
 
                     b.HasIndex("PlayerProfileId");
 
                     b.ToTable("Mails");
                 });
 
-            modelBuilder.Entity("DAL.Models.MailRewardItem", b =>
+            modelBuilder.Entity("DAL.Models.MailboxRewardItem", b =>
                 {
-                    b.Property<int>("MailRewardItemId")
+                    b.Property<int>("MailboxRewardItemId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("MailRewardItemId");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailRewardItemId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailboxRewardItemId"));
 
                     b.Property<int>("ItemId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MailId")
-                        .HasColumnType("integer");
+                    b.Property<int>("MailboxId")
+                        .HasColumnType("integer")
+                        .HasColumnName("MailId");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.HasKey("MailRewardItemId");
+                    b.HasKey("MailboxRewardItemId");
 
                     b.HasIndex("ItemId");
 
-                    b.HasIndex("MailId");
+                    b.HasIndex("MailboxId");
 
                     b.ToTable("MailRewardItems");
                 });
@@ -6397,7 +6397,7 @@ namespace DAL.Migrations
                         {
                             SkillId = 15,
                             BaseDamage = 38.0,
-                            ClassRequirement = "Fighter",
+                            ClassRequirement = "Knight",
                             CooldownSeconds = 8,
                             CorruptionCost = 0f,
                             DamageGrowthPercent = 4.0,
@@ -6966,10 +6966,10 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
-            modelBuilder.Entity("DAL.Models.Mail", b =>
+            modelBuilder.Entity("DAL.Models.Mailbox", b =>
                 {
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
-                        .WithMany("Mails")
+                        .WithMany("Mailboxes")
                         .HasForeignKey("PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -6977,7 +6977,7 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
-            modelBuilder.Entity("DAL.Models.MailRewardItem", b =>
+            modelBuilder.Entity("DAL.Models.MailboxRewardItem", b =>
                 {
                     b.HasOne("DAL.Models.Item", "Item")
                         .WithMany()
@@ -6985,15 +6985,15 @@ namespace DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DAL.Models.Mail", "Mail")
+                    b.HasOne("DAL.Models.Mailbox", "Mailbox")
                         .WithMany("AttachedItems")
-                        .HasForeignKey("MailId")
+                        .HasForeignKey("MailboxId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Item");
 
-                    b.Navigation("Mail");
+                    b.Navigation("Mailbox");
                 });
 
             modelBuilder.Entity("DAL.Models.MonsterDrop", b =>
@@ -7458,7 +7458,7 @@ namespace DAL.Migrations
                     b.Navigation("ShopItems");
                 });
 
-            modelBuilder.Entity("DAL.Models.Mail", b =>
+            modelBuilder.Entity("DAL.Models.Mailbox", b =>
                 {
                     b.Navigation("AttachedItems");
                 });
@@ -7479,7 +7479,7 @@ namespace DAL.Migrations
 
                     b.Navigation("InventoryItems");
 
-                    b.Navigation("Mails");
+                    b.Navigation("Mailboxes");
 
                     b.Navigation("PlayerAchievements");
 
