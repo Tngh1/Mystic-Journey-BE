@@ -1865,8 +1865,8 @@ namespace DAL.Migrations
                     { 5, 35, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 156, 20, 20, "A frosty blue dragon.", 22, 0m, 55m, null, true, 6, 250, 5, "BlueDragonFrost", "Normal" },
                     { 6, 37, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 12, 25, "A forest green dragon.", 25, 0m, 62m, null, true, 7, 270, 6, "GreenDragonForest", "Normal" },
                     { 7, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 250, 30, 35, "A terrifying boss dragon.", 300, 0m, 1000m, null, true, 20, 1000, 0, "DragonBossIdle", "Boss" },
-                    { 8, 25, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 12, 50, "An icy slime.", 30, 0m, 70m, null, true, 8, 300, 1, "Slime_ice", "Normal" },
-                    { 9, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 170, 25, 70, "An icy dragon.", 32, 0m, 100m, null, true, 9, 350, 2, "Ice_Dragon", "Normal" },
+                    { 8, 25, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 12, 50, "An icy slime.", 30, 0m, 70m, null, true, 8, 300, 1, "SlimeIce", "Normal" },
+                    { 9, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 170, 25, 70, "An icy dragon.", 32, 0m, 100m, null, true, 9, 350, 2, "IceDragon", "Normal" },
                     { 10, 150, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 30, 70, "A giant stone golem boss.", 1500, 10m, 2000m, null, true, 15, 3000, 3, "GolemBoss", "Boss" },
                     { 11, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 166, 25, 100, "An undead orc skeleton.", 40, 0m, 70m, null, true, 5, 400, 2, "OrcSkeleton", "Normal" },
                     { 12, 70, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 164, 15, 70, "A melee skeleton warrior.", 42, 0m, 74m, null, true, 6, 350, 3, "SkeletonMelee", "Normal" },
@@ -1877,7 +1877,13 @@ namespace DAL.Migrations
                     { 17, 70, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 80, "A strong goblin warrior.", 50, 0m, 100m, null, true, 6, 450, 3, "GoblinWarrior", "Normal" },
                     { 18, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 40, "A goblin spearman.", 50, 0m, 100m, null, true, 6, 450, 3, "GoblinSpear", "Normal" },
                     { 19, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 40, "A fierce ogre.", 50, 0m, 100m, null, true, 6, 450, 3, "Ogre", "Normal" },
-                    { 20, 100, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 175, 28, 80, "A formidable orc warlord.", 55, 0m, 100m, null, true, 7, 600, 3, "OrcWarlord", "Normal" }
+                    { 20, 100, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 175, 28, 80, "A formidable orc warlord.", 55, 0m, 100m, null, true, 7, 600, 3, "OrcWarlord", "Normal" },
+                    { 21, 40, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 10, 30, "A support boss fairy in Frozen Mountain.", 200, 50m, 500m, null, true, 10, 2500, 4, "IceFairy", "Boss" },
+                    { 22, 60, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 40, "A fierce goblin warlord boss.", 300, 80m, 800m, null, true, 12, 2000, 3, "GoblinWarlord", "Boss" },
+                    { 23, 45, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 15, 20, "A dark necromancer casting dark spells.", 40, 0m, 80m, null, true, 5, 520, 2, "NecromancerCast", "Normal" },
+                    { 24, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 20, 25, "A rogue robber archer wielding a crossbow.", 40, 0m, 75m, null, true, 5, 500, 3, "RobberArcher", "Normal" },
+                    { 25, 55, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 170, 25, 35, "A stealthy robber assassin wielding a sword and shield.", 45, 0m, 90m, null, true, 6, 550, 3, "RobberAssassin", "Normal" },
+                    { 26, 60, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 15, 50, "A heavy red guard soldier carrying a mace and shield.", 50, 0m, 100m, null, true, 6, 600, 2, "RedGuard", "Normal" }
                 });
 
             migrationBuilder.InsertData(
@@ -1958,7 +1964,11 @@ namespace DAL.Migrations
                     { 12, 0.0, "Mage", 2, 0f, 0.0, 0.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
                     { 13, 200.0, "All", 6, 8f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
                     { 14, 0.0, "Knight", 2, 0f, 0.0, 0.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
-                    { 15, 38.0, "Knight", 3, 0f, 4.0, 11.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 }
+                    { 15, 38.0, "Knight", 3, 0f, 4.0, 11.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 },
+                    { 16, 50.0, "Archer", 5, 0f, 4.0, 12.0, "Physical", "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", true, "PumpkinMagic", "Area", "Active", 1 },
+                    { 17, 45.0, "Knight", 5, 0f, 4.0, 10.0, "Physical", "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", true, "PumpkinThrow", "Area", "Active", 1 },
+                    { 18, 40.0, "Knight", 2, 0f, 3.0, 9.0, "Physical", "A short-range pumpkin slash in the direction the knight is facing.", true, "PumpkinSlash", "SingleTarget", "Active", 1 },
+                    { 19, 30.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", true, "BoomBoomPumpkin", "Area", "Active", 1 }
                 });
 
             migrationBuilder.InsertData(

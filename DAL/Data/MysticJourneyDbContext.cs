@@ -221,7 +221,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Monster
                 {
                     MonsterId = 8,
-                    Name = "Slime_ice",
+                    Name = "SlimeIce",
                     Type = "Normal",
                     Description = "An icy slime.",
                     Level = 8,
@@ -240,7 +240,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Monster
                 {
                     MonsterId = 9,
-                    Name = "Ice_Dragon",
+                    Name = "IceDragon",
                     Type = "Normal",
                     Description = "An icy dragon.",
                     Level = 9,
@@ -471,6 +471,126 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     CritRate = 28,
                     CritDamage = 175,
                     ExperienceReward = 55,
+                    GoldReward = 100m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 21,
+                    Name = "IceFairy",
+                    Type = "Boss",
+                    Description = "A support boss fairy in Frozen Mountain.",
+                    Level = 10,
+                    MaxHp = 2500,
+                    Atk = 40,
+                    Def = 30,
+                    MoveSpeed = 4,
+                    AttackSpeed = 1,
+                    CritRate = 10,
+                    CritDamage = 150,
+                    ExperienceReward = 200,
+                    GoldReward = 500m,
+                    GemReward = 50m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 22,
+                    Name = "GoblinWarlord",
+                    Type = "Boss",
+                    Description = "A fierce goblin warlord boss.",
+                    Level = 12,
+                    MaxHp = 2000,
+                    Atk = 60,
+                    Def = 40,
+                    MoveSpeed = 3,
+                    AttackSpeed = 1,
+                    CritRate = 20,
+                    CritDamage = 150,
+                    ExperienceReward = 300,
+                    GoldReward = 800m,
+                    GemReward = 80m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 23,
+                    Name = "NecromancerCast",
+                    Type = "Normal",
+                    Description = "A dark necromancer casting dark spells.",
+                    Level = 5,
+                    MaxHp = 520,
+                    Atk = 45,
+                    Def = 20,
+                    MoveSpeed = 2,
+                    AttackSpeed = 1,
+                    CritRate = 15,
+                    CritDamage = 150,
+                    ExperienceReward = 40,
+                    GoldReward = 80m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 24,
+                    Name = "RobberArcher",
+                    Type = "Normal",
+                    Description = "A rogue robber archer wielding a crossbow.",
+                    Level = 5,
+                    MaxHp = 500,
+                    Atk = 50,
+                    Def = 25,
+                    MoveSpeed = 3,
+                    AttackSpeed = 1,
+                    CritRate = 20,
+                    CritDamage = 160,
+                    ExperienceReward = 40,
+                    GoldReward = 75m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 25,
+                    Name = "RobberAssassin",
+                    Type = "Normal",
+                    Description = "A stealthy robber assassin wielding a sword and shield.",
+                    Level = 6,
+                    MaxHp = 550,
+                    Atk = 55,
+                    Def = 35,
+                    MoveSpeed = 3,
+                    AttackSpeed = 1,
+                    CritRate = 25,
+                    CritDamage = 170,
+                    ExperienceReward = 45,
+                    GoldReward = 90m,
+                    GemReward = 0m,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Monster
+                {
+                    MonsterId = 26,
+                    Name = "RedGuard",
+                    Type = "Normal",
+                    Description = "A heavy red guard soldier carrying a mace and shield.",
+                    Level = 6,
+                    MaxHp = 600,
+                    Atk = 60,
+                    Def = 50,
+                    MoveSpeed = 2,
+                    AttackSpeed = 1,
+                    CritRate = 15,
+                    CritDamage = 150,
+                    ExperienceReward = 50,
                     GoldReward = 100m,
                     GemReward = 0m,
                     IsActive = true,
@@ -999,7 +1119,11 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Skill { SkillId = 12, Name = "NightMagic", Description = "Selects an area within range to attack.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "Mage", CooldownSeconds = 2, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
                 new Skill { SkillId = 13, Name = "DeadlyExplosion", Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "All", CooldownSeconds = 6, BaseDamage = 200, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 8, IsActive = true },
                 new Skill { SkillId = 14, Name = "BloodySlash", Description = "A short-range slash in the direction the knight is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 2, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 15, Name = "FrozenSash", Description = "Selects an area within range to unleash an icy slash.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 3, BaseDamage = 38, DamagePerLevel = 11, DamageGrowthPercent = 4, UnlockLevel = 1, CorruptionCost = 0, IsActive = true }
+                new Skill { SkillId = 15, Name = "FrozenSash", Description = "Selects an area within range to unleash an icy slash.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 3, BaseDamage = 38, DamagePerLevel = 11, DamageGrowthPercent = 4, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 16, Name = "PumpkinMagic", Description = "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Archer", CooldownSeconds = 5, BaseDamage = 50, DamagePerLevel = 12, DamageGrowthPercent = 4, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 17, Name = "PumpkinThrow", Description = "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 5, BaseDamage = 45, DamagePerLevel = 10, DamageGrowthPercent = 4, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 18, Name = "PumpkinSlash", Description = "A short-range pumpkin slash in the direction the knight is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 2, BaseDamage = 40, DamagePerLevel = 9, DamageGrowthPercent = 3, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 19, Name = "BoomBoomPumpkin", Description = "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "Mage", CooldownSeconds = 2, BaseDamage = 30, DamagePerLevel = 8, DamageGrowthPercent = 3, UnlockLevel = 1, CorruptionCost = 0, IsActive = true }
             );
 
             // ─────────────────────────────────────────────────────────────────────────
