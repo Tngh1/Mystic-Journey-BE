@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DAL.Models
 {
-    public class Mail
+    [Table("Mails")]
+    public class Mailbox
     {
-        public int MailId { get; set; }
+        [Column("MailId")]
+        public int MailboxId { get; set; }
 
         public int PlayerProfileId { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
@@ -21,7 +24,7 @@ namespace DAL.Models
         public decimal AttachedGold { get; set; } = 0;
         public decimal AttachedGems { get; set; } = 0;
 
-        public List<MailRewardItem> AttachedItems { get; set; } = new();
+        public List<MailboxRewardItem> AttachedItems { get; set; } = new();
 
         public bool IsRead { get; set; } = false;
         public bool IsClaimed { get; set; } = false;

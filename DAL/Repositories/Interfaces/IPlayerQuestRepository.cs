@@ -15,9 +15,6 @@ namespace DAL.Repositories.Interfaces
         // Lấy tất cả nhiệm vụ của một người chơi.
         Task<List<PlayerQuest>> GetByPlayerId(int playerProfileId);
 
-        // Lấy nhiệm vụ của người chơi theo bản đồ.
-        Task<List<PlayerQuest>> GetByPlayerIdAndMap(int playerProfileId, string mapName);
-
         // Lấy một nhiệm vụ cụ thể của người chơi.
         Task<PlayerQuest?> GetByPlayerAndQuest(int playerProfileId, int questId);
 

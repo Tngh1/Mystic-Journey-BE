@@ -107,10 +107,29 @@ namespace BLL.Services
 
         public async Task<List<FriendSearchDto>> SearchPlayers(int playerId, string keyword)
         {
-            var profiles = await _playerProfileRepository.Search(keyword);
+            var profiles = (await _playerProfileRepository.Search(keyword)).Take(20).ToList();
             var results = new List<FriendSearchDto>();
 
-            foreach (var p in profiles.Take(20))
+            // 2 truy vấn cho cả trang kết quả thay vì 2 truy vấn cho mỗi người
+            // (20 kết quả = 40 round-trip ở đường cũ).
+            var otherIds = profiles
+                .Where(p => p.PlayerProfileId != playerId)
+                .Select(p => p.PlayerProfileId)
+                .ToList();
+
+            var blockedIds = otherIds.Count == 0
+                ? new HashSet<int>()
+                : (await _friendRepository.GetFriendBlocksWith(playerId, otherIds))
+                    .Select(fb => fb.BlockedId)
+                    .ToHashSet();
+
+            var friendships = otherIds.Count == 0
+                ? new Dictionary<int, Friend>()
+                : (await _friendRepository.GetFriendshipsWith(playerId, otherIds))
+                    .GroupBy(f => f.RequesterId == playerId ? f.AddresseeId : f.RequesterId)
+                    .ToDictionary(g => g.Key, g => g.First());
+
+            foreach (var p in profiles)
             {
                 var status = FriendRelationshipStatus.None;
 
@@ -118,30 +137,21 @@ namespace BLL.Services
                 {
                     status = FriendRelationshipStatus.Self;
                 }
-                else
+                else if (blockedIds.Contains(p.PlayerProfileId))
                 {
-                    var block = await _friendRepository.GetFriendBlock(playerId, p.PlayerProfileId);
-                    if (block != null)
+                    status = FriendRelationshipStatus.Blocked;
+                }
+                else if (friendships.TryGetValue(p.PlayerProfileId, out var friendship))
+                {
+                    if (friendship.Status == "Accepted")
                     {
-                        status = FriendRelationshipStatus.Blocked;
+                        status = FriendRelationshipStatus.Friend;
                     }
-                    else
+                    else if (friendship.Status == "Pending")
                     {
-                        var friendship = await _friendRepository.GetFriendship(playerId, p.PlayerProfileId);
-                        if (friendship != null)
-                        {
-                            if (friendship.Status == "Accepted")
-                            {
-                                status = FriendRelationshipStatus.Friend;
-                            }
-                            else if (friendship.Status == "Pending")
-                            {
-                                if (friendship.RequesterId == playerId)
-                                    status = FriendRelationshipStatus.RequestSent;
-                                else
-                                    status = FriendRelationshipStatus.RequestReceived;
-                            }
-                        }
+                        status = friendship.RequesterId == playerId
+                            ? FriendRelationshipStatus.RequestSent
+                            : FriendRelationshipStatus.RequestReceived;
                     }
                 }
 
@@ -175,11 +185,11 @@ namespace BLL.Services
             var reverseBlock = await _friendRepository.GetFriendBlock(requesterId, targetProfileId);
             if (reverseBlock != null) throw new Exception("You have blocked this player");
 
-            var currentFriends = await _friendRepository.GetFriendListRaw(requesterId);
-            if (currentFriends.Count >= 100) throw new Exception("Friend list is full (Limit: 100)");
+            if (await _friendRepository.CountFriends(requesterId) >= 100)
+                throw new Exception("Friend list is full (Limit: 100)");
 
-            var targetFriends = await _friendRepository.GetFriendListRaw(targetProfileId);
-            if (targetFriends.Count >= 100) throw new Exception("Target's friend list is full");
+            if (await _friendRepository.CountFriends(targetProfileId) >= 100)
+                throw new Exception("Target's friend list is full");
 
             var existing = await _friendRepository.GetFriendship(requesterId, targetProfileId);
             if (existing != null)
@@ -220,11 +230,11 @@ namespace BLL.Services
                 throw new Exception("Friend request not found or cannot be accepted");
             }
 
-            var currentFriends = await _friendRepository.GetFriendListRaw(playerId);
-            if (currentFriends.Count >= 100) throw new Exception("Friend list is full (Limit: 100)");
+            if (await _friendRepository.CountFriends(playerId) >= 100)
+                throw new Exception("Friend list is full (Limit: 100)");
 
-            var targetFriends = await _friendRepository.GetFriendListRaw(requesterId);
-            if (targetFriends.Count >= 100) throw new Exception("Requester's friend list is full");
+            if (await _friendRepository.CountFriends(requesterId) >= 100)
+                throw new Exception("Requester's friend list is full");
 
             friendship.Status = "Accepted";
             friendship.RespondedAt = DateTime.UtcNow;

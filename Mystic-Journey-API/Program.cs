@@ -103,17 +103,13 @@ builder.Services.AddScoped<IWorldService, WorldService>();
 builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
 
-// GameSetting Services
-builder.Services.AddScoped<IGameSettingRepository, GameSettingRepository>();
-builder.Services.AddScoped<IGameSettingService, GameSettingService>();
-
 // Content Services
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
 builder.Services.AddScoped<IContentService, ContentService>();
 
-// Mail Services
-builder.Services.AddScoped<IMailRepository, MailRepository>();
-builder.Services.AddScoped<IMailService, MailService>();
+// Mailbox Services
+builder.Services.AddScoped<IMailboxRepository, MailboxRepository>();
+builder.Services.AddScoped<IMailboxService, MailboxService>();
 
 // Inventory Services
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();

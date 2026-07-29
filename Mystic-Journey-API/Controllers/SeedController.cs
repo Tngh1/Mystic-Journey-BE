@@ -863,7 +863,7 @@ namespace Mystic_Journey_API.Controllers
                     _ctx.PlayerCurrencyLogs.RemoveRange(_ctx.PlayerCurrencyLogs.Where(x => x.PlayerProfileId == pid));
                     _ctx.PurchaseHistories.RemoveRange(_ctx.PurchaseHistories.Where(x => x.PlayerProfileId == pid));
                     _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(x => x.PlayerProfileId == pid));
-                    _ctx.Mails.RemoveRange(_ctx.Mails.Where(x => x.PlayerProfileId == pid));
+                    _ctx.Mailboxes.RemoveRange(_ctx.Mailboxes.Where(x => x.PlayerProfileId == pid));
                     _ctx.GuildMembers.RemoveRange(_ctx.GuildMembers.Where(x => x.PlayerProfileId == pid));
                     await _ctx.SaveChangesAsync();
 
@@ -1025,6 +1025,17 @@ namespace Mystic_Journey_API.Controllers
 
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Archer 2", "Archer");
+                
+                var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Knight 3", "Knight");
+                var p4 = await CreatePlayer("elf_user4", "elf4@mystic.test", "Tutorial Knight 4", "Knight");
+
+                var allSkillIds = await _ctx.Skills.Select(s => s.SkillId).ToListAsync();
+                foreach (var skillId in allSkillIds)
+                {
+                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p3, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p4, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+                }
+                await _ctx.SaveChangesAsync();
 
                 // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, completed Quest 23
                 var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
@@ -1096,7 +1107,7 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2, p3, p4 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
             }
             catch (Exception ex)
             {
@@ -1797,10 +1808,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 var spawns = new List<MonsterSpawn>
                 {
                     // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
-                    // Quái thường: SlimeLittle (1) + WaterElemental (3)
+                    // Quái thường: SlimeLittle (1) + Slime_ice (8)
                     // Boss: SwampDemon (2)
                     new MonsterSpawn { DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 1, MonsterId = 3,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                    new MonsterSpawn { DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
                     new MonsterSpawn { DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = mapName, IsActive = true },
 
                     // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────

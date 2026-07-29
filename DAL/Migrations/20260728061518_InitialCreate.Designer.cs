@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260724183820_UpdateQuest29_EndFlow")]
-    partial class UpdateQuest29_EndFlow
+    [Migration("20260728061518_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -635,9 +635,6 @@ namespace DAL.Migrations
 
                     b.Property<int>("EnergyCost")
                         .HasColumnType("integer");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1368,55 +1365,6 @@ namespace DAL.Migrations
                     b.HasKey("GameAnnouncementId");
 
                     b.ToTable("GameAnnouncements");
-                });
-
-            modelBuilder.Entity("DAL.Models.GameSetting", b =>
-                {
-                    b.Property<int>("GameSettingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GameSettingId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("CreatedByAccountAccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("CreatedByAccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("UpdatedByAccountAccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("UpdatedByAccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text");
-
-                    b.HasKey("GameSettingId");
-
-                    b.HasIndex("CreatedByAccountAccountId");
-
-                    b.HasIndex("UpdatedByAccountAccountId");
-
-                    b.ToTable("GameSettings");
                 });
 
             modelBuilder.Entity("DAL.Models.Guild", b =>
@@ -2421,13 +2369,14 @@ namespace DAL.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DAL.Models.Mail", b =>
+            modelBuilder.Entity("DAL.Models.Mailbox", b =>
                 {
-                    b.Property<int>("MailId")
+                    b.Property<int>("MailboxId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("MailId");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailboxId"));
 
                     b.Property<decimal>("AttachedGems")
                         .HasColumnType("numeric");
@@ -2469,35 +2418,37 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("MailId");
+                    b.HasKey("MailboxId");
 
                     b.HasIndex("PlayerProfileId");
 
                     b.ToTable("Mails");
                 });
 
-            modelBuilder.Entity("DAL.Models.MailRewardItem", b =>
+            modelBuilder.Entity("DAL.Models.MailboxRewardItem", b =>
                 {
-                    b.Property<int>("MailRewardItemId")
+                    b.Property<int>("MailboxRewardItemId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("MailRewardItemId");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailRewardItemId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MailboxRewardItemId"));
 
                     b.Property<int>("ItemId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MailId")
-                        .HasColumnType("integer");
+                    b.Property<int>("MailboxId")
+                        .HasColumnType("integer")
+                        .HasColumnName("MailId");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.HasKey("MailRewardItemId");
+                    b.HasKey("MailboxRewardItemId");
 
                     b.HasIndex("ItemId");
 
-                    b.HasIndex("MailId");
+                    b.HasIndex("MailboxId");
 
                     b.ToTable("MailRewardItems");
                 });
@@ -3385,8 +3336,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             Name = "Elf Guard",
-                            PositionX = -6.2377580000000004,
-                            PositionY = -13.13438,
+                            PositionX = -104.80000305175781,
+                            PositionY = -4.7760000228881836,
                             Type = "QuestGiver"
                         });
                 });
@@ -3436,7 +3387,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 1,
-                            Content = "Ah, a new traveler. Welcome to the Elf Forest.",
+                            Content = "Ah... a new face, and not one born of these woods. Welcome to the Elf Forest, traveler.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 1,
@@ -3446,7 +3397,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 2,
-                            Content = "This forest has been peaceful for centuries, but recently, dark forces have begun to gather.",
+                            Content = "For a thousand years this forest kept itself in peace. Now something gathers in the dark beneath the roots.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 1,
@@ -3455,9 +3406,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 3,
-                            Content = "I need your help to protect this place. Come speak to me when you are ready to begin.",
+                            NPCDialogueId = 94,
+                            Content = "The Origin Tree at our heart is sickening. Its leaves fall in high summer, and the animals no longer sleep here.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 1,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 3,
+                            Content = "I am Elder Rowan, and I need your hands and your courage. Speak with me when you are ready to begin.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 1,
                             NPCId = 1,
@@ -3466,7 +3427,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 4,
-                            Content = "Before we can confront the darkness, we need to prepare some basic remedies.",
+                            Content = "Before we stand against the darkness, we must be able to mend what it breaks.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 2,
@@ -3476,7 +3437,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 5,
-                            Content = "The old willow clearing has some magical herbs we can use.",
+                            Content = "By the old willow clearing grows a white flower that only opens where the air is still clean.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 2,
@@ -3485,9 +3446,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 6,
-                            Content = "Please head over there and gather 3 White Flowers for me.",
+                            NPCDialogueId = 95,
+                            Content = "Where those flowers still bloom, the curse has not yet reached. They are medicine and warning both.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 2,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 6,
+                            Content = "Go to the clearing and gather 3 White Flowers for me. Take care, even slimes wander there now.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 2,
                             NPCId = 1,
@@ -3496,7 +3467,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 7,
-                            Content = "You have returned quickly. Did you find the flowers?",
+                            Content = "Back already? Let me see your hands... ah, you found them.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 3,
@@ -3506,7 +3477,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 8,
-                            Content = "Excellent, these are in perfect condition. They will make fine healing poultices.",
+                            Content = "Not a petal bruised. Crushed with spring water, these will close a wound in minutes.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 3,
@@ -3515,9 +3486,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 9,
-                            Content = "Thank you! Take this as a token of my appreciation.",
+                            NPCDialogueId = 96,
+                            Content = "Three flowers, three doses. Keep one for yourself, out there you may be your only healer.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 3,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 9,
+                            Content = "You have earned this. Take it, with an old elf's thanks.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 3,
                             NPCId = 1,
@@ -3526,7 +3507,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 10,
-                            Content = "Now that you have your reward, it is time to learn how to defend yourself.",
+                            Content = "A remedy keeps you alive. It does not keep you standing. For that you need a skill.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 4,
@@ -3536,7 +3517,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 11,
-                            Content = "In this world, skills are essential for survival. You cannot fight with bare hands alone.",
+                            Content = "Every warrior in this world channels power through learned technique. Bare fists will not answer a demon.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 4,
@@ -3545,9 +3526,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 12,
-                            Content = "Open your Skill Panel and equip your first combat skill before you face real danger.",
+                            NPCDialogueId = 97,
+                            Content = "Your body already holds the spark. What you lack is a shape to pour it into.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 4,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 12,
+                            Content = "Open your Skill Panel and equip your first combat skill. Do not step past the treeline without it.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 4,
                             NPCId = 1,
@@ -3556,7 +3547,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 13,
-                            Content = "Good, you are armed and ready. It is time to test your newfound abilities.",
+                            Content = "Good. I can feel the power settled in you now. It must be tested before it is trusted.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 5,
@@ -3566,7 +3557,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 14,
-                            Content = "The outskirts of our forest have been overrun by strange, aggressive slimes.",
+                            Content = "The outskirts crawl with little slimes. They were harmless once, now they hunt in packs.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 5,
@@ -3575,9 +3566,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 15,
-                            Content = "Head out and defeat 3 SlimeLittle monsters to prove your worth to the village.",
+                            NPCDialogueId = 98,
+                            Content = "They are the curse's smallest children. Where they spread, the soil dies behind them.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 5,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 15,
+                            Content = "Go out and defeat 3 little slimes, then return and tell me what you felt out there.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 5,
                             NPCId = 1,
@@ -3586,7 +3587,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 16,
-                            Content = "You handled those slimes well. But a much greater threat lurks in the deep woods.",
+                            Content = "You handled them cleanly. But the slimes are only spillage from something far worse.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 6,
@@ -3596,7 +3597,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 17,
-                            Content = "A terrible Swamp Demon has made its lair there, corrupting the land with its presence.",
+                            Content = "Deep in the swamp lies a Demon. The water rots around it, and the corruption creeps closer each night.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 6,
@@ -3605,9 +3606,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 18,
-                            Content = "You must destroy the Swamp Demon and claim the Swamp Seal Book it guards. We are counting on you!",
+                            NPCDialogueId = 99,
+                            Content = "It guards a book bound in black, the Swamp Seal Book. One of four, and the tree cannot be saved without them.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 6,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 18,
+                            Content = "Destroy the Swamp Demon and bring back the Swamp Seal Book. Everything rests on this.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 6,
                             NPCId = 1,
@@ -3616,7 +3627,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 19,
-                            Content = "Greetings, brave warrior. I am Lyra, the spirit of the Origin Tree.",
+                            Content = "Come closer, brave one. I am Lyra, not elf and not ghost. I am the spirit of the Origin Tree itself.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 7,
@@ -3626,7 +3637,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 20,
-                            Content = "As you can see, the tree has been cursed and is slowly dying.",
+                            Content = "Look at my bark. The curse has reached my heartwood, and I am dying slowly, from the inside outward.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 7,
@@ -3635,9 +3646,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 21,
-                            Content = "Only the 4 Seal Books can cleanse it. You have one, but you must find the remaining three!",
+                            NPCDialogueId = 100,
+                            Content = "Long ago the elders bound an ancient power into four books. That binding has broken, and the leak is poisoning me.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 7,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 21,
+                            Content = "Only the 4 Seal Books can cleanse me. You hold one already, find the remaining three, and hurry!",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 7,
                             NPCId = 2,
@@ -3646,7 +3667,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 22,
-                            Content = "Heh... So you are the one collecting the Seal Books?",
+                            Content = "Heh... so you are the little errand-runner gathering up the Seal Books.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 8,
@@ -3656,7 +3677,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 23,
-                            Content = "You know nothing of the true history of this world, or why the tree was cursed.",
+                            Content = "You carry them and do not even know what they are, or whose hand cursed that tree.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 8,
@@ -3665,9 +3686,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 24,
-                            Content = "If you want the truth, follow me through this portal. Don't keep me waiting.",
+                            NPCDialogueId = 101,
+                            Content = "The elves told you a story with the ugly parts cut out. I can show you what they buried.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 8,
+                            NPCId = 3,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 24,
+                            Content = "The truth waits through this portal. Follow me, or stay and keep watering a dying tree.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 8,
                             NPCId = 3,
@@ -3676,7 +3707,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 25,
-                            Content = "Welcome to the beach. We were teleported here by the portal.",
+                            Content = "Steady, traveler. That portal spat us both out here on the beach, and the cloaked one is long gone.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 9,
@@ -3686,7 +3717,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 26,
-                            Content = "You seem to have no money for food. Why don't you look for some work?",
+                            Content = "We are far from the forest now, with no coin between us and no way back that I can see.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 9,
@@ -3695,9 +3726,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 27,
-                            Content = "Go talk to Fa, he is nearby and might need some help.",
+                            NPCDialogueId = 102,
+                            Content = "This is farming country. Folk here trade a day of work for supper, and honest work is easy to find.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 9,
+                            NPCId = 4,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 27,
+                            Content = "Go and speak with Fa, the farmer just up the path. He always needs hands.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 9,
                             NPCId = 4,
@@ -3706,7 +3747,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 28,
-                            Content = "Ah, Elder Rowan sent you? Good timing.",
+                            Content = "Elder Rowan sent you? Good timing, stranger. My back is not what it was.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 10,
@@ -3716,7 +3757,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 29,
-                            Content = "I need someone to help me harvest the fields.",
+                            Content = "The whole field came ripe at once, and the harvest cart leaves for the city at dusk.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 10,
@@ -3725,9 +3766,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 30,
-                            Content = "Please collect 8 Enchanted Pumpkins for me.",
+                            NPCDialogueId = 103,
+                            Content = "Mind the ones that glow faintly. An enchanted pumpkin keeps a lantern lit all winter, that is why the city pays.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 10,
+                            NPCId = 7,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 30,
+                            Content = "Collect 8 Enchanted Pumpkins for me and I will see you fed tonight.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 10,
                             NPCId = 7,
@@ -3736,7 +3787,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 31,
-                            Content = "Great job with the pumpkins! You are a hard worker.",
+                            Content = "Eight, and not one bruised. You work like a farmhand born, not a wanderer.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 11,
@@ -3746,7 +3797,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 32,
-                            Content = "Now, I need these delivered to the city gate.",
+                            Content = "Now the hard half of the job. These are owed at the city gate before nightfall.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 11,
@@ -3755,9 +3806,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 33,
-                            Content = "Please take them to guard Tristan at the ruined city.",
+                            NPCDialogueId = 104,
+                            Content = "I would carry them myself, but no one from this farm has come back from that road in a week.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 11,
+                            NPCId = 7,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 33,
+                            Content = "Take them to the guard Tristan at the ruined city, and tell him Fa sent you.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 11,
                             NPCId = 7,
@@ -3766,7 +3827,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 34,
-                            Content = "Halt! Who goes there? Ah, you brought pumpkins from Fa?",
+                            Content = "Halt! Who goes... ah, pumpkins from Fa. Set them down, you may be the last delivery this gate sees.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 12,
@@ -3776,7 +3837,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 35,
-                            Content = "Something is wrong in the city... It is too quiet.",
+                            Content = "Something is wrong inside. No bells, no market noise, no smoke from a single chimney since dawn.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 12,
@@ -3785,9 +3846,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 36,
-                            Content = "Please go inside and investigate. Let me know if you find anything suspicious.",
+                            NPCDialogueId = 105,
+                            Content = "I am Tristan, and my orders bind me to this gate. I cannot take one step past it, even now.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 12,
+                            NPCId = 5,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 36,
+                            Content = "Go in and look at the fallen with your own eyes. Then come back and tell me the truth of it.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 12,
                             NPCId = 5,
@@ -3796,7 +3867,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 37,
-                            Content = "What?! The people inside have all been massacred? Corpses everywhere?",
+                            Content = "All of them? Every soul in the city, cut down where they stood? Gods, I stood here and heard nothing.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 13,
@@ -3806,7 +3877,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 38,
-                            Content = "This is a disaster. We need someone strong to handle this.",
+                            Content = "No bandit crew does this in one night. Whatever walked in there was not a man with a sword.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 13,
@@ -3815,9 +3886,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 39,
-                            Content = "Please, go find the silver knight Arthur and report this!",
+                            NPCDialogueId = 106,
+                            Content = "There is one person left who might stand against it. Arthur, the silver knight, camped in the old ruins.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 13,
+                            NPCId = 5,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 39,
+                            Content = "Find Arthur and report what you saw. Go, before whatever did this moves on to the next town.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 13,
                             NPCId = 5,
@@ -3826,7 +3907,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 40,
-                            Content = "Greetings, warrior. I am Arthur, the silver knight.",
+                            Content = "Lower your guard, I am no enemy. I am Arthur, once called the silver knight of this city.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 14,
@@ -3836,7 +3917,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 41,
-                            Content = "I suffered severe internal injuries and my power has been sealed away.",
+                            Content = "I met the thing that emptied these streets. It broke something inside me and sealed my power away.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 14,
@@ -3845,9 +3926,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 42,
-                            Content = "You must train in Dungeon 2 to level up and unlock your true potential. Go!",
+                            NPCDialogueId = 107,
+                            Content = "I cannot lift my blade again. But a blade is only steel, what matters is the hand that learns to swing it.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 14,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 42,
+                            Content = "Clear my old training dungeon. Survive it, and I will give you everything I have left. Go!",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 14,
                             NPCId = 6,
@@ -3856,7 +3947,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 43,
-                            Content = "Splendid! You have trained well and cleared the dungeon.",
+                            Content = "You walked out of that dungeon on your own two feet. Not many did, back when it was mine.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 15,
@@ -3866,7 +3957,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 44,
-                            Content = "As promised, take this DarkExplosion skill and Silver Necklace.",
+                            Content = "Then take what I can still give. My dark explosion technique, and this Silver Necklace off my own neck.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 15,
@@ -3875,9 +3966,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 45,
-                            Content = "Now, use your power to defeat 10 evil monsters in the Ruined City!",
+                            NPCDialogueId = 108,
+                            Content = "The city outside is still crawling. Every hour they spread further, and the dead cannot be buried while they roam.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 15,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 45,
+                            Content = "Cut down 10 of them in the Ruined City. Let the streets be quiet for once.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 15,
                             NPCId = 6,
@@ -3886,7 +3987,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 46,
-                            Content = "You have returned, and you are stronger than before.",
+                            Content = "You came back quieter than you left. That is how I know the fighting took hold in you.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 16,
@@ -3896,7 +3997,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 47,
-                            Content = "I recognize your true strength now. You are ready for the ultimate challenge.",
+                            Content = "Then hear the rest of it. The monsters were never the cause. Something older nests above the ruins.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 16,
@@ -3905,9 +4006,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 48,
-                            Content = "A terrible dragon threatens our existence. Go and slay the DragonBossIdle!",
+                            NPCDialogueId = 109,
+                            Content = "A dragon. It is the thing that broke this city, and the thing that broke me. I have carried that shame for years.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 16,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 48,
+                            Content = "Finish what I could not. Climb to its nest and slay the dragon!",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 16,
                             NPCId = 6,
@@ -3916,7 +4027,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 49,
-                            Content = "You did it! The dragon is slain. I cannot thank you enough.",
+                            Content = "The dragon is dead. I felt it go — the whole city breathed out at once. Thank you.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 17,
@@ -3926,7 +4037,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 50,
-                            Content = "You ask about the mysterious figure? The one who did this?",
+                            Content = "You want to know about the cloaked one. Yes. He passed through here before the dragon ever came.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 17,
@@ -3935,9 +4046,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 51,
-                            Content = "He went towards the frozen lands devastated by the codex. Head to the Frozen Mountains next.",
+                            NPCDialogueId = 110,
+                            Content = "He carries something that should have stayed sealed. Wherever he walks, the land sickens behind him.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 17,
+                            NPCId = 6,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 51,
+                            Content = "He went north, into the frozen lands. Follow him to the Frozen Mountains. I will hold this city.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 17,
                             NPCId = 6,
@@ -3946,7 +4067,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 52,
-                            Content = "Ah, a survivor from the ruins. I am Queen Roselyn Aurora.",
+                            Content = "A living stranger, walking in out of the snow. I am Roselyn Aurora, and what is left of this kingdom is mine to hold.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 18,
@@ -3956,7 +4077,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 53,
-                            Content = "This land is devastated by the codex. Only volunteers remain to defend it.",
+                            Content = "The codex passed over these fields and the cold turned wrong. My soldiers are gone. Only volunteers stand the walls now.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 18,
@@ -3965,9 +4086,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 54,
-                            Content = "Please, clear out 8 ice slimes from the Snow Fields to help us.",
+                            NPCDialogueId = 111,
+                            Content = "The slimes come closer each night. They freeze whatever they touch, and my people cannot reach the grain stores.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 18,
+                            NPCId = 8,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 54,
+                            Content = "Clear 8 ice slimes from the Snow Fields. I would ask a knight, but I have none left to ask.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 18,
                             NPCId = 8,
@@ -3976,7 +4107,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 55,
-                            Content = "Your efforts have not gone unnoticed. The slimes are thinning out.",
+                            Content = "The fields are quiet tonight. My people walked to the grain stores without an escort for the first time in a month.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 19,
@@ -3986,8 +4117,18 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 56,
-                            Content = "However, our Priest Zephyr requires supplies for a ritual.",
+                            Content = "Now the harder trouble. Priest Zephyr keeps a rite burning at the peak — it is the only thing holding the cold back.",
                             DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 19,
+                            NPCId = 8,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 112,
+                            Content = "His supplies ran out days ago and no courier of mine has come back down that road alive.",
+                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 19,
                             NPCId = 8,
@@ -3996,8 +4137,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 57,
-                            Content = "Take this Magic Flour and deliver it to him at the mountain peak.",
-                            DisplayOrder = 3,
+                            Content = "Take this Magic Flour to him at the mountain peak. If the rite goes out, we all freeze with it.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 19,
                             NPCId = 8,
@@ -4006,18 +4147,38 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 58,
-                            Content = "Ah, the flour from the Queen! Thank you, traveler.",
+                            Content = "The Queen's flour, and a courier still breathing. The rite can go on. You have bought this mountain another season.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 19,
+                            NPCId = 9,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 59,
+                            Content = "Stay a moment. The codex passed over this peak too, and what it touched did not simply die — it changed.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 20,
                             NPCId = 9,
                             ResponseType = "None"
                         },
                         new
                         {
-                            NPCDialogueId = 59,
-                            Content = "The codex has warped the creatures here. The beasts have become feral and dangerous.",
-                            DisplayOrder = 1,
+                            NPCDialogueId = 89,
+                            Content = "I cannot hold the rites while they circle the shrine — their shadows alone put out the candles.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 20,
+                            NPCId = 9,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 113,
+                            Content = "Ice dragons, five of them. Young, but the codex made them hungry in a way no beast should be.",
+                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 20,
                             NPCId = 9,
@@ -4026,8 +4187,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 60,
-                            Content = "To secure our borders, go slay 5 Ice Dragons on the mountain.",
-                            DisplayOrder = 2,
+                            Content = "Climb the peak and slay all 5. Do it, and the Queen's borders hold one more winter.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 20,
                             NPCId = 9,
@@ -4036,7 +4197,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 61,
-                            Content = "Halt! This is the forbidden zone. None may enter.",
+                            Content = "Halt. Beyond this line is under ban, and I am Roland, the warden who keeps it.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 21,
@@ -4046,7 +4207,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 62,
-                            Content = "Wait... you have the aura of one who has fought the Ice Dragons.",
+                            Content = "Wait. That cold on you — dragon frost. You came down off the peak, not up from the road.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 21,
@@ -4055,9 +4216,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 63,
-                            Content = "Since you made it this far, help me explore this dangerous area.",
+                            NPCDialogueId = 114,
+                            Content = "I have watched this ban for eleven years and never once set foot inside. Now something in there has begun to stir.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 63,
+                            Content = "Walk it with me and map what waits inside. I will not send you where I do not go myself.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 21,
                             NPCId = 10,
@@ -4066,7 +4237,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 64,
-                            Content = "We have uncovered the origin of the codex... The truth is terrifying.",
+                            Content = "Now I know why my order was told to guard this place and never enter it. The codex did not begin in the world. It began here.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 22,
@@ -4076,7 +4247,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 65,
-                            Content = "A massive ancient golem guards the final piece of the puzzle.",
+                            Content = "And it is not finished. One of the old Seal Books lies at the heart of the ban, still holding.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 22,
@@ -4085,9 +4256,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 66,
-                            Content = "Defeat the giant GolemBoss to claim the Golem Seal Book! Do not fail us.",
+                            NPCDialogueId = 115,
+                            Content = "A stone golem stands over it. The elders left it there to keep hands off the book — mine included.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 66,
+                            Content = "Break the stone guardian and take the Golem Seal Book. It is worth more in your hands than under my ban.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 22,
                             NPCId = 10,
@@ -4096,7 +4277,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 67,
-                            Content = "Stay back! The undead are relentless today.",
+                            Content = "Back, stranger, keep your back to the rock! They come up out of the valley floor faster than I can cut them down.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 23,
@@ -4106,8 +4287,18 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 68,
-                            Content = "An ancient power is leaking, causing skeletons to multiply out of control.",
+                            Content = "This is no ordinary haunting. An ancient power is leaking somewhere near, and the dead rise faster than they fall.",
                             DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 23,
+                            NPCId = 11,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 116,
+                            Content = "There is a Seal Book buried under all this bone. I have felt it since the day the leak began.",
+                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 23,
                             NPCId = 11,
@@ -4116,8 +4307,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 69,
-                            Content = "I can't hold them off alone. Defeat 12 of them in the valley!",
-                            DisplayOrder = 3,
+                            Content = "Cut down 12 of them in the valley with me. Two blades may be enough where one was not.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 23,
                             NPCId = 11,
@@ -4126,8 +4317,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 70,
-                            Content = "The animals are fleeing from the abandoned village Tide-Knell. Investigate it and find Natalie.",
-                            DisplayOrder = 4,
+                            Content = "The animals are fleeing from the abandoned village of Tide-Knell. Look into it, and find the girl Natalie.",
+                            DisplayOrder = 5,
                             IsActive = true,
                             LinkedQuestId = 23,
                             NPCId = 11,
@@ -4136,8 +4327,28 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 71,
-                            Content = "Are you here to help me? I cannot leave this place...",
+                            Content = "You can see me. Nobody has seen me in a very long time. My name is Natalie, and this village is Tide-Knell.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 24,
+                            NPCId = 12,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 117,
+                            Content = "I cannot leave the well. I have tried. Something of me is still down in that ground, and it holds me here.",
                             DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 24,
+                            NPCId = 12,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 118,
+                            Content = "The animals knew before you did. That is why they ran. They will not drink from a well with a girl in it.",
+                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 24,
                             NPCId = 12,
@@ -4146,8 +4357,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 72,
-                            Content = "Please... dig up what is buried under the small tree near the old well.",
-                            DisplayOrder = 3,
+                            Content = "Please. Dig beside the old well and lift out the skull you find there. I am ready to be found.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 24,
                             NPCId = 12,
@@ -4156,7 +4367,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 73,
-                            Content = "(A weathered suicide letter lies where Natalie once stood...)",
+                            Content = "(A weathered letter lies where Natalie once stood. It is her own hand, and it is a farewell.)",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 25,
@@ -4165,8 +4376,8 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 74,
-                            Content = "Thank you for bringing my remains back to my homeland. Please bury me under the ivy tree in my courtyard.",
+                            NPCDialogueId = 119,
+                            Content = "(She writes of a book she opened as a child, of a seal she did not understand, and of the day the valley began to fill with bone.)",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 25,
@@ -4175,9 +4386,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 75,
-                            Content = "The ancient power leak was my doing. I am deeply sorry. Take this Mystic Key. It will unlock the gates to the castle on the deserted island.",
+                            NPCDialogueId = 74,
+                            Content = "Thank you for bringing my remains home. Please bury me under the ivy tree in my courtyard, where I used to sit.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 12,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 75,
+                            Content = "The ancient power leak was my doing, and I have paid for it here. Take this Mystic Key — it opens the castle gates on the deserted island.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 25,
                             NPCId = 12,
@@ -4186,7 +4407,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 76,
-                            Content = "You actually survived the waves and made it to this deserted island.",
+                            Content = "An outsider, with a Mystic Key, standing on my island. The sea should have kept you. Yet here you are.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 26,
@@ -4196,7 +4417,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 77,
-                            Content = "I need your assistance to prepare a ritual of return.",
+                            Content = "I am the last guard of this place. I know what you carry, and I know the forest you are trying to reach.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 26,
@@ -4205,9 +4426,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 78,
-                            Content = "Help me collect 5 Ancient Leaves from the Northern Plateau.",
+                            NPCDialogueId = 120,
+                            Content = "A portal home cannot be forced. It must be grown, and for that the rite needs leaves older than the curse itself.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 26,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 78,
+                            Content = "Collect 5 Ancient Leaves from the Northern Plateau. Bring them, and I will begin the rite of return.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 26,
                             NPCId = 13,
@@ -4216,7 +4447,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 79,
-                            Content = "We have everything we need. But a dark presence blocks our path.",
+                            Content = "The leaves are enough. The rite is ready. And yet I cannot light it — something below the castle is smothering it.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 27,
@@ -4226,7 +4457,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 80,
-                            Content = "The UnderKing himself has awakened, and he guards the final Seal Book.",
+                            Content = "The UnderKing has woken. He held the last Seal Book in his hands long before you were born.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 27,
@@ -4235,9 +4466,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 81,
-                            Content = "You must end his reign! Defeat the UnderKing and claim the book!",
+                            NPCDialogueId = 121,
+                            Content = "Three seals you have already. Without his, the Origin Tree cannot be cleansed and the forest ends with the tree.",
                             DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 81,
+                            Content = "End his reign. Defeat the UnderKing and take the fourth book from him.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 27,
                             NPCId = 13,
@@ -4246,7 +4487,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 82,
-                            Content = "It is done. The UnderKing is defeated, and you have all 4 Seal Books.",
+                            Content = "It is done. The UnderKing has fallen, and all four Seal Books are in one pair of hands for the first time in an age.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 28,
@@ -4256,8 +4497,18 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 83,
-                            Content = "The fate of the Origin Tree now rests entirely in your hands.",
+                            Content = "You want the way home. I will give it, but understand what waits: the Origin Tree is nearly gone.",
                             DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 28,
+                            NPCId = 13,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 122,
+                            Content = "The rite will open once and close behind you. Whatever you leave undone on this side stays undone.",
+                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 28,
                             NPCId = 13,
@@ -4266,8 +4517,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 84,
-                            Content = "Farewell, hero. I will use my power to open a portal back to the Elf Forest. Save the tree!",
-                            DisplayOrder = 3,
+                            Content = "Then go. The portal to the Elf Forest is open. Save the tree, outsider.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 28,
                             NPCId = 13,
@@ -4276,7 +4527,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 85,
-                            Content = "You have returned! And I can sense the power of the 4 Seal Books.",
+                            Content = "You came back. Through the ruins, the snow, the ban, the sea — and you are carrying all four seals.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 29,
@@ -4285,11 +4536,71 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 86,
-                            Content = "Please, hurry! Use the books on the Origin Tree to cleanse the corruption.",
+                            NPCDialogueId = 90,
+                            Content = "The tree has almost no strength left. Every leaf it drops, the curse takes a little more of the forest.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 29,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 123,
+                            Content = "Four books, four elders, four bindings broken. Set them together and the curse has nowhere left to hide.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 29,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 86,
+                            Content = "Bring the four books to me here, at the roots. Hurry.",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 29,
+                            NPCId = 2,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 91,
+                            Content = "The four seals are whole. I have opened the rite... but I cannot finish it.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 30,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 92,
+                            Content = "The seals answer only to the one who won them. It must be your hand, not mine.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 30,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 124,
+                            Content = "I am the tree's spirit. If the curse takes the roots, it takes me with them — so do not hesitate at the last step.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 30,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 93,
+                            Content = "Step to the Origin Tree and set the four Seal Books upon it. Break the curse.",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 30,
                             NPCId = 2,
                             ResponseType = "Quest"
                         },
@@ -4305,9 +4616,29 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 88,
-                            Content = "Thank you! The Origin Tree is saved. But this is not the end... To be continued.",
+                            NPCDialogueId = 125,
+                            Content = "Look at the roots. Green, after all this time. The forest will remember the one who stood here today.",
                             DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 31,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 126,
+                            Content = "And yet the cloaked one was never found, and no one has said who broke the four bindings in the first place.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 31,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 88,
+                            Content = "Thank you, truly. The Origin Tree is saved. But this is not the end... To be continued.",
+                            DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 31,
                             NPCId = 2,
@@ -4689,9 +5020,10 @@ namespace DAL.Migrations
 
                     b.HasKey("PlayerQuestId");
 
-                    b.HasIndex("PlayerProfileId");
-
                     b.HasIndex("QuestId");
+
+                    b.HasIndex("PlayerProfileId", "QuestId")
+                        .IsUnique();
 
                     b.ToTable("PlayerQuests");
                 });
@@ -5034,7 +5366,7 @@ namespace DAL.Migrations
                         {
                             QuestId = 1,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Elder Rowan in the Elf Forest.",
+                            Description = "You wake at the edge of the Elf Forest with no memory of how you arrived. Elder Rowan is waiting by the great roots — go to him and hear why the forest called you here.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -5046,14 +5378,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 10m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] Speak with Elder Rowan",
+                            Title = "[Chapter 1] A Word with Elder Rowan",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 2,
                             DefaultStatus = "NotStarted",
-                            Description = "Collect 3 White Flowers from the forest.",
+                            Description = "The elders brew their healing draught from white flowers that only bloom in the shade of the old woods. Search the clearings and gather 3 White Flowers for Elder Rowan.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -5072,7 +5404,7 @@ namespace DAL.Migrations
                         {
                             QuestId = 3,
                             DefaultStatus = "NotStarted",
-                            Description = "Deliver the gathered flowers to Elder Rowan.",
+                            Description = "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -5085,14 +5417,14 @@ namespace DAL.Migrations
                             RewardGold = 5m,
                             RewardSkillId = 10,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] Deliver White Flowers",
+                            Title = "[Chapter 1] Deliver the White Flowers",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 4,
                             DefaultStatus = "NotStarted",
-                            Description = "Equip your first combat skill.",
+                            Description = "A skill is useless until it sits in your hand. Open the Skill panel and equip the technique Elder Rowan just taught you.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -5104,14 +5436,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 10m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] Equip Your Skill",
+                            Title = "[Chapter 1] Equip Your First Skill",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 5,
                             DefaultStatus = "NotStarted",
-                            Description = "Kill 3 SlimeLittle monsters in the forest.",
+                            Description = "Little slimes have crept out of the marsh and are eating the flower beds. Put your new skill to work and defeat 3 of them.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -5123,7 +5455,7 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 15m,
                             TargetAmount = 3,
-                            Title = "[Chapter 1] Defeat Slimes",
+                            Title = "[Chapter 1] Cull the Little Slimes",
                             Type = "Main"
                         },
                         new
@@ -5131,7 +5463,7 @@ namespace DAL.Migrations
                             QuestId = 6,
                             BossMonsterId = 2,
                             DefaultStatus = "NotStarted",
-                            Description = "Slay the Swamp Demon and obtain its Seal Book.",
+                            Description = "The slimes were only fleeing something worse. Deep in the woods a Swamp Demon guards the first of four Seal Books — kill it and take the seal.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Deep Woods",
@@ -5143,14 +5475,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 50m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] The Swamp Demon",
+                            Title = "[Chapter 1] Slay the Swamp Demon",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 7,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Lyra about the cursed Origin Tree and the 4 Seal Books.",
+                            Description = "Take the Seal Book to the guardian Lyra at the Origin Tree. She alone can explain the curse rotting its roots and why four seals are needed to lift it.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Origin Tree",
@@ -5162,14 +5494,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 10m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] The Origin Tree",
+                            Title = "[Chapter 1] Lyra and the Origin Tree",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 8,
                             DefaultStatus = "NotStarted",
-                            Description = "Follow the cloaked figure through the portal to Autumn Pumpkin.",
+                            Description = "A cloaked figure has been watching you since you woke, and now walks into a portal at the forest edge. Step through it before the way closes.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -5181,14 +5513,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 5m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] The Mysterious Figure",
+                            Title = "[Chapter 1] Follow the Cloaked Figure",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 9,
                             DefaultStatus = "NotStarted",
-                            Description = "Teleported onto the beach, proceed to the castle and ask Elder Rowan where this is. After introductions, realize you have no money and ask if there is work to earn food.",
+                            Description = "The portal spits you onto a cold beach under an autumn sky. Climb to the castle and find Elder Rowan — or someone wearing his face — and ask what land this is.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Autumn Pumpkin",
@@ -5200,14 +5532,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 5m,
                             TargetAmount = 1,
-                            Title = "[Chapter 2] Where Are We?",
+                            Title = "[Chapter 2] Ask Where You Are",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 10,
                             DefaultStatus = "NotStarted",
-                            Description = "Collect 8 Enchanted Pumpkins from the field and hand them over to farmer Fa.",
+                            Description = "You have no coin in this land and no one gives bread away. Farmer Fa will trade a meal for labour: pick 8 Enchanted Pumpkins from his field.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Pumpkin Town",
@@ -5219,14 +5551,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 10m,
                             TargetAmount = 8,
-                            Title = "[Chapter 2] Work for Food",
+                            Title = "[Chapter 2] Harvest for Your Supper",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 11,
                             DefaultStatus = "NotStarted",
-                            Description = "Help Fa deliver the harvested pumpkins to guard Tristan at the ruined city gate.",
+                            Description = "Fa is too old to make the road alone. Carry the harvest to the city gate and hand it to the guard Tristan.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "City Gate",
@@ -5238,14 +5570,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 5m,
                             TargetAmount = 1,
-                            Title = "[Chapter 2] Delivery to the City",
+                            Title = "[Chapter 2] Deliver the Harvest",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 12,
                             DefaultStatus = "NotStarted",
-                            Description = "Enter the city and investigate the dead bodies, then report back to guard Tristan.",
+                            Description = "Beyond the gate the city is silent and the streets are full of the dead. Examine 5 of the bodies and learn what killed them.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Ruined City",
@@ -5257,14 +5589,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 5m,
                             TargetAmount = 5,
-                            Title = "[Chapter 2] The Ruined City",
+                            Title = "[Chapter 2] Examine the Fallen",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 13,
                             DefaultStatus = "NotStarted",
-                            Description = "Report the massacre to Tristan. He asks you to find the silver knight Arthur for help.",
+                            Description = "Tristan pales at your report: only one man ever held these ruins. Search the city for the silver knight Arthur and ask for his help.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Ruined City",
@@ -5283,40 +5615,40 @@ namespace DAL.Migrations
                         {
                             QuestId = 14,
                             DefaultStatus = "NotStarted",
-                            Description = "Speak with Arthur and learn about his internal injuries and sealed power. Enter Dungeon ID 2 to train and level up your strength.",
+                            Description = "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Dungeon",
                             ObjectiveTarget = "Dungeon_2",
                             ObjectiveType = "Explore",
                             QuestGiverName = "Arthur",
-                            RequiredLevel = 12,
-                            RewardExperience = 15,
+                            RequiredLevel = 4,
+                            RewardExperience = 250,
                             RewardGems = 5m,
                             RewardGold = 15m,
                             RewardItemId = 18,
                             RewardSkillId = 9,
                             TargetAmount = 1,
-                            Title = "[Chapter 2] The Silver Knight's Training",
+                            Title = "[Chapter 2] Train in the Old Dungeon",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 15,
                             DefaultStatus = "NotStarted",
-                            Description = "Receive the DarkExplosion skill and Silver Necklace from Arthur. Take his place to defeat 10 evil monsters in the Ruined City.",
+                            Description = "With Arthur's dark technique and his Silver Necklace, you stand in the knight's place. Hunt down 10 of the creatures still prowling the ruins.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Ruined City",
                             ObjectiveTarget = "Ghost/RobberAssassin/RedGuard/GoblinSpear/GoblinWarrior/RobberArcher/NecromancerCast",
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Arthur",
-                            RequiredLevel = 12,
-                            RewardExperience = 20,
+                            RequiredLevel = 4,
+                            RewardExperience = 300,
                             RewardGems = 5m,
                             RewardGold = 20m,
                             TargetAmount = 10,
-                            Title = "[Chapter 2] Defeat the Evil Monsters",
+                            Title = "[Chapter 2] Purge the Ruined City",
                             Type = "Main"
                         },
                         new
@@ -5324,7 +5656,7 @@ namespace DAL.Migrations
                             QuestId = 16,
                             BossMonsterId = 7,
                             DefaultStatus = "NotStarted",
-                            Description = "Turn in the quest and get Arthur's recognition of your strength, receive quest to kill DragonBossIdle. Go kill dragon DragonBossIdle.",
+                            Description = "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Ruined City",
@@ -5332,7 +5664,7 @@ namespace DAL.Migrations
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Arthur",
                             RequiredLevel = 5,
-                            RewardExperience = 50,
+                            RewardExperience = 350,
                             RewardGems = 5m,
                             RewardGold = 100m,
                             TargetAmount = 1,
@@ -5343,7 +5675,7 @@ namespace DAL.Migrations
                         {
                             QuestId = 17,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Arthur and receive the knight's thanks, ask about the whereabouts of the ??? and he directs you to the frozen land devastated by the codex, go to Frozen Mountains.",
+                            Description = "Return to Arthur for the knight's thanks and ask where the cursed codex came from. He points north, to a kingdom the codex froze solid.",
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Ruined City",
@@ -5351,18 +5683,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Talk",
                             QuestGiverName = "Arthur",
                             RequiredLevel = 5,
-                            RewardExperience = 10,
+                            RewardExperience = 150,
                             RewardGems = 5m,
                             RewardGold = 10m,
                             TargetAmount = 1,
-                            Title = "[Chapter 2] The Frozen Threat",
+                            Title = "[Chapter 2] Arthur's Parting Words",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 18,
                             DefaultStatus = "NotStarted",
-                            Description = "Meet Queen Roselyn Aurora and defeat 8 Ice Slimes.",
+                            Description = "Queen Roselyn Aurora receives you in a hall of ice. Her fields are overrun before the winter stores are in — defeat 8 ice slimes for her.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Snow Fields",
@@ -5370,19 +5702,19 @@ namespace DAL.Migrations
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Roselyn Aurora Queen",
                             RequiredLevel = 6,
-                            RewardExperience = 30,
+                            RewardExperience = 200,
                             RewardGems = 5m,
                             RewardGold = 30m,
                             RewardItemId = 31,
                             TargetAmount = 8,
-                            Title = "[Chapter 3] The Ice Slimes",
+                            Title = "[Chapter 3] Slimes of the Snow Fields",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 19,
                             DefaultStatus = "NotStarted",
-                            Description = "Deliver Magic Flour (obtained from the Queen) to the Priest (Zephyr).",
+                            Description = "The Queen entrusts you with Magic Flour for the mountain shrine. Carry it up to the priest Zephyr before the pass closes.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Frozen Mountain",
@@ -5390,18 +5722,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Talk",
                             QuestGiverName = "Roselyn Aurora Queen",
                             RequiredLevel = 6,
-                            RewardExperience = 15,
+                            RewardExperience = 150,
                             RewardGems = 5m,
                             RewardGold = 15m,
                             TargetAmount = 1,
-                            Title = "[Chapter 3] Magic Flour for the Priest",
+                            Title = "[Chapter 3] Deliver the Magic Flour",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 20,
                             DefaultStatus = "NotStarted",
-                            Description = "Meet Zephyr and slay 5 Ice Dragons on the mountain.",
+                            Description = "Zephyr cannot hold his rites while ice dragons circle the shrine. Climb the peak and bring down 5 of them.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Frozen Mountain",
@@ -5409,30 +5741,30 @@ namespace DAL.Migrations
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Zephyr",
                             RequiredLevel = 7,
-                            RewardExperience = 40,
+                            RewardExperience = 250,
                             RewardGems = 5m,
                             RewardGold = 40m,
                             TargetAmount = 5,
-                            Title = "[Chapter 3] Dragons of Snow",
+                            Title = "[Chapter 3] Dragons of the Frozen Peak",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 21,
                             DefaultStatus = "NotStarted",
-                            Description = "Head to the forbidden zone and speak with Roland to explore it.",
+                            Description = "Zephyr says the codex's mark lies inside the forbidden zone, and only its warden may open the way. Find Roland at the boundary stones and ask for passage.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Forbidden Zone",
                             ObjectiveTarget = "Roland",
-                            ObjectiveType = "Explore",
+                            ObjectiveType = "Talk",
                             QuestGiverName = "Roland",
                             RequiredLevel = 7,
-                            RewardExperience = 15,
+                            RewardExperience = 150,
                             RewardGems = 5m,
                             RewardGold = 15m,
                             TargetAmount = 1,
-                            Title = "[Chapter 3] The Forbidden Zone",
+                            Title = "[Chapter 3] The Warden of the Ban",
                             Type = "Main"
                         },
                         new
@@ -5440,7 +5772,7 @@ namespace DAL.Migrations
                             QuestId = 22,
                             BossMonsterId = 10,
                             DefaultStatus = "NotStarted",
-                            Description = "Discover the truth of the codex and defeat GolemBoss to get the Golem Seal Book.",
+                            Description = "Roland tells you what the kingdom buried here: the codex itself, and the golem forged to guard it. Destroy the golem and take the second Seal Book.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Forbidden Zone",
@@ -5448,18 +5780,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Roland",
                             RequiredLevel = 8,
-                            RewardExperience = 80,
+                            RewardExperience = 400,
                             RewardGems = 5m,
                             RewardGold = 150m,
                             TargetAmount = 1,
-                            Title = "[Chapter 3] Truth of the Codex",
+                            Title = "[Chapter 3] Break the Stone Guardian",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 23,
                             DefaultStatus = "NotStarted",
-                            Description = "Defeat 12 skeletons in the valley for Valiant Warrior.",
+                            Description = "The trail of the seals ends at a ruined castle where the dead still keep watch. The Valiant Warrior holds the valley alone — help him put down 12 skeletons.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Valley",
@@ -5467,18 +5799,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Valiant Warrior",
                             RequiredLevel = 9,
-                            RewardExperience = 50,
+                            RewardExperience = 300,
                             RewardGems = 5m,
                             RewardGold = 50m,
                             TargetAmount = 12,
-                            Title = "[Chapter 4] Skeleton Army",
+                            Title = "[Chapter 4] Break the Skeleton Army",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 24,
                             DefaultStatus = "NotStarted",
-                            Description = "Dig up the skull near the old well.",
+                            Description = "In the drowned village of Tide-Knell a girl named Natalie asks a strange favour: dig beside the old well and lift out the skull buried there.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Tide-Knell",
@@ -5486,19 +5818,19 @@ namespace DAL.Migrations
                             ObjectiveType = "Interact",
                             QuestGiverName = "Natalie",
                             RequiredLevel = 9,
-                            RewardExperience = 30,
+                            RewardExperience = 200,
                             RewardGems = 5m,
                             RewardGold = 30m,
                             RewardItemId = 32,
                             TargetAmount = 1,
-                            Title = "[Chapter 4] The Abandoned Village",
+                            Title = "[Chapter 4] The Skull by the Well",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 25,
                             DefaultStatus = "NotStarted",
-                            Description = "Read Natalie's suicide letter and bury her remains under the ivy tree. Receive Mystic Key.",
+                            Description = "The skull is hers. Read the letter she left behind, bury her remains beneath the ivy tree, and she will give you the key she died holding.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Tide-Knell",
@@ -5506,19 +5838,19 @@ namespace DAL.Migrations
                             ObjectiveType = "Interact",
                             QuestGiverName = "Natalie",
                             RequiredLevel = 10,
-                            RewardExperience = 40,
+                            RewardExperience = 200,
                             RewardGems = 5m,
                             RewardGold = 40m,
                             RewardItemId = 33,
                             TargetAmount = 1,
-                            Title = "[Chapter 4] Rest in Peace",
+                            Title = "[Chapter 4] Lay Natalie to Rest",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 26,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Elf Guard on the deserted island and collect 5 Ancient Leaves.",
+                            Description = "Natalie's key opens the way to a deserted island where one elf guard still stands his post. He needs 5 Ancient Leaves from the plateau to break the seal below.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Northern Plateau",
@@ -5526,11 +5858,11 @@ namespace DAL.Migrations
                             ObjectiveType = "Collect",
                             QuestGiverName = "Elf Guard",
                             RequiredLevel = 10,
-                            RewardExperience = 45,
+                            RewardExperience = 250,
                             RewardGems = 5m,
                             RewardGold = 45m,
                             TargetAmount = 5,
-                            Title = "[Chapter 4] Deserted Island",
+                            Title = "[Chapter 4] Ancient Leaves of the Isle",
                             Type = "Main"
                         },
                         new
@@ -5538,7 +5870,7 @@ namespace DAL.Migrations
                             QuestId = 27,
                             BossMonsterId = 15,
                             DefaultStatus = "NotStarted",
-                            Description = "Defeat the UnderKing to claim the final UnderKing Seal Book.",
+                            Description = "The leaves burn away the ward and the crypt opens. The UnderKing holds the last two Seal Books — take them from him.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Deserted Island",
@@ -5546,18 +5878,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Elf Guard",
                             RequiredLevel = 11,
-                            RewardExperience = 200,
+                            RewardExperience = 500,
                             RewardGems = 5m,
                             RewardGold = 300m,
                             TargetAmount = 1,
-                            Title = "[Chapter 4] The UnderKing",
+                            Title = "[Chapter 4] Defeat the UnderKing",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 28,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Elf Guard. He will open a portal back to the Elf Forest.",
+                            Description = "All four seals are in your pack. Speak to the Elf Guard — he can open a portal back to the Elf Forest.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Deserted Island",
@@ -5565,18 +5897,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Talk",
                             QuestGiverName = "Elf Guard",
                             RequiredLevel = 12,
-                            RewardExperience = 10,
+                            RewardExperience = 150,
                             RewardGems = 5m,
                             RewardGold = 10m,
                             TargetAmount = 1,
-                            Title = "[Chapter 4] Return to Elf Forest",
+                            Title = "[Chapter 4] Ask for the Way Home",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 29,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Lyra about the 4 Seal Books.",
+                            Description = "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Origin Tree",
@@ -5584,18 +5916,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Talk",
                             QuestGiverName = "Lyra",
                             RequiredLevel = 12,
-                            RewardExperience = 50,
+                            RewardExperience = 250,
                             RewardGems = 5m,
                             RewardGold = 50m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] Return with the Seals",
+                            Title = "[Chapter 5] Return with the Seals",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 30,
                             DefaultStatus = "NotStarted",
-                            Description = "Use the 4 Seal Books on the Origin Tree.",
+                            Description = "Lyra opens the rite and steps back — the seals must be set by the one who won them. Place the four Seal Books on the Origin Tree and break the curse.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -5603,18 +5935,18 @@ namespace DAL.Migrations
                             ObjectiveType = "Interact",
                             QuestGiverName = "Lyra",
                             RequiredLevel = 12,
-                            RewardExperience = 250,
+                            RewardExperience = 400,
                             RewardGems = 5m,
                             RewardGold = 250m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] Heal the Origin Tree",
+                            Title = "[Chapter 5] Heal the Origin Tree",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 31,
                             DefaultStatus = "NotStarted",
-                            Description = "Talk to Lyra. The Origin Tree is saved. To be continued...",
+                            Description = "The Origin Tree is green again and the forest wakes around it. Speak with Lyra one last time — the codex had a master, and that story is not finished.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Origin Tree",
@@ -5622,11 +5954,11 @@ namespace DAL.Migrations
                             ObjectiveType = "Talk",
                             QuestGiverName = "Lyra",
                             RequiredLevel = 12,
-                            RewardExperience = 200,
+                            RewardExperience = 300,
                             RewardGems = 5m,
                             RewardGold = 200m,
                             TargetAmount = 1,
-                            Title = "[Chapter 1] A New Dawn",
+                            Title = "[Chapter 5] A New Dawn",
                             Type = "Main"
                         });
                 });
@@ -5995,6 +6327,91 @@ namespace DAL.Migrations
                             TargetType = "Area",
                             Type = "Active",
                             UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 11,
+                            BaseDamage = 0.0,
+                            ClassRequirement = "Archer",
+                            CooldownSeconds = 20,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Physical",
+                            Description = "Automatically fires in the direction the archer is facing.",
+                            IsActive = true,
+                            Name = "DeadlyCurse",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 12,
+                            BaseDamage = 0.0,
+                            ClassRequirement = "Mage",
+                            CooldownSeconds = 5,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Magical",
+                            Description = "Selects an area within range to attack.",
+                            IsActive = true,
+                            Name = "NightMagic",
+                            TargetType = "Area",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 13,
+                            BaseDamage = 200.0,
+                            ClassRequirement = "All",
+                            CooldownSeconds = 30,
+                            CorruptionCost = 8f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Magical",
+                            Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.",
+                            IsActive = true,
+                            Name = "DeadlyExplosion",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 14,
+                            BaseDamage = 0.0,
+                            ClassRequirement = "Knight",
+                            CooldownSeconds = 6,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 0.0,
+                            DamagePerLevel = 0.0,
+                            DamageType = "Physical",
+                            Description = "A short-range slash in the direction the knight is facing.",
+                            IsActive = true,
+                            Name = "BloodySlash",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 15,
+                            BaseDamage = 38.0,
+                            ClassRequirement = "Knight",
+                            CooldownSeconds = 8,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 4.0,
+                            DamagePerLevel = 11.0,
+                            DamageType = "Physical",
+                            Description = "A short-range slash in the direction the character is facing.",
+                            IsActive = true,
+                            Name = "FrozenSash",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
                         });
                 });
 
@@ -6128,7 +6545,9 @@ namespace DAL.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.HasIndex("SentAt");
+                    b.HasIndex("IsHidden", "SentAt", "WorldChatMessageId")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("IX_WorldChatMessages_Feed");
 
                     b.ToTable("WorldChatMessages");
                 });
@@ -6405,21 +6824,6 @@ namespace DAL.Migrations
                     b.Navigation("RewardItem");
                 });
 
-            modelBuilder.Entity("DAL.Models.GameSetting", b =>
-                {
-                    b.HasOne("DAL.Models.Account", "CreatedByAccount")
-                        .WithMany()
-                        .HasForeignKey("CreatedByAccountAccountId");
-
-                    b.HasOne("DAL.Models.Account", "UpdatedByAccount")
-                        .WithMany()
-                        .HasForeignKey("UpdatedByAccountAccountId");
-
-                    b.Navigation("CreatedByAccount");
-
-                    b.Navigation("UpdatedByAccount");
-                });
-
             modelBuilder.Entity("DAL.Models.Guild", b =>
                 {
                     b.HasOne("DAL.Models.PlayerProfile", "CreatedBy")
@@ -6567,10 +6971,10 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
-            modelBuilder.Entity("DAL.Models.Mail", b =>
+            modelBuilder.Entity("DAL.Models.Mailbox", b =>
                 {
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
-                        .WithMany("Mails")
+                        .WithMany("Mailboxes")
                         .HasForeignKey("PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -6578,7 +6982,7 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
-            modelBuilder.Entity("DAL.Models.MailRewardItem", b =>
+            modelBuilder.Entity("DAL.Models.MailboxRewardItem", b =>
                 {
                     b.HasOne("DAL.Models.Item", "Item")
                         .WithMany()
@@ -6586,15 +6990,15 @@ namespace DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DAL.Models.Mail", "Mail")
+                    b.HasOne("DAL.Models.Mailbox", "Mailbox")
                         .WithMany("AttachedItems")
-                        .HasForeignKey("MailId")
+                        .HasForeignKey("MailboxId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Item");
 
-                    b.Navigation("Mail");
+                    b.Navigation("Mailbox");
                 });
 
             modelBuilder.Entity("DAL.Models.MonsterDrop", b =>
@@ -7059,7 +7463,7 @@ namespace DAL.Migrations
                     b.Navigation("ShopItems");
                 });
 
-            modelBuilder.Entity("DAL.Models.Mail", b =>
+            modelBuilder.Entity("DAL.Models.Mailbox", b =>
                 {
                     b.Navigation("AttachedItems");
                 });
@@ -7080,7 +7484,7 @@ namespace DAL.Migrations
 
                     b.Navigation("InventoryItems");
 
-                    b.Navigation("Mails");
+                    b.Navigation("Mailboxes");
 
                     b.Navigation("PlayerAchievements");
 

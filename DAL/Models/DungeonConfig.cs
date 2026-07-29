@@ -12,8 +12,6 @@ namespace DAL.Models
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        public string? ImageUrl { get; set; }
-
         // Types: Normal, Elite, Boss
         public string Type { get; set; } = "Normal";
 

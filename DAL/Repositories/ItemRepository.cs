@@ -35,6 +35,7 @@ namespace DAL.Repositories
             return await _context.Items
                 .Where(i => i.IsActive && i.Type == "QuestItem")
                 .OrderBy(i => i.ItemId)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -63,29 +64,32 @@ namespace DAL.Repositories
 
         public async Task<(int TotalCount, List<Item> Items)> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var query = _context.Items
-                .Include(i => i.EquipmentStats)
-                .AsNoTracking();
+            // Đếm trên query chưa Include: COUNT không cần join sang EquipmentStats.
+            var filtered = _context.Items.AsNoTracking();
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(x => x.Name.Contains(search));
+                filtered = filtered.Where(x => x.Name.Contains(search));
             }
             if (!string.IsNullOrEmpty(type))
             {
-                query = query.Where(x => x.Type == type);
+                filtered = filtered.Where(x => x.Type == type);
             }
             if (!string.IsNullOrEmpty(rarity))
             {
-                query = query.Where(x => x.Rarity == rarity);
+                filtered = filtered.Where(x => x.Rarity == rarity);
             }
             if (isActive.HasValue)
             {
-                query = query.Where(x => x.IsActive == isActive.Value);
+                filtered = filtered.Where(x => x.IsActive == isActive.Value);
             }
 
+            int totalCount = await filtered.CountAsync();
+
+            var query = filtered.Include(i => i.EquipmentStats);
+
             bool desc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-            query = (sortBy?.ToLowerInvariant()) switch
+            IQueryable<Item> ordered = (sortBy?.ToLowerInvariant()) switch
             {
                 "name" => desc ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
                 "type" => desc ? query.OrderByDescending(x => x.Type) : query.OrderBy(x => x.Type),
@@ -95,8 +99,7 @@ namespace DAL.Repositories
                 _ => desc ? query.OrderByDescending(x => x.ItemId) : query.OrderBy(x => x.ItemId),
             };
 
-            int totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return (totalCount, items);
         }

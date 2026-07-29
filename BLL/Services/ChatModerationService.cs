@@ -16,16 +16,16 @@ namespace BLL.Services
         private static readonly TimeSpan ThirdLockDuration = TimeSpan.FromDays(3);
 
         private readonly IChatModerationRepository _repository;
-        private readonly IMailRepository _mailRepository;
+        private readonly IMailboxRepository _mailboxRepository;
         private readonly IContentSafetyProvider _contentSafetyProvider;
 
         public ChatModerationService(
             IChatModerationRepository repository,
-            IMailRepository mailRepository,
+            IMailboxRepository mailboxRepository,
             IContentSafetyProvider contentSafetyProvider)
         {
             _repository = repository;
-            _mailRepository = mailRepository;
+            _mailboxRepository = mailboxRepository;
             _contentSafetyProvider = contentSafetyProvider;
         }
 
@@ -165,7 +165,7 @@ namespace BLL.Services
 
         private async Task SendWarningMail(ChatModerationPenalty penalty, TimeSpan lockDuration, ContentModerationScanResultDto scan)
         {
-            var mail = new Mail
+            var mailbox = new Mailbox
             {
                 PlayerProfileId = penalty.PlayerProfileId,
                 Title = "Chat Warning – Violation Detected",
@@ -181,7 +181,7 @@ namespace BLL.Services
                 SentAt = DateTime.UtcNow
             };
 
-            await _mailRepository.CreateMail(mail);
+            await _mailboxRepository.CreateMailbox(mailbox);
         }
 
         private async Task SendReporterReceivedMail(int reporterId, string channel, int messageId)
@@ -189,7 +189,7 @@ namespace BLL.Services
             if (reporterId <= 0)
                 return;
 
-            var mail = new Mail
+            var mailbox = new Mailbox
             {
                 PlayerProfileId = reporterId,
                 Title = "Report Received",
@@ -202,7 +202,7 @@ namespace BLL.Services
                 SentAt = DateTime.UtcNow
             };
 
-            await _mailRepository.CreateMail(mail);
+            await _mailboxRepository.CreateMailbox(mailbox);
         }
 
         private async Task SendReporterResultMail(int reporterId, string channel, int messageId, ChatModerationResultDto result)
@@ -234,7 +234,7 @@ namespace BLL.Services
                     "The system did not detect a sufficient violation to apply an automatic chat lock. Thank you for your report.";
             }
 
-            var mail = new Mail
+            var mailbox = new Mailbox
             {
                 PlayerProfileId = reporterId,
                 Title = "Report Review Result",
@@ -245,7 +245,7 @@ namespace BLL.Services
                 SentAt = DateTime.UtcNow
             };
 
-            await _mailRepository.CreateMail(mail);
+            await _mailboxRepository.CreateMailbox(mailbox);
         }
 
         private static ChatModerationResultDto BuildExistingPenaltyResult(ChatModerationPenalty penalty)

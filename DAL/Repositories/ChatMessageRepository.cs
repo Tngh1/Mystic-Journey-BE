@@ -25,13 +25,15 @@ namespace DAL.Repositories
             page = Math.Max(1, page);
             pageSize = Math.Max(1, pageSize);
 
-            var query = _context.WorldChatMessages
-                .Include(m => m.Sender)
+            // Đếm trên query CHƯA Include: COUNT không cần join sang Sender, và bản đếm
+            // này chỉ chạm index (IsHidden, SentAt, Id) thay vì phải join cả bảng profile.
+            var filtered = _context.WorldChatMessages
                 .Where(m => !m.IsHidden)
                 .AsNoTracking();
 
-            var totalCount = await query.CountAsync();
-            var items = await query
+            var totalCount = await filtered.CountAsync();
+            var items = await filtered
+                .Include(m => m.Sender)
                 .OrderByDescending(m => m.SentAt)
                 .ThenByDescending(m => m.WorldChatMessageId)
                 .Skip((page - 1) * pageSize)
@@ -55,7 +57,10 @@ namespace DAL.Repositories
             await _context.WorldChatMessages.AddAsync(message);
             await _context.SaveChangesAsync();
 
-            await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
+            // Caller thường đã nạp sender trong cùng request (EnsurePlayerExists), lúc đó
+            // EF fixup gán sẵn navigation nên không cần thêm round-trip.
+            if (message.Sender == null)
+                await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
 
             return message;
         }
@@ -74,7 +79,9 @@ namespace DAL.Repositories
             _context.WorldChatMessages.Update(message);
             await _context.SaveChangesAsync();
 
-            await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
+            // message đến từ GetWorldMessageById (đã Include Sender) nên thường bỏ qua được.
+            if (message.Sender == null)
+                await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
 
             return message;
         }
@@ -88,17 +95,17 @@ namespace DAL.Repositories
             page = Math.Max(1, page);
             pageSize = Math.Max(1, pageSize);
 
-            var query = _context.ChatMessages
-                .Include(m => m.Sender)
-                .Include(m => m.Recipient)
+            var filtered = _context.ChatMessages
                 .Where(m =>
                     !m.IsHidden &&
                     ((m.SenderId == playerProfileId && m.RecipientId == otherPlayerProfileId) ||
                      (m.SenderId == otherPlayerProfileId && m.RecipientId == playerProfileId)))
                 .AsNoTracking();
 
-            var totalCount = await query.CountAsync();
-            var items = await query
+            var totalCount = await filtered.CountAsync();
+            var items = await filtered
+                .Include(m => m.Sender)
+                .Include(m => m.Recipient)
                 .OrderByDescending(m => m.SentAt)
                 .ThenByDescending(m => m.ChatMessageId)
                 .Skip((page - 1) * pageSize)
@@ -122,8 +129,11 @@ namespace DAL.Repositories
             await _context.ChatMessages.AddAsync(message);
             await _context.SaveChangesAsync();
 
-            await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
-            await _context.Entry(message).Reference(m => m.Recipient).LoadAsync();
+            // Chỉ nạp navigation nào EF fixup chưa gán sẵn từ entity đang tracked.
+            if (message.Sender == null)
+                await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
+            if (message.Recipient == null)
+                await _context.Entry(message).Reference(m => m.Recipient).LoadAsync();
 
             return message;
         }
@@ -143,8 +153,11 @@ namespace DAL.Repositories
             _context.ChatMessages.Update(message);
             await _context.SaveChangesAsync();
 
-            await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
-            await _context.Entry(message).Reference(m => m.Recipient).LoadAsync();
+            // message đến từ GetMessageById (đã Include cả 2) nên thường bỏ qua được.
+            if (message.Sender == null)
+                await _context.Entry(message).Reference(m => m.Sender).LoadAsync();
+            if (message.Recipient == null)
+                await _context.Entry(message).Reference(m => m.Recipient).LoadAsync();
 
             return message;
         }

@@ -25,6 +25,18 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(a => a.AccountId == id);
         }
 
+        /// <summary>
+        /// UPDATE một cột duy nhất, không SELECT và không tracking. Đường cũ
+        /// (GetAccountById + Update(entity)) nạp Account kèm Role + PlayerProfile rồi
+        /// ghi lại toàn bộ hàng — quá đắt cho một mốc thời gian mà mọi client ping đều đặn.
+        /// </summary>
+        public Task TouchLastSeen(int accountId, DateTime lastSeenUtc)
+        {
+            return _context.Accounts
+                .Where(a => a.AccountId == accountId)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeen, lastSeenUtc));
+        }
+
         public async Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername)
         {
             return await _context.Accounts
