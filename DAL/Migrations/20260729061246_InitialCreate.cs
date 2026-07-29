@@ -1944,21 +1944,21 @@ namespace DAL.Migrations
                 columns: new[] { "SkillId", "BaseDamage", "ClassRequirement", "CooldownSeconds", "CorruptionCost", "DamageGrowthPercent", "DamagePerLevel", "DamageType", "Description", "IsActive", "Name", "TargetType", "Type", "UnlockLevel" },
                 values: new object[,]
                 {
-                    { 1, 0.0, "Archer", 15, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "Accelerationarrow", "SingleTarget", "Active", 1 },
-                    { 2, 0.0, "Archer", 20, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "ArrowofLight", "SingleTarget", "Active", 1 },
-                    { 3, 0.0, "Mage", 10, 0f, 0.0, 0.0, "Magical", "Heals allies within range.", true, "Holymagic", "Ally", "Buff", 1 },
-                    { 4, 0.0, "Mage", 10, 0f, 0.0, 0.0, "Magical", "Casts a spell in the direction the character is facing.", true, "Purification", "SingleTarget", "Active", 1 },
-                    { 5, 0.0, "Mage", 10, 0f, 0.0, 0.0, "Magical", "Selects and attacks a random monster within range.", true, "Stardust", "SingleTarget", "Active", 1 },
-                    { 6, 0.0, "Knight", 20, 0f, 0.0, 0.0, "Physical", "Selects a target with the monster tag to attack.", true, "Lightsabers", "SingleTarget", "Active", 1 },
-                    { 7, 0.0, "Knight", 15, 0f, 0.0, 0.0, "Physical", "Casts a spell in the direction the character is facing.", true, "LightWaves", "Area", "Active", 1 },
-                    { 8, 0.0, "Knight", 20, 0f, 0.0, 0.0, "Magical", "Protects all allies within range.", true, "ProtectiveShield", "Ally", "Buff", 1 },
-                    { 9, 0.0, "All", 90, 15f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", true, "DarkExplosion", "Area", "Active", 1 },
-                    { 10, 0.0, "All", 60, 10f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", true, "DarkPoisonZone", "Area", "Active", 1 },
-                    { 11, 0.0, "Archer", 20, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "DeadlyCurse", "SingleTarget", "Active", 1 },
-                    { 12, 0.0, "Mage", 5, 0f, 0.0, 0.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
-                    { 13, 200.0, "All", 30, 8f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
-                    { 14, 0.0, "Knight", 6, 0f, 0.0, 0.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
-                    { 15, 38.0, "Knight", 8, 0f, 4.0, 11.0, "Physical", "A short-range slash in the direction the character is facing.", true, "FrozenSash", "SingleTarget", "Active", 1 }
+                    { 1, 0.0, "Archer", 2, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "Accelerationarrow", "SingleTarget", "Active", 1 },
+                    { 2, 0.0, "Archer", 5, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "ArrowofLight", "SingleTarget", "Active", 1 },
+                    { 3, 0.0, "Mage", 4, 0f, 0.0, 0.0, "Magical", "Heals allies within range.", true, "Holymagic", "Ally", "Buff", 1 },
+                    { 4, 0.0, "Mage", 3, 0f, 0.0, 0.0, "Magical", "Casts a spell in the direction the character is facing.", true, "Purification", "SingleTarget", "Active", 1 },
+                    { 5, 0.0, "Mage", 3, 0f, 0.0, 0.0, "Magical", "Selects and attacks a random monster within range.", true, "Stardust", "SingleTarget", "Active", 1 },
+                    { 6, 0.0, "Knight", 5, 0f, 0.0, 0.0, "Physical", "Selects a target with the monster tag to attack.", true, "Lightsabers", "SingleTarget", "Active", 1 },
+                    { 7, 0.0, "Knight", 4, 0f, 0.0, 0.0, "Physical", "Casts a spell in the direction the character is facing.", true, "LightWaves", "Area", "Active", 1 },
+                    { 8, 0.0, "Knight", 8, 0f, 0.0, 0.0, "Magical", "Protects all allies within range.", true, "ProtectiveShield", "Ally", "Buff", 1 },
+                    { 9, 0.0, "All", 8, 15f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", true, "DarkExplosion", "Area", "Active", 1 },
+                    { 10, 0.0, "All", 6, 10f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", true, "DarkPoisonZone", "Area", "Active", 1 },
+                    { 11, 0.0, "Archer", 5, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "DeadlyCurse", "SingleTarget", "Active", 1 },
+                    { 12, 0.0, "Mage", 2, 0f, 0.0, 0.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
+                    { 13, 200.0, "All", 6, 8f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
+                    { 14, 0.0, "Knight", 2, 0f, 0.0, 0.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
+                    { 15, 38.0, "Knight", 3, 0f, 4.0, 11.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 }
                 });
 
             migrationBuilder.InsertData(

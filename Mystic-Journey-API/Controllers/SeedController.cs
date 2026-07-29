@@ -414,7 +414,7 @@ namespace Mystic_Journey_API.Controllers
                         DamageType = "Magical",
                         TargetType = "Area",
                         ClassRequirement = "Mage",
-                        CooldownSeconds = 8,
+                        CooldownSeconds = 4,
                         BaseDamage = 120.0,
                         DamagePerLevel = 15.0,
                         DamageGrowthPercent = 5.0,
@@ -430,7 +430,7 @@ namespace Mystic_Journey_API.Controllers
                         DamageType = "TrueDamage",
                         TargetType = "Self",
                         ClassRequirement = "All",
-                        CooldownSeconds = 30,
+                        CooldownSeconds = 8,
                         BaseDamage = 0.0,
                         DamagePerLevel = 0.0,
                         DamageGrowthPercent = 0.0,
@@ -446,7 +446,7 @@ namespace Mystic_Journey_API.Controllers
                         DamageType = "Physical",
                         TargetType = "SingleTarget",
                         ClassRequirement = "Knight",
-                        CooldownSeconds = 5,
+                        CooldownSeconds = 2,
                         BaseDamage = 90.0,
                         DamagePerLevel = 12.0,
                         DamageGrowthPercent = 3.0,
@@ -462,7 +462,7 @@ namespace Mystic_Journey_API.Controllers
                         DamageType = "Physical",
                         TargetType = "MultiTarget",
                         ClassRequirement = "Archer",
-                        CooldownSeconds = 7,
+                        CooldownSeconds = 3,
                         BaseDamage = 75.0,
                         DamagePerLevel = 10.0,
                         DamageGrowthPercent = 2.5,
@@ -478,7 +478,7 @@ namespace Mystic_Journey_API.Controllers
                         DamageType = "Magical",
                         TargetType = "Area",
                         ClassRequirement = "Mage",
-                        CooldownSeconds = 10,
+                        CooldownSeconds = 5,
                         BaseDamage = 140.0,
                         DamagePerLevel = 18.0,
                         DamageGrowthPercent = 6.0,
@@ -699,19 +699,19 @@ namespace Mystic_Journey_API.Controllers
                 var poisonZoneSkill = UpsertSkill(
                     "Dark Poison Zone",
                     "Tạo bãi độc gây sát thương diện rộng. Hắc hóa +10.",
-                    "Active", "Magical", "Area", "All", 90, 80.0, 10.0, 3.0, 10f);
+                    "Active", "Magical", "Area", "All", 6, 80.0, 10.0, 3.0, 10f);
 
                 var explosionSkill = UpsertSkill(
                     "Dark Explosion",
                     "Tạo vụ nổ gây sát thương khủng khiếp. Hắc hóa +5.",
-                    "Active", "Magical", "Area", "All", 60, 150.0, 20.0, 5.0, 5f);
+                    "Active", "Magical", "Area", "All", 8, 150.0, 20.0, 5.0, 5f);
 
                 // Add 5 custom skills
-                var apSkill = UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 12, 100.0, 15.0, 3.0);
-                var skillAd = UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 5, 45.0, 8.0, 2.0);
-                var skillKnightAttack = UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 8, 80.0, 12.0, 2.5);
-                var skillMuiTenBang = UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 6, 60.0, 10.0, 2.0);
-                var skillThapAS = UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 15, 120.0, 20.0, 4.0);
+                var apSkill = UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 4, 100.0, 15.0, 3.0);
+                var skillAd = UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 45.0, 8.0, 2.0);
+                var skillKnightAttack = UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 2, 80.0, 12.0, 2.5);
+                var skillMuiTenBang = UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 60.0, 10.0, 2.0);
+                var skillThapAS = UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 5, 120.0, 20.0, 4.0);
 
                 await _ctx.SaveChangesAsync();
 
