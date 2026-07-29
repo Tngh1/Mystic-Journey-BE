@@ -2370,6 +2370,90 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             }
         }
 
+        [HttpPost("transactions")]
+        public async Task<IActionResult> SeedTransactions()
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var emails = new[] { "elf1@mystic.test", "elf2@mystic.test" };
+                var accounts = await _ctx.Accounts.Where(a => emails.Contains(a.Email)).ToListAsync();
+                var accountIds = accounts.Select(a => a.AccountId).ToList();
+                
+                var players = await _ctx.PlayerProfiles.Where(p => accountIds.Contains(p.AccountId)).ToListAsync();
+                
+                if (!players.Any())
+                {
+                    return BadRequest(new ApiResponse<object> { Success = false, Message = $"No player profiles found for accounts: {string.Join(", ", emails)}" });
+                }
+
+                var shopItems = await _ctx.ShopItems.Include(s => s.Item).Take(5).ToListAsync();
+                if (!shopItems.Any())
+                {
+                    var dummyItem = new Item
+                    {
+                        Name = "Legendary Sword",
+                        Description = "A very shiny sword for testing UI.",
+                        Type = "Weapon",
+                        Rarity = "Legendary",
+                        IconUrl = "https://res.cloudinary.com/du72t3082/image/upload/v1731608753/icon_g8z1c5.png", // Sample image
+                        MaxStack = 1,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _ctx.Items.Add(dummyItem);
+                    await _ctx.SaveChangesAsync();
+
+                    var dummyShopItem = new ShopItem
+                    {
+                        ItemId = dummyItem.ItemId,
+                        Currency = "Gem",
+                        Price = 500,
+                        IsActive = true
+                    };
+                    _ctx.ShopItems.Add(dummyShopItem);
+                    await _ctx.SaveChangesAsync();
+                    
+                    shopItems.Add(dummyShopItem);
+                    dummyShopItem.Item = dummyItem; 
+                }
+
+                var histories = new List<PurchaseHistory>();
+                var rnd = new Random();
+
+                foreach (var p in players)
+                {
+                    for (int i = 0; i < 15; i++)
+                    {
+                        var shopItem = shopItems[rnd.Next(shopItems.Count)];
+                        int qty = rnd.Next(1, 5);
+                        histories.Add(new PurchaseHistory
+                        {
+                            PlayerProfileId = p.PlayerProfileId,
+                            ShopItemId = shopItem.ShopItemId,
+                            Quantity = qty,
+                            TotalPrice = shopItem.Price * qty,
+                            PurchasedAt = DateTime.UtcNow.AddDays(-rnd.Next(0, 10)).AddHours(-rnd.Next(0, 24))
+                        });
+                    }
+                }
+
+                _ctx.PurchaseHistories.AddRange(histories);
+                await _ctx.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"Seeded {histories.Count} transactions for {players.Count} players."
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
         private static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
