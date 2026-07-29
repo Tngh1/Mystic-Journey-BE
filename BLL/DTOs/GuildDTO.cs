@@ -96,6 +96,7 @@ namespace BLL.DTOs
         public bool IsOnline { get; set; }
         public DateTime JoinedAt { get; set; }
         public DateTime? LeftAt { get; set; }
+        public DateTime? LastDonateAt { get; set; }
     }
 
     public class PromoteMemberRequest
@@ -166,13 +167,17 @@ namespace BLL.DTOs
     public class DonateRequest
     {
         [Required]
-        [Range(1, 100, ErrorMessage = "Amount must be between 1 and 100")]
+        public string CurrencyType { get; set; } = "Gold";
+
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public int Amount { get; set; } = 1;
     }
 
     public class GuildDonateResultDto
     {
         public int GoldSpent { get; set; }
+        public int GemSpent { get; set; }
         public int GuildExpGained { get; set; }
         public int GuildMedalsGained { get; set; }
         public int PlayerMedalsGained { get; set; }

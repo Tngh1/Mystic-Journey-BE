@@ -1750,6 +1750,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 EnsureMonster(16, "Demon",             "Normal", 800, 70, 30);
                 EnsureMonster(17, "GoblinWarrior",     "Normal", 220, 22, 10);
                 EnsureMonster(18, "GoblinSpear",       "Normal", 180, 18,  8);
+                EnsureMonster(23, "NecromancerCast",   "Normal", 520, 45, 20);
+                EnsureMonster(24, "RobberArcher",      "Normal", 500, 50, 25);
+                EnsureMonster(25, "RobberAssassin",    "Normal", 550, 55, 35);
+                EnsureMonster(26, "RedGuard",          "Normal", 600, 60, 50);
 
                 // Boss monsters
                 EnsureMonster(2,  "SwampDemon",   "Boss", 1500, 80,  30);
@@ -1758,6 +1762,8 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 EnsureMonster(15, "UnderKing",    "Boss", 2800, 130, 50);
                 EnsureMonster(19, "Ogre",         "Boss", 2000, 100, 40);
                 EnsureMonster(20, "OrcWarlord",   "Boss", 3500, 160, 70);
+                EnsureMonster(21, "IceFairy",     "Boss", 2500,  40, 30);
+                EnsureMonster(22, "GoblinWarlord","Boss", 2000,  60, 40);
 
                 await _ctx.SaveChangesAsync();
 
