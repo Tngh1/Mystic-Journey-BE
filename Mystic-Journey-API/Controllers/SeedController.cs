@@ -1,6 +1,7 @@
 using BLL.DTOs;
 using DAL.Data;
 using DAL.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mystic_Journey_API.Extensions;
@@ -2461,6 +2462,69 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        // ── POST /api/seed/admin ─────────────────────────────────────
+        // Seed tài khoản Admin mặc định cho testing
+        // ─────────────────────────────────────────────────────────────
+        [AllowAnonymous]
+        [HttpPost("admin")]
+        public async Task<IActionResult> SeedAdmin()
+        {
+            try
+            {
+                const string adminEmail = "admin@mysticjourney.com";
+                const string adminUsername = "admin";
+                const string adminPassword = "AdminPassword123!";
+
+                var adminAcc = await _ctx.Accounts
+                    .Include(a => a.PlayerProfile)
+                    .FirstOrDefaultAsync(a => a.Email == adminEmail || a.UserName == adminUsername);
+
+                if (adminAcc == null)
+                {
+                    adminAcc = new Account
+                    {
+                        Email = adminEmail,
+                        UserName = adminUsername,
+                        HashPassword = HashPassword(adminPassword),
+                        RoleId = 2, // Admin / SuperAdmin
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        PlayerProfile = new PlayerProfile
+                        {
+                            DisplayName = "System Admin",
+                            Class = "Knight",
+                            Level = 99,
+                            Gold = 100000,
+                            Gems = 10000,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    };
+                    _ctx.Accounts.Add(adminAcc);
+                }
+                else
+                {
+                    adminAcc.HashPassword = HashPassword(adminPassword);
+                    adminAcc.IsActive = true;
+                    adminAcc.RoleId = 2;
+                    adminAcc.UpdatedAt = DateTime.UtcNow;
+                    _ctx.Accounts.Update(adminAcc);
+                }
+
+                await _ctx.SaveChangesAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"Admin account successfully seeded/updated! You can now log in with Email/Username: '{adminEmail}' or '{adminUsername}' and Password: '{adminPassword}'."
+                });
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
         }
