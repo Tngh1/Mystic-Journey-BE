@@ -217,7 +217,15 @@ namespace BLL.Services
         {
             var normalizedMap = NormalizeMapName(mapName);
             var spawns = await _repository.GetActiveSpawns(normalizedMap, regionName, dungeonId);
-            var suppressedBossIds = await _repository.GetCompletedQuestBossMonsterIds(playerProfileId);
+
+            // Chặn boss theo quest đã hoàn thành CHỈ áp dụng cho open-world: đánh boss cốt
+            // truyện xong thì nó không mọc lại ngoài map. Dungeon là nội dung chơi lại được,
+            // dùng chung MonsterId với boss quest (vd quest 6 "Slay the Swamp Demon" có
+            // BossMonsterId = 2, cũng là boss của Dungeon 1) — lọc luôn ở đây làm boss dungeon
+            // mất hẳn sau khi người chơi xong quest, dungeon không bao giờ spawn boss nữa.
+            var suppressedBossIds = dungeonId.HasValue
+                ? new HashSet<int>()
+                : await _repository.GetCompletedQuestBossMonsterIds(playerProfileId);
 
             return spawns
                 .Where(s => s.Monster != null && !suppressedBossIds.Contains(s.MonsterId))

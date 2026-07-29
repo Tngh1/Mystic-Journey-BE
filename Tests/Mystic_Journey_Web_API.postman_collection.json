@@ -1,0 +1,767 @@
+{
+	"info": {
+		"_postman_id": "mystic-journey-web-api-suite",
+		"name": "Mystic Journey Web API - 22 Features Test Suite",
+		"description": "Postman API Collection covering all 22 Web Features (44 sub-functions) from Report5_Web_Test_Cases.xlsx",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "F01 - Register",
+			"item": [
+				{
+					"name": "F01.1 Register New Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser_web01@example.com\",\n  \"username\": \"webuser01\",\n  \"password\": \"Password123!\",\n  \"confirmPassword\": \"Password123!\",\n  \"otpCode\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F02 - Login",
+			"item": [
+				{
+					"name": "F02.1 Login to Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.data && jsonData.data.accessToken) {",
+									"    pm.environment.set(\"token\", jsonData.data.accessToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"emailOrUsername\": \"admin@mysticjourney.com\",\n  \"password\": \"AdminPassword123!\",\n  \"clientType\": \"Web\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F03 - Forgot Password",
+			"item": [
+				{
+					"name": "F03.1 Request Verification Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser_web01@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "forgot-password"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F04 - Change Password",
+			"item": [
+				{
+					"name": "F04.1 Change Account Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"Password123!\",\n  \"newPassword\": \"NewPassword123!\",\n  \"confirmNewPassword\": \"NewPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/change-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "change-password"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F05 - Logout",
+			"item": [
+				{
+					"name": "F05.1 Logout Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "logout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F06 - View Game Information",
+			"item": [
+				{
+					"name": "F06.1 Get Overview Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/dashboard/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "dashboard", "stats"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F07 - View Account Profile",
+			"item": [
+				{
+					"name": "F07.1 View Personal Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/adminaccounts/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "adminaccounts", "profile"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F08 - Player Management",
+			"item": [
+				{
+					"name": "F08.1 View Player List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/playerprofiles?page=1&pageSize=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "playerprofiles"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "pageSize", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "F08.2 View Player Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/playerprofiles/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "playerprofiles", "1"]
+						}
+					}
+				},
+				{
+					"name": "F08.3 Ban Player Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Cheating / Rule violation\",\n  \"banDurationDays\": 7\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/playerprofiles/1/ban",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "playerprofiles", "1", "ban"]
+						}
+					}
+				},
+				{
+					"name": "F08.4 Unban Player Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/playerprofiles/1/unban",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "playerprofiles", "1", "unban"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F09 - Category Management",
+			"item": [
+				{
+					"name": "F09.1 View Category List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/contents/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "contents", "categories"]
+						}
+					}
+				},
+				{
+					"name": "F09.2 Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Game Updates & Events\",\n  \"description\": \"Category for game news and announcements.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/contents/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "contents", "categories"]
+						}
+					}
+				},
+				{
+					"name": "F09.3 Update Category",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Game News\",\n  \"description\": \"Updated description.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/contents/categories/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "contents", "categories", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "F10 - Content Management",
+			"item": [
+				{
+					"name": "F10.1 View Content List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/contents?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "contents"] }
+					}
+				},
+				{
+					"name": "F10.2 Create Content",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Welcome Version 1.0\",\n  \"content\": \"Details about version 1.0 update.\",\n  \"categoryId\": 1,\n  \"isPublished\": true\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/contents", "host": ["{{baseUrl}}"], "path": ["api", "contents"] }
+					}
+				},
+				{
+					"name": "F10.3 Update Content",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Title\",\n  \"content\": \"Updated details.\",\n  \"categoryId\": 1,\n  \"isPublished\": true\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/contents/1", "host": ["{{baseUrl}}"], "path": ["api", "contents", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F11 - Item Management",
+			"item": [
+				{
+					"name": "F11.1 View Item List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/items?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+					}
+				},
+				{
+					"name": "F11.2 Update Item Stats",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Excalibur Sword\",\n  \"attack\": 150,\n  \"rarity\": \"SSR\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/items/1", "host": ["{{baseUrl}}"], "path": ["api", "items", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F12 - Monster Management",
+			"item": [
+				{
+					"name": "F12.1 View Monster List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/monsters?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "monsters"] }
+					}
+				},
+				{
+					"name": "F12.2 Update Monster",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Inferno Dragon Boss\",\n  \"hp\": 50000,\n  \"attack\": 1200\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/monsters/1", "host": ["{{baseUrl}}"], "path": ["api", "monsters", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F13 - Gacha Management",
+			"item": [
+				{
+					"name": "F13.1 View Banners",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/gachabanners", "host": ["{{baseUrl}}"], "path": ["api", "gachabanners"] }
+					}
+				},
+				{
+					"name": "F13.2 Update Gacha Pool",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bannerName\": \"Summer Banner\",\n  \"ssrRate\": 0.03\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/gachabanners/1", "host": ["{{baseUrl}}"], "path": ["api", "gachabanners", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F14 - Shop Item Management",
+			"item": [
+				{
+					"name": "F14.1 View Shop Items",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/shopitems?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "shopitems"] }
+					}
+				},
+				{
+					"name": "F14.2 Create Shop Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"itemId\": 1,\n  \"price\": 100,\n  \"currencyType\": \"Gem\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/shopitems", "host": ["{{baseUrl}}"], "path": ["api", "shopitems"] }
+					}
+				},
+				{
+					"name": "F14.3 Update Shop Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 90,\n  \"isAvailable\": true\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/shopitems/1", "host": ["{{baseUrl}}"], "path": ["api", "shopitems", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F15 - Transaction History",
+			"item": [
+				{
+					"name": "F15.1 View Transactions",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/purchasehistories?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "purchasehistories"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F16 - Dungeon Management",
+			"item": [
+				{
+					"name": "F16.1 View Dungeons",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/dungeons", "host": ["{{baseUrl}}"], "path": ["api", "dungeons"] }
+					}
+				},
+				{
+					"name": "F16.2 Update Dungeon",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Abyssal Cavern\",\n  \"staminaCost\": 15\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/dungeons/1", "host": ["{{baseUrl}}"], "path": ["api", "dungeons", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F17 - Quest Management",
+			"item": [
+				{
+					"name": "F17.1 View Quest List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/quests?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "quests"] }
+					}
+				},
+				{
+					"name": "F17.2 View Quest Detail",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/quests/1", "host": ["{{baseUrl}}"], "path": ["api", "quests", "1"] }
+					}
+				},
+				{
+					"name": "F17.3 Create Quest",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Slay 10 Goblins\",\n  \"targetCount\": 10,\n  \"rewardGold\": 500\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/quests", "host": ["{{baseUrl}}"], "path": ["api", "quests"] }
+					}
+				},
+				{
+					"name": "F17.4 Update Quest",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Slay 15 Goblins\",\n  \"targetCount\": 15\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/quests/1", "host": ["{{baseUrl}}"], "path": ["api", "quests", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F18 - Achievement Management",
+			"item": [
+				{
+					"name": "F18.1 View Achievements",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/achievements", "host": ["{{baseUrl}}"], "path": ["api", "achievements"] }
+					}
+				},
+				{
+					"name": "F18.2 Update Achievement",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Master Slayer I\",\n  \"targetProgress\": 100\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/achievements/1", "host": ["{{baseUrl}}"], "path": ["api", "achievements", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F19 - Mail Management",
+			"item": [
+				{
+					"name": "F19.1 View Mailbox List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/mailboxes?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "mailboxes"] }
+					}
+				},
+				{
+					"name": "F19.2 Send Mail",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"recipientType\": \"All\",\n  \"title\": \"Maintenance Compensation\",\n  \"content\": \"Enjoy 500 Gems!\",\n  \"rewardGems\": 500\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/mailboxes/send", "host": ["{{baseUrl}}"], "path": ["api", "mailboxes", "send"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F20 - Daily Login Management",
+			"item": [
+				{
+					"name": "F20.1 View Daily Rewards",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/dailyloginrewards", "host": ["{{baseUrl}}"], "path": ["api", "dailyloginrewards"] }
+					}
+				},
+				{
+					"name": "F20.2 Create Campaign",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"campaignName\": \"7-Day Festival Campaign\",\n  \"totalDays\": 7\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/dailyloginrewards/campaigns", "host": ["{{baseUrl}}"], "path": ["api", "dailyloginrewards", "campaigns"] }
+					}
+				},
+				{
+					"name": "F20.3 Update Campaign",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"campaignName\": \"Updated Festival Campaign\",\n  \"totalDays\": 7\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/dailyloginrewards/campaigns/1", "host": ["{{baseUrl}}"], "path": ["api", "dailyloginrewards", "campaigns", "1"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F21 - Statistics Dashboard",
+			"item": [
+				{
+					"name": "F21.1 View Statistics",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/dashboard/statistics?range=30days", "host": ["{{baseUrl}}"], "path": ["api", "dashboard", "statistics"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "F22 - Admin Management",
+			"item": [
+				{
+					"name": "F22.1 View Admin List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": { "raw": "{{baseUrl}}/api/adminaccounts", "host": ["{{baseUrl}}"], "path": ["api", "adminaccounts"] }
+					}
+				},
+				{
+					"name": "F22.2 Create Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newadmin@mysticjourney.com\",\n  \"username\": \"manager_admin01\",\n  \"password\": \"AdminPassword123!\",\n  \"role\": \"Manager\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/adminaccounts", "host": ["{{baseUrl}}"], "path": ["api", "adminaccounts"] }
+					}
+				},
+				{
+					"name": "F22.3 Update Admin",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"SuperAdmin\",\n  \"isActive\": true\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/api/adminaccounts/1", "host": ["{{baseUrl}}"], "path": ["api", "adminaccounts", "1"] }
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5176"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}
