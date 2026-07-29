@@ -265,7 +265,7 @@ namespace Mystic_Journey_API.Controllers
             var profileId = GetPlayerProfileId();
             try
             {
-                var result = await _guildService.DonateAsync(profileId, id, request.Amount);
+                var result = await _guildService.DonateAsync(profileId, id, request.CurrencyType, request.Amount);
                 return Ok(result);
             }
             catch (Exception ex) { return BadRequest(ex.Message); }
