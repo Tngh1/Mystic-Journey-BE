@@ -3,6 +3,7 @@ using DAL.Data;
 using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Mystic_Journey_API.Extensions;
 using System.Security.Cryptography;
@@ -41,14 +42,39 @@ namespace Mystic_Journey_API.Controllers
     // =============================================================================
     [Route("api/[controller]")]
     [ApiController]
-    public class SeedController : ControllerBase
+    // Toàn bộ seeder ghi thẳng vào DB (chèn item, monster, dungeon, guild,
+    // transaction... và DELETE /api/seed/inventory xoá sạch dữ liệu mẫu), và mật
+    // khẩu của các account test nằm hardcode trong source. Trước đây không có
+    // attribute nào nên bất kỳ ai biết URL đều gọi được.
+    //
+    // Khoá theo MÔI TRƯỜNG, không theo role: seed là việc chạy tay từ Swagger/CLI
+    // nên đòi cookie admin chỉ làm nó trả 401 và không dùng được; ngược lại trên
+    // production thì cả controller đơn giản là không tồn tại (404).
+    [AllowAnonymous]
+    public class SeedController : ControllerBase, IActionFilter
     {
         private readonly MysticJourneyDbContext _ctx;
+        private readonly IWebHostEnvironment _env;
 
-        public SeedController(MysticJourneyDbContext ctx)
+        public SeedController(MysticJourneyDbContext ctx, IWebHostEnvironment env)
         {
             _ctx = ctx;
+            _env = env;
         }
+
+        // Chặn mọi action của controller này khi không phải Development.
+        // [NonAction] là bắt buộc: MVC coi MỌI method public trên controller là
+        // một action, nên nếu thiếu thì Swagger đổ "Ambiguous HTTP method for
+        // action - SeedController.OnActionExecuting".
+        [NonAction]
+        public void OnActionExecuting(ActionExecutingContext context)
+        {
+            if (!_env.IsDevelopment())
+                context.Result = NotFound();
+        }
+
+        [NonAction]
+        public void OnActionExecuted(ActionExecutedContext context) { }
 
 
         // ─────────────────────────────────────────────────────────────────────────
@@ -1038,7 +1064,7 @@ namespace Mystic_Journey_API.Controllers
                 }
                 await _ctx.SaveChangesAsync();
 
-                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, completed Quest 23
+                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, completed Quest 27
                 var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
                 if (p2Profile != null)
                 {
@@ -1060,11 +1086,11 @@ namespace Mystic_Journey_API.Controllers
                 }
                 await _ctx.SaveChangesAsync();
 
-                // Clear existing PlayerQuests for elf2 and seed Q1..Q23 as Claimed
+                // Clear existing PlayerQuests for elf2 and seed Q1..Q27 as Claimed
                 _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p2));
                 await _ctx.SaveChangesAsync();
 
-                for (int qId = 1; qId <= 23; qId++)
+                for (int qId = 1; qId <= 27; qId++)
                 {
                     _ctx.PlayerQuests.Add(new PlayerQuest
                     {
@@ -2250,15 +2276,15 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 _ctx.PlayerProfiles.Add(elf3Profile);
                 await _ctx.SaveChangesAsync();
 
-                // Seed completed Quests Q1..Q15 for elf3; Q15 is Slay the Dragon, and Q16 is Claimed
-                for (int qId = 1; qId <= 15; qId++)
+                // Seed completed Quests Q1..Q19 for elf3 (Q16-Q19 are the Chapter 2 trials); Q20 Slay the Dragon is Claimed below
+                for (int qId = 1; qId <= 19; qId++)
                 {
                     _ctx.PlayerQuests.Add(new PlayerQuest
                     {
                         PlayerProfileId = elf3Profile.PlayerProfileId,
                         QuestId = qId,
                         Status = "Claimed",
-                        Progress = qId == 15 ? 10 : 1,
+                        Progress = qId >= 15 ? 10 : 1,
                         AcceptedAt = DateTime.UtcNow,
                         CompletedAt = DateTime.UtcNow,
                         ClaimedAt = DateTime.UtcNow
@@ -2267,7 +2293,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 _ctx.PlayerQuests.Add(new PlayerQuest
                 {
                     PlayerProfileId = elf3Profile.PlayerProfileId,
-                    QuestId = 16,
+                    QuestId = 20,
                     Status = "Claimed",
                     Progress = 1,
                     TargetValue = 1,
@@ -2467,9 +2493,10 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
         }
 
         // ── POST /api/seed/admin ─────────────────────────────────────
-        // Seed tài khoản Admin mặc định cho testing
+        // Seed tài khoản Admin mặc định cho testing. Mật khẩu hardcode trong
+        // source, nên endpoint này chỉ tồn tại ở Development (xem
+        // OnActionExecuting ở đầu class).
         // ─────────────────────────────────────────────────────────────
-        [AllowAnonymous]
         [HttpPost("admin")]
         public async Task<IActionResult> SeedAdmin()
         {

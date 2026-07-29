@@ -1885,9 +1885,9 @@ namespace DAL.Migrations
                 columns: new[] { "NPCId", "Description", "IconUrl", "InteractionRadius", "IsActive", "MapName", "Name", "PositionX", "PositionY", "Type" },
                 values: new object[,]
                 {
-                    { 1, "The wise guide of the Elf Forest.", null, 2.5f, true, "ElfForest", "Elder Rowan", 12.4932, 18.61223, "QuestGiver" },
-                    { 2, "A spirit of the forest.", null, 2.5f, true, "ElfForest", "Lyra", 41.945869999999999, -27.180520000000001, "QuestGiver" },
-                    { 3, "A mysterious figure in a cloak.", null, 2.5f, true, "ElfForest", "Mysterious Figure", 10.111940000000001, -45.863010000000003, "QuestGiver" },
+                    { 1, "The wise guide of the Elf Forest.", null, 2.5f, true, "ElfForest", "Elder Rowan", -0.79226160000000001, 18.581489999999999, "QuestGiver" },
+                    { 2, "A spirit of the forest.", null, 2.5f, true, "ElfForest", "Lyra", 30.019169999999999, -6.1006520000000002, "QuestGiver" },
+                    { 3, "A mysterious figure in a cloak.", null, 2.5f, true, "ElfForest", "Mysterious Figure", 14.14317, -47.535690000000002, "QuestGiver" },
                     { 4, "The wise guide, now in the pumpkin town.", null, 2.5f, true, "AutumnPumpkin", "Elder Rowan (Pumpkin)", 1.8735120000000001, -92.815799999999996, "QuestGiver" },
                     { 5, "The city gate guard.", null, 2.5f, true, "AutumnPumpkin", "Tristan", 11.62283, -113.61579999999999, "QuestGiver" },
                     { 6, "The silver knight.", null, 2.5f, true, "AutumnPumpkin", "Arthur", 77.544120000000007, -77.443010000000001, "QuestGiver" },
@@ -1909,7 +1909,7 @@ namespace DAL.Migrations
                     { 2, null, "NotStarted", "The elders brew their healing draught from white flowers that only bloom in the shade of the old woods. Search the clearings and gather 3 White Flowers for Elder Rowan.", true, "ElfForest", "Elf Forest", "White Flower", "Collect", "Elder Rowan", null, 1, 10, 5m, 8m, null, null, 3, "[Chapter 1] Gather White Flowers", "Main" },
                     { 4, null, "NotStarted", "A skill is useless until it sits in your hand. Open the Skill panel and equip the technique Elder Rowan just taught you.", true, "ElfForest", "Elf Forest", "Skill Panel", "EquipSkill", "Elder Rowan", null, 1, 10, 5m, 10m, null, null, 1, "[Chapter 1] Equip Your First Skill", "Main" },
                     { 5, null, "NotStarted", "Little slimes have crept out of the marsh and are eating the flower beds. Put your new skill to work and defeat 3 of them.", true, "ElfForest", "Elf Forest", "SlimeLittle", "Defeat", "Elder Rowan", null, 1, 15, 5m, 15m, null, null, 3, "[Chapter 1] Cull the Little Slimes", "Main" },
-                    { 7, null, "NotStarted", "Take the Seal Book to the guardian Lyra at the Origin Tree. She alone can explain the curse rotting its roots and why four seals are needed to lift it.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 2, 10, 5m, 10m, null, null, 1, "[Chapter 1] Lyra and the Origin Tree", "Main" },
+                    { 7, null, "NotStarted", "Rowan cannot name the relic you took from the swamp. Carry it to Lyra at the Origin Tree — she is older than every elf alive, and she will know what you are holding.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 2, 10, 5m, 10m, null, null, 1, "[Chapter 1] Lyra and the Origin Tree", "Main" },
                     { 8, null, "NotStarted", "A cloaked figure has been watching you since you woke, and now walks into a portal at the forest edge. Step through it before the way closes.", true, "ElfForest", "Elf Forest", "Portal", "Explore", "Mysterious Figure", null, 2, 5, 5m, 5m, null, null, 1, "[Chapter 1] Follow the Cloaked Figure", "Main" },
                     { 9, null, "NotStarted", "The portal spits you onto a cold beach under an autumn sky. Climb to the castle and find Elder Rowan — or someone wearing his face — and ask what land this is.", true, "AutumnPumpkin", "Autumn Pumpkin", "Elder Rowan", "Talk", "Elder Rowan", null, 3, 100, 5m, 5m, null, null, 1, "[Chapter 2] Ask Where You Are", "Main" },
                     { 10, null, "NotStarted", "You have no coin in this land and no one gives bread away. Farmer Fa will trade a meal for labour: pick 8 Enchanted Pumpkins from his field.", true, "AutumnPumpkin", "Pumpkin Town", "Enchanted Pumpkin", "Collect", "Fa", null, 3, 300, 5m, 10m, null, null, 8, "[Chapter 2] Harvest for Your Supper", "Main" },
@@ -1958,7 +1958,11 @@ namespace DAL.Migrations
                     { 12, 0.0, "Mage", 2, 0f, 0.0, 0.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
                     { 13, 200.0, "All", 6, 8f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
                     { 14, 0.0, "Knight", 2, 0f, 0.0, 0.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
-                    { 15, 38.0, "Knight", 3, 0f, 4.0, 11.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 }
+                    { 15, 38.0, "Knight", 3, 0f, 4.0, 11.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 },
+                    { 16, 50.0, "Archer", 5, 0f, 4.0, 12.0, "Physical", "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", true, "PumpkinMagic", "Area", "Active", 1 },
+                    { 17, 45.0, "Knight", 5, 0f, 4.0, 10.0, "Physical", "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", true, "PumpkinThrow", "Area", "Active", 1 },
+                    { 18, 40.0, "Knight", 2, 0f, 3.0, 9.0, "Physical", "A short-range pumpkin slash in the direction the knight is facing.", true, "PumpkinSlash", "SingleTarget", "Active", 1 },
+                    { 19, 30.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", true, "BoomBoomPumpkin", "Area", "Active", 1 }
                 });
 
             migrationBuilder.InsertData(
@@ -2015,20 +2019,20 @@ namespace DAL.Migrations
                 values: new object[,]
                 {
                     { 1, "Ah... a new face, and not one born of these woods. Welcome to the Elf Forest, traveler.", 1, true, 1, null, 1, "None" },
-                    { 2, "For a thousand years this forest kept itself in peace. Now something gathers in the dark beneath the roots.", 2, true, 1, null, 1, "None" },
-                    { 3, "I am Elder Rowan, and I need your hands and your courage. Speak with me when you are ready to begin.", 4, true, 1, null, 1, "Quest" },
-                    { 4, "Before we stand against the darkness, we must be able to mend what it breaks.", 1, true, 2, null, 1, "None" },
-                    { 5, "By the old willow clearing grows a white flower that only opens where the air is still clean.", 2, true, 2, null, 1, "None" },
-                    { 6, "Go to the clearing and gather 3 White Flowers for me. Take care, even slimes wander there now.", 4, true, 2, null, 1, "Quest" },
-                    { 10, "A remedy keeps you alive. It does not keep you standing. For that you need a skill.", 1, true, 4, null, 1, "None" },
-                    { 11, "Every warrior in this world channels power through learned technique. Bare fists will not answer a demon.", 2, true, 4, null, 1, "None" },
-                    { 12, "Open your Skill Panel and equip your first combat skill. Do not step past the treeline without it.", 4, true, 4, null, 1, "Quest" },
+                    { 2, "For a thousand years this forest kept itself in peace. Now something gathers in the dark beneath the roots.", 3, true, 1, null, 1, "None" },
+                    { 3, "So the Origin Tree chose you, and I must trust its choosing. I am Elder Rowan. Speak with me when you are ready to begin.", 6, true, 1, null, 1, "Quest" },
+                    { 4, "Before anything else, I must beg medicine of you. Eleven of my village lie in the healing hall, and my stores are almost gone.", 1, true, 2, null, 1, "None" },
+                    { 5, "By the old willow clearing grows a white flower that only opens where the air is still clean. Crushed with spring water, it is the one salve that answers this sickness.", 3, true, 2, null, 1, "None" },
+                    { 6, "Go to the clearing and gather 3 White Flowers for me. Take care, even slimes wander there now.", 6, true, 2, null, 1, "Quest" },
+                    { 10, "The technique is in you now, but a technique you have not called upon is no better than one you never learned.", 1, true, 4, null, 1, "None" },
+                    { 11, "Every warrior in this world channels power through learned technique. Bare fists will not answer what waits out there.", 2, true, 4, null, 1, "None" },
+                    { 12, "Open your Skill Panel and equip the First Elven Technique. Do not step past the treeline without it.", 4, true, 4, null, 1, "Quest" },
                     { 13, "Good. I can feel the power settled in you now. It must be tested before it is trusted.", 1, true, 5, null, 1, "None" },
                     { 14, "The outskirts crawl with little slimes. They were harmless once, now they hunt in packs.", 2, true, 5, null, 1, "None" },
                     { 15, "Go out and defeat 3 little slimes, then return and tell me what you felt out there.", 4, true, 5, null, 1, "Quest" },
                     { 19, "Come closer, brave one. I am Lyra, not elf and not ghost. I am the spirit of the Origin Tree itself.", 1, true, 7, null, 2, "None" },
                     { 20, "Look at my bark. The curse has reached my heartwood, and I am dying slowly, from the inside outward.", 2, true, 7, null, 2, "None" },
-                    { 21, "Only the 4 Seal Books can cleanse me. You hold one already, find the remaining three, and hurry!", 4, true, 7, null, 2, "Quest" },
+                    { 21, "Only the 4 Seal Books can cleanse me. You hold the first already, find the remaining three, and hurry!", 7, true, 7, null, 2, "Quest" },
                     { 22, "Heh... so you are the little errand-runner gathering up the Seal Books.", 1, true, 8, null, 3, "None" },
                     { 23, "You carry them and do not even know what they are, or whose hand cursed that tree.", 2, true, 8, null, 3, "None" },
                     { 24, "The truth waits through this portal. Follow me, or stay and keep watering a dying tree.", 4, true, 8, null, 3, "Quest" },
@@ -2081,11 +2085,11 @@ namespace DAL.Migrations
                     { 91, "The four seals are whole. I have opened the rite... but I cannot finish it.", 1, true, 30, null, 2, "None" },
                     { 92, "The seals answer only to the one who won them. It must be your hand, not mine.", 2, true, 30, null, 2, "None" },
                     { 93, "Step to the Origin Tree and set the four Seal Books upon it. Break the curse.", 4, true, 30, null, 2, "Quest" },
-                    { 94, "The Origin Tree at our heart is sickening. Its leaves fall in high summer, and the animals no longer sleep here.", 3, true, 1, null, 1, "None" },
-                    { 95, "Where those flowers still bloom, the curse has not yet reached. They are medicine and warning both.", 3, true, 2, null, 1, "None" },
-                    { 97, "Your body already holds the spark. What you lack is a shape to pour it into.", 3, true, 4, null, 1, "None" },
+                    { 94, "The Origin Tree at our heart is sickening. Its leaves fall in high summer, and the animals no longer sleep here.", 4, true, 1, null, 1, "None" },
+                    { 95, "Where those flowers still bloom, the curse has not yet reached. They are medicine and warning both.", 4, true, 2, null, 1, "None" },
+                    { 97, "Set it where your hand can reach it without thinking. In a fight you will not have time to remember.", 3, true, 4, null, 1, "None" },
                     { 98, "They are the curse's smallest children. Where they spread, the soil dies behind them.", 3, true, 5, null, 1, "None" },
-                    { 100, "Long ago the elders bound an ancient power into four books. That binding has broken, and the leak is poisoning me.", 3, true, 7, null, 2, "None" },
+                    { 100, "Long ago the elders bound an ancient power into four such books. That binding has broken, and the leak is what poisons me.", 5, true, 7, null, 2, "None" },
                     { 101, "The elves told you a story with the ugly parts cut out. I can show you what they buried.", 3, true, 8, null, 3, "None" },
                     { 102, "This is farming country. Folk here trade a day of work for supper, and honest work is easy to find.", 3, true, 9, null, 4, "None" },
                     { 103, "Mind the ones that glow faintly. An enchanted pumpkin keeps a lantern lit all winter, that is why the city pays.", 3, true, 10, null, 7, "None" },
@@ -2103,7 +2107,14 @@ namespace DAL.Migrations
                     { 123, "Four books, four elders, four bindings broken. Set them together and the curse has nowhere left to hide.", 3, true, 29, null, 2, "None" },
                     { 124, "I am the tree's spirit. If the curse takes the roots, it takes me with them — so do not hesitate at the last step.", 3, true, 30, null, 2, "None" },
                     { 125, "Look at the roots. Green, after all this time. The forest will remember the one who stood here today.", 2, true, 31, null, 2, "None" },
-                    { 126, "And yet the cloaked one was never found, and no one has said who broke the four bindings in the first place.", 3, true, 31, null, 2, "None" }
+                    { 126, "And yet the cloaked one was never found, and no one has said who broke the four bindings in the first place.", 3, true, 31, null, 2, "None" },
+                    { 127, "You did not wander in here. The forest awakened you at its edge, and the forest does not wake strangers.", 2, true, 1, null, 1, "None" },
+                    { 128, "A hundred of my people have walked past those roots and heard nothing. You heard it call before you opened your eyes. No one else could.", 5, true, 1, null, 1, "None" },
+                    { 129, "The rot came up through the well water. The children fell first, then whoever carried them. Salve buys them days, no more than that.", 2, true, 2, null, 1, "None" },
+                    { 130, "My knees will not carry me that far anymore. Bring me the flowers and my people live through the week. That is the whole of it.", 5, true, 2, null, 1, "None" },
+                    { 133, "Now show me what you took from the swamp... ah. Rowan sent you here not knowing, did he. Hold it up, child.", 3, true, 7, null, 2, "None" },
+                    { 134, "This is a Seal Book. The first of them to see daylight in an age, and no living elf has ever held one.", 4, true, 7, null, 2, "None" },
+                    { 135, "Four books, scattered and guarded. They are not treasure, they are the lock on my heartwood. Nothing else will save me.", 6, true, 7, null, 2, "None" }
                 });
 
             migrationBuilder.InsertData(
@@ -2112,7 +2123,7 @@ namespace DAL.Migrations
                 values: new object[,]
                 {
                     { 3, null, "NotStarted", "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 5, 5m, 5m, null, 10, 1, "[Chapter 1] Deliver the White Flowers", "Main" },
-                    { 6, 2, "NotStarted", "The slimes were only fleeing something worse. Deep in the woods a Swamp Demon guards the first of four Seal Books — kill it and take the seal.", true, "ElfForest", "Deep Woods", "SwampDemon", "Defeat", "Elder Rowan", null, 2, 25, 5m, 50m, null, null, 1, "[Chapter 1] Slay the Swamp Demon", "Main" },
+                    { 6, 2, "NotStarted", "The slimes were only fleeing something worse. A Swamp Demon broods in the deep woods over some old relic, and the water rots around it. Kill it and take whatever it is guarding.", true, "ElfForest", "Deep Woods", "SwampDemon", "Defeat", "Elder Rowan", null, 2, 25, 5m, 50m, null, null, 1, "[Chapter 1] Slay the Swamp Demon", "Main" },
                     { 14, null, "NotStarted", "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.", true, "AutumnPumpkin", "Dungeon", "Dungeon_2", "Explore", "Arthur", null, 4, 250, 5m, 15m, 18, 9, 1, "[Chapter 2] Train in the Old Dungeon", "Main" },
                     { 16, 7, "NotStarted", "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.", true, "AutumnPumpkin", "Ruined City", "DragonBossIdle", "Defeat", "Arthur", null, 5, 350, 5m, 100m, null, null, 1, "[Chapter 2] Slay the Dragon", "Main" },
                     { 18, null, "NotStarted", "Queen Roselyn Aurora receives you in a hall of ice. Her fields are overrun before the winter stores are in — defeat 8 ice slimes for her.", true, "FrozenMountain", "Snow Fields", "slime_ice", "Defeat", "Roselyn Aurora Queen", null, 6, 200, 5m, 30m, 31, null, 8, "[Chapter 3] Slimes of the Snow Fields", "Main" },
@@ -2128,11 +2139,11 @@ namespace DAL.Migrations
                 values: new object[,]
                 {
                     { 7, "Back already? Let me see your hands... ah, you found them.", 1, true, 3, null, 1, "None" },
-                    { 8, "Not a petal bruised. Crushed with spring water, these will close a wound in minutes.", 2, true, 3, null, 1, "None" },
-                    { 9, "You have earned this. Take it, with an old elf's thanks.", 4, true, 3, null, 1, "Reward" },
+                    { 8, "Not a petal bruised. Three flowers, three doses. The healing hall will have them before nightfall, and the children will sleep.", 2, true, 3, null, 1, "None" },
+                    { 9, "Hold still. Breathe with the roots, as we do... there. It is yours now, with an old elf's thanks.", 5, true, 3, null, 1, "Reward" },
                     { 16, "You handled them cleanly. But the slimes are only spillage from something far worse.", 1, true, 6, null, 1, "None" },
                     { 17, "Deep in the swamp lies a Demon. The water rots around it, and the corruption creeps closer each night.", 2, true, 6, null, 1, "None" },
-                    { 18, "Destroy the Swamp Demon and bring back the Swamp Seal Book. Everything rests on this.", 4, true, 6, null, 1, "Quest" },
+                    { 18, "Destroy the Swamp Demon and take whatever it is guarding. Stopping the rot at its source is what matters.", 5, true, 6, null, 1, "Quest" },
                     { 40, "Lower your guard, I am no enemy. I am Arthur, once called the silver knight of this city.", 1, true, 14, null, 6, "None" },
                     { 41, "I met the thing that emptied these streets. It broke something inside me and sealed my power away.", 2, true, 14, null, 6, "None" },
                     { 42, "Clear my old training dungeon. Survive it, and I will give you everything I have left. Go!", 4, true, 14, null, 6, "Quest" },
@@ -2153,8 +2164,8 @@ namespace DAL.Migrations
                     { 79, "The leaves are enough. The rite is ready. And yet I cannot light it — something below the castle is smothering it.", 1, true, 27, null, 13, "None" },
                     { 80, "The UnderKing has woken. He held the last Seal Book in his hands long before you were born.", 2, true, 27, null, 13, "None" },
                     { 81, "End his reign. Defeat the UnderKing and take the fourth book from him.", 4, true, 27, null, 13, "Quest" },
-                    { 96, "Three flowers, three doses. Keep one for yourself, out there you may be your only healer.", 3, true, 3, null, 1, "None" },
-                    { 99, "It guards a book bound in black, the Swamp Seal Book. One of four, and the tree cannot be saved without them.", 3, true, 6, null, 1, "None" },
+                    { 96, "We do not teach our craft outside the bloodline. For you I will break that rule. Let me teach you the First Elven Technique.", 4, true, 3, null, 1, "None" },
+                    { 99, "Our scouts say the beast broods over some old relic down there. A seal of some kind, they think. I am no scholar, and none of them got close enough to be sure.", 3, true, 6, null, 1, "None" },
                     { 107, "I cannot lift my blade again. But a blade is only steel, what matters is the hand that learns to swing it.", 3, true, 14, null, 6, "None" },
                     { 109, "A dragon. It is the thing that broke this city, and the thing that broke me. I have carried that shame for years.", 3, true, 16, null, 6, "None" },
                     { 111, "The slimes come closer each night. They freeze whatever they touch, and my people cannot reach the grain stores.", 3, true, 18, null, 8, "None" },
@@ -2162,7 +2173,9 @@ namespace DAL.Migrations
                     { 117, "I cannot leave the well. I have tried. Something of me is still down in that ground, and it holds me here.", 2, true, 24, null, 12, "None" },
                     { 118, "The animals knew before you did. That is why they ran. They will not drink from a well with a girl in it.", 3, true, 24, null, 12, "None" },
                     { 119, "(She writes of a book she opened as a child, of a seal she did not understand, and of the day the valley began to fill with bone.)", 2, true, 25, null, 12, "None" },
-                    { 121, "Three seals you have already. Without his, the Origin Tree cannot be cleansed and the forest ends with the tree.", 3, true, 27, null, 13, "None" }
+                    { 121, "Three seals you have already. Without his, the Origin Tree cannot be cleansed and the forest ends with the tree.", 3, true, 27, null, 13, "None" },
+                    { 131, "I sent a stranger into cursed woods for people you had never met, and you went without asking payment. You have proven yourself.", 3, true, 3, null, 1, "None" },
+                    { 132, "What it is, and whether it matters, I cannot tell you. Lyra at the Origin Tree is older than every elf alive. Bring it to her and she will know.", 4, true, 6, null, 1, "None" }
                 });
 
             migrationBuilder.CreateIndex(

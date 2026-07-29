@@ -27,8 +27,9 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
 
         // ── GET /api/monsters/{id} ─────────────────────────────────────────
-        // Lấy thông tin monster theo ID.
-        [AllowAnonymous]
+        // Lấy thông tin monster theo ID. Yêu cầu đăng nhập: bản công khai cho
+        // web wiki là /api/wiki/monsters/{id}, endpoint này thuộc luồng game.
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -61,8 +62,10 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ── GET /api/monsters ───────────────────────────────────────────────
-        // Lấy danh sách tất cả monsters có phân trang và lọc.
+        // Lấy danh sách tất cả monsters có phân trang và lọc (Dashboard).
         // Query: page, pageSize, search, type, isActive.
+        // Codex công khai: xem WikiController (/api/wiki/monsters).
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
@@ -170,7 +173,8 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ── GET /api/monsters/drops ─────────────────────────────────────────
-        // Lấy danh sách monster drops có phân trang.
+        // Lấy danh sách monster drops có phân trang (Dashboard).
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("drops")]
         public async Task<IActionResult> GetAllDrops([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {

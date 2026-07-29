@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260729061246_InitialCreate")]
+    [Migration("20260729125957_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -3192,8 +3192,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "ElfForest",
                             Name = "Elder Rowan",
-                            PositionX = 12.4932,
-                            PositionY = 18.61223,
+                            PositionX = -0.79226160000000001,
+                            PositionY = 18.581489999999999,
                             Type = "QuestGiver"
                         },
                         new
@@ -3204,8 +3204,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "ElfForest",
                             Name = "Lyra",
-                            PositionX = 41.945869999999999,
-                            PositionY = -27.180520000000001,
+                            PositionX = 30.019169999999999,
+                            PositionY = -6.1006520000000002,
                             Type = "QuestGiver"
                         },
                         new
@@ -3216,8 +3216,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "ElfForest",
                             Name = "Mysterious Figure",
-                            PositionX = 10.111940000000001,
-                            PositionY = -45.863010000000003,
+                            PositionX = 14.14317,
+                            PositionY = -47.535690000000002,
                             Type = "QuestGiver"
                         },
                         new
@@ -3396,9 +3396,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
+                            NPCDialogueId = 127,
+                            Content = "You did not wander in here. The forest awakened you at its edge, and the forest does not wake strangers.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 1,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
                             NPCDialogueId = 2,
                             Content = "For a thousand years this forest kept itself in peace. Now something gathers in the dark beneath the roots.",
-                            DisplayOrder = 2,
+                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 1,
                             NPCId = 1,
@@ -3408,7 +3418,17 @@ namespace DAL.Migrations
                         {
                             NPCDialogueId = 94,
                             Content = "The Origin Tree at our heart is sickening. Its leaves fall in high summer, and the animals no longer sleep here.",
-                            DisplayOrder = 3,
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 1,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 128,
+                            Content = "A hundred of my people have walked past those roots and heard nothing. You heard it call before you opened your eyes. No one else could.",
+                            DisplayOrder = 5,
                             IsActive = true,
                             LinkedQuestId = 1,
                             NPCId = 1,
@@ -3417,8 +3437,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 3,
-                            Content = "I am Elder Rowan, and I need your hands and your courage. Speak with me when you are ready to begin.",
-                            DisplayOrder = 4,
+                            Content = "So the Origin Tree chose you, and I must trust its choosing. I am Elder Rowan. Speak with me when you are ready to begin.",
+                            DisplayOrder = 6,
                             IsActive = true,
                             LinkedQuestId = 1,
                             NPCId = 1,
@@ -3427,7 +3447,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 4,
-                            Content = "Before we stand against the darkness, we must be able to mend what it breaks.",
+                            Content = "Before anything else, I must beg medicine of you. Eleven of my village lie in the healing hall, and my stores are almost gone.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 2,
@@ -3436,9 +3456,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 5,
-                            Content = "By the old willow clearing grows a white flower that only opens where the air is still clean.",
+                            NPCDialogueId = 129,
+                            Content = "The rot came up through the well water. The children fell first, then whoever carried them. Salve buys them days, no more than that.",
                             DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 2,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 5,
+                            Content = "By the old willow clearing grows a white flower that only opens where the air is still clean. Crushed with spring water, it is the one salve that answers this sickness.",
+                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 2,
                             NPCId = 1,
@@ -3448,7 +3478,17 @@ namespace DAL.Migrations
                         {
                             NPCDialogueId = 95,
                             Content = "Where those flowers still bloom, the curse has not yet reached. They are medicine and warning both.",
-                            DisplayOrder = 3,
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 2,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 130,
+                            Content = "My knees will not carry me that far anymore. Bring me the flowers and my people live through the week. That is the whole of it.",
+                            DisplayOrder = 5,
                             IsActive = true,
                             LinkedQuestId = 2,
                             NPCId = 1,
@@ -3458,7 +3498,7 @@ namespace DAL.Migrations
                         {
                             NPCDialogueId = 6,
                             Content = "Go to the clearing and gather 3 White Flowers for me. Take care, even slimes wander there now.",
-                            DisplayOrder = 4,
+                            DisplayOrder = 6,
                             IsActive = true,
                             LinkedQuestId = 2,
                             NPCId = 1,
@@ -3477,7 +3517,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 8,
-                            Content = "Not a petal bruised. Crushed with spring water, these will close a wound in minutes.",
+                            Content = "Not a petal bruised. Three flowers, three doses. The healing hall will have them before nightfall, and the children will sleep.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 3,
@@ -3486,8 +3526,8 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 96,
-                            Content = "Three flowers, three doses. Keep one for yourself, out there you may be your only healer.",
+                            NPCDialogueId = 131,
+                            Content = "I sent a stranger into cursed woods for people you had never met, and you went without asking payment. You have proven yourself.",
                             DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 3,
@@ -3496,9 +3536,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 9,
-                            Content = "You have earned this. Take it, with an old elf's thanks.",
+                            NPCDialogueId = 96,
+                            Content = "We do not teach our craft outside the bloodline. For you I will break that rule. Let me teach you the First Elven Technique.",
                             DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 3,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 9,
+                            Content = "Hold still. Breathe with the roots, as we do... there. It is yours now, with an old elf's thanks.",
+                            DisplayOrder = 5,
                             IsActive = true,
                             LinkedQuestId = 3,
                             NPCId = 1,
@@ -3507,7 +3557,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 10,
-                            Content = "A remedy keeps you alive. It does not keep you standing. For that you need a skill.",
+                            Content = "The technique is in you now, but a technique you have not called upon is no better than one you never learned.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 4,
@@ -3517,7 +3567,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 11,
-                            Content = "Every warrior in this world channels power through learned technique. Bare fists will not answer a demon.",
+                            Content = "Every warrior in this world channels power through learned technique. Bare fists will not answer what waits out there.",
                             DisplayOrder = 2,
                             IsActive = true,
                             LinkedQuestId = 4,
@@ -3527,7 +3577,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 97,
-                            Content = "Your body already holds the spark. What you lack is a shape to pour it into.",
+                            Content = "Set it where your hand can reach it without thinking. In a fight you will not have time to remember.",
                             DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 4,
@@ -3537,7 +3587,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 12,
-                            Content = "Open your Skill Panel and equip your first combat skill. Do not step past the treeline without it.",
+                            Content = "Open your Skill Panel and equip the First Elven Technique. Do not step past the treeline without it.",
                             DisplayOrder = 4,
                             IsActive = true,
                             LinkedQuestId = 4,
@@ -3607,7 +3657,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 99,
-                            Content = "It guards a book bound in black, the Swamp Seal Book. One of four, and the tree cannot be saved without them.",
+                            Content = "Our scouts say the beast broods over some old relic down there. A seal of some kind, they think. I am no scholar, and none of them got close enough to be sure.",
                             DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 6,
@@ -3616,9 +3666,19 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 18,
-                            Content = "Destroy the Swamp Demon and bring back the Swamp Seal Book. Everything rests on this.",
+                            NPCDialogueId = 132,
+                            Content = "What it is, and whether it matters, I cannot tell you. Lyra at the Origin Tree is older than every elf alive. Bring it to her and she will know.",
                             DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 6,
+                            NPCId = 1,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 18,
+                            Content = "Destroy the Swamp Demon and take whatever it is guarding. Stopping the rot at its source is what matters.",
+                            DisplayOrder = 5,
                             IsActive = true,
                             LinkedQuestId = 6,
                             NPCId = 1,
@@ -3646,8 +3706,8 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 100,
-                            Content = "Long ago the elders bound an ancient power into four books. That binding has broken, and the leak is poisoning me.",
+                            NPCDialogueId = 133,
+                            Content = "Now show me what you took from the swamp... ah. Rowan sent you here not knowing, did he. Hold it up, child.",
                             DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 7,
@@ -3656,9 +3716,39 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 21,
-                            Content = "Only the 4 Seal Books can cleanse me. You hold one already, find the remaining three, and hurry!",
+                            NPCDialogueId = 134,
+                            Content = "This is a Seal Book. The first of them to see daylight in an age, and no living elf has ever held one.",
                             DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 7,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 100,
+                            Content = "Long ago the elders bound an ancient power into four such books. That binding has broken, and the leak is what poisons me.",
+                            DisplayOrder = 5,
+                            IsActive = true,
+                            LinkedQuestId = 7,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 135,
+                            Content = "Four books, scattered and guarded. They are not treasure, they are the lock on my heartwood. Nothing else will save me.",
+                            DisplayOrder = 6,
+                            IsActive = true,
+                            LinkedQuestId = 7,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 21,
+                            Content = "Only the 4 Seal Books can cleanse me. You hold the first already, find the remaining three, and hurry!",
+                            DisplayOrder = 7,
                             IsActive = true,
                             LinkedQuestId = 7,
                             NPCId = 2,
@@ -5463,7 +5553,7 @@ namespace DAL.Migrations
                             QuestId = 6,
                             BossMonsterId = 2,
                             DefaultStatus = "NotStarted",
-                            Description = "The slimes were only fleeing something worse. Deep in the woods a Swamp Demon guards the first of four Seal Books — kill it and take the seal.",
+                            Description = "The slimes were only fleeing something worse. A Swamp Demon broods in the deep woods over some old relic, and the water rots around it. Kill it and take whatever it is guarding.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Deep Woods",
@@ -5482,7 +5572,7 @@ namespace DAL.Migrations
                         {
                             QuestId = 7,
                             DefaultStatus = "NotStarted",
-                            Description = "Take the Seal Book to the guardian Lyra at the Origin Tree. She alone can explain the curse rotting its roots and why four seals are needed to lift it.",
+                            Description = "Rowan cannot name the relic you took from the swamp. Carry it to Lyra at the Origin Tree — she is older than every elf alive, and she will know what you are holding.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Origin Tree",
@@ -6409,6 +6499,74 @@ namespace DAL.Migrations
                             Description = "Selects an area within range to unleash an icy slash.",
                             IsActive = true,
                             Name = "FrozenSash",
+                            TargetType = "Area",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 16,
+                            BaseDamage = 50.0,
+                            ClassRequirement = "Archer",
+                            CooldownSeconds = 5,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 4.0,
+                            DamagePerLevel = 12.0,
+                            DamageType = "Physical",
+                            Description = "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.",
+                            IsActive = true,
+                            Name = "PumpkinMagic",
+                            TargetType = "Area",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 17,
+                            BaseDamage = 45.0,
+                            ClassRequirement = "Knight",
+                            CooldownSeconds = 5,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 4.0,
+                            DamagePerLevel = 10.0,
+                            DamageType = "Physical",
+                            Description = "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.",
+                            IsActive = true,
+                            Name = "PumpkinThrow",
+                            TargetType = "Area",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 18,
+                            BaseDamage = 40.0,
+                            ClassRequirement = "Knight",
+                            CooldownSeconds = 2,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 3.0,
+                            DamagePerLevel = 9.0,
+                            DamageType = "Physical",
+                            Description = "A short-range pumpkin slash in the direction the knight is facing.",
+                            IsActive = true,
+                            Name = "PumpkinSlash",
+                            TargetType = "SingleTarget",
+                            Type = "Active",
+                            UnlockLevel = 1
+                        },
+                        new
+                        {
+                            SkillId = 19,
+                            BaseDamage = 30.0,
+                            ClassRequirement = "Mage",
+                            CooldownSeconds = 2,
+                            CorruptionCost = 0f,
+                            DamageGrowthPercent = 3.0,
+                            DamagePerLevel = 8.0,
+                            DamageType = "Magical",
+                            Description = "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.",
+                            IsActive = true,
+                            Name = "BoomBoomPumpkin",
                             TargetType = "Area",
                             Type = "Active",
                             UnlockLevel = 1

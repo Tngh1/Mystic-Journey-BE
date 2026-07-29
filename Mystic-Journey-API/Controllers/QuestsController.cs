@@ -34,7 +34,9 @@ namespace Mystic_Journey_API.Controllers
             var npcs = await _questService.GetQuestNpcOptions(mapName);
             return Ok(new ApiResponse<List<NPCResponseDto>> { Success = true, Data = npcs });
         }
-        [AllowAnonymous]
+        // Yêu cầu đăng nhập: bản công khai cho web wiki là
+        // /api/wiki/quests/{id}, endpoint này thuộc luồng game.
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
