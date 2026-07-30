@@ -3393,8 +3393,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "FrozenMountain",
                             Name = "Roselyn Aurora Queen",
-                            PositionX = 160.8554,
-                            PositionY = -35.648600000000002,
+                            PositionX = 146.8143,
+                            PositionY = -11.63209,
                             Type = "QuestGiver"
                         },
                         new
@@ -3405,8 +3405,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "FrozenMountain",
                             Name = "Zephyr",
-                            PositionX = 6.9968139999999996,
-                            PositionY = -0.20945549999999999,
+                            PositionX = -4.8736499999999996,
+                            PositionY = 25.72625,
                             Type = "QuestGiver"
                         },
                         new
@@ -3417,8 +3417,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "FrozenMountain",
                             Name = "Roland",
-                            PositionX = 70.456860000000006,
-                            PositionY = 18.803540000000002,
+                            PositionX = 130.43000000000001,
+                            PositionY = 28.789999999999999,
                             Type = "QuestGiver"
                         },
                         new
@@ -3455,6 +3455,18 @@ namespace DAL.Migrations
                             Name = "Elf Guard",
                             PositionX = -104.80000305175781,
                             PositionY = -4.7760000228881836,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 14,
+                            Description = "Captain of the snow-field militia.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            Name = "Cedric",
+                            PositionX = 5.5300000000000002,
+                            PositionY = -8.6199999999999992,
                             Type = "QuestGiver"
                         });
                 });
@@ -4393,213 +4405,503 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 52,
-                            Content = "A living stranger, walking in out of the snow. I am Roselyn Aurora, and what is left of this kingdom is mine to hold.",
+                            NPCDialogueId = 173,
+                            Content = "Far enough. I am Cedric — captain, if you are being generous. These fields are mine to hold until the Queen can spare someone better.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 21,
+                            NPCId = 14,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 174,
+                            Content = "You came up the ice road, so you saw the state of it. Something crawled out of the snow after the war and it has been eating this valley one field at a time.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 14,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 175,
+                            Content = "The ice slimes come further in every night and freeze whatever they touch. Half my company are farmers holding spears they do not know how to use. I have buried four of them this month.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 14,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 54,
+                            Content = "You want me to take you seriously, stranger? They are out on the fields right now. Kill 8 of them. Then we can talk about who you are.",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 14,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 55,
+                            Content = "The fields are quiet. My people walked out to the grain stores without an escort for the first time in a month. Come here — I owe you a word.",
+                            DisplayOrder = 5,
+                            IsActive = true,
+                            LinkedQuestId = 21,
+                            NPCId = 14,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 176,
+                            Content = "I had you down as one more sellsword chasing coin up the ice road. It seems you are not. I have watched men with ten years of service do less than you did out there.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 14,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 177,
+                            Content = "So I will tell you what I would not have told you this morning. The Queen has been searching — quietly — for someone with the strength to stand against what is coming for this kingdom.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 14,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 178,
+                            Content = "She has asked every captain on this mountain, and every captain has sent back the same answer: no one. I am tired of writing that answer.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 14,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 179,
+                            Content = "Go up to the citadel and stand in front of Roselyn Aurora. I am sending a runner ahead of you — for once with a name in it.",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 14,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 180,
+                            Content = "Cedric's runner reached me an hour before you did. That man does not praise people, so I read it twice. Stay a moment — there are things you should hear from me and not from a soldier.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 22,
+                            NPCId = 8,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 52,
+                            Content = "So you are the one Cedric put a name to. I am Roselyn Aurora, and what is left of this kingdom is mine to hold.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 23,
                             NPCId = 8,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 53,
-                            Content = "The codex passed over these fields and the cold turned wrong. My soldiers are gone. Only volunteers stand the walls now.",
+                            Content = "It was not always like this. Once these were the quiet lands — snow fell all winter and killed nothing, and no one here carried a sword.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 21,
+                            LinkedQuestId = 23,
                             NPCId = 8,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 111,
-                            Content = "The slimes come closer each night. They freeze whatever they touch, and my people cannot reach the grain stores.",
+                            Content = "Then the codex came. It took the four Seal Books and drank the strength of the Origin Tree, and everything it passed turned wrong. What you are standing in is only what that war left behind.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 21,
+                            LinkedQuestId = 23,
                             NPCId = 8,
                             ResponseType = "None"
                         },
                         new
                         {
-                            NPCDialogueId = 54,
-                            Content = "Clear 8 ice slimes from the Snow Fields. I would ask a knight, but I have none left to ask.",
+                            NPCDialogueId = 152,
+                            Content = "Cedric's company is the whole of my army. Farmers holding spears, and a captain who has stopped asking me for reinforcements because he knows there are none.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 21,
-                            NPCId = 8,
-                            ResponseType = "Quest"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 55,
-                            Content = "The fields are quiet tonight. My people walked to the grain stores without an escort for the first time in a month.",
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            LinkedQuestId = 22,
+                            LinkedQuestId = 23,
                             NPCId = 8,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 56,
-                            Content = "Now the harder trouble. Priest Zephyr keeps a rite burning at the peak — it is the only thing holding the cold back.",
-                            DisplayOrder = 2,
+                            Content = "You passed the statue at my gate. King Aurelian — the ancient king this whole kingdom still honours, and the reason any of it is still standing.",
+                            DisplayOrder = 5,
                             IsActive = true,
-                            LinkedQuestId = 22,
+                            LinkedQuestId = 23,
                             NPCId = 8,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 112,
-                            Content = "His supplies ran out days ago and no courier of mine has come back down that road alive.",
-                            DisplayOrder = 3,
+                            Content = "He spent his life holding back the codex's leavings so that this little peace would outlive him. It did. Barely.",
+                            DisplayOrder = 6,
                             IsActive = true,
-                            LinkedQuestId = 22,
+                            LinkedQuestId = 23,
+                            NPCId = 8,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 153,
+                            Content = "I cannot answer what you really came to ask. But there is a priest near here — Zephyr. He studies the old magics, and he has studied them longer than I have been queen.",
+                            DisplayOrder = 7,
+                            IsActive = true,
+                            LinkedQuestId = 23,
                             NPCId = 8,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 57,
-                            Content = "Take this Magic Flour to him at the mountain peak. If the rite goes out, we all freeze with it.",
-                            DisplayOrder = 4,
+                            Content = "Carry the Magic Flour I gave you to him — and ask him everything you have been asking me.",
+                            DisplayOrder = 8,
                             IsActive = true,
-                            LinkedQuestId = 22,
+                            LinkedQuestId = 23,
                             NPCId = 8,
                             ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 58,
-                            Content = "The Queen's flour, and a courier still breathing. The rite can go on. You have bought this mountain another season.",
+                            Content = "The Queen's flour, and a courier still breathing. Welcome, hero from far away. I have been on this mountain thirty years chasing one question: how four holy books vanished out of a sealed world.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 22,
+                            LinkedQuestId = 23,
                             NPCId = 9,
                             ResponseType = "Reward"
                         },
                         new
                         {
                             NPCDialogueId = 59,
-                            Content = "Stay a moment. The codex passed over this peak too, and what it touched did not simply die — it changed.",
+                            Content = "Thirty years, and the answer keeps moving. But there is a nearer trouble, and it will not wait for my research.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 23,
+                            LinkedQuestId = 24,
                             NPCId = 9,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 89,
-                            Content = "I cannot hold the rites while they circle the shrine — their shadows alone put out the candles.",
+                            Content = "The ice dragons have stopped behaving like animals. Something is steering them — and they have begun coming down on the people below.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 23,
+                            LinkedQuestId = 24,
                             NPCId = 9,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 113,
-                            Content = "Ice dragons, five of them. Young, but the codex made them hungry in a way no beast should be.",
+                            Content = "Five of them circle the peak. Young, all of them. Whatever holds their reins made them hungry in a way no beast should be.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 23,
+                            LinkedQuestId = 24,
                             NPCId = 9,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 60,
-                            Content = "Climb the peak and slay all 5. Do it, and the Queen's borders hold one more winter.",
+                            Content = "Climb the peak and put down all 5. May I ask that of a stranger?",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 23,
+                            LinkedQuestId = 24,
                             NPCId = 9,
                             ResponseType = "Quest"
                         },
                         new
                         {
-                            NPCDialogueId = 61,
-                            Content = "Halt. Beyond this line is under ban, and I am Roland, the warden who keeps it.",
-                            DisplayOrder = 1,
+                            NPCDialogueId = 154,
+                            Content = "The peak is silent. Sit down, hero — I will tell you the part I have never told the Queen.",
+                            DisplayOrder = 5,
                             IsActive = true,
                             LinkedQuestId = 24,
+                            NPCId = 9,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 155,
+                            Content = "The codex may not have been evil to begin with. I think it was something else once, and a power turned it.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 9,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 156,
+                            Content = "Dark magic. Strength that gives freely and takes greed as its price. Am I certain? No. I am not certain of any of it.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 9,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 157,
+                            Content = "But look at the beasts here. I studied them before the great war — gentle things, no harm in them. After it, not one of them was itself. Something settled into them, like a taint in the blood.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 9,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 158,
+                            Content = "You want somewhere else to look? There is one place. Dangerous, and cut off from the capital long ago — the forbidden land north of here, The Doomed Land of Snow. Find the guard Roland at the boundary stones. He is a friend of mine.",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 25,
+                            NPCId = 9,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 61,
+                            Content = "Halt! This ground is under ban and no one goes in. Who are you?",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 25,
                             NPCId = 10,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 62,
-                            Content = "Wait. That cold on you — dragon frost. You came down off the peak, not up from the road.",
+                            Content = "A knight sent to recover the stolen books... I see. Then you did not climb all this way for the view. You mean to go inside the ban.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 24,
+                            LinkedQuestId = 25,
                             NPCId = 10,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 114,
-                            Content = "I have watched this ban for eleven years and never once set foot inside. Now something in there has begun to stir.",
+                            Content = "Then I will not stand in your way. But hear this: two ancient things still live in there, and both of them are dangerous.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 24,
+                            LinkedQuestId = 25,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 159,
+                            Content = "What are they? I do not truly know. The legend says one is a giant made of stone. The other is a mystery — since the old hero sealed this place, no one has dared walk in far enough to find out.",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 25,
                             NPCId = 10,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 63,
-                            Content = "Walk it with me and map what waits inside. I will not send you where I do not go myself.",
-                            DisplayOrder = 4,
+                            Content = "Go, then. The way is open, and I will keep the road behind you.",
+                            DisplayOrder = 5,
                             IsActive = true,
-                            LinkedQuestId = 24,
+                            LinkedQuestId = 25,
                             NPCId = 10,
                             ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 64,
-                            Content = "Now I know why my order was told to guard this place and never enter it. The codex did not begin in the world. It began here.",
+                            Content = "So it was here all along. Now I know why my order was told to guard this place and never once to enter it.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 25,
+                            LinkedQuestId = 26,
                             NPCId = 10,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 65,
-                            Content = "And it is not finished. One of the old Seal Books lies at the heart of the ban, still holding.",
+                            Content = "And the seal still holds. One of the four old Seal Books lies at the heart of the ban — the Golem Seal Book.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 25,
+                            LinkedQuestId = 26,
                             NPCId = 10,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 115,
-                            Content = "A stone golem stands over it. The elders left it there to keep hands off the book — mine included.",
+                            Content = "Two guardians stand over it: the stone giant, and the spirit that never leaves his side. The elders left them there to keep every hand off that book, mine included.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 25,
+                            LinkedQuestId = 26,
                             NPCId = 10,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 66,
-                            Content = "Break the stone guardian and take the Golem Seal Book. It is worth more in your hands than under my ban.",
+                            Content = "Put down both of them and take the Golem Seal Book. It is worth more in your hands than under my ban.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 25,
+                            LinkedQuestId = 26,
                             NPCId = 10,
                             ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 160,
+                            Content = "You have the book. But you did not come out of there looking like a man who won a fight — come here and tell me what you saw.",
+                            DisplayOrder = 5,
+                            IsActive = true,
+                            LinkedQuestId = 26,
+                            NPCId = 10,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 161,
+                            Content = "So that is what was sleeping under my ban. Say it again, slowly — I want to be sure I have it right before I write it down.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 162,
+                            Content = "The golem was gentle once. Not a weapon, not a guardian — he lived close to people and helped anyone who asked him.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 163,
+                            Content = "And the fairy — he pulled her out of the hands of spirit-traders, men who sold her kind by weight. She never forgot it. She stayed at his side from that day to repay him.",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 164,
+                            Content = "Then the darkness came down on these lands, and he stood against it — for the villages, not for himself. It was stronger. It did not kill him; it put him into a sleep that went on for years.",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 165,
+                            Content = "The fairy was terrified. She went to the hero of that age and begged him for help — that is the hero whose statue the Queen still keeps at her gate.",
+                            DisplayOrder = 5,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 166,
+                            Content = "Two months after the codex fled this place, the golem finally woke — and it was her doing. She had just learned a blessing, and she spent it on him.",
+                            DisplayOrder = 6,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 167,
+                            Content = "But what woke was not what fell asleep. He behaved wrongly. He struck at the people he used to carry water for.",
+                            DisplayOrder = 7,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 168,
+                            Content = "And yet he was clear-headed sometimes. Clear enough to understand what was creeping through him — and to decide what to do about it.",
+                            DisplayOrder = 8,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 169,
+                            Content = "He walked into the forbidden land himself. Shut himself in. Wiped out every road and marker so no one could follow him in. That is the ban I have been standing guard over for eleven years — a cage a man built for himself.",
+                            DisplayOrder = 9,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 170,
+                            Content = "And she went in with him. Knowing what he had become. She never left his side, right up until you.",
+                            DisplayOrder = 10,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 171,
+                            Content = "Then it is confirmed, and I will carry it to the Queen: no demon, no evil born evil. Someone was corrupted by a dark power — and everything since has followed from that.",
+                            DisplayOrder = 11,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 172,
+                            Content = "You said you would come back for those two and set them right. Hold to that, hero. I will keep the ban open for the day you do.",
+                            DisplayOrder = 12,
+                            IsActive = true,
+                            LinkedQuestId = 27,
+                            NPCId = 10,
+                            ResponseType = "Reward"
                         },
                         new
                         {
@@ -4607,7 +4909,7 @@ namespace DAL.Migrations
                             Content = "Back, stranger, keep your back to the rock! They come up out of the valley floor faster than I can cut them down.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 26,
+                            LinkedQuestId = 28,
                             NPCId = 11,
                             ResponseType = "None"
                         },
@@ -4617,7 +4919,7 @@ namespace DAL.Migrations
                             Content = "This is no ordinary haunting. An ancient power is leaking somewhere near, and the dead rise faster than they fall.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 26,
+                            LinkedQuestId = 28,
                             NPCId = 11,
                             ResponseType = "None"
                         },
@@ -4627,7 +4929,7 @@ namespace DAL.Migrations
                             Content = "There is a Seal Book buried under all this bone. I have felt it since the day the leak began.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 26,
+                            LinkedQuestId = 28,
                             NPCId = 11,
                             ResponseType = "None"
                         },
@@ -4637,7 +4939,7 @@ namespace DAL.Migrations
                             Content = "Cut down 12 of them in the valley with me. Two blades may be enough where one was not.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 26,
+                            LinkedQuestId = 28,
                             NPCId = 11,
                             ResponseType = "Quest"
                         },
@@ -4647,7 +4949,7 @@ namespace DAL.Migrations
                             Content = "The animals are fleeing from the abandoned village of Tide-Knell. Look into it, and find the girl Natalie.",
                             DisplayOrder = 5,
                             IsActive = true,
-                            LinkedQuestId = 26,
+                            LinkedQuestId = 28,
                             NPCId = 11,
                             ResponseType = "Reward"
                         },
@@ -4657,7 +4959,7 @@ namespace DAL.Migrations
                             Content = "You can see me. Nobody has seen me in a very long time. My name is Natalie, and this village is Tide-Knell.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 27,
+                            LinkedQuestId = 29,
                             NPCId = 12,
                             ResponseType = "None"
                         },
@@ -4667,7 +4969,7 @@ namespace DAL.Migrations
                             Content = "I cannot leave the well. I have tried. Something of me is still down in that ground, and it holds me here.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 27,
+                            LinkedQuestId = 29,
                             NPCId = 12,
                             ResponseType = "None"
                         },
@@ -4677,7 +4979,7 @@ namespace DAL.Migrations
                             Content = "The animals knew before you did. That is why they ran. They will not drink from a well with a girl in it.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 27,
+                            LinkedQuestId = 29,
                             NPCId = 12,
                             ResponseType = "None"
                         },
@@ -4687,7 +4989,7 @@ namespace DAL.Migrations
                             Content = "Please. Dig beside the old well and lift out the skull you find there. I am ready to be found.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 27,
+                            LinkedQuestId = 29,
                             NPCId = 12,
                             ResponseType = "Quest"
                         },
@@ -4697,7 +4999,7 @@ namespace DAL.Migrations
                             Content = "(A weathered letter lies where Natalie once stood. It is her own hand, and it is a farewell.)",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 28,
+                            LinkedQuestId = 30,
                             NPCId = 12,
                             ResponseType = "None"
                         },
@@ -4707,7 +5009,7 @@ namespace DAL.Migrations
                             Content = "(She writes of a book she opened as a child, of a seal she did not understand, and of the day the valley began to fill with bone.)",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 28,
+                            LinkedQuestId = 30,
                             NPCId = 12,
                             ResponseType = "None"
                         },
@@ -4717,7 +5019,7 @@ namespace DAL.Migrations
                             Content = "Thank you for bringing my remains home. Please bury me under the ivy tree in my courtyard, where I used to sit.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 28,
+                            LinkedQuestId = 30,
                             NPCId = 12,
                             ResponseType = "None"
                         },
@@ -4727,7 +5029,7 @@ namespace DAL.Migrations
                             Content = "The ancient power leak was my doing, and I have paid for it here. Take this Mystic Key — it opens the castle gates on the deserted island.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 28,
+                            LinkedQuestId = 30,
                             NPCId = 12,
                             ResponseType = "Quest"
                         },
@@ -4737,7 +5039,7 @@ namespace DAL.Migrations
                             Content = "An outsider, with a Mystic Key, standing on my island. The sea should have kept you. Yet here you are.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 29,
+                            LinkedQuestId = 31,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4747,7 +5049,7 @@ namespace DAL.Migrations
                             Content = "I am the last guard of this place. I know what you carry, and I know the forest you are trying to reach.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 29,
+                            LinkedQuestId = 31,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4757,7 +5059,7 @@ namespace DAL.Migrations
                             Content = "A portal home cannot be forced. It must be grown, and for that the rite needs leaves older than the curse itself.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 29,
+                            LinkedQuestId = 31,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4767,7 +5069,7 @@ namespace DAL.Migrations
                             Content = "Collect 5 Ancient Leaves from the Northern Plateau. Bring them, and I will begin the rite of return.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 29,
+                            LinkedQuestId = 31,
                             NPCId = 13,
                             ResponseType = "Quest"
                         },
@@ -4777,7 +5079,7 @@ namespace DAL.Migrations
                             Content = "The leaves are enough. The rite is ready. And yet I cannot light it — something below the castle is smothering it.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 30,
+                            LinkedQuestId = 32,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4787,7 +5089,7 @@ namespace DAL.Migrations
                             Content = "The UnderKing has woken. He held the last Seal Book in his hands long before you were born.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 30,
+                            LinkedQuestId = 32,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4797,7 +5099,7 @@ namespace DAL.Migrations
                             Content = "Three seals you have already. Without his, the Origin Tree cannot be cleansed and the forest ends with the tree.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 30,
+                            LinkedQuestId = 32,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4807,7 +5109,7 @@ namespace DAL.Migrations
                             Content = "End his reign. Defeat the UnderKing and take the fourth book from him.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 30,
+                            LinkedQuestId = 32,
                             NPCId = 13,
                             ResponseType = "Quest"
                         },
@@ -4817,7 +5119,7 @@ namespace DAL.Migrations
                             Content = "It is done. The UnderKing has fallen, and all four Seal Books are in one pair of hands for the first time in an age.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 31,
+                            LinkedQuestId = 33,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4827,7 +5129,7 @@ namespace DAL.Migrations
                             Content = "You want the way home. I will give it, but understand what waits: the Origin Tree is nearly gone.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 31,
+                            LinkedQuestId = 33,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4837,7 +5139,7 @@ namespace DAL.Migrations
                             Content = "The rite will open once and close behind you. Whatever you leave undone on this side stays undone.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 31,
+                            LinkedQuestId = 33,
                             NPCId = 13,
                             ResponseType = "None"
                         },
@@ -4847,7 +5149,7 @@ namespace DAL.Migrations
                             Content = "Then go. The portal to the Elf Forest is open. Save the tree, outsider.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 31,
+                            LinkedQuestId = 33,
                             NPCId = 13,
                             ResponseType = "Reward"
                         },
@@ -4857,7 +5159,7 @@ namespace DAL.Migrations
                             Content = "You came back. Through the ruins, the snow, the ban, the sea — and you are carrying all four seals.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 32,
+                            LinkedQuestId = 34,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4867,7 +5169,7 @@ namespace DAL.Migrations
                             Content = "The tree has almost no strength left. Every leaf it drops, the curse takes a little more of the forest.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 32,
+                            LinkedQuestId = 34,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4877,7 +5179,7 @@ namespace DAL.Migrations
                             Content = "Four books, four elders, four bindings broken. Set them together and the curse has nowhere left to hide.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 32,
+                            LinkedQuestId = 34,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4887,7 +5189,7 @@ namespace DAL.Migrations
                             Content = "Bring the four books to me here, at the roots. Hurry.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 32,
+                            LinkedQuestId = 34,
                             NPCId = 2,
                             ResponseType = "Quest"
                         },
@@ -4897,7 +5199,7 @@ namespace DAL.Migrations
                             Content = "The four seals are whole. I have opened the rite... but I cannot finish it.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 33,
+                            LinkedQuestId = 35,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4907,7 +5209,7 @@ namespace DAL.Migrations
                             Content = "The seals answer only to the one who won them. It must be your hand, not mine.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 33,
+                            LinkedQuestId = 35,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4917,7 +5219,7 @@ namespace DAL.Migrations
                             Content = "I am the tree's spirit. If the curse takes the roots, it takes me with them — so do not hesitate at the last step.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 33,
+                            LinkedQuestId = 35,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4927,7 +5229,7 @@ namespace DAL.Migrations
                             Content = "Step to the Origin Tree and set the four Seal Books upon it. Break the curse.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 33,
+                            LinkedQuestId = 35,
                             NPCId = 2,
                             ResponseType = "Quest"
                         },
@@ -4937,7 +5239,7 @@ namespace DAL.Migrations
                             Content = "The curse is breaking... The Origin Tree is finally healing!",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 34,
+                            LinkedQuestId = 36,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4947,7 +5249,7 @@ namespace DAL.Migrations
                             Content = "Look at the roots. Green, after all this time. The forest will remember the one who stood here today.",
                             DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 34,
+                            LinkedQuestId = 36,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4957,7 +5259,7 @@ namespace DAL.Migrations
                             Content = "And yet the cloaked one was never found, and no one has said who broke the four bindings in the first place.",
                             DisplayOrder = 3,
                             IsActive = true,
-                            LinkedQuestId = 34,
+                            LinkedQuestId = 36,
                             NPCId = 2,
                             ResponseType = "None"
                         },
@@ -4967,7 +5269,7 @@ namespace DAL.Migrations
                             Content = "Thank you, truly. The Origin Tree is saved. But this is not the end... To be continued.",
                             DisplayOrder = 4,
                             IsActive = true,
-                            LinkedQuestId = 34,
+                            LinkedQuestId = 36,
                             NPCId = 2,
                             ResponseType = "Reward"
                         });
@@ -6079,27 +6381,46 @@ namespace DAL.Migrations
                         {
                             QuestId = 21,
                             DefaultStatus = "NotStarted",
-                            Description = "Queen Roselyn Aurora receives you in a hall of ice. Her fields are overrun before the winter stores are in — defeat 8 ice slimes for her.",
+                            Description = "Cedric holds the snow fields with farmers and borrowed spears, and he has no reason to trust a stranger off the ice road. The slimes are on his fields tonight. Defeat 8 of them and he will hear you out.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Snow Fields",
-                            ObjectiveTarget = "slime_ice",
+                            ObjectiveTarget = "Slime Ice",
                             ObjectiveType = "Defeat",
-                            QuestGiverName = "Roselyn Aurora Queen",
+                            QuestGiverName = "Cedric",
                             RequiredLevel = 6,
                             RewardExperience = 200,
                             RewardGems = 5m,
                             RewardGold = 30m,
-                            RewardItemId = 31,
                             TargetAmount = 8,
-                            Title = "[Chapter 3] Slimes of the Snow Fields",
+                            Title = "[Chapter 3] The Ice Slimes",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 22,
                             DefaultStatus = "NotStarted",
-                            Description = "The Queen entrusts you with Magic Flour for the mountain shrine. Carry it up to the priest Zephyr before the pass closes.",
+                            Description = "The fields are clear, and Cedric has stopped calling you stranger. He says the Queen has been searching for someone with the strength to stand against what is coming, and that he intends to give her your name. Speak with Roselyn Aurora at the citadel.",
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            ObjectiveLocation = "Snow Fields",
+                            ObjectiveTarget = "Roselyn Aurora Queen",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Cedric",
+                            RequiredLevel = 6,
+                            RewardExperience = 150,
+                            RewardGems = 5m,
+                            RewardGold = 20m,
+                            RewardItemId = 31,
+                            TargetAmount = 1,
+                            Title = "[Chapter 3] A Word to the Queen",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 23,
+                            DefaultStatus = "NotStarted",
+                            Description = "The Queen speaks of the ancient king whose statue this kingdom still honours, and of a priest who studies the old magics. Deliver her Magic Flour to Zephyr and ask him what she could not answer.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Frozen Mountain",
@@ -6111,18 +6432,18 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 15m,
                             TargetAmount = 1,
-                            Title = "[Chapter 3] Deliver the Magic Flour",
+                            Title = "[Chapter 3] Magic Flour for the Priest",
                             Type = "Main"
                         },
                         new
                         {
-                            QuestId = 23,
+                            QuestId = 24,
                             DefaultStatus = "NotStarted",
-                            Description = "Zephyr cannot hold his rites while ice dragons circle the shrine. Climb the peak and bring down 5 of them.",
+                            Description = "Zephyr has studied the vanished seal books for thirty years. Something is driving the ice dragons against the people below. Bring down 5 of them on the mountain and report what you saw.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Frozen Mountain",
-                            ObjectiveTarget = "Ice_Dragon",
+                            ObjectiveTarget = "Ice Dragon",
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Zephyr",
                             RequiredLevel = 7,
@@ -6130,14 +6451,14 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 40m,
                             TargetAmount = 5,
-                            Title = "[Chapter 3] Dragons of the Frozen Peak",
+                            Title = "[Chapter 3] Dragons of Snow",
                             Type = "Main"
                         },
                         new
                         {
-                            QuestId = 24,
+                            QuestId = 25,
                             DefaultStatus = "NotStarted",
-                            Description = "Zephyr says the codex's mark lies inside the forbidden zone, and only its warden may open the way. Find Roland at the boundary stones and ask for passage.",
+                            Description = "Zephyr shares what he suspects: the codex may have been corrupted, not born evil. The rest lies in the sealed north, The Doomed Land of Snow. Find the guard Roland and ask for passage.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Forbidden Zone",
@@ -6149,32 +6470,51 @@ namespace DAL.Migrations
                             RewardGems = 5m,
                             RewardGold = 15m,
                             TargetAmount = 1,
-                            Title = "[Chapter 3] The Warden of the Ban",
+                            Title = "[Chapter 3] The Forbidden Zone",
                             Type = "Main"
                         },
                         new
                         {
-                            QuestId = 25,
+                            QuestId = 26,
                             BossMonsterId = 10,
                             DefaultStatus = "NotStarted",
-                            Description = "Roland tells you what the kingdom buried here: the codex itself, and the golem forged to guard it. Destroy the golem and take the second Seal Book.",
+                            Description = "Two ancient things wait inside the ban: a giant of stone, and the spirit that never leaves his side. Defeat them both and take the Golem Seal Book.",
                             IsActive = true,
                             MapName = "FrozenMountain",
                             ObjectiveLocation = "Forbidden Zone",
-                            ObjectiveTarget = "GolemBoss",
+                            ObjectiveTarget = "Golem Boss",
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Roland",
                             RequiredLevel = 8,
                             RewardExperience = 400,
                             RewardGems = 5m,
                             RewardGold = 150m,
-                            TargetAmount = 1,
-                            Title = "[Chapter 3] Break the Stone Guardian",
+                            TargetAmount = 2,
+                            Title = "[Chapter 3] The Sealed Guardians",
                             Type = "Main"
                         },
                         new
                         {
-                            QuestId = 26,
+                            QuestId = 27,
+                            DefaultStatus = "NotStarted",
+                            Description = "Roland is waiting where you left him, and what you carry out of the ban is heavier than a book. Speak with him and put together what was really done to the guardians.",
+                            IsActive = true,
+                            MapName = "FrozenMountain",
+                            ObjectiveLocation = "Forbidden Zone",
+                            ObjectiveTarget = "Roland",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Roland",
+                            RequiredLevel = 8,
+                            RewardExperience = 200,
+                            RewardGems = 5m,
+                            RewardGold = 50m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 3] Truth of the Codex",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 28,
                             DefaultStatus = "NotStarted",
                             Description = "The trail of the seals ends at a ruined castle where the dead still keep watch. The Valiant Warrior holds the valley alone — help him put down 12 skeletons.",
                             IsActive = true,
@@ -6193,7 +6533,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 27,
+                            QuestId = 29,
                             DefaultStatus = "NotStarted",
                             Description = "In the drowned village of Tide-Knell a girl named Natalie asks a strange favour: dig beside the old well and lift out the skull buried there.",
                             IsActive = true,
@@ -6213,7 +6553,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 28,
+                            QuestId = 30,
                             DefaultStatus = "NotStarted",
                             Description = "The skull is hers. Read the letter she left behind, bury her remains beneath the ivy tree, and she will give you the key she died holding.",
                             IsActive = true,
@@ -6233,7 +6573,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 29,
+                            QuestId = 31,
                             DefaultStatus = "NotStarted",
                             Description = "Natalie's key opens the way to a deserted island where one elf guard still stands his post. He needs 5 Ancient Leaves from the plateau to break the seal below.",
                             IsActive = true,
@@ -6252,7 +6592,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 30,
+                            QuestId = 32,
                             BossMonsterId = 15,
                             DefaultStatus = "NotStarted",
                             Description = "The leaves burn away the ward and the crypt opens. The UnderKing holds the last two Seal Books — take them from him.",
@@ -6272,7 +6612,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 31,
+                            QuestId = 33,
                             DefaultStatus = "NotStarted",
                             Description = "All four seals are in your pack. Speak to the Elf Guard — he can open a portal back to the Elf Forest.",
                             IsActive = true,
@@ -6291,7 +6631,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 32,
+                            QuestId = 34,
                             DefaultStatus = "NotStarted",
                             Description = "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.",
                             IsActive = true,
@@ -6310,7 +6650,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 33,
+                            QuestId = 35,
                             DefaultStatus = "NotStarted",
                             Description = "Lyra opens the rite and steps back — the seals must be set by the one who won them. Place the four Seal Books on the Origin Tree and break the curse.",
                             IsActive = true,
@@ -6329,7 +6669,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 34,
+                            QuestId = 36,
                             DefaultStatus = "NotStarted",
                             Description = "The Origin Tree is green again and the forest wakes around it. Speak with Lyra one last time — the codex had a master, and that story is not finished.",
                             IsActive = true,

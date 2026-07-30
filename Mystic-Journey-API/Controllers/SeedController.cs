@@ -1056,10 +1056,12 @@ namespace Mystic_Journey_API.Controllers
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Archer 2", "Archer");
                 
                 var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Archer 3", "Archer");
+                var p5 = await CreatePlayer("elf_user5", "elf5@mystic.test", "Tutorial Archer 5", "Archer");
 
-                // elf3 đã xong hết Chapter 2 (claim tới quest 20 "Arthur's Parting Words") và đang
-                // đứng ở Autumn Pumpkin với quest 21 NotStarted — tức bước kế tiếp là đi thuyền
-                // sang FrozenMountain gặp Roselyn Aurora Queen.
+                // elf3 và elf5 chung một mốc quest: xong hết Chapter 2 (claim tới quest 20 "Arthur's
+                // Parting Words"), quest 21 NotStarted — tức đứng ngay đầu Chapter 3. Khác nhau chỗ
+                // đứng: elf3 còn ở Autumn Pumpkin (bước kế tiếp là đi thuyền), elf5 đã sang tới
+                // FrozenMountain (bước kế tiếp là gặp Cedric ngay chỗ vừa lên bờ).
                 // Level 6 = RequiredLevel của quest 21; thấp hơn thì HUD hiện "Suggested: Level 6".
                 var p3Profile = await _ctx.PlayerProfiles.FirstAsync(p => p.PlayerProfileId == p3);
                 p3Profile.Class = "Archer";
@@ -1070,26 +1072,42 @@ namespace Mystic_Journey_API.Controllers
                 p3Profile.PositionX = -29.0;
                 p3Profile.PositionY = 58.0;
 
-                var p3Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p3).ToListAsync();
-                foreach (var skin in p3Skins)
-                    skin.IsEquipped = skin.SkinId == skinArcher.SkinId;
-                if (p3Skins.All(skin => skin.SkinId != skinArcher.SkinId))
+                var p5Profile = await _ctx.PlayerProfiles.FirstAsync(p => p.PlayerProfileId == p5);
+                p5Profile.Class = "Archer";
+                p5Profile.Level = 6;
+                p5Profile.LastMapName = "FrozenMountain";
+                // Đúng chỗ thuyền thả người chơi xuống: BoatVideoTeleporter đặt useSpecificSpawn = 0
+                // nên điểm đến là SpawnPoint_Tutorial trong FrozenMountain.unity — local (11.9, 17.8)
+                // dưới PlayerSpawnRuntime (-25, -62) => world (-13.1, -44.2). Dùng lại toạ độ này
+                // thay vì đặt cạnh Nữ hoàng, vì đây là chỗ chắc chắn đứng được (không kẹt collider).
+                p5Profile.PositionX = -13.1;
+                p5Profile.PositionY = -44.2;
+
+                foreach (var archerPid in new[] { p3, p5 })
                 {
-                    _ctx.PlayerSkins.Add(new PlayerSkin
+                    var archerSkins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == archerPid).ToListAsync();
+                    foreach (var skin in archerSkins)
+                        skin.IsEquipped = skin.SkinId == skinArcher.SkinId;
+                    if (archerSkins.All(skin => skin.SkinId != skinArcher.SkinId))
                     {
-                        PlayerProfileId = p3,
-                        SkinId = skinArcher.SkinId,
-                        IsEquipped = true,
-                        UnlockedAt = DateTime.UtcNow
-                    });
+                        _ctx.PlayerSkins.Add(new PlayerSkin
+                        {
+                            PlayerProfileId = archerPid,
+                            SkinId = skinArcher.SkinId,
+                            IsEquipped = true,
+                            UnlockedAt = DateTime.UtcNow
+                        });
+                    }
                 }
 
-                _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p3));
+                _ctx.PlayerQuests.RemoveRange(
+                    _ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p3 || pq.PlayerProfileId == p5));
                 await _ctx.SaveChangesAsync();
 
-                // Chapter 2 xong hết: quest 1..20 Claimed, quest 21 (Chapter 3 - Slimes of the Snow
-                // Fields, map FrozenMountain) NotStarted -> bước kế tiếp là qua map mới nhận quest
-                // từ Roselyn Aurora Queen.
+                // Chapter 2 xong hết: quest 1..20 Claimed, quest 21 ("[Chapter 3] The Ice Slimes",
+                // map FrozenMountain) NotStarted -> bước kế tiếp là nhận quest từ Cedric (đội trưởng
+                // dân binh đứng ngay chỗ thuyền cập bờ), KHÔNG phải Nữ hoàng: chương 3 giờ mở bằng
+                // phép thử của Cedric, xong rồi anh ta mới tiến cử lên citadel.
                 //
                 // Bản ghi NotStarted phải khớp CreateInitialQuestRecord của PlayerQuestService
                 // (Progress = 0, ClaimedAt/CompletedAt = null), nếu không client sẽ hiểu sai trạng
@@ -1100,21 +1118,24 @@ namespace Mystic_Journey_API.Controllers
                 var seededQuests = await _ctx.Quests
                     .Where(q => q.QuestId <= notStartedQuestId)
                     .ToListAsync();
-                foreach (var quest in seededQuests)
+                foreach (var chapter3Pid in new[] { p3, p5 })
                 {
-                    var isNotStarted = quest.QuestId > lastClaimedQuestId;
-                    var targetAmount = quest.TargetAmount < 1 ? 1 : quest.TargetAmount;
-                    _ctx.PlayerQuests.Add(new PlayerQuest
+                    foreach (var quest in seededQuests)
                     {
-                        PlayerProfileId = p3,
-                        QuestId = quest.QuestId,
-                        Status = isNotStarted ? "NotStarted" : "Claimed",
-                        TargetValue = targetAmount,
-                        Progress = isNotStarted ? 0 : targetAmount,
-                        AcceptedAt = DateTime.UtcNow,
-                        CompletedAt = isNotStarted ? null : DateTime.UtcNow,
-                        ClaimedAt = isNotStarted ? null : DateTime.UtcNow
-                    });
+                        var isNotStarted = quest.QuestId > lastClaimedQuestId;
+                        var targetAmount = quest.TargetAmount < 1 ? 1 : quest.TargetAmount;
+                        _ctx.PlayerQuests.Add(new PlayerQuest
+                        {
+                            PlayerProfileId = chapter3Pid,
+                            QuestId = quest.QuestId,
+                            Status = isNotStarted ? "NotStarted" : "Claimed",
+                            TargetValue = targetAmount,
+                            Progress = isNotStarted ? 0 : targetAmount,
+                            AcceptedAt = DateTime.UtcNow,
+                            CompletedAt = isNotStarted ? null : DateTime.UtcNow,
+                            ClaimedAt = isNotStarted ? null : DateTime.UtcNow
+                        });
+                    }
                 }
                 await _ctx.SaveChangesAsync();
 
@@ -1125,10 +1146,13 @@ namespace Mystic_Journey_API.Controllers
                 {
                     _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p3, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
                     _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p4, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+                    // elf5 cùng mốc quest với elf3 nên cũng mở sẵn skill để đánh được quái Chapter 3
+                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p5, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
                 }
                 await _ctx.SaveChangesAsync();
 
-                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, completed Quest 27
+                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, đã claim tới
+                // quest "The Skull by the Well" (ID 28 sau khi chèn quest kết chương 3)
                 var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
                 if (p2Profile != null)
                 {
@@ -1150,11 +1174,16 @@ namespace Mystic_Journey_API.Controllers
                 }
                 await _ctx.SaveChangesAsync();
 
-                // Clear existing PlayerQuests for elf2 and seed Q1..Q27 as Claimed
+                // Clear existing PlayerQuests for elf2 and seed Q1..Q29 as Claimed.
+                // Mốc này là "đã xong tới quest The Skull by the Well" (elf2 đứng ở AbandonedCastle
+                // cạnh Valiant Warrior). Bound này KHÔNG phải hằng số bất biến: mỗi lần chèn quest
+                // mới vào giữa chuỗi là nó lệch (27 -> 28 khi chèn "Truth of the Codex",
+                // 28 -> 29 khi chèn "A Word to the Queen"). Đối chiếu lại theo TITLE trong seed,
+                // đừng cộng số một cách máy móc.
                 _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p2));
                 await _ctx.SaveChangesAsync();
 
-                for (int qId = 1; qId <= 27; qId++)
+                for (int qId = 1; qId <= 29; qId++)
                 {
                     _ctx.PlayerQuests.Add(new PlayerQuest
                     {
@@ -1198,7 +1227,7 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2, p3, p4 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2, p3, p4, p5 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
             }
             catch (Exception ex)
             {
