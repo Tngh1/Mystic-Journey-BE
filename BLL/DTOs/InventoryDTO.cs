@@ -20,6 +20,19 @@ namespace BLL.DTOs
         public string? EquippedSlot { get; set; }
         public int EnhancementLevel { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        // Chỉ số của trang bị, lấy từ Item.EquipmentStats. Client (UIItemDetailPopup) đọc đúng
+        // các field này để hiện bảng chỉ số khi mở chi tiết vật phẩm; thiếu chúng thì popup
+        // luôn hiện 0. Vật phẩm không phải trang bị (Consumable/Material) sẽ để 0.
+        public int BaseHp { get; set; }
+        public int BaseAtk { get; set; }
+        public int BaseDef { get; set; }
+
+        public int BonusHp { get; set; }
+        public int BonusAtk { get; set; }
+        public int BonusDef { get; set; }
+        public float BonusCritRate { get; set; }
+        public float BonusCritDamage { get; set; }
     }
 
     public class EquipItemRequestDto

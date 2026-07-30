@@ -6,6 +6,7 @@ using DAL.Repositories;
 using DAL.Repositories.Interfaces;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -165,6 +166,10 @@ builder.Services.AddScoped<IDailyLoginRewardService, DailyLoginRewardService>();
 builder.Services.AddScoped<IGuildRepository, GuildRepository>();
 builder.Services.AddScoped<BLL.Services.Interfaces.IGuildService, BLL.Services.GuildService>();
 
+// Wiki Services 
+builder.Services.AddScoped<IWikiRepository, WikiRepository>();
+builder.Services.AddScoped<IWikiService, WikiService>();
+
 // Background Jobs
 builder.Services.AddHostedService<Mystic_Journey_API.BackgroundJobs.GuildContributionResetJob>();
 
@@ -199,6 +204,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
 builder.Services.AddControllers(options => options.Filters.Add<ApiExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

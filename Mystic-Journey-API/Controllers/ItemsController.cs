@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý items (vật phẩm) trong game.
-    // Game APIs: Xem danh sách, xem chi tiết item.
-    // Admin APIs: Tạo, cập nhật item.
+    // Quản lý items (vật phẩm) — CHỈ dành cho trang dashboard.
+    // Toàn bộ controller yêu cầu Admin/SuperAdmin: xem danh sách (kèm bản nháp
+    // isActive=false), xem chi tiết, cập nhật.
+    // Codex công khai cho web wiki nằm ở WikiController (/api/wiki/items).
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public class ItemsController : ControllerBase
     {
         private readonly IItemService _itemService;
@@ -22,12 +24,11 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
+        // ADMIN APIs (Dashboard)
         // ═══════════════════════════════════════════════════════════════════════
 
         // ── GET /api/items/{id} ─────────────────────────────────────
         // Lấy chi tiết item theo ID.
-        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -56,15 +57,10 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PagedResultDto<ItemResponseDto>> { Success = true, Data = result });
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
-
         // NOTE: Create endpoint removed - managed via seeding.
 
         // ── PUT /api/items/{id} ─────────────────────────────────────
         // Cập nhật item hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateItemRequestDto request)
         {

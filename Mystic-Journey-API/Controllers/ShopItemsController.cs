@@ -26,8 +26,9 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
 
         // ── GET /api/shopitems/{id} ─────────────────────────────────
-        // Lấy chi tiết shop item theo ID.
-        [AllowAnonymous]
+        // Lấy chi tiết shop item theo ID. Yêu cầu đăng nhập: đây là dữ liệu
+        // trong game, web wiki không hiển thị shop.
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

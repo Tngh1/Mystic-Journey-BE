@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý skills (kỹ năng) trong game.
-    // Game APIs: Xem danh sách, xem chi tiết skill.
-    // Admin APIs: Tạo, cập nhật skill.
+    // Quản lý skills (kỹ năng) — CHỈ dành cho trang dashboard.
+    // Toàn bộ controller yêu cầu Admin/SuperAdmin: xem danh sách (kèm bản nháp
+    // isActive=false), xem chi tiết, tạo, cập nhật.
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public class SkillsController : ControllerBase
     {
         private readonly ISkillService _skillService;
@@ -22,12 +23,11 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
+        // ADMIN APIs (Dashboard)
         // ═══════════════════════════════════════════════════════════════════════
 
         // ── GET /api/skills/{id} ───────────────────────────────────
         // Lấy chi tiết skill theo ID.
-        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -48,13 +48,8 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PagedResultDto<SkillResponseDto>> { Success = true, Data = result });
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
-
         // ── POST /api/skills ──────────────────────────────────────
         // Tạo skill mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateSkillRequestDto request)
         {

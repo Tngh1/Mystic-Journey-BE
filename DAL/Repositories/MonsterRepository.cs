@@ -236,7 +236,9 @@ namespace DAL.Repositories
                 "attack" => desc ? query.OrderByDescending(x => x.Atk) : query.OrderBy(x => x.Atk),
                 "defense" => desc ? query.OrderByDescending(x => x.Def) : query.OrderBy(x => x.Def),
                 "goldreward" => desc ? query.OrderByDescending(x => x.GoldReward) : query.OrderBy(x => x.GoldReward),
-                "expReward" => desc ? query.OrderByDescending(x => x.ExperienceReward) : query.OrderBy(x => x.ExperienceReward),
+                // Khoá switch đã ToLowerInvariant(), nên nhánh này phải viết thường
+                // hoàn toàn — trước đây là "expReward" nên không bao giờ khớp.
+                "expreward" => desc ? query.OrderByDescending(x => x.ExperienceReward) : query.OrderBy(x => x.ExperienceReward),
                 "isactive" => desc ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
                 _ => desc ? query.OrderByDescending(x => x.MonsterId) : query.OrderBy(x => x.MonsterId),
             };

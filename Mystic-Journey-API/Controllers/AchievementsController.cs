@@ -57,8 +57,9 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ── GET /api/achievements/{id} ─────────────────────────────────────────
-        // Lấy chi tiết một achievement theo ID.
-        [AllowAnonymous]
+        // Lấy chi tiết một achievement theo ID. Yêu cầu đăng nhập: bản công khai
+        // cho web wiki là /api/wiki/achievements/{id}.
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

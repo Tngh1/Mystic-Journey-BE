@@ -442,9 +442,29 @@ namespace BLL.Mappings
             // TÚI ĐỒ (Inventory)
             // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ vật phẩm trong túi đồ (ánh xạ icon URL).
+            // Ánh xạ vật phẩm trong túi đồ (ánh xạ icon URL + chỉ số trang bị).
+            // Chỉ số nằm ở Item.EquipmentStats (bảng riêng) nên phải map tay từng field —
+            // AutoMapper không tự đi xuống 2 cấp. Repository phải Include(i => i.Item)
+            //   .ThenInclude(it => it.EquipmentStats), nếu không tất cả sẽ là 0.
             CreateMap<InventoryItem, InventoryItemResponseDto>()
-                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null));
+                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
+                .ForMember(dest => dest.ItemSlot, opt => opt.MapFrom(src => src.Item != null ? src.Item.Slot : "None"))
+                .ForMember(dest => dest.BaseHp, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BaseHp : 0))
+                .ForMember(dest => dest.BaseAtk, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BaseAtk : 0))
+                .ForMember(dest => dest.BaseDef, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BaseDef : 0))
+                .ForMember(dest => dest.BonusHp, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusHp : 0))
+                .ForMember(dest => dest.BonusAtk, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusAtk : 0))
+                .ForMember(dest => dest.BonusDef, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusDef : 0))
+                // Crit lưu dạng SỐ NGUYÊN ĐÃ NHÂN THANG (StatScale.CritRate = 10 → 15.5% lưu là 155).
+                // Phải chia lại đúng như ItemService làm, nếu không popup hiện crit gấp 10 lần.
+                .ForMember(dest => dest.BonusCritRate, opt => opt.MapFrom(src =>
+                    src.Item != null && src.Item.EquipmentStats != null
+                        ? BLL.Utils.StatHelper.FromScaled(src.Item.EquipmentStats.BonusCritRate, BLL.Utils.StatScale.CritRate)
+                        : 0f))
+                .ForMember(dest => dest.BonusCritDamage, opt => opt.MapFrom(src =>
+                    src.Item != null && src.Item.EquipmentStats != null
+                        ? BLL.Utils.StatHelper.FromScaled(src.Item.EquipmentStats.BonusCritDamage, BLL.Utils.StatScale.CritRate)
+                        : 0f));
             // Ánh xạ yêu cầu thêm/cập nhật vật phẩm trong túi đồ.
             CreateMap<AddInventoryItemRequestDto, InventoryItem>();
             CreateMap<UpdateInventoryItemRequestDto, InventoryItem>();

@@ -27,8 +27,9 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
 
         // ── GET /api/gachabanners/{id} ────────────────────────────
-        // Lấy chi tiết gacha banner theo ID.
-        [AllowAnonymous]
+        // Lấy chi tiết gacha banner theo ID. Yêu cầu đăng nhập: đây là dữ liệu
+        // trong game, web wiki không hiển thị banner.
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
