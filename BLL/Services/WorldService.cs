@@ -174,13 +174,11 @@ namespace BLL.Services
             {
                 playerQuest.TargetValue = targetAmount;
                 playerQuest.Progress = Math.Min(targetAmount, playerQuest.Progress + progressDelta);
-                
-                if (playerQuest.Progress >= targetAmount)
-                {
-                    playerQuest.Status = "Completed";
-                    playerQuest.CompletedAt ??= DateTime.UtcNow;
-                }
 
+                // Hái đủ vật phẩm KHÔNG phải là hoàn thành: Collect chỉ Completed khi nộp cho NPC
+                // qua TurnInQuestItem (nơi trừ item trong kho). Flip Completed ngay ở đây khiến
+                // client gặp NPC là AutoClaimCompletedQuest bắn popup "Reward Claimed!" + trả
+                // thưởng dù người chơi chưa trả nhiệm vụ, và vật phẩm không bao giờ bị trừ.
                 await _playerQuestRepository.Update(playerQuest);
 
                 var collectQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId.Value);
@@ -648,6 +646,21 @@ namespace BLL.Services
         {
             if (!IsQuestItemInteraction(request, quest))
                 return null;
+
+            // Kiểm tra giới hạn: nếu đã đủ số lượng quest thì không cho nhặt thêm
+            if (quest != null)
+            {
+                var playerQuest = await _playerQuestRepository.GetByPlayerAndQuest(playerProfileId, quest.QuestId);
+                if (playerQuest != null)
+                {
+                    var targetAmount = Math.Max(1, quest.TargetAmount);
+                    if (playerQuest.Progress >= targetAmount)
+                    {
+                        // Đã đủ số lượng, không cho nhặt thêm
+                        return null;
+                    }
+                }
+            }
 
             var item = await ResolveQuestItem(request, quest);
             if (item == null)

@@ -650,8 +650,9 @@ namespace Mystic_Journey_API.Controllers
                 // Không cần upsert lại ở đây
 
                 // 2. Upsert skins, same reason as items: player skin ownership can reference them.
-                var skinNames = new[] { 
-                    "[ELF] ElfForest Default", 
+                var skinNames = new[] {
+                    "[ELF] ElfForest Default",
+                    "[SEED] Archer Default",
                     "[ELF] Ranger Cloak",
                     "[ELF] Elven Blade",
                     "[ELF] Leaf Crown",
@@ -679,6 +680,7 @@ namespace Mystic_Journey_API.Controllers
                 }
 
                 var skinDefault = UpsertSkin("[ELF] ElfForest Default", "Default outfit for the ElfForest tutorial area.", "FullSet", "Common");
+                var skinArcher = UpsertSkin("[SEED] Archer Default", "Default outfit for Archers.", "FullSet", "Common");
                 var skinAlt = UpsertSkin("[ELF] Ranger Cloak", "A cloak worn by forest rangers.", "Cloak", "Rare");
                 var skinSword = UpsertSkin("[ELF] Elven Blade", "A beautiful blade glowing with forest magic.", "Weapon", "Epic");
                 var skinHelm = UpsertSkin("[ELF] Leaf Crown", "A crown made of mystical leaves.", "Helmet", "Uncommon");
@@ -1053,7 +1055,69 @@ namespace Mystic_Journey_API.Controllers
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
                 var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Archer 2", "Archer");
                 
-                var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Knight 3", "Knight");
+                var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Archer 3", "Archer");
+
+                // elf3 đã xong hết Chapter 2 (claim tới quest 20 "Arthur's Parting Words") và đang
+                // đứng ở Autumn Pumpkin với quest 21 NotStarted — tức bước kế tiếp là đi thuyền
+                // sang FrozenMountain gặp Roselyn Aurora Queen.
+                // Level 6 = RequiredLevel của quest 21; thấp hơn thì HUD hiện "Suggested: Level 6".
+                var p3Profile = await _ctx.PlayerProfiles.FirstAsync(p => p.PlayerProfileId == p3);
+                p3Profile.Class = "Archer";
+                p3Profile.Level = 6;
+                p3Profile.LastMapName = "AutumnPumpkin";
+                // Đứng cạnh Arthur (-32, 58) — chỗ vừa nói chuyện xong ở quest 20. Quest 21 nằm ở
+                // map khác nên waypoint sẽ chỉ ra Boat (QuestWaypointManager.FindMapExit).
+                p3Profile.PositionX = -29.0;
+                p3Profile.PositionY = 58.0;
+
+                var p3Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p3).ToListAsync();
+                foreach (var skin in p3Skins)
+                    skin.IsEquipped = skin.SkinId == skinArcher.SkinId;
+                if (p3Skins.All(skin => skin.SkinId != skinArcher.SkinId))
+                {
+                    _ctx.PlayerSkins.Add(new PlayerSkin
+                    {
+                        PlayerProfileId = p3,
+                        SkinId = skinArcher.SkinId,
+                        IsEquipped = true,
+                        UnlockedAt = DateTime.UtcNow
+                    });
+                }
+
+                _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p3));
+                await _ctx.SaveChangesAsync();
+
+                // Chapter 2 xong hết: quest 1..20 Claimed, quest 21 (Chapter 3 - Slimes of the Snow
+                // Fields, map FrozenMountain) NotStarted -> bước kế tiếp là qua map mới nhận quest
+                // từ Roselyn Aurora Queen.
+                //
+                // Bản ghi NotStarted phải khớp CreateInitialQuestRecord của PlayerQuestService
+                // (Progress = 0, ClaimedAt/CompletedAt = null), nếu không client sẽ hiểu sai trạng
+                // thái. Chuỗi main mở khoá theo "quest trước đã Claimed" (IsMainQuestUnlocked) nên
+                // 21 hợp lệ ngay khi 20 đã Claimed.
+                const int lastClaimedQuestId = 20;
+                const int notStartedQuestId = 21;
+                var seededQuests = await _ctx.Quests
+                    .Where(q => q.QuestId <= notStartedQuestId)
+                    .ToListAsync();
+                foreach (var quest in seededQuests)
+                {
+                    var isNotStarted = quest.QuestId > lastClaimedQuestId;
+                    var targetAmount = quest.TargetAmount < 1 ? 1 : quest.TargetAmount;
+                    _ctx.PlayerQuests.Add(new PlayerQuest
+                    {
+                        PlayerProfileId = p3,
+                        QuestId = quest.QuestId,
+                        Status = isNotStarted ? "NotStarted" : "Claimed",
+                        TargetValue = targetAmount,
+                        Progress = isNotStarted ? 0 : targetAmount,
+                        AcceptedAt = DateTime.UtcNow,
+                        CompletedAt = isNotStarted ? null : DateTime.UtcNow,
+                        ClaimedAt = isNotStarted ? null : DateTime.UtcNow
+                    });
+                }
+                await _ctx.SaveChangesAsync();
+
                 var p4 = await CreatePlayer("elf_user4", "elf4@mystic.test", "Tutorial Knight 4", "Knight");
 
                 var allSkillIds = await _ctx.Skills.Select(s => s.SkillId).ToListAsync();
