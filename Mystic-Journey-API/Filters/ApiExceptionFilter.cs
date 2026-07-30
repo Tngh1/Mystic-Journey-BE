@@ -21,10 +21,16 @@ namespace Mystic_Journey_API.Filters
 
             _logger.LogError(context.Exception, "Unhandled exception: {Message}", context.Exception.Message);
 
+            var errorMessage = context.Exception.Message;
+            if (context.Exception.InnerException != null)
+            {
+                errorMessage += $" | Inner: {context.Exception.InnerException.Message}";
+            }
+
             var response = new ApiResponse<object>
             {
                 Success = false,
-                Message = context.Exception.Message,
+                Message = errorMessage,
                 ErrorCode = errorCode
             };
 

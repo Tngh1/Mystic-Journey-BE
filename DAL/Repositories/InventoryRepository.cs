@@ -28,6 +28,7 @@ namespace DAL.Repositories
         {
             return await _context.InventoryItems
                 .Include(i => i.Item)
+                    .ThenInclude(it => it!.EquipmentStats)
                 .Include(i => i.PlayerProfile)
                 .FirstOrDefaultAsync(i => i.InventoryItemId == id);
         }
@@ -37,14 +38,18 @@ namespace DAL.Repositories
         {
             return await _context.InventoryItems
                 .Include(i => i.Item)
+                    .ThenInclude(it => it!.EquipmentStats)
                 .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);
         }
 
         /// <summary>Lấy toàn bộ túi đồ của người chơi.</summary>
+        // ThenInclude(EquipmentStats): chỉ số trang bị nằm ở bảng riêng. Không eager-load thì
+        // AutoMapper thấy null và trả 0 cho mọi chỉ số → popup chi tiết vật phẩm trống trơn.
         public async Task<List<InventoryItem>> GetByPlayerId(int playerProfileId)
         {
             return await _context.InventoryItems
                 .Include(i => i.Item)
+                    .ThenInclude(it => it!.EquipmentStats)
                 .Where(i => i.PlayerProfileId == playerProfileId)
                 .ToListAsync();
         }

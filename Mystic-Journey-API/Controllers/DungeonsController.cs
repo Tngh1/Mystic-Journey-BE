@@ -31,8 +31,9 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
 
         // ── GET /api/dungeons/{id} ───────────────────────────────────────────
-        // Lấy thông tin dungeon theo ID.
-        [AllowAnonymous]
+        // Lấy thông tin dungeon theo ID. Yêu cầu đăng nhập: bản công khai cho
+        // web wiki là /api/wiki/dungeons/{id}, endpoint này thuộc luồng game.
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

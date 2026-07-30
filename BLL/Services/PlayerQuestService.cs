@@ -70,14 +70,21 @@ namespace BLL.Services
                 if (existingMap.ContainsKey(quest.QuestId))
                     continue;
 
-                var created = await _playerQuestRepo.Create(CreateInitialQuestRecord(playerProfileId, quest));
-                existingMap[quest.QuestId] = created;
-                createdAny = true;
+                try
+                {
+                    var created = await _playerQuestRepo.Create(CreateInitialQuestRecord(playerProfileId, quest));
+                    existingMap[quest.QuestId] = created;
+                    createdAny = true;
+                }
+                catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+                {
+                    // Ignore duplicate key if created by a concurrent request
+                }
             }
 
             // Main chain is GLOBAL (ordered by QuestId), not per-map. Chapters run 1-8 ElfForest,
-            // 9-17 AutumnPumpkin, 18-22 FrozenMountain, 23-28 AbandonedCastle, then 29-31 back in
-            // ElfForest. A per-map chain would unlock quest 29 ("Return with the Seals") the moment
+            // 9-20 AutumnPumpkin, 21-25 FrozenMountain, 26-31 AbandonedCastle, then 32-34 back in
+            // ElfForest. A per-map chain would unlock quest 32 ("Return with the Seals") the moment
             // quest 8 is claimed - the finale before the 4 Seal Books it turns in even exist.
             var mainChain = allActiveQuests
                 .Where(IsMainQuest)
@@ -87,9 +94,14 @@ namespace BLL.Services
             for (var i = 0; i < mainChain.Count; i++)
             {
                 var quest = mainChain[i];
-                // Only materialize quests of the map the player is standing in; the chain itself is global.
-                if (!string.Equals(NormalizeMapName(quest.MapName), mapName, StringComparison.OrdinalIgnoreCase))
-                    continue;
+                // KHÔNG lọc theo map ở đây. Chuỗi main quest gối đầu qua các map: claim xong quest
+                // 20 (AutumnPumpkin) thì quest kế là 21 (FrozenMountain). Nếu chỉ materialize quest
+                // của map đang đứng thì sau khi claim 20 người chơi không còn quest nào chưa Claimed
+                // → client PickPreferredQuest trả null → tracker "No quest available." và mũi tên bị
+                // Clear(), nên không có gì chỉ đường ra Thuyền để sang map kế.
+                // An toàn vì chain tự chặn: IsMainQuestUnlocked đòi quest trước phải "Claimed", nên
+                // mỗi lần nhiều nhất chỉ thêm ĐÚNG 1 quest kế tiếp, và AcceptQuest vẫn chặn nhận
+                // quest khi chưa đứng đúng map.
                 // No level gate on the main chain: it is already paced by "previous quest claimed".
                 // Gating it by level creates dead ends whenever the chapter's own exp rewards cannot
                 // reach the next quest's RequiredLevel (e.g. quest 8 -> 9: lvl 2 with 85 exp vs lvl 3).
@@ -99,9 +111,16 @@ namespace BLL.Services
                 if (existingMap.ContainsKey(quest.QuestId))
                     continue;
 
-                var created = await _playerQuestRepo.Create(CreateInitialQuestRecord(playerProfileId, quest));
-                existingMap[quest.QuestId] = created;
-                createdAny = true;
+                try
+                {
+                    var created = await _playerQuestRepo.Create(CreateInitialQuestRecord(playerProfileId, quest));
+                    existingMap[quest.QuestId] = created;
+                    createdAny = true;
+                }
+                catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+                {
+                    // Ignore duplicate key if created by a concurrent request
+                }
             }
 
             if (createdAny)
@@ -111,9 +130,15 @@ namespace BLL.Services
                 .GroupBy(pq => pq.QuestId)
                 .ToDictionary(g => g.Key, g => g.First());
 
-            // 2. Visible list: include all active/in-progress/completed quests AND map-specific quests
+            // 2. Visible list: include all active/in-progress/completed quests AND map-specific quests.
+            // Main quest luôn hiện dù ở map nào: quest kế tiếp trong chuỗi có thể nằm ở map khác
+            // (claim 20 ở AutumnPumpkin → 21 ở FrozenMountain). Lọc nó ra khiến client hết quest
+            // "chưa Claimed" → tracker "No quest available." + mũi tên bị Clear() → không có gì chỉ
+            // đường ra Thuyền. Side quest vẫn giữ nguyên: chỉ hiện khi đứng đúng map.
             var visible = allPlayerQuests
-                .Where(pq => !IsStatus(pq, "NotStarted") || (pq.Quest != null && string.Equals(NormalizeMapName(pq.Quest.MapName), mapName, StringComparison.OrdinalIgnoreCase)))
+                .Where(pq => !IsStatus(pq, "NotStarted")
+                             || IsMainQuest(pq.Quest)
+                             || (pq.Quest != null && string.Equals(NormalizeMapName(pq.Quest.MapName), mapName, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
             var sortedVisible = visible
@@ -220,7 +245,12 @@ namespace BLL.Services
 
                 pq.Progress = Math.Min(nextProgress, targetAmount);
 
-                if (pq.Progress >= targetAmount)
+                // Collect quest KHÔNG được tự chuyển Completed từ progress ngoài world: nó chỉ hoàn
+                // thành khi người chơi nộp vật phẩm cho NPC (TurnInQuestItem — nơi trừ item trong
+                // kho). Nếu flip ở đây, quest thành Completed lúc vừa hái đủ → client gặp NPC là
+                // AutoClaimCompletedQuest bắn popup "Reward Claimed!" và trả thưởng khi chưa trả
+                // nhiệm vụ, đồng thời vật phẩm không bao giờ bị trừ.
+                if (pq.Progress >= targetAmount && !IsCollectQuest(pq.Quest))
                 {
                     pq.Status = "Completed";
                     pq.CompletedAt ??= DateTime.UtcNow;
@@ -472,7 +502,10 @@ namespace BLL.Services
             if (Contains(text, "Old Willow Branch") || Contains(text, "Willow Branch"))
                 reqs.Add(("Old Willow Branch", Math.Max(1, quest.TargetAmount)));
 
-            if (Contains(text, "Pumpkin") || Contains(text, "Enchanted Pumpkin"))
+            // Deliver/Harvest quests in AutumnPumpkin require Enchanted Pumpkins
+            // These quests have "Deliver" in title but may not have "Pumpkin" in description
+            if (Contains(text, "Pumpkin") || Contains(text, "Enchanted Pumpkin") ||
+                (Contains(text, "Deliver") && Contains(text, "Harvest")))
                 reqs.Add(("Enchanted Pumpkin", Math.Max(1, quest.TargetAmount)));
 
             if (Contains(text, "Flour") || Contains(text, "Magic Flour"))
@@ -579,6 +612,10 @@ namespace BLL.Services
 
         private static bool IsTalkQuest(Quest? quest)
             => string.Equals(quest?.ObjectiveType, "Talk", StringComparison.OrdinalIgnoreCase);
+
+        // Collect chỉ hoàn thành qua WorldService.TurnInQuestItem (nộp vật phẩm cho NPC).
+        private static bool IsCollectQuest(Quest? quest)
+            => string.Equals(quest?.ObjectiveType, "Collect", StringComparison.OrdinalIgnoreCase);
 
 
         private static bool IsEquipSkillQuest(Quest? quest)

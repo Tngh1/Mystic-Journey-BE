@@ -89,8 +89,16 @@ namespace DAL.Repositories
         public async Task<PlayerQuest> Create(PlayerQuest entity)
         {
             _context.PlayerQuests.Add(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            try
+            {
+                await _context.SaveChangesAsync();
+                return entity;
+            }
+            catch
+            {
+                _context.Entry(entity).State = EntityState.Detached;
+                throw;
+            }
         }
 
         /// <summary>Cập nhật nhiệm vụ (tiến độ, trạng thái).</summary>
