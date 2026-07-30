@@ -73,6 +73,7 @@ public class GuildService : IGuildService
             WeeklyContribution = m.WeeklyContribution,
             TotalContribution = m.TotalContribution,
             JoinedAt = m.JoinedAt,
+            LastDonateAt = m.LastDonateAt,
             IsOnline = m.PlayerProfile != null && m.PlayerProfile.Account != null
                 && m.PlayerProfile.Account.LastSeen.HasValue
                 && (DateTime.UtcNow - m.PlayerProfile.Account.LastSeen.Value).TotalMinutes < 5
@@ -761,7 +762,7 @@ public class GuildService : IGuildService
 
     // ─── Donate ───────────────────────────────────────────────────────
 
-    public async Task<GuildDonateResultDto> DonateAsync(int playerProfileId, int guildId, int amount)
+    public async Task<GuildDonateResultDto> DonateAsync(int playerProfileId, int guildId, string currencyType, int amount)
     {
         var guild = await _guildRepo.GetGuildByIdAsync(guildId);
         if (guild == null) throw new Exception("Guild not found");
@@ -769,30 +770,60 @@ public class GuildService : IGuildService
         var member = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (member == null) throw new Exception("Not a member");
 
+        if (member.LastDonateAt.HasValue && member.LastDonateAt.Value.Date == DateTime.UtcNow.Date)
+        {
+            throw new Exception("You have already donated today. Please try again tomorrow.");
+        }
+
         var player = await _guildRepo.GetPlayerProfileAsync(playerProfileId);
         if (player == null) throw new Exception("Player not found");
 
-        int totalCost = amount * DonateGoldCostPerUnit;
-        if (player.Gold < totalCost) throw new Exception($"Not enough gold. Need {totalCost}");
+        int expGained = 0;
+        int medalsGained = 0;
+        int playerFeats = 0;
+        int goldSpent = 0;
+        int gemSpent = 0;
 
-        player.Gold -= totalCost;
+        if (currencyType.Equals("Gold", StringComparison.OrdinalIgnoreCase))
+        {
+            if (player.Gold < amount) throw new Exception($"Not enough gold. Need {amount}");
+            player.Gold -= amount;
+            goldSpent = amount;
+
+            // 10,000 Gold = 100 Feats/Exp (Amount / 100)
+            expGained = amount / 100;
+            medalsGained = amount / 100;
+            playerFeats = amount / 100;
+        }
+        else if (currencyType.Equals("Gem", StringComparison.OrdinalIgnoreCase))
+        {
+            if (player.Gems < amount) throw new Exception($"Not enough gems. Need {amount}");
+            player.Gems -= amount;
+            gemSpent = amount;
+
+            // 50 Gem = 500 Feats/Exp (Amount * 10)
+            expGained = amount * 10;
+            medalsGained = amount * 10;
+            playerFeats = amount * 10;
+        }
+        else
+        {
+            throw new Exception("Invalid currency type for donation.");
+        }
+
         await _guildRepo.UpdatePlayerProfileAsync(player);
-
-        int expGained = amount * DonateExpGainPerUnit;
-        int medalsGained = amount * DonateMedalsGainPerUnit;
-        int playerFeats = amount * DonatePlayerFeatsPerUnit;
 
         guild.GuildExp += expGained;
         guild.TotalMedals += medalsGained;
         guild.TotalFeats += playerFeats;
 
-        int playerMedals = amount * DonatePlayerMedalsPerUnit;
+        int playerMedals = medalsGained; // Same as medalsGained for simplicity
         member.Medals += playerMedals;
         member.Feats += playerFeats;
-        member.DailyContribution += amount;
-        member.WeeklyContribution += amount;
-        member.TotalContribution += amount;
-        member.Contribution += amount;
+        member.DailyContribution += playerFeats; // Track contribution by feats instead of raw amount
+        member.WeeklyContribution += playerFeats;
+        member.TotalContribution += playerFeats;
+        member.Contribution += playerFeats;
         member.LastDonateAt = DateTime.UtcNow;
 
         await _guildRepo.UpdateGuildAsync(guild);
@@ -802,7 +833,8 @@ public class GuildService : IGuildService
 
         return new GuildDonateResultDto
         {
-            GoldSpent = totalCost,
+            GoldSpent = goldSpent,
+            GemSpent = gemSpent,
             GuildExpGained = expGained,
             GuildMedalsGained = medalsGained,
             PlayerMedalsGained = playerMedals,

@@ -39,7 +39,7 @@ namespace BLL.Services.Interfaces
         Task<bool> UpdateIconAsync(int playerProfileId, int guildId, int iconId, int? bannerId);
 
         // Donate (Guild EXP + Medal, level up requires both)
-        Task<GuildDonateResultDto> DonateAsync(int playerProfileId, int guildId, int amount);
+        Task<GuildDonateResultDto> DonateAsync(int playerProfileId, int guildId, string currencyType, int amount);
         Task<bool> LevelUpAsync(int playerProfileId, int guildId);
 
         // Logs
