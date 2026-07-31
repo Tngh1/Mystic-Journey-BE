@@ -2363,6 +2363,48 @@ namespace DAL.Migrations
                             Rarity = "Epic",
                             Slot = "None",
                             Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 34,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A remembrance token recovered from the dead of Tide-Knell.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Tide-Knell Remembrance",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 35,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A keepsake carrying a fragment of Natalie's family memories.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Natalie's Memory",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 36,
+                            BaseValue = 0m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A relic left by the wardens who sealed King Aderyn beneath the island.",
+                            IsActive = true,
+                            MaxStack = 99,
+                            Name = "Warden Relic",
+                            Rarity = "Common",
+                            Slot = "None",
+                            Type = "QuestItem"
                         });
                 });
 
@@ -2807,7 +2849,7 @@ namespace DAL.Migrations
                             CritDamage = 20,
                             CritRate = 40,
                             Def = 300,
-                            Description = "The supreme skeleton king.",
+                            Description = "Once a great human king who accepted two Seal Books and imprisoned himself beneath the deserted island to spare the world their curse. Centuries of darkness eroded the hero into the UnderKing.",
                             ExperienceReward = 900,
                             GemReward = 500m,
                             GoldReward = 2500m,
@@ -3424,25 +3466,25 @@ namespace DAL.Migrations
                         new
                         {
                             NPCId = 11,
-                            Description = "A brave warrior fighting skeletons.",
+                            Description = "A battle-worn soldier who returned to Tide-Knell too late — Natalie's father, still guarding the valley from the dead.",
                             InteractionRadius = 2.5f,
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             Name = "Valiant Warrior",
-                            PositionX = -10.66112,
-                            PositionY = 54.928840000000001,
+                            PositionX = 29.82,
+                            PositionY = 129.09999999999999,
                             Type = "QuestGiver"
                         },
                         new
                         {
                             NPCId = 12,
-                            Description = "The ghost of a young girl.",
+                            Description = "The ghost of a lonely girl whose desperate wish for friends doomed Tide-Knell.",
                             InteractionRadius = 2.5f,
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             Name = "Natalie",
-                            PositionX = -48.921259999999997,
-                            PositionY = -21.120059999999999,
+                            PositionX = -10.65,
+                            PositionY = 58.850000000000001,
                             Type = "QuestGiver"
                         },
                         new
@@ -3453,8 +3495,8 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             Name = "Elf Guard",
-                            PositionX = -104.80000305175781,
-                            PositionY = -4.7760000228881836,
+                            PositionX = -101.83,
+                            PositionY = 32.899999999999999,
                             Type = "QuestGiver"
                         },
                         new
@@ -3467,6 +3509,18 @@ namespace DAL.Migrations
                             Name = "Cedric",
                             PositionX = 5.5300000000000002,
                             PositionY = -8.6199999999999992,
+                            Type = "QuestGiver"
+                        },
+                        new
+                        {
+                            NPCId = 15,
+                            Description = "The last keeper of King Aderyn's history, living among the island ruins.",
+                            InteractionRadius = 2.5f,
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            Name = "Brother Cael",
+                            PositionX = -119.29000000000001,
+                            PositionY = -10.890000000000001,
                             Type = "QuestGiver"
                         });
                 });
@@ -4906,7 +4960,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 67,
-                            Content = "Back, stranger, keep your back to the rock! They come up out of the valley floor faster than I can cut them down.",
+                            Content = "Those bones were my neighbours once. I left Tide-Knell for the king's army, and returned to find every soul walking without flesh.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 28,
@@ -4916,18 +4970,8 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 68,
-                            Content = "This is no ordinary haunting. An ancient power is leaking somewhere near, and the dead rise faster than they fall.",
+                            Content = "I have guarded this valley for years, cutting down friends who rise again by moonrise. Help me put 12 of them down.",
                             DisplayOrder = 2,
-                            IsActive = true,
-                            LinkedQuestId = 28,
-                            NPCId = 11,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 116,
-                            Content = "There is a Seal Book buried under all this bone. I have felt it since the day the leak began.",
-                            DisplayOrder = 3,
                             IsActive = true,
                             LinkedQuestId = 28,
                             NPCId = 11,
@@ -4936,340 +4980,180 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 69,
-                            Content = "Cut down 12 of them in the valley with me. Two blades may be enough where one was not.",
-                            DisplayOrder = 4,
+                            Content = "Recover five keepsakes from Tide-Knell. Let me remember the people I am forced to fight.",
+                            DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 28,
+                            LinkedQuestId = 29,
                             NPCId = 11,
                             ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 70,
-                            Content = "The animals are fleeing from the abandoned village of Tide-Knell. Look into it, and find the girl Natalie.",
-                            DisplayOrder = 5,
+                            Content = "Find the memories and my last letter. Natalie deserves to know I came home too late, not that I abandoned her.",
+                            DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 28,
+                            LinkedQuestId = 32,
                             NPCId = 11,
-                            ResponseType = "Reward"
+                            ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 71,
-                            Content = "You can see me. Nobody has seen me in a very long time. My name is Natalie, and this village is Tide-Knell.",
+                            Content = "My mother died, my father went to war, and Tide-Knell called an orphan bad luck. Then a voice beneath the well called me by name.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 29,
-                            NPCId = 12,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 117,
-                            Content = "I cannot leave the well. I have tried. Something of me is still down in that ground, and it holds me here.",
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            LinkedQuestId = 29,
-                            NPCId = 12,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 118,
-                            Content = "The animals knew before you did. That is why they ran. They will not drink from a well with a girl in it.",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            LinkedQuestId = 29,
+                            LinkedQuestId = 30,
                             NPCId = 12,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 72,
-                            Content = "Please. Dig beside the old well and lift out the skull you find there. I am ready to be found.",
-                            DisplayOrder = 4,
+                            Content = "It promised friends who would never abandon me. I believed it. Please dig beside the well and lift out my skull.",
+                            DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 29,
+                            LinkedQuestId = 30,
                             NPCId = 12,
                             ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 73,
-                            Content = "(A weathered letter lies where Natalie once stood. It is her own hand, and it is a farewell.)",
+                            Content = "The voice still whispers. Find three traces around the well and make it answer for the promise it made.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 30,
-                            NPCId = 12,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 119,
-                            Content = "(She writes of a book she opened as a child, of a seal she did not understand, and of the day the valley began to fill with bone.)",
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            LinkedQuestId = 30,
-                            NPCId = 12,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 74,
-                            Content = "Thank you for bringing my remains home. Please bury me under the ivy tree in my courtyard, where I used to sit.",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            LinkedQuestId = 30,
-                            NPCId = 12,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 75,
-                            Content = "The ancient power leak was my doing, and I have paid for it here. Take this Mystic Key — it opens the castle gates on the deserted island.",
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            LinkedQuestId = 30,
+                            LinkedQuestId = 31,
                             NPCId = 12,
                             ResponseType = "Quest"
                         },
                         new
                         {
-                            NPCDialogueId = 76,
-                            Content = "An outsider, with a Mystic Key, standing on my island. The sea should have kept you. Yet here you are.",
+                            NPCDialogueId = 74,
+                            Content = "I was lonely, but the choice was mine. If you can still pity me, bury me beneath the ivy tree.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 31,
-                            NPCId = 13,
-                            ResponseType = "None"
+                            LinkedQuestId = 33,
+                            NPCId = 12,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 75,
+                            Content = "If the earth accepts me, Tide-Knell may sleep. Take my Mystic Key and go to the island.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 33,
+                            NPCId = 12,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 76,
+                            Content = "Natalie's key opens the bridge. Use it at the gate, then let the Elf Guard finish what I could not.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 34,
+                            NPCId = 11,
+                            ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 77,
-                            Content = "I am the last guard of this place. I know what you carry, and I know the forest you are trying to reach.",
-                            DisplayOrder = 2,
+                            Content = "The prisoner was King Aderyn, my closest friend. He accepted two Seal Books so the forests would not bear the whole curse.",
+                            DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 31,
-                            NPCId = 13,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 120,
-                            Content = "A portal home cannot be forced. It must be grown, and for that the rite needs leaves older than the curse itself.",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            LinkedQuestId = 31,
+                            LinkedQuestId = 35,
                             NPCId = 13,
                             ResponseType = "None"
                         },
                         new
                         {
                             NPCDialogueId = 78,
-                            Content = "Collect 5 Ancient Leaves from the Northern Plateau. Bring them, and I will begin the rite of return.",
-                            DisplayOrder = 4,
+                            Content = "Gather five Ancient Leaves. They may open the crypt without destroying what remains of him.",
+                            DisplayOrder = 2,
                             IsActive = true,
-                            LinkedQuestId = 31,
+                            LinkedQuestId = 35,
                             NPCId = 13,
                             ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 79,
-                            Content = "The leaves are enough. The rite is ready. And yet I cannot light it — something below the castle is smothering it.",
+                            Content = "Recover four relics from the old sealing party. I have called my guilt duty for centuries.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 32,
-                            NPCId = 13,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 80,
-                            Content = "The UnderKing has woken. He held the last Seal Book in his hands long before you were born.",
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            LinkedQuestId = 32,
-                            NPCId = 13,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 121,
-                            Content = "Three seals you have already. Without his, the Origin Tree cannot be cleansed and the forest ends with the tree.",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            LinkedQuestId = 32,
-                            NPCId = 13,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 81,
-                            Content = "End his reign. Defeat the UnderKing and take the fourth book from him.",
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            LinkedQuestId = 32,
+                            LinkedQuestId = 36,
                             NPCId = 13,
                             ResponseType = "Quest"
                         },
                         new
                         {
-                            NPCDialogueId = 82,
-                            Content = "It is done. The UnderKing has fallen, and all four Seal Books are in one pair of hands for the first time in an age.",
+                            NPCDialogueId = 80,
+                            Content = "Aderyn was a hero before darkness ate his mind. Defeat the UnderKing and free the man beneath the crown.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 33,
+                            LinkedQuestId = 39,
                             NPCId = 13,
-                            ResponseType = "None"
+                            ResponseType = "Quest"
                         },
                         new
                         {
-                            NPCDialogueId = 83,
-                            Content = "You want the way home. I will give it, but understand what waits: the Origin Tree is nearly gone.",
-                            DisplayOrder = 2,
+                            NPCDialogueId = 81,
+                            Content = "For one breath, I heard Aderyn thank you. Go home and tell the forest that he is finally free.",
+                            DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 33,
-                            NPCId = 13,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 122,
-                            Content = "The rite will open once and close behind you. Whatever you leave undone on this side stays undone.",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            LinkedQuestId = 33,
-                            NPCId = 13,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 84,
-                            Content = "Then go. The portal to the Elf Forest is open. Save the tree, outsider.",
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            LinkedQuestId = 33,
+                            LinkedQuestId = 40,
                             NPCId = 13,
                             ResponseType = "Reward"
                         },
                         new
                         {
-                            NPCDialogueId = 85,
-                            Content = "You came back. Through the ruins, the snow, the ban, the sea — and you are carrying all four seals.",
+                            NPCDialogueId = 82,
+                            Content = "Cleanse three cursed roots in the king's garden. His last living seed is still below the island.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 34,
-                            NPCId = 2,
-                            ResponseType = "None"
+                            LinkedQuestId = 37,
+                            NPCId = 15,
+                            ResponseType = "Quest"
                         },
                         new
                         {
-                            NPCDialogueId = 90,
-                            Content = "The tree has almost no strength left. Every leaf it drops, the curse takes a little more of the forest.",
-                            DisplayOrder = 2,
+                            NPCDialogueId = 83,
+                            Content = "Read three memory fragments. Aderyn chose imprisonment to protect the world; the records must survive him.",
+                            DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 34,
-                            NPCId = 2,
-                            ResponseType = "None"
+                            LinkedQuestId = 38,
+                            NPCId = 15,
+                            ResponseType = "Quest"
                         },
                         new
                         {
-                            NPCDialogueId = 123,
-                            Content = "Four books, four elders, four bindings broken. Set them together and the curse has nowhere left to hide.",
-                            DisplayOrder = 3,
+                            NPCDialogueId = 85,
+                            Content = "You came back carrying all four seals. Bring them to the roots.",
+                            DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 34,
-                            NPCId = 2,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 86,
-                            Content = "Bring the four books to me here, at the roots. Hurry.",
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            LinkedQuestId = 34,
+                            LinkedQuestId = 41,
                             NPCId = 2,
                             ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 91,
-                            Content = "The four seals are whole. I have opened the rite... but I cannot finish it.",
+                            Content = "Set the four Seal Books upon the Origin Tree and break the curse.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 35,
-                            NPCId = 2,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 92,
-                            Content = "The seals answer only to the one who won them. It must be your hand, not mine.",
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            LinkedQuestId = 35,
-                            NPCId = 2,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 124,
-                            Content = "I am the tree's spirit. If the curse takes the roots, it takes me with them — so do not hesitate at the last step.",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            LinkedQuestId = 35,
-                            NPCId = 2,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 93,
-                            Content = "Step to the Origin Tree and set the four Seal Books upon it. Break the curse.",
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            LinkedQuestId = 35,
+                            LinkedQuestId = 42,
                             NPCId = 2,
                             ResponseType = "Quest"
                         },
                         new
                         {
                             NPCDialogueId = 87,
-                            Content = "The curse is breaking... The Origin Tree is finally healing!",
+                            Content = "The curse is breaking. The Origin Tree is finally healing. Thank you.",
                             DisplayOrder = 1,
                             IsActive = true,
-                            LinkedQuestId = 36,
-                            NPCId = 2,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 125,
-                            Content = "Look at the roots. Green, after all this time. The forest will remember the one who stood here today.",
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            LinkedQuestId = 36,
-                            NPCId = 2,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 126,
-                            Content = "And yet the cloaked one was never found, and no one has said who broke the four bindings in the first place.",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            LinkedQuestId = 36,
-                            NPCId = 2,
-                            ResponseType = "None"
-                        },
-                        new
-                        {
-                            NPCDialogueId = 88,
-                            Content = "Thank you, truly. The Origin Tree is saved. But this is not the end... To be continued.",
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            LinkedQuestId = 36,
+                            LinkedQuestId = 43,
                             NPCId = 2,
                             ResponseType = "Reward"
                         });
@@ -6314,7 +6198,7 @@ namespace DAL.Migrations
                             RewardExperience = 250,
                             RewardGems = 5m,
                             RewardGold = 25m,
-                            TargetAmount = 3,
+                            TargetAmount = 10,
                             Title = "[Chapter 2] Trial III: The Goblin Grounds",
                             Type = "Main"
                         },
@@ -6516,7 +6400,7 @@ namespace DAL.Migrations
                         {
                             QuestId = 28,
                             DefaultStatus = "NotStarted",
-                            Description = "The trail of the seals ends at a ruined castle where the dead still keep watch. The Valiant Warrior holds the valley alone — help him put down 12 skeletons.",
+                            Description = "The Valiant Warrior is Natalie's father, returned from war to find Tide-Knell dead. Help him put down 12 skeletons and hold the valley.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Valley",
@@ -6535,7 +6419,26 @@ namespace DAL.Migrations
                         {
                             QuestId = 29,
                             DefaultStatus = "NotStarted",
-                            Description = "In the drowned village of Tide-Knell a girl named Natalie asks a strange favour: dig beside the old well and lift out the skull buried there.",
+                            Description = "Recover 5 remembrance tokens so the Valiant Warrior can name the people he is forced to fight.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Tide-Knell",
+                            ObjectiveTarget = "Tide-Knell Remembrance",
+                            ObjectiveType = "Collect",
+                            QuestGiverName = "Valiant Warrior",
+                            RequiredLevel = 9,
+                            RewardExperience = 220,
+                            RewardGems = 5m,
+                            RewardGold = 35m,
+                            TargetAmount = 5,
+                            Title = "[Chapter 4] Names Beneath the Bone",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 30,
+                            DefaultStatus = "NotStarted",
+                            Description = "Natalie's ghost asks you to dig beside the old well and recover the skull buried there.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Tide-Knell",
@@ -6553,9 +6456,47 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 30,
+                            QuestId = 31,
                             DefaultStatus = "NotStarted",
-                            Description = "The skull is hers. Read the letter she left behind, bury her remains beneath the ivy tree, and she will give you the key she died holding.",
+                            Description = "Find 3 traces of the old seal around the cursed well and force its promise into the open.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Tide-Knell",
+                            ObjectiveTarget = "Cursed Well",
+                            ObjectiveType = "Interact",
+                            QuestGiverName = "Natalie",
+                            RequiredLevel = 10,
+                            RewardExperience = 240,
+                            RewardGems = 5m,
+                            RewardGold = 35m,
+                            TargetAmount = 3,
+                            Title = "[Chapter 4] The Voice Beneath the Well",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 32,
+                            DefaultStatus = "NotStarted",
+                            Description = "Find 3 memories left by Natalie's father and let his daughter hear the truth.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Tide-Knell",
+                            ObjectiveTarget = "Natalie's Memory",
+                            ObjectiveType = "Collect",
+                            QuestGiverName = "Valiant Warrior",
+                            RequiredLevel = 10,
+                            RewardExperience = 240,
+                            RewardGems = 5m,
+                            RewardGold = 35m,
+                            TargetAmount = 3,
+                            Title = "[Chapter 4] The Father's Last Letter",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 33,
+                            DefaultStatus = "NotStarted",
+                            Description = "Bury Natalie beneath the ivy tree and forgive the lonely child who opened the seal.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Tide-Knell",
@@ -6573,9 +6514,28 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 31,
+                            QuestId = 34,
                             DefaultStatus = "NotStarted",
-                            Description = "Natalie's key opens the way to a deserted island where one elf guard still stands his post. He needs 5 Ancient Leaves from the plateau to break the seal below.",
+                            Description = "Use Natalie's Mystic Key at the bridge gate and open the road to the deserted island.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Bridge",
+                            ObjectiveTarget = "Locked Bridge Gate",
+                            ObjectiveType = "Interact",
+                            QuestGiverName = "Valiant Warrior",
+                            RequiredLevel = 10,
+                            RewardExperience = 160,
+                            RewardGems = 5m,
+                            RewardGold = 25m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 4] The Key to the Island",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 35,
+                            DefaultStatus = "NotStarted",
+                            Description = "Gather 5 Ancient Leaves to restore the old rite and open King Aderyn's prison.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Northern Plateau",
@@ -6592,29 +6552,86 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 32,
+                            QuestId = 36,
+                            DefaultStatus = "NotStarted",
+                            Description = "Recover 4 relics from the old sealing party and confront the Elf Guard's guilt.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Deserted Island",
+                            ObjectiveTarget = "Warden Relic",
+                            ObjectiveType = "Collect",
+                            QuestGiverName = "Elf Guard",
+                            RequiredLevel = 11,
+                            RewardExperience = 260,
+                            RewardGems = 5m,
+                            RewardGold = 50m,
+                            TargetAmount = 4,
+                            Title = "[Chapter 4] The Warden's Oath",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 37,
+                            DefaultStatus = "NotStarted",
+                            Description = "Cleanse 3 cursed roots in King Aderyn's abandoned garden.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Northern Plateau",
+                            ObjectiveTarget = "Cursed Root",
+                            ObjectiveType = "Interact",
+                            QuestGiverName = "Brother Cael",
+                            RequiredLevel = 11,
+                            RewardExperience = 280,
+                            RewardGems = 5m,
+                            RewardGold = 55m,
+                            TargetAmount = 3,
+                            Title = "[Chapter 4] The King's Garden",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 38,
+                            DefaultStatus = "NotStarted",
+                            Description = "Read 3 memory fragments and learn why King Aderyn chose imprisonment before entering the crypt.",
+                            IsActive = true,
+                            MapName = "AbandonedCastle",
+                            ObjectiveLocation = "Deserted Island",
+                            ObjectiveTarget = "Aderyn Memory",
+                            ObjectiveType = "Interact",
+                            QuestGiverName = "Brother Cael",
+                            RequiredLevel = 11,
+                            RewardExperience = 300,
+                            RewardGems = 5m,
+                            RewardGold = 60m,
+                            TargetAmount = 3,
+                            Title = "[Chapter 4] The Man Beneath the Crown",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 39,
                             BossMonsterId = 15,
                             DefaultStatus = "NotStarted",
-                            Description = "The leaves burn away the ward and the crypt opens. The UnderKing holds the last two Seal Books — take them from him.",
+                            Description = "Defeat the UnderKing and release the hero beneath the crown.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Deserted Island",
                             ObjectiveTarget = "UnderKing",
                             ObjectiveType = "Defeat",
                             QuestGiverName = "Elf Guard",
-                            RequiredLevel = 11,
+                            RequiredLevel = 12,
                             RewardExperience = 500,
                             RewardGems = 5m,
                             RewardGold = 300m,
                             TargetAmount = 1,
-                            Title = "[Chapter 4] Defeat the UnderKing",
+                            Title = "[Chapter 4] Free the UnderKing",
                             Type = "Main"
                         },
                         new
                         {
-                            QuestId = 33,
+                            QuestId = 40,
                             DefaultStatus = "NotStarted",
-                            Description = "All four seals are in your pack. Speak to the Elf Guard — he can open a portal back to the Elf Forest.",
+                            Description = "Hear the Elf Guard's farewell to his old friend, then open the portal back to the Elf Forest.",
                             IsActive = true,
                             MapName = "AbandonedCastle",
                             ObjectiveLocation = "Deserted Island",
@@ -6631,7 +6648,7 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 34,
+                            QuestId = 41,
                             DefaultStatus = "NotStarted",
                             Description = "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.",
                             IsActive = true,
@@ -6650,9 +6667,9 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 35,
+                            QuestId = 42,
                             DefaultStatus = "NotStarted",
-                            Description = "Lyra opens the rite and steps back — the seals must be set by the one who won them. Place the four Seal Books on the Origin Tree and break the curse.",
+                            Description = "Set the four Seal Books on the Origin Tree and break the curse.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
@@ -6669,9 +6686,9 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            QuestId = 36,
+                            QuestId = 43,
                             DefaultStatus = "NotStarted",
-                            Description = "The Origin Tree is green again and the forest wakes around it. Speak with Lyra one last time — the codex had a master, and that story is not finished.",
+                            Description = "The Origin Tree is green again. Speak with Lyra one last time.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Origin Tree",

@@ -483,16 +483,6 @@ namespace BLL.Services
                 reqs.Add(("UnderKing Seal Book", 1));
             }
 
-            // For Q22: Deserted Island (Consumes Mystic Key)
-            if (Contains(text, "Deserted Island") || Contains(text, "Elf Guard"))
-            {
-                // Only deduct if this is the Deserted Island quest
-                if (Contains(text, "collect 5 Ancient Leaves"))
-                {
-                    reqs.Add(("Mystic Key", 1));
-                }
-            }
-
             var isTurnInQuest = Contains(text, "Report") || Contains(text, "Return") || Contains(text, "Hand over") || Contains(text, "Handed over") || Contains(text, "Help") || Contains(text, "Deliver") || Contains(text, "Bury");
             
             if (!isTurnInQuest && reqs.Count == 0)
@@ -513,7 +503,9 @@ namespace BLL.Services
             if (Contains(text, "Flour") || Contains(text, "Magic Flour"))
                 reqs.Add(("Magic Flour", Math.Max(1, quest.TargetAmount)));
 
-            if (Contains(text, "Skull") || Contains(text, "Spirit Skull") || Contains(text, "remains") || Contains(text, "Natalie"))
+            // Spirit Skull is consumed only by Natalie's burial quest. Broad matches such as
+            // "Natalie" also caught Q30/Q32 and could remove the skull before the burial.
+            if (Contains(text, "Bury Natalie") || Contains(text, "Lay Natalie to Rest"))
                 reqs.Add(("Spirit Skull", 1));
 
             if (Contains(text, "Leaves") || Contains(text, "Ancient Leaves"))

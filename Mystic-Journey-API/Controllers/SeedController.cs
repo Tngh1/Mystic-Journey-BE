@@ -1225,6 +1225,64 @@ namespace Mystic_Journey_API.Controllers
                 }
                 await _ctx.SaveChangesAsync();
 
+                // Final tutorial-account normalization: each account starts at a chapter boundary.
+                // Keep this last so the seed remains deterministic after the legacy setup above.
+                var chapterStarts = new[]
+                {
+                    (PlayerId: p1, QuestId: 1, Map: "ElfForest", X: 11.9, Y: 17.8),
+                    (PlayerId: p2, QuestId: 9, Map: "AutumnPumpkin", X: -130.2, Y: 37.8),
+                    (PlayerId: p3, QuestId: 21, Map: "FrozenMountain", X: -13.1, Y: -44.2),
+                    (PlayerId: p4, QuestId: 28, Map: "AbandonedCastle", X: -12.36, Y: 60.14),
+                    (PlayerId: p5, QuestId: 41, Map: "ElfForest", X: 11.9, Y: 17.8)
+                };
+                var mainQuests = await _ctx.Quests
+                    .Where(q => q.Type == "Main" && q.IsActive)
+                    .OrderBy(q => q.QuestId)
+                    .ToListAsync();
+
+                foreach (var start in chapterStarts)
+                {
+                    var profile = await _ctx.PlayerProfiles.FirstAsync(p => p.PlayerProfileId == start.PlayerId);
+                    profile.Class = "Archer";
+                    profile.Level = 15;
+                    profile.LastMapName = start.Map;
+                    profile.PositionX = start.X;
+                    profile.PositionY = start.Y;
+
+                    var stats = await _ctx.PlayerStats.FirstAsync(s => s.PlayerProfileId == start.PlayerId);
+                    stats.Atk = 2000;
+
+                    var skins = await _ctx.PlayerSkins.Where(s => s.PlayerProfileId == start.PlayerId).ToListAsync();
+                    foreach (var skin in skins)
+                        skin.IsEquipped = skin.SkinId == skinArcher.SkinId;
+                    if (skins.All(s => s.SkinId != skinArcher.SkinId))
+                        _ctx.PlayerSkins.Add(new PlayerSkin
+                        {
+                            PlayerProfileId = start.PlayerId,
+                            SkinId = skinArcher.SkinId,
+                            IsEquipped = true,
+                            UnlockedAt = DateTime.UtcNow
+                        });
+
+                    _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(q => q.PlayerProfileId == start.PlayerId));
+                    foreach (var quest in mainQuests)
+                    {
+                        var claimed = quest.QuestId < start.QuestId;
+                        _ctx.PlayerQuests.Add(new PlayerQuest
+                        {
+                            PlayerProfileId = start.PlayerId,
+                            QuestId = quest.QuestId,
+                            Status = claimed ? "Claimed" : "NotStarted",
+                            TargetValue = Math.Max(1, quest.TargetAmount),
+                            Progress = claimed ? Math.Max(1, quest.TargetAmount) : 0,
+                            AcceptedAt = DateTime.UtcNow,
+                            CompletedAt = claimed ? DateTime.UtcNow : null,
+                            ClaimedAt = claimed ? DateTime.UtcNow : null
+                        });
+                    }
+                }
+                await _ctx.SaveChangesAsync();
+
                 await tx.CommitAsync();
 
                 return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2, p3, p4, p5 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
