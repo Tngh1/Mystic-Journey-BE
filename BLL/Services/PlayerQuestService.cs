@@ -83,9 +83,10 @@ namespace BLL.Services
             }
 
             // Main chain is GLOBAL (ordered by QuestId), not per-map. Chapters run 1-8 ElfForest,
-            // 9-20 AutumnPumpkin, 21-25 FrozenMountain, 26-31 AbandonedCastle, then 32-34 back in
-            // ElfForest. A per-map chain would unlock quest 32 ("Return with the Seals") the moment
+            // 9-20 AutumnPumpkin, 21-27 FrozenMountain, 28-33 AbandonedCastle, then 34-36 back in
+            // ElfForest. A per-map chain would unlock "[Chapter 5] Return with the Seals" the moment
             // quest 8 is claimed - the finale before the 4 Seal Books it turns in even exist.
+            // (Các mốc trên lệch mỗi lần chèn quest mới; đối chiếu theo Title trong seed, đừng tin số.)
             var mainChain = allActiveQuests
                 .Where(IsMainQuest)
                 .OrderBy(q => q.QuestId)
