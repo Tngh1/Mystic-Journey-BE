@@ -102,12 +102,13 @@ namespace BLL.DTOs
     public class ConsumeItemResultDto
     {
         public string ItemName { get; set; } = string.Empty;
-        public string EffectType { get; set; } = string.Empty; // "Heal", "Energy", "None"
-        public int EffectValue { get; set; }       // amount of HP or Energy restored
+        public string EffectType { get; set; } = string.Empty; // "Heal", "Energy", "CorruptionReduction", "None"
+        public int EffectValue { get; set; }       // amount of HP/Energy restored, or corruption points removed
         public int? CurrentHp { get; set; }        // HP after consuming (if heal effect)
         public int? MaxHp { get; set; }            // max HP (if heal effect)
         public int? CurrentEnergy { get; set; }    // Energy after consuming (if energy effect)
         public int? MaxEnergy { get; set; }        // max Energy (if energy effect)
+        public float? CorruptionLevel { get; set; }// corruption level after consuming (if CorruptionReduction effect)
         public int RemainingQuantity { get; set; } // remaining stack count in bag
     }
 

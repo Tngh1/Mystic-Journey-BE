@@ -41,8 +41,10 @@ namespace DAL.Repositories
 
         public async Task<Item?> GetQuestItemByNames(params string[] names)
         {
+            // Search by name only (not by Type) so renamed types (e.g. Magic Flour changed from
+            // QuestItem to Consumable) are still resolved correctly during quest item collection.
             return await _context.Items
-                .Where(i => i.IsActive && i.Type == "QuestItem" && names.Contains(i.Name))
+                .Where(i => i.IsActive && names.Contains(i.Name))
                 .OrderBy(i => i.ItemId)
                 .FirstOrDefaultAsync();
         }

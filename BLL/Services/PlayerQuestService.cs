@@ -448,7 +448,8 @@ namespace BLL.Services
             {
                 var targetItem = invItems.FirstOrDefault(i =>
                     i.Item != null &&
-                    string.Equals(i.Item.Type, "QuestItem", StringComparison.OrdinalIgnoreCase) &&
+                    // Match by name only — type may vary (e.g. Magic Flour is Consumable but still
+                    // used as a quest turn-in item for [Chapter 3] Magic Flour for the Priest).
                     Contains(i.Item.Name, req.itemName));
 
                 var available = targetItem?.Quantity ?? 0;

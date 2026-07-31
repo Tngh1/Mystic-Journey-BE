@@ -401,14 +401,20 @@ namespace BLL.Services
                         }
                     }
 
-                    // Corruption Reduction (applied when item has CorruptionReduction > 0)
+                    // Corruption Reduction (applied when item has CorruptionReduction > 0, treated as a percentage 0..1)
                     if (inv.Item.CorruptionReduction > 0)
                     {
                         var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
                         if (profile != null && profile.CorruptionLevel > 0)
                         {
-                            profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - (inv.Item.CorruptionReduction * request.Quantity));
+                            float reductionPct   = Math.Min(1f, inv.Item.CorruptionReduction); // clamp to 100%
+                            float totalReduction = profile.CorruptionLevel * reductionPct * request.Quantity;
+                            float before         = profile.CorruptionLevel;
+                            profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - totalReduction);
                             await _playerProfileRepository.UpdatePlayerProfile(profile);
+                            result.EffectType         = "CorruptionReduction";
+                            result.EffectValue         = (int)Math.Round(before - profile.CorruptionLevel);
+                            result.CorruptionLevel     = profile.CorruptionLevel;
                         }
                     }
                 }
