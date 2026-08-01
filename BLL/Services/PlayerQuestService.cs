@@ -5,6 +5,7 @@ using DAL.Models;
 using DAL.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -229,7 +230,7 @@ namespace BLL.Services
                 if (!existingMap.TryGetValue(item.QuestId, out var pq))
                     continue;
 
-                if (pq.Status != "InProgress")
+                if (pq.Status != "InProgress" || IsCollectQuest(pq.Quest))
                     continue;
 
                 var targetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue);
@@ -404,7 +405,12 @@ namespace BLL.Services
             return _mapper.Map<PlayerQuestResponseDto>(pq);
         }
 
-        public async Task<PlayerQuestResponseDto> CompleteQuest(int playerProfileId, CompleteQuestRequestDto request)
+        public Task<PlayerQuestResponseDto> CompleteQuest(int playerProfileId, CompleteQuestRequestDto request)
+            => _transactionManager.ExecuteInTransactionAsync(
+                () => CompleteQuestCore(playerProfileId, request),
+                IsolationLevel.Serializable);
+
+        private async Task<PlayerQuestResponseDto> CompleteQuestCore(int playerProfileId, CompleteQuestRequestDto request)
         {
             var pq = await _playerQuestRepo.GetByPlayerAndQuest(playerProfileId, request.QuestId)
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
@@ -414,6 +420,9 @@ namespace BLL.Services
 
             if (pq.Status != "InProgress")
                 throw new InvalidOperationException($"Quest {request.QuestId} is not in progress.");
+
+            if (IsCollectQuest(pq.Quest))
+                throw new InvalidOperationException("Collect quests must be handed in to their NPC.");
 
             var targetAmount = Math.Max(1, pq.Quest?.TargetAmount ?? pq.TargetValue);
             pq.TargetValue = targetAmount;
@@ -446,23 +455,32 @@ namespace BLL.Services
 
             foreach (var req in requirements)
             {
-                var targetItem = invItems.FirstOrDefault(i =>
-                    i.Item != null &&
-                    // Match by name only — type may vary (e.g. Magic Flour is Consumable but still
-                    // used as a quest turn-in item for [Chapter 3] Magic Flour for the Priest).
-                    Contains(i.Item.Name, req.itemName));
+                var available = invItems
+                    .Where(i => i.Item != null && Contains(i.Item.Name, req.itemName))
+                    .Sum(i => i.Quantity);
+                if (available < req.quantity)
+                    throw new InvalidOperationException($"Need {req.quantity - available} more {req.itemName}.");
+            }
 
-                var available = targetItem?.Quantity ?? 0;
-                var consumedQuantity = Math.Min(available, req.quantity);
-                if (targetItem == null || consumedQuantity <= 0)
-                    continue;
-
-                if (targetItem.Quantity <= consumedQuantity)
-                    await _inventoryRepo.DeleteItem(targetItem.InventoryItemId);
-                else
+            foreach (var req in requirements)
+            {
+                var remaining = req.quantity;
+                foreach (var targetItem in invItems.Where(i =>
+                             i.Item != null && Contains(i.Item.Name, req.itemName)))
                 {
-                    targetItem.Quantity -= consumedQuantity;
-                    await _inventoryRepo.UpdateItem(targetItem);
+                    if (remaining <= 0)
+                        break;
+
+                    var consumedQuantity = Math.Min(targetItem.Quantity, remaining);
+                    if (targetItem.Quantity <= consumedQuantity)
+                        await _inventoryRepo.DeleteItem(targetItem.InventoryItemId);
+                    else
+                    {
+                        targetItem.Quantity -= consumedQuantity;
+                        await _inventoryRepo.UpdateItem(targetItem);
+                    }
+
+                    remaining -= consumedQuantity;
                 }
             }
         }
@@ -474,15 +492,6 @@ namespace BLL.Services
 
             var text = $"{quest.Title} {quest.Description} {quest.ObjectiveTarget} {quest.ObjectiveLocation}";
             
-            // For Q25: use the 4 Seal Books
-            if (Contains(text, "cleanse the tree") || Contains(text, "4 Seal Books"))
-            {
-                reqs.Add(("Swamp Seal Book", 1));
-                reqs.Add(("Dragon Seal Book", 1));
-                reqs.Add(("Golem Seal Book", 1));
-                reqs.Add(("UnderKing Seal Book", 1));
-            }
-
             var isTurnInQuest = Contains(text, "Report") || Contains(text, "Return") || Contains(text, "Hand over") || Contains(text, "Handed over") || Contains(text, "Help") || Contains(text, "Deliver") || Contains(text, "Bury");
             
             if (!isTurnInQuest && reqs.Count == 0)

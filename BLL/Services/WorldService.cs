@@ -3,6 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
+using System.Data;
 
 namespace BLL.Services
 {
@@ -126,7 +127,17 @@ namespace BLL.Services
             };
         }
 
-        public async Task<InteractObjectResponseDto> InteractWithObject(int playerProfileId, InteractObjectRequestDto request)
+        public Task<InteractObjectResponseDto> InteractWithObject(int playerProfileId, InteractObjectRequestDto request)
+        {
+            if (!request.QuestId.HasValue)
+                return InteractWithObjectCore(playerProfileId, request);
+
+            return _transactionManager.ExecuteInTransactionAsync(
+                () => InteractWithObjectCore(playerProfileId, request),
+                IsolationLevel.Serializable);
+        }
+
+        private async Task<InteractObjectResponseDto> InteractWithObjectCore(int playerProfileId, InteractObjectRequestDto request)
         {
             var profile = await GetProfile(playerProfileId);
             var mapName = NormalizeMapName(profile.LastMapName);
@@ -167,13 +178,21 @@ namespace BLL.Services
                 };
             }
 
+            ValidateQuestInteraction(request, playerQuest.Quest);
+            await ConsumeRequiredInteractionItems(playerProfileId, request.ObjectKey);
+
             var questItem = await TryCollectQuestItem(playerProfileId, request, playerQuest.Quest);
             var targetAmount = Math.Max(1, playerQuest.Quest?.TargetAmount ?? playerQuest.TargetValue);
 
             if (IsCollectQuest(playerQuest.Quest))
             {
+                if (progressDelta != targetAmount)
+                    throw new InvalidOperationException($"Collect quest {request.QuestId.Value} must be committed with exactly {targetAmount} items.");
+
+                // ponytail: Pickup count is client-attested because BE has no scene spawn ledger;
+                // upgrade to server-issued spawn IDs plus per-player consumed/respawn records for anti-cheat.
                 playerQuest.TargetValue = targetAmount;
-                playerQuest.Progress = Math.Min(targetAmount, playerQuest.Progress + progressDelta);
+                playerQuest.Progress = targetAmount;
 
                 // Hái đủ vật phẩm KHÔNG phải là hoàn thành: Collect chỉ Completed khi nộp cho NPC
                 // qua TurnInQuestItem (nơi trừ item trong kho). Flip Completed ngay ở đây khiến
@@ -214,7 +233,12 @@ namespace BLL.Services
             };
         }
 
-        public async Task<TurnInQuestItemResponseDto> TurnInQuestItem(int playerProfileId, TurnInQuestItemRequestDto request)
+        public Task<TurnInQuestItemResponseDto> TurnInQuestItem(int playerProfileId, TurnInQuestItemRequestDto request)
+            => _transactionManager.ExecuteInTransactionAsync(
+                () => TurnInQuestItemCore(playerProfileId, request),
+                IsolationLevel.Serializable);
+
+        private async Task<TurnInQuestItemResponseDto> TurnInQuestItemCore(int playerProfileId, TurnInQuestItemRequestDto request)
         {
             var profile = await GetProfile(playerProfileId);
             var mapName = NormalizeMapName(profile.LastMapName);
@@ -265,6 +289,17 @@ namespace BLL.Services
                 throw new InvalidOperationException($"Quest {request.QuestId} is not in progress (status={playerQuest.Status}).");
 
             var targetAmount = Math.Max(1, playerQuest.Quest?.TargetAmount ?? playerQuest.TargetValue);
+            if (playerQuest.Progress < targetAmount)
+            {
+                return new TurnInQuestItemResponseDto
+                {
+                    Success = false,
+                    Message = $"Need {targetAmount - playerQuest.Progress} more quest items.",
+                    Quest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId),
+                    ConsumedQuantity = 0
+                };
+            }
+
             var item = await ResolveQuestItem(
                 new InteractObjectRequestDto
                 {
@@ -293,35 +328,32 @@ namespace BLL.Services
                 };
             }
 
-            return await _transactionManager.ExecuteInTransactionAsync(async () =>
+            if (inventoryItem != null)
             {
-                if (inventoryItem != null)
-                {
-                    inventoryItem.Quantity -= targetAmount;
-                    if (inventoryItem.Quantity <= 0)
-                        await _inventoryRepository.DeleteItem(inventoryItem.InventoryItemId);
-                    else
-                        await _inventoryRepository.UpdateItem(inventoryItem);
-                }
+                inventoryItem.Quantity -= targetAmount;
+                if (inventoryItem.Quantity <= 0)
+                    await _inventoryRepository.DeleteItem(inventoryItem.InventoryItemId);
+                else
+                    await _inventoryRepository.UpdateItem(inventoryItem);
+            }
 
-                playerQuest.TargetValue = targetAmount;
-                playerQuest.Progress = targetAmount;
-                playerQuest.Status = "Completed";
-                playerQuest.CompletedAt ??= DateTime.UtcNow;
-                await _playerQuestRepository.Update(playerQuest);
+            playerQuest.TargetValue = targetAmount;
+            playerQuest.Progress = targetAmount;
+            playerQuest.Status = "Completed";
+            playerQuest.CompletedAt ??= DateTime.UtcNow;
+            await _playerQuestRepository.Update(playerQuest);
 
-                var completedQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
+            var turnedInQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId);
 
-                return new TurnInQuestItemResponseDto
-                {
-                    Success = true,
-                    Message = $"Handed over {targetAmount} {DisplayItemName(item.Name)}.",
-                    Quest = completedQuest,
-                    ConsumedItemId = item.ItemId,
-                    ConsumedItemName = item.Name,
-                    ConsumedQuantity = targetAmount
-                };
-            });
+            return new TurnInQuestItemResponseDto
+            {
+                Success = true,
+                Message = $"Handed over {targetAmount} {DisplayItemName(item.Name)}.",
+                Quest = turnedInQuest,
+                ConsumedItemId = item.ItemId,
+                ConsumedItemName = item.Name,
+                ConsumedQuantity = targetAmount
+            };
         }
 
         public async Task<OpenChestResponseDto> OpenChest(int playerProfileId, OpenWorldChestRequestDto request)
@@ -640,6 +672,68 @@ namespace BLL.Services
                 });
             }
         }
+        private static void ValidateQuestInteraction(InteractObjectRequestDto request, Quest? quest)
+        {
+            if (quest == null)
+                throw new InvalidOperationException("Quest definition is unavailable.");
+
+            var objectiveType = quest.ObjectiveType?.Trim();
+            if (!string.Equals(objectiveType, "Interact", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(objectiveType, "Collect", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Quest {quest.QuestId} cannot be progressed by a world interaction.");
+            }
+
+            var objectiveTarget = NormalizeToken(quest.ObjectiveTarget);
+            var objectKey = NormalizeToken(request.ObjectKey);
+            if (string.IsNullOrEmpty(objectiveTarget) || string.IsNullOrEmpty(objectKey) ||
+                (!objectKey.Contains(objectiveTarget) && !objectiveTarget.Contains(objectKey)))
+            {
+                throw new InvalidOperationException($"Object {request.ObjectKey} is not an objective for quest {quest.QuestId}.");
+            }
+        }
+
+        private async Task ConsumeRequiredInteractionItems(int playerProfileId, string objectKey)
+        {
+            var normalizedKey = NormalizeToken(objectKey);
+            var requirements = normalizedKey switch
+            {
+                var key when key.Contains("ivytree") => new[] { (itemId: 32, quantity: 1, name: "Spirit Skull") },
+                var key when key.Contains("lockedbridgegate") => new[] { (itemId: 33, quantity: 1, name: "Mystic Key") },
+                var key when key.Contains("origintree") => new[]
+                {
+                    (itemId: 909, quantity: 1, name: "Swamp Seal Book"),
+                    (itemId: 910, quantity: 1, name: "Dragon Seal Book"),
+                    (itemId: 911, quantity: 1, name: "Golem Seal Book"),
+                    (itemId: 912, quantity: 1, name: "UnderKing Seal Book")
+                },
+                _ => Array.Empty<(int itemId, int quantity, string name)>()
+            };
+
+            if (requirements.Length == 0)
+                return;
+
+            var inventoryItems = new List<(InventoryItem item, int quantity, string name)>();
+            foreach (var requirement in requirements)
+            {
+                var item = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, requirement.itemId);
+                if (item == null || item.Quantity < requirement.quantity)
+                    throw new InvalidOperationException($"You need {requirement.quantity} {requirement.name}.");
+
+                inventoryItems.Add((item, requirement.quantity, requirement.name));
+            }
+
+            foreach (var requirement in inventoryItems)
+            {
+                if (requirement.item.Quantity == requirement.quantity)
+                    await _inventoryRepository.DeleteItem(requirement.item.InventoryItemId);
+                else
+                {
+                    requirement.item.Quantity -= requirement.quantity;
+                    await _inventoryRepository.UpdateItem(requirement.item);
+                }
+            }
+        }
 
 
         private async Task<Item?> TryCollectQuestItem(int playerProfileId, InteractObjectRequestDto request, Quest? quest)
@@ -647,27 +741,30 @@ namespace BLL.Services
             if (!IsQuestItemInteraction(request, quest))
                 return null;
 
-            // Kiểm tra giới hạn: nếu đã đủ số lượng quest thì không cho nhặt thêm
+            // Client giữ Collect progress trong RAM và chỉ gọi BE ở lần nhặt cuối.
+            // Vì vậy giới hạn bằng inventory server-side, không dựa vào progress DB vốn luôn là 0 khi dở dang.
             if (quest != null)
             {
-                var playerQuest = await _playerQuestRepository.GetByPlayerAndQuest(playerProfileId, quest.QuestId);
-                if (playerQuest != null)
-                {
-                    var targetAmount = Math.Max(1, quest.TargetAmount);
-                    if (playerQuest.Progress >= targetAmount)
-                    {
-                        // Đã đủ số lượng, không cho nhặt thêm
-                        return null;
-                    }
-                }
+                var item = await ResolveQuestItem(request, quest);
+                if (item == null)
+                    return null;
+
+                var targetAmount = Math.Max(1, quest.TargetAmount);
+                var inventoryItem = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, item.ItemId);
+                var available = inventoryItem?.Quantity ?? 0;
+                if (available >= targetAmount)
+                    return null;
+
+                await AddItemToInventory(playerProfileId, item.ItemId, targetAmount - available);
+                return item;
             }
 
-            var item = await ResolveQuestItem(request, quest);
-            if (item == null)
+            var unlinkedItem = await ResolveQuestItem(request, quest);
+            if (unlinkedItem == null)
                 return null;
 
-            await AddItemToInventory(playerProfileId, item.ItemId, Math.Max(1, request.ProgressDelta));
-            return item;
+            await AddItemToInventory(playerProfileId, unlinkedItem.ItemId, Math.Max(1, request.ProgressDelta));
+            return unlinkedItem;
         }
 
         private async Task<Item?> ResolveQuestItem(InteractObjectRequestDto request, Quest? quest)

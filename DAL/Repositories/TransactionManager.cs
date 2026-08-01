@@ -2,6 +2,7 @@ using DAL.Data;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace DAL.Repositories
@@ -46,12 +47,15 @@ namespace DAL.Repositories
         /// Thực thi hành động có返回值 trong transaction.
         /// Nếu có lỗi xảy ra, transaction sẽ được rollback tự động.
         /// </summary>
-        public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action)
+        public Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action)
+            => ExecuteInTransactionAsync(action, IsolationLevel.ReadCommitted);
+
+        public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, IsolationLevel isolationLevel)
         {
             var strategy = _context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _context.Database.BeginTransactionAsync();
+                await using var transaction = await _context.Database.BeginTransactionAsync(isolationLevel);
                 try
                 {
                     var result = await action();

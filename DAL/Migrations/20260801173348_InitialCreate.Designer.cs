@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260731172052_InitialCreate")]
+    [Migration("20260801173348_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -5133,7 +5133,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 85,
-                            Content = "You came back carrying all four seals. Bring them to the roots.",
+                            Content = "You came back carrying all four seals. The forest is still breathing, but only just. Bring them to the roots and I will show you what remains.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 41,
@@ -5143,7 +5143,7 @@ namespace DAL.Migrations
                         new
                         {
                             NPCDialogueId = 91,
-                            Content = "Set the four Seal Books upon the Origin Tree and break the curse.",
+                            Content = "The books cannot heal a memory they do not understand. Return to Elder Rowan; he remembers the first flowers and the lives they saved.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 42,
@@ -5152,11 +5152,71 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            NPCDialogueId = 87,
-                            Content = "The curse is breaking. The Origin Tree is finally healing. Thank you.",
+                            NPCDialogueId = 181,
+                            Content = "You came back to the old roots. The villagers who survived still carry the scent of those first flowers in their homes. There is enough life left for one final draught.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 42,
+                            NPCId = 1,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 182,
+                            Content = "Gather 3 White Flowers from the old clearing. This time they will not only keep a few people alive; they will give the Origin Tree something clean to remember.",
                             DisplayOrder = 1,
                             IsActive = true,
                             LinkedQuestId = 43,
+                            NPCId = 1,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 183,
+                            Content = "Three flowers, as before. I have brewed the last draught. Take it to Lyra at the Origin Tree; the rest belongs to the one who called you here.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 44,
+                            NPCId = 1,
+                            ResponseType = "Reward"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 184,
+                            Content = "I can feel Rowan's draught in your hands. Bring it to the roots, and set the four books where the wound first opened.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 44,
+                            NPCId = 2,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 185,
+                            Content = "Set the four Seal Books and the last healing draught upon the Origin Tree. If the forest accepts them, the curse will break.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 45,
+                            NPCId = 2,
+                            ResponseType = "Quest"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 186,
+                            Content = "The forest remembers every hand that carried these seals: Rowan, the silent cities, the frozen guardians, Natalie, and Aderyn. You have given them all another dawn.",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            LinkedQuestId = 46,
+                            NPCId = 2,
+                            ResponseType = "None"
+                        },
+                        new
+                        {
+                            NPCDialogueId = 187,
+                            Content = "But the codex was not masterless. Something taught it to drink from the Origin Tree, and that presence is still somewhere beyond these woods.",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            LinkedQuestId = 46,
                             NPCId = 2,
                             ResponseType = "Reward"
                         });
@@ -6201,7 +6261,7 @@ namespace DAL.Migrations
                             RewardExperience = 250,
                             RewardGems = 5m,
                             RewardGold = 25m,
-                            TargetAmount = 10,
+                            TargetAmount = 3,
                             Title = "[Chapter 2] Trial III: The Goblin Grounds",
                             Type = "Main"
                         },
@@ -6672,26 +6732,83 @@ namespace DAL.Migrations
                         {
                             QuestId = 42,
                             DefaultStatus = "NotStarted",
-                            Description = "Set the four Seal Books on the Origin Tree and break the curse.",
+                            Description = "Return to Elder Rowan. The forest still remembers the first healing flowers and the people they saved.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Elf Forest",
-                            ObjectiveTarget = "Origin Tree",
-                            ObjectiveType = "Interact",
+                            ObjectiveTarget = "Elder Rowan",
+                            ObjectiveType = "Talk",
                             QuestGiverName = "Lyra",
                             RequiredLevel = 12,
-                            RewardExperience = 400,
+                            RewardExperience = 200,
                             RewardGems = 5m,
-                            RewardGold = 250m,
+                            RewardGold = 40m,
                             TargetAmount = 1,
-                            Title = "[Chapter 5] Heal the Origin Tree",
+                            Title = "[Chapter 5] The Forest Remembers",
                             Type = "Main"
                         },
                         new
                         {
                             QuestId = 43,
                             DefaultStatus = "NotStarted",
-                            Description = "The Origin Tree is green again. Speak with Lyra one last time.",
+                            Description = "Gather 3 White Flowers from the old clearing so Elder Rowan can brew the last healing draught.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Elf Forest",
+                            ObjectiveTarget = "White Flower",
+                            ObjectiveType = "Collect",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 12,
+                            RewardExperience = 220,
+                            RewardGems = 5m,
+                            RewardGold = 35m,
+                            TargetAmount = 3,
+                            Title = "[Chapter 5] Flowers Before Dawn",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 44,
+                            DefaultStatus = "NotStarted",
+                            Description = "Bring the flowers to Elder Rowan, then return to Lyra with the finished draught.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Origin Tree",
+                            ObjectiveTarget = "Lyra",
+                            ObjectiveType = "Talk",
+                            QuestGiverName = "Elder Rowan",
+                            RequiredLevel = 12,
+                            RewardExperience = 250,
+                            RewardGems = 5m,
+                            RewardGold = 45m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 5] The Last Healing Draught",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 45,
+                            DefaultStatus = "NotStarted",
+                            Description = "Set the four Seal Books and the last healing draught upon the Origin Tree and break the curse.",
+                            IsActive = true,
+                            MapName = "ElfForest",
+                            ObjectiveLocation = "Origin Tree",
+                            ObjectiveTarget = "Origin Tree",
+                            ObjectiveType = "Interact",
+                            QuestGiverName = "Lyra",
+                            RequiredLevel = 12,
+                            RewardExperience = 500,
+                            RewardGems = 5m,
+                            RewardGold = 300m,
+                            TargetAmount = 1,
+                            Title = "[Chapter 5] Heal the Origin Tree",
+                            Type = "Main"
+                        },
+                        new
+                        {
+                            QuestId = 46,
+                            DefaultStatus = "NotStarted",
+                            Description = "Speak with Lyra one last time and learn what still waits beyond the healed forest.",
                             IsActive = true,
                             MapName = "ElfForest",
                             ObjectiveLocation = "Origin Tree",
@@ -6699,9 +6816,9 @@ namespace DAL.Migrations
                             ObjectiveType = "Talk",
                             QuestGiverName = "Lyra",
                             RequiredLevel = 12,
-                            RewardExperience = 300,
+                            RewardExperience = 350,
                             RewardGems = 5m,
-                            RewardGold = 200m,
+                            RewardGold = 250m,
                             TargetAmount = 1,
                             Title = "[Chapter 5] A New Dawn",
                             Type = "Main"
