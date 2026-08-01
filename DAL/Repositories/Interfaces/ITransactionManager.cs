@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
@@ -13,5 +14,8 @@ namespace DAL.Repositories.Interfaces
 
         /// <summary>Thực thi hành động có返回值 trong transaction, tự động rollback nếu có lỗi.</summary>
         Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action);
+
+        /// <summary>Thực thi hành động có返回值 với mức cô lập được chỉ định.</summary>
+        Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, IsolationLevel isolationLevel);
     }
 }
