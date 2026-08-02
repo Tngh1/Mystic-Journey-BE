@@ -41,6 +41,7 @@ namespace Mystic_Journey_API.Filters
         private static (int StatusCode, string ErrorCode) MapException(Exception ex) => ex switch
         {
             AccountNotFoundException => (StatusCodes.Status404NotFound, ErrorCodes.AccountNotFound),
+            AccountInUseException => (StatusCodes.Status409Conflict, ErrorCodes.Conflict),
             KeyNotFoundException => (StatusCodes.Status404NotFound, ErrorCodes.NotFound),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, ErrorCodes.Unauthorized),
             BadRequestException => (StatusCodes.Status400BadRequest, ErrorCodes.BadRequest),

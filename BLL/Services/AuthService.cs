@@ -37,6 +37,10 @@ namespace BLL.Services
         private int AccessTokenExpiryMinutes => int.Parse(_configuration["TokenSettings:AccessTokenExpiryMinutes"] ?? _configuration["Jwt:AccessTokenExpiryMinutes"] ?? "30");
         private int RefreshTokenExpiryDays => int.Parse(_configuration["TokenSettings:RefreshTokenExpiryDays"] ?? _configuration["Jwt:RefreshTokenExpireDays"] ?? "7");
 
+        // Client game heartbeat mỗi 30 giây => 90 giây là 3 nhịp bị lỡ. Đủ rộng để không đá
+        // nhầm người đang chơi khi mạng chập chờn, đủ hẹp để client crash không khoá tài khoản lâu.
+        private int GameSessionTimeoutSeconds => int.Parse(_configuration["TokenSettings:GameSessionTimeoutSeconds"] ?? "90");
+
         public AuthService(
             IAuthRepository repository,
             IMapper mapper,
@@ -70,13 +74,22 @@ namespace BLL.Services
             if (!await VerifyPasswordWithFallback(account, request.Password))
                 throw new UnauthorizedAccessException("Invalid email/username or password.");
 
+            // Một tài khoản chỉ được chơi trên MỘT client game tại một thời điểm. Client game
+            // ping /api/player/heartbeat mỗi 30 giây, nên LastSeen còn "tươi" nghĩa là có người
+            // đang chơi bằng tài khoản này. Ngưỡng GameSessionTimeoutSeconds (mặc định 90s =
+            // 3 nhịp heartbeat) để một client bị crash / tắt bằng Alt+F4 tự nhả khóa thay vì
+            // khoá tài khoản vĩnh viễn. Đăng xuất đúng cách sẽ xoá LastSeen và nhả khoá ngay.
+            // Chỉ áp dụng cho ClientType "Game": web admin portal đăng nhập bình thường.
+            if (IsGameClient(request.ClientType) && IsGameSessionActive(account.LastSeen))
+                throw new AccountInUseException("This account is already logged in on another device. Log out there first, or try again in a minute.");
+
             var (accessToken, accessExpiry) = GenerateAccessToken(account);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
             account.RefreshToken = HashRefreshToken(refreshToken);
             account.RefreshTokenExpiresAt = refreshExpiry;
             account.LastLogin = DateTime.UtcNow;
-            if (request.ClientType == "Game")
+            if (IsGameClient(request.ClientType))
             {
                 account.LastSeen = DateTime.UtcNow;
             }
@@ -240,6 +253,11 @@ namespace BLL.Services
         public async Task RevokeRefreshToken(int accountId)
         {
             await _repository.RevokeRefreshToken(accountId);
+
+            // Đăng xuất đúng cách thì nhả khoá phiên game ngay, không bắt người chơi chờ
+            // GameSessionTimeoutSeconds. An toàn cho cả web: web không bao giờ ghi LastSeen,
+            // và nếu client game vẫn đang chạy thì nhịp heartbeat kế tiếp sẽ ghi lại mốc này.
+            await _repository.ClearLastSeen(accountId);
         }
 
         public async Task RevokeRefreshTokenByToken(string refreshToken)
@@ -385,6 +403,21 @@ namespace BLL.Services
             return hasPosition || profile.Level > 1;
         }
 
+        private static bool IsGameClient(string? clientType)
+            => string.Equals(clientType?.Trim(), "Game", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// LastSeen chỉ được cập nhật bởi heartbeat của client game (và lúc login game), nên
+        /// LastSeen còn trong ngưỡng timeout nghĩa là đang có một phiên game sống.
+        /// </summary>
+        private bool IsGameSessionActive(DateTime? lastSeen)
+        {
+            if (!lastSeen.HasValue)
+                return false;
+
+            return lastSeen.Value >= DateTime.UtcNow.AddSeconds(-GameSessionTimeoutSeconds);
+        }
+
         private async Task<bool> VerifyPasswordWithFallback(Account account, string password)
         {
             try
@@ -483,5 +516,14 @@ namespace BLL.Services
     public class AccountNotFoundException : Exception
     {
         public AccountNotFoundException(string message) : base(message) { }
+    }
+
+    /// <summary>
+    /// Tài khoản đang được dùng để chơi ở một client game khác. Ánh xạ sang 409 Conflict để
+    /// client phân biệt được với 401 (sai mật khẩu) và hiển thị đúng thông báo.
+    /// </summary>
+    public class AccountInUseException : Exception
+    {
+        public AccountInUseException(string message) : base(message) { }
     }
 }
