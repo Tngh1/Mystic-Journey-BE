@@ -15,6 +15,8 @@ namespace BLL.DTOs
         public string Password { get; set; } = string.Empty;
 
         public string ClientType { get; set; } = "Web";
+
+        public string? ClientVersion { get; set; }
     }
 
     public class RegisterRequestDto

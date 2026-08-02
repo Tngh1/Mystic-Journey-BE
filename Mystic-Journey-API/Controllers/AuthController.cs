@@ -15,10 +15,21 @@ namespace Mystic_Journey_API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IConfiguration configuration)
         {
             _authService = authService;
+            _configuration = configuration;
+        }
+
+        private static bool IsVersionLower(string clientVer, string minVer)
+        {
+            if (Version.TryParse(clientVer, out var parsedClient) && Version.TryParse(minVer, out var parsedMin))
+            {
+                return parsedClient < parsedMin;
+            }
+            return string.Compare(clientVer, minVer, StringComparison.OrdinalIgnoreCase) < 0;
         }
 
         private int GetCurrentAccountId()
@@ -70,6 +81,30 @@ namespace Mystic_Journey_API.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+
+            // Version check for Client logins
+            var clientVer = request.ClientVersion ?? Request.Headers["X-Client-Version"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(clientVer))
+            {
+                var minVer = _configuration["GameVersion:MinRequiredVersion"] ?? "1.0.0";
+                if (IsVersionLower(clientVer, minVer))
+                {
+                    var downloadUrl = _configuration["GameVersion:DownloadUrl"] ?? "";
+                    return StatusCode(426, new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = $"Game version outdated (v{clientVer}). Minimum required version is v{minVer}.",
+                        ErrorCode = "CLIENT_OUTDATED",
+                        Data = new
+                        {
+                            MinRequiredVersion = minVer,
+                            LatestVersion = _configuration["GameVersion:LatestVersion"] ?? minVer,
+                            DownloadUrl = downloadUrl,
+                            ForceUpdate = true
+                        }
+                    });
+                }
+            }
 
             var result = await _authService.Login(request);
             SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value, result.RefreshToken!, result.RefreshTokenExpiresAt!.Value);
