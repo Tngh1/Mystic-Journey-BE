@@ -74,15 +74,10 @@ namespace BLL.Services
             if (!await VerifyPasswordWithFallback(account, request.Password))
                 throw new UnauthorizedAccessException("Invalid email/username or password.");
 
-            // Một tài khoản chỉ chơi trên MỘT client game tại một thời điểm. Khi người chơi đăng
-            // nhập từ máy khác, phiên đăng nhập mới sẽ lập tức ghi đè sessionId trong cache và
-            // tự động đăng xuất phiên đăng nhập cũ trên máy trước (Single Active Session).
-            string? sessionId = null;
-            if (IsGameClient(request.ClientType))
-            {
-                sessionId = Guid.NewGuid().ToString();
-                _cache.Set($"active_session:{account.AccountId}", sessionId, TimeSpan.FromDays(7));
-            }
+            // Gán SessionId mới cho MỌI đăng nhập để đảm bảo phiên đăng nhập cũ trên thiết bị trước
+            // sẽ bị đè và đăng xuất ngay lập tức (Single Active Session).
+            var sessionId = Guid.NewGuid().ToString();
+            _cache.Set($"active_session:{account.AccountId}", sessionId, TimeSpan.FromDays(7));
 
             var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
