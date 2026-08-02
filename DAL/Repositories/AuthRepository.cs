@@ -37,6 +37,18 @@ namespace DAL.Repositories
                 .ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeen, lastSeenUtc));
         }
 
+        /// <summary>
+        /// Nhả "khoá phiên game" ngay khi đăng xuất, thay vì để người chơi chờ hết
+        /// GameSessionTimeoutSeconds mới đăng nhập lại được. Cùng cách ghi một cột như
+        /// <see cref="TouchLastSeen"/>.
+        /// </summary>
+        public Task ClearLastSeen(int accountId)
+        {
+            return _context.Accounts
+                .Where(a => a.AccountId == accountId)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeen, (DateTime?)null));
+        }
+
         public async Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername)
         {
             return await _context.Accounts

@@ -19,6 +19,9 @@ namespace DAL.Repositories.Interfaces
         // đây là đường nóng nhất của hệ thống (mỗi client ping định kỳ).
         Task TouchLastSeen(int accountId, DateTime lastSeenUtc);
 
+        // Xoá mốc "vừa online" khi đăng xuất để nhả khoá phiên game ngay lập tức.
+        Task ClearLastSeen(int accountId);
+
         // Lấy tài khoản theo username hoặc email.
         Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername);
 
