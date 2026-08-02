@@ -187,7 +187,23 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAccount(account);
 
-            return _mapper.Map<AuthResponseDto>(account);
+            var hasCharacter = account.PlayerProfile != null;
+            return new AuthResponseDto
+            {
+                AccountId = account.AccountId,
+                UserName = account.UserName,
+                EmailAddress = account.Email,
+                RoleId = account.RoleId,
+                Role = account.Role?.Name ?? "Player",
+                HasCharacter = hasCharacter,
+                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
+                PlayerDisplayName = account.PlayerProfile?.DisplayName,
+                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
+                Level = account.PlayerProfile?.Level ?? 1,
+                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
+                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
+                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY
+            };
         }
 
         public async Task<AuthResponseDto> RefreshToken(string refreshToken)

@@ -31,6 +31,19 @@ namespace Mystic_Journey_API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isActive = null, [FromQuery] string? roleName = null)
         {
+            if (!string.IsNullOrEmpty(roleName) && (roleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || roleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || roleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)))
+            {
+                if (!User.IsInRole("SuperAdmin"))
+                {
+                    return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can view Admin accounts.", ErrorCode = ErrorCodes.Forbidden });
+                }
+            }
+
+            if (!User.IsInRole("SuperAdmin") && string.IsNullOrEmpty(roleName))
+            {
+                roleName = "Player";
+            }
+
             var result = await _accountAdminService.GetAccountsPaged(page, pageSize, search, isActive, roleName);
             return Ok(new ApiResponse<PagedResultDto<AccountAdminResponseDto>> { Success = true, Data = result });
         }
@@ -45,12 +58,17 @@ namespace Mystic_Journey_API.Controllers
             if (account == null)
                 return NotFound(new ApiResponse<object> { Success = false, Message = $"Account with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
+            if ((account.RoleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || account.RoleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || account.RoleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)) && !User.IsInRole("SuperAdmin"))
+            {
+                return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can view Admin account details.", ErrorCode = ErrorCodes.Forbidden });
+            }
+
             return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
 
         // ── POST /api/adminaccounts ────────────────────────────────
         // Tạo tài khoản admin mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAccountAdminRequestDto request)
         {
@@ -63,7 +81,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/adminaccounts/{id} ───────────────────────────
         // Cập nhật tài khoản hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountAdminRequestDto request)
         {
@@ -77,6 +95,12 @@ namespace Mystic_Journey_API.Controllers
         [HttpPost("{id}/ban")]
         public async Task<IActionResult> BanAccount(int id)
         {
+            var targetAccount = await _accountAdminService.GetAccountById(id);
+            if (targetAccount != null && (targetAccount.RoleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)) && !User.IsInRole("SuperAdmin"))
+            {
+                return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can ban Admin accounts.", ErrorCode = ErrorCodes.Forbidden });
+            }
+
             var account = await _accountAdminService.BanAccount(id);
             return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
@@ -87,6 +111,12 @@ namespace Mystic_Journey_API.Controllers
         [HttpPost("{id}/unban")]
         public async Task<IActionResult> UnbanAccount(int id)
         {
+            var targetAccount = await _accountAdminService.GetAccountById(id);
+            if (targetAccount != null && (targetAccount.RoleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)) && !User.IsInRole("SuperAdmin"))
+            {
+                return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can unban Admin accounts.", ErrorCode = ErrorCodes.Forbidden });
+            }
+
             var account = await _accountAdminService.UnbanAccount(id);
             return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
