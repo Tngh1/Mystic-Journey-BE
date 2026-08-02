@@ -79,523 +79,63 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             new Role { RoleId = 3, Name = "SuperAdmin" });
 
             modelBuilder.Entity<ClassConfig>().HasData(
-                new ClassConfig { ClassConfigId = 1, ClassName = "Knight", MaxHp = 500, Atk = 50, Def = 40, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
-                new ClassConfig { ClassConfigId = 2, ClassName = "Archer", MaxHp = 350, Atk = 70, Def = 20, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
-                new ClassConfig { ClassConfigId = 3, ClassName = "Mage", MaxHp = 300, Atk = 90, Def = 15, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 }
+                new ClassConfig { ClassConfigId = 1, ClassName = "Knight", MaxHp = 620, Atk = 42, Def = 45, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
+                new ClassConfig { ClassConfigId = 2, ClassName = "Archer", MaxHp = 420, Atk = 52, Def = 26, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
+                new ClassConfig { ClassConfigId = 3, ClassName = "Mage",   MaxHp = 360, Atk = 46, Def = 20, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 }
             );
 
+            // ─────────────────────────────────────────────────────────────────────────
+            // MONSTERS – tuned against the ClassConfig baselines above and the chapter
+            // each monster is actually fought in (cross-check Quest.MapName below).
+            //
+            // Balance contract – keep these invariants when adding or editing a monster:
+            //   • A fresh level-1 player deals ~120 damage per basic attack (ClassConfig
+            //     + PlayerCombat.GetClassScaledDamage). Trash HP is therefore sized in
+            //     whole "hits to kill": ~1 hit in Ch1, ~3 in Ch2, ~5 in Ch3, ~6 in Ch4.
+            //   • Atk is near-literal incoming damage: PlayerEntity.TakeDamage only
+            //     subtracts Def/5 and floors at 50% of the hit. Same-chapter trash should
+            //     need 8+ hits to kill the player, a boss 5+.
+            //   • CritDamage is a PERCENT multiplier (150 = 1.5x). NEVER set it below 100
+            //     or a "crit" would hit softer than a normal swing (UnderKing shipped at
+            //     20, which silently made its crits a 5x damage REDUCTION).
+            //   • MoveSpeed is on the same 100 = normal scale as ClassConfig, because
+            //     EnemyBehaviour.UpdateStatsFromAPI does (MoveSpeed / 100) * 3.5. The old
+            //     values of 1-6 resolved to 0.03-0.21 Unity speed, i.e. every monster in
+            //     the game was effectively unable to chase. 0 means stationary BY DESIGN
+            //     (DragonBossIdle only).
+            //   • ExperienceReward stays deliberately small: PlayerProfile levels every
+            //     100 exp, so a 12-kill quest must not grant several levels at once.
+            // ─────────────────────────────────────────────────────────────────────────
+            var monsterSeededAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
             modelBuilder.Entity<Monster>().HasData(
-                new Monster
-                {
-                    MonsterId = 1,
-                    Name = "SlimeLittle",
-                    Type = "Normal",
-                    Description = "A basic slime monster.",
-                    Level = 1,
-                    MaxHp = 50,
-                    Atk = 5,
-                    Def = 2,
-                    MoveSpeed = 1,
-                    AttackSpeed = 1,
-                    CritRate = 10,
-                    CritDamage = 187,
-                    ExperienceReward = 5,
-                    GoldReward = 15m, // Trung bình của 10-20
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 2,
-                    Name = "SwampDemon",
-                    Type = "Boss",
-                    Description = "A dangerous swamp demon.",
-                    Level = 10,
-                    MaxHp = 500,
-                    Atk = 20,
-                    Def = 10,
-                    MoveSpeed = 1,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 130,
-                    ExperienceReward = 100,
-                    GoldReward = 200m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 3,
-                    Name = "WaterElemental",
-                    Type = "Normal",
-                    Description = "A water elemental monster.",
-                    Level = 5,
-                    MaxHp = 80,
-                    Atk = 15,
-                    Def = 5,
-                    MoveSpeed = 1,
-                    AttackSpeed = 1,
-                    CritRate = 10,
-                    CritDamage = 183,
-                    ExperienceReward = 10,
-                    GoldReward = 30m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 4,
-                    Name = "Dragon",
-                    Type = "Normal",
-                    Description = "A fierce dragon.",
-                    Level = 5,
-                    MaxHp = 200,
-                    Atk = 30,
-                    Def = 15,
-                    MoveSpeed = 1,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 180,
-                    ExperienceReward = 20,
-                    GoldReward = 50m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 5,
-                    Name = "BlueDragonFrost",
-                    Type = "Normal",
-                    Description = "A frosty blue dragon.",
-                    Level = 6,
-                    MaxHp = 250,
-                    Atk = 35,
-                    Def = 20,
-                    MoveSpeed = 5,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 156,
-                    ExperienceReward = 22,
-                    GoldReward = 55m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 6,
-                    Name = "GreenDragonForest",
-                    Type = "Normal",
-                    Description = "A forest green dragon.",
-                    Level = 7,
-                    MaxHp = 270,
-                    Atk = 37,
-                    Def = 25,
-                    MoveSpeed = 6,
-                    AttackSpeed = 2,
-                    CritRate = 12,
-                    CritDamage = 160,
-                    ExperienceReward = 25,
-                    GoldReward = 62m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 7,
-                    Name = "DragonBossIdle",
-                    Type = "Boss",
-                    Description = "A terrifying boss dragon.",
-                    Level = 20,
-                    MaxHp = 1000,
-                    Atk = 50,
-                    Def = 35,
-                    MoveSpeed = 0,
-                    AttackSpeed = 1,
-                    CritRate = 30,
-                    CritDamage = 250,
-                    ExperienceReward = 300,
-                    GoldReward = 1000m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 8,
-                    Name = "SlimeIce",
-                    Type = "Normal",
-                    Description = "An icy slime.",
-                    Level = 8,
-                    MaxHp = 300,
-                    Atk = 25,
-                    Def = 50,
-                    MoveSpeed = 1,
-                    AttackSpeed = 1,
-                    CritRate = 12,
-                    CritDamage = 160,
-                    ExperienceReward = 30,
-                    GoldReward = 70m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 9,
-                    Name = "IceDragon",
-                    Type = "Normal",
-                    Description = "An icy dragon.",
-                    Level = 9,
-                    MaxHp = 350,
-                    Atk = 50,
-                    Def = 70,
-                    MoveSpeed = 2,
-                    AttackSpeed = 1,
-                    CritRate = 25,
-                    CritDamage = 170,
-                    ExperienceReward = 32,
-                    GoldReward = 100m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 10,
-                    Name = "GolemBoss",
-                    Type = "Boss",
-                    Description = "A giant stone golem boss.",
-                    Level = 15,
-                    MaxHp = 3000,
-                    Atk = 150,
-                    Def = 70,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 30,
-                    CritDamage = 150,
-                    ExperienceReward = 1500,
-                    GoldReward = 2000m,
-                    GemReward = 10m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 11,
-                    Name = "OrcSkeleton",
-                    Type = "Normal",
-                    Description = "An undead orc skeleton.",
-                    Level = 5,
-                    MaxHp = 400,
-                    Atk = 50,
-                    Def = 100,
-                    MoveSpeed = 2,
-                    AttackSpeed = 1,
-                    CritRate = 25,
-                    CritDamage = 166,
-                    ExperienceReward = 40,
-                    GoldReward = 70m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 12,
-                    Name = "SkeletonMelee",
-                    Type = "Normal",
-                    Description = "A melee skeleton warrior.",
-                    Level = 6,
-                    MaxHp = 350,
-                    Atk = 70,
-                    Def = 70,
-                    MoveSpeed = 3,
-                    AttackSpeed = 2,
-                    CritRate = 15,
-                    CritDamage = 164,
-                    ExperienceReward = 42,
-                    GoldReward = 74m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 13,
-                    Name = "SkeletonArcher",
-                    Type = "Normal",
-                    Description = "A ranged skeleton archer.",
-                    Level = 6,
-                    MaxHp = 250,
-                    Atk = 100,
-                    Def = 30,
-                    MoveSpeed = 3,
-                    AttackSpeed = 3,
-                    CritRate = 25,
-                    CritDamage = 163,
-                    ExperienceReward = 38,
-                    GoldReward = 78m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 14,
-                    Name = "Ghost",
-                    Type = "Normal",
-                    Description = "A floating ghost.",
-                    Level = 5,
-                    MaxHp = 300,
-                    Atk = 90,
-                    Def = 150,
-                    MoveSpeed = 4,
-                    AttackSpeed = 2,
-                    CritRate = 30,
-                    CritDamage = 185,
-                    ExperienceReward = 45,
-                    GoldReward = 85m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 15,
-                    Name = "UnderKing",
-                    Type = "Boss",
-                    Description = "Once a great human king who accepted two Seal Books and imprisoned himself beneath the deserted island to spare the world their curse. Centuries of darkness eroded the hero into the UnderKing.",
-                    Level = 20,
-                    MaxHp = 10000,
-                    Atk = 200,
-                    Def = 300,
-                    MoveSpeed = 4,
-                    AttackSpeed = 2,
-                    CritRate = 40,
-                    CritDamage = 20,
-                    ExperienceReward = 900,
-                    GoldReward = 2500m,
-                    GemReward = 500m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 16,
-                    Name = "Demon",
-                    Type = "Normal",
-                    Description = "A terrifying demon.",
-                    Level = 8,
-                    MaxHp = 500,
-                    Atk = 70,
-                    Def = 30,
-                    MoveSpeed = 2,
-                    AttackSpeed = 1,
-                    CritRate = 40,
-                    CritDamage = 150,
-                    ExperienceReward = 50,
-                    GoldReward = 100m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 17,
-                    Name = "GoblinWarrior",
-                    Type = "Normal",
-                    Description = "A strong goblin warrior.",
-                    Level = 6,
-                    MaxHp = 450,
-                    Atk = 70,
-                    Def = 80,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 150,
-                    ExperienceReward = 50,
-                    GoldReward = 100m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 18,
-                    Name = "GoblinSpear",
-                    Type = "Normal",
-                    Description = "A goblin spearman.",
-                    Level = 6,
-                    MaxHp = 450,
-                    Atk = 50,
-                    Def = 40,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 150,
-                    ExperienceReward = 50,
-                    GoldReward = 100m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 19,
-                    Name = "Ogre",
-                    Type = "Normal",
-                    Description = "A fierce ogre.",
-                    Level = 6,
-                    MaxHp = 450,
-                    Atk = 50,
-                    Def = 40,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 150,
-                    ExperienceReward = 50,
-                    GoldReward = 100m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 20,
-                    Name = "OrcWarlord",
-                    Type = "Normal",
-                    Description = "A formidable orc warlord.",
-                    Level = 7,
-                    MaxHp = 600,
-                    Atk = 100,
-                    Def = 80,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 28,
-                    CritDamage = 175,
-                    ExperienceReward = 55,
-                    GoldReward = 100m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 21,
-                    Name = "IceFairy",
-                    Type = "Boss",
-                    Description = "A support boss fairy in Frozen Mountain.",
-                    Level = 10,
-                    MaxHp = 2500,
-                    Atk = 40,
-                    Def = 30,
-                    MoveSpeed = 4,
-                    AttackSpeed = 1,
-                    CritRate = 10,
-                    CritDamage = 150,
-                    ExperienceReward = 200,
-                    GoldReward = 500m,
-                    GemReward = 50m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 22,
-                    Name = "GoblinWarlord",
-                    Type = "Boss",
-                    Description = "A fierce goblin warlord boss.",
-                    Level = 12,
-                    MaxHp = 2000,
-                    Atk = 60,
-                    Def = 40,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 150,
-                    ExperienceReward = 300,
-                    GoldReward = 800m,
-                    GemReward = 80m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 23,
-                    Name = "NecromancerCast",
-                    Type = "Normal",
-                    Description = "A dark necromancer casting dark spells.",
-                    Level = 5,
-                    MaxHp = 520,
-                    Atk = 45,
-                    Def = 20,
-                    MoveSpeed = 2,
-                    AttackSpeed = 1,
-                    CritRate = 15,
-                    CritDamage = 150,
-                    ExperienceReward = 40,
-                    GoldReward = 80m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 24,
-                    Name = "RobberArcher",
-                    Type = "Normal",
-                    Description = "A rogue robber archer wielding a crossbow.",
-                    Level = 5,
-                    MaxHp = 500,
-                    Atk = 50,
-                    Def = 25,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 20,
-                    CritDamage = 160,
-                    ExperienceReward = 40,
-                    GoldReward = 75m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 25,
-                    Name = "RobberAssassin",
-                    Type = "Normal",
-                    Description = "A stealthy robber assassin wielding a sword and shield.",
-                    Level = 6,
-                    MaxHp = 550,
-                    Atk = 55,
-                    Def = 35,
-                    MoveSpeed = 3,
-                    AttackSpeed = 1,
-                    CritRate = 25,
-                    CritDamage = 170,
-                    ExperienceReward = 45,
-                    GoldReward = 90m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Monster
-                {
-                    MonsterId = 26,
-                    Name = "RedGuard",
-                    Type = "Normal",
-                    Description = "A heavy red guard soldier carrying a mace and shield.",
-                    Level = 6,
-                    MaxHp = 600,
-                    Atk = 60,
-                    Def = 50,
-                    MoveSpeed = 2,
-                    AttackSpeed = 1,
-                    CritRate = 15,
-                    CritDamage = 150,
-                    ExperienceReward = 50,
-                    GoldReward = 100m,
-                    GemReward = 0m,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                }
+                new Monster { MonsterId = 1, Name = "SlimeLittle", Type = "Normal", Description = "A basic slime monster. The first thing a new player ever fights.", Level = 1, MaxHp = 300, Atk = 30, Def = 2, MoveSpeed = 70, AttackSpeed = 85, CritRate = 5, CritDamage = 130, ExperienceReward = 4, GoldReward = 8m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 2, Name = "SwampDemon", Type = "Boss", Description = "A dangerous swamp demon brooding over an old relic in the deep woods.", Level = 3, MaxHp = 1380, Atk = 32, Def = 10, MoveSpeed = 90, AttackSpeed = 100, CritRate = 12, CritDamage = 150, ExperienceReward = 22, GoldReward = 110m, GemReward = 5m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 3, Name = "WaterElemental", Type = "Normal", Description = "A water elemental monster from the forest marshes.", Level = 3, MaxHp = 400, Atk = 39, Def = 5, MoveSpeed = 80, AttackSpeed = 95, CritRate = 8, CritDamage = 140, ExperienceReward = 4, GoldReward = 8m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 4, Name = "Dragon", Type = "Normal", Description = "A fierce dragon nesting in the ruined city.", Level = 6, MaxHp = 560, Atk = 47, Def = 12, MoveSpeed = 110, AttackSpeed = 100, CritRate = 15, CritDamage = 160, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 5, Name = "BlueDragonFrost", Type = "Normal", Description = "A frosty blue dragon.", Level = 7, MaxHp = 580, Atk = 48, Def = 14, MoveSpeed = 110, AttackSpeed = 100, CritRate = 15, CritDamage = 160, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 6, Name = "GreenDragonForest", Type = "Normal", Description = "A forest green dragon.", Level = 7, MaxHp = 590, Atk = 49, Def = 15, MoveSpeed = 110, AttackSpeed = 105, CritRate = 15, CritDamage = 160, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 7, Name = "DragonBossIdle", Type = "Boss", Description = "The dragon that broke the city. It never leaves its nest, so MoveSpeed is 0 by design.", Level = 7, MaxHp = 2930, Atk = 53, Def = 22, MoveSpeed = 0, AttackSpeed = 100, CritRate = 20, CritDamage = 175, ExperienceReward = 35, GoldReward = 176m, GemReward = 10m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 8, Name = "SlimeIce", Type = "Normal", Description = "An icy slime that creeps onto the snow fields at night.", Level = 7, MaxHp = 620, Atk = 50, Def = 15, MoveSpeed = 75, AttackSpeed = 90, CritRate = 10, CritDamage = 150, ExperienceReward = 10, GoldReward = 19m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 9, Name = "IceDragon", Type = "Normal", Description = "An icy dragon driven down the mountain against the people below.", Level = 9, MaxHp = 840, Atk = 55, Def = 18, MoveSpeed = 115, AttackSpeed = 105, CritRate = 20, CritDamage = 165, ExperienceReward = 10, GoldReward = 19m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 10, Name = "GolemBoss", Type = "Boss", Description = "A giant stone golem sealed inside the Doomed Land of Snow.", Level = 9, MaxHp = 4300, Atk = 65, Def = 28, MoveSpeed = 80, AttackSpeed = 90, CritRate = 20, CritDamage = 170, ExperienceReward = 53, GoldReward = 264m, GemReward = 15m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 11, Name = "OrcSkeleton", Type = "Normal", Description = "An undead orc skeleton risen in the valley of Tide-Knell.", Level = 9, MaxHp = 850, Atk = 61, Def = 20, MoveSpeed = 95, AttackSpeed = 100, CritRate = 15, CritDamage = 160, ExperienceReward = 13, GoldReward = 26m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 12, Name = "SkeletonMelee", Type = "Normal", Description = "A melee skeleton warrior.", Level = 11, MaxHp = 1050, Atk = 71, Def = 22, MoveSpeed = 100, AttackSpeed = 105, CritRate = 15, CritDamage = 160, ExperienceReward = 13, GoldReward = 26m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 13, Name = "SkeletonArcher", Type = "Normal", Description = "A ranged skeleton archer. Glass cannon: highest Atk of the skeletons, lowest Def.", Level = 12, MaxHp = 1160, Atk = 78, Def = 16, MoveSpeed = 100, AttackSpeed = 115, CritRate = 22, CritDamage = 165, ExperienceReward = 13, GoldReward = 26m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 14, Name = "Ghost", Type = "Normal", Description = "A floating ghost haunting the ruined quarter.", Level = 4, MaxHp = 480, Atk = 42, Def = 10, MoveSpeed = 95, AttackSpeed = 100, CritRate = 15, CritDamage = 160, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 15, Name = "UnderKing", Type = "Boss", Description = "Once a great human king who accepted two Seal Books and imprisoned himself beneath the deserted island to spare the world their curse. Centuries of darkness eroded the hero into the UnderKing.", Level = 12, MaxHp = 6040, Atk = 94, Def = 35, MoveSpeed = 95, AttackSpeed = 100, CritRate = 25, CritDamage = 180, ExperienceReward = 70, GoldReward = 352m, GemReward = 30m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 16, Name = "Demon", Type = "Normal", Description = "A terrifying demon.", Level = 8, MaxHp = 730, Atk = 51, Def = 18, MoveSpeed = 95, AttackSpeed = 100, CritRate = 20, CritDamage = 165, ExperienceReward = 10, GoldReward = 19m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 17, Name = "GoblinWarrior", Type = "Normal", Description = "A strong goblin warrior.", Level = 5, MaxHp = 530, Atk = 45, Def = 13, MoveSpeed = 95, AttackSpeed = 100, CritRate = 12, CritDamage = 150, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 18, Name = "GoblinSpear", Type = "Normal", Description = "A goblin spearman.", Level = 5, MaxHp = 510, Atk = 44, Def = 10, MoveSpeed = 100, AttackSpeed = 100, CritRate = 10, CritDamage = 150, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 19, Name = "Ogre", Type = "Boss", Description = "The brutal ogre holding the Goblin barracks. Dungeon 5 boss.", Level = 7, MaxHp = 2560, Atk = 46, Def = 19, MoveSpeed = 85, AttackSpeed = 90, CritRate = 15, CritDamage = 165, ExperienceReward = 35, GoldReward = 176m, GemReward = 10m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 20, Name = "OrcWarlord", Type = "Boss", Description = "A formidable orc warlord guarding the gate to the underworld. Dungeon 6 boss.", Level = 12, MaxHp = 4490, Atk = 73, Def = 30, MoveSpeed = 95, AttackSpeed = 100, CritRate = 22, CritDamage = 175, ExperienceReward = 70, GoldReward = 352m, GemReward = 30m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 21, Name = "IceFairy", Type = "Boss", Description = "The spirit that never leaves the golem's side. Fought together with GolemBoss.", Level = 9, MaxHp = 3230, Atk = 54, Def = 16, MoveSpeed = 100, AttackSpeed = 100, CritRate = 12, CritDamage = 150, ExperienceReward = 53, GoldReward = 264m, GemReward = 15m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 22, Name = "GoblinWarlord", Type = "Boss", Description = "A fierce goblin warlord holding the Goblin Grounds.", Level = 7, MaxHp = 2180, Atk = 41, Def = 18, MoveSpeed = 95, AttackSpeed = 100, CritRate = 18, CritDamage = 165, ExperienceReward = 35, GoldReward = 176m, GemReward = 10m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 23, Name = "NecromancerCast", Type = "Normal", Description = "A dark necromancer casting dark spells.", Level = 4, MaxHp = 500, Atk = 43, Def = 7, MoveSpeed = 85, AttackSpeed = 90, CritRate = 10, CritDamage = 155, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 24, Name = "RobberArcher", Type = "Normal", Description = "A rogue robber archer wielding a crossbow.", Level = 3, MaxHp = 440, Atk = 40, Def = 6, MoveSpeed = 100, AttackSpeed = 110, CritRate = 12, CritDamage = 150, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 25, Name = "RobberAssassin", Type = "Normal", Description = "A stealthy robber assassin wielding a sword and shield.", Level = 3, MaxHp = 460, Atk = 41, Def = 9, MoveSpeed = 105, AttackSpeed = 115, CritRate = 18, CritDamage = 160, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 26, Name = "RedGuard", Type = "Normal", Description = "A heavy red guard soldier carrying a mace and shield.", Level = 6, MaxHp = 540, Atk = 46, Def = 15, MoveSpeed = 85, AttackSpeed = 95, CritRate = 10, CritDamage = 150, ExperienceReward = 6, GoldReward = 13m, IsActive = true, CreatedAt = monsterSeededAt },
+                new Monster { MonsterId = 27, Name = "OrcSkeletonAfk", Type = "Normal", Description = "An orc skeleton standing watch in the valley of Tide-Knell. Slower and tougher than its roaming kin.", Level = 10, MaxHp = 950, Atk = 65, Def = 24, MoveSpeed = 90, AttackSpeed = 95, CritRate = 15, CritDamage = 160, ExperienceReward = 13, GoldReward = 26m, IsActive = true, CreatedAt = monsterSeededAt }
             );
 
             modelBuilder.Entity<Item>().HasData(
@@ -757,15 +297,56 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 }
             );
 
+
+            // ─────────────────────────────────────────────────────────────────────────
+            // EQUIPMENT STATS – one canonical block for every equippable item.
+            //
+            // Gear is the ONLY thing that makes the player stronger as chapters advance:
+            // ClassConfig is flat, and a level-up grants a single stat point (+20 HP or
+            // +3 Atk), so without a gear curve the player at Chapter 4 fights 800 HP
+            // skeletons with Chapter 1 numbers.
+            //
+            // Tiers below map 1:1 onto the quest chain (see Quest seed further down):
+            //   T1  Ch1  lvl 1-2   granted at character creation + Q6/Q8
+            //   T2  Ch2  lvl 3-5   SwampDemon drops + Q14/Q19/Q20
+            //   T3  Ch3  lvl 6-8   DragonBossIdle drops + Q26/Q27
+            //   T4  Ch4  lvl 9-12  GolemBoss drops + Q38
+            //   T5  end            UnderKing drops + Q45
+            //
+            // Invariants:
+            //   • BonusCritRate is a FLAT PERCENT (InventoryService adds it straight into
+            //     the snapshot, PlayerCombat compares Random(0,100) <= critRate). Total
+            //     stackable crit across best-in-slot must stay well under 100, otherwise
+            //     every hit crits and CritDamage stops being a trade-off. Shadow Hood
+            //     shipped at 80 and Elven Blade at 60 -> permanent guaranteed crit.
+            //   • Def feeds a (Def / 5) flat reduction with a 50% floor on both sides, so
+            //     Def scales much harder than it looks. Keep armour Def under ~50/piece.
+            //   • Each stat is split Base (70%) / Bonus (30%) so enhancement levels
+            //     (HP +10, Atk +2, Def +1 per level) stay a visible fraction of the item.
+            // ─────────────────────────────────────────────────────────────────────────
             modelBuilder.Entity<EquipmentStats>().HasData(
-                new EquipmentStats { EquipmentStatsId = 901, ItemId = 901, BaseAtk = 15, BaseHp = 0, BaseDef = 0, BonusCritRate = 5, BonusCritDamage = 10 },
-                new EquipmentStats { EquipmentStatsId = 902, ItemId = 902, BaseAtk = 0, BaseHp = 100, BaseDef = 20, BonusCritRate = 0, BonusCritDamage = 0 },
-                new EquipmentStats { EquipmentStatsId = 903, ItemId = 903, BaseAtk = 100, BaseHp = 0, BaseDef = 0, BonusCritRate = 15, BonusCritDamage = 20 },
-                new EquipmentStats { EquipmentStatsId = 904, ItemId = 904, BaseAtk = 0, BaseHp = 500, BaseDef = 100, BonusCritRate = 0, BonusCritDamage = 0 },
-                new EquipmentStats { EquipmentStatsId = 905, ItemId = 905, BaseAtk = 50, BaseHp = 200, BaseDef = 50, BonusCritRate = 5, BonusCritDamage = 5 },
-                new EquipmentStats { EquipmentStatsId = 906, ItemId = 906, BaseAtk = 0, BaseHp = 1000, BaseDef = 200, BonusCritRate = 0, BonusCritDamage = 0 },
-                new EquipmentStats { EquipmentStatsId = 907, ItemId = 907, BaseAtk = 200, BaseHp = 0, BaseDef = 0, BonusCritRate = 20, BonusCritDamage = 20 },
-                new EquipmentStats { EquipmentStatsId = 908, ItemId = 908, BaseAtk = 50, BaseHp = 1000, BaseDef = 300, BonusCritRate = 10, BonusCritDamage = 10 }
+                new EquipmentStats { EquipmentStatsId = 5, ItemId = 5, BaseHp = 0, BaseAtk = 7, BaseDef = 0, BonusHp = 0, BonusAtk = 3, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 3, BonusCritDamage = 15, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 6, ItemId = 6, BaseHp = 0, BaseAtk = 6, BaseDef = 0, BonusHp = 0, BonusAtk = 2, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 6, BonusCritRate = 6, BonusCritDamage = 10, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 7, ItemId = 7, BaseHp = 0, BaseAtk = 6, BaseDef = 0, BonusHp = 0, BonusAtk = 3, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 2, BonusCritDamage = 20, BonusDamageBonus = 2 },
+                new EquipmentStats { EquipmentStatsId = 8, ItemId = 8, BaseHp = 0, BaseAtk = 29, BaseDef = 0, BonusHp = 0, BonusAtk = 13, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 4, BonusCritRate = 10, BonusCritDamage = 30, BonusDamageBonus = 4 },
+                new EquipmentStats { EquipmentStatsId = 9, ItemId = 9, BaseHp = 31, BaseAtk = 0, BaseDef = 6, BonusHp = 14, BonusAtk = 0, BonusDef = 2, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 10, ItemId = 10, BaseHp = 21, BaseAtk = 0, BaseDef = 4, BonusHp = 9, BonusAtk = 0, BonusDef = 2, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 11, ItemId = 11, BaseHp = 0, BaseAtk = 0, BaseDef = 4, BonusHp = 0, BonusAtk = 0, BonusDef = 1, BonusMoveSpeed = 8, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 12, ItemId = 12, BaseHp = 196, BaseAtk = 0, BaseDef = 32, BonusHp = 84, BonusAtk = 0, BonusDef = 14, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 13, ItemId = 13, BaseHp = 84, BaseAtk = 0, BaseDef = 14, BonusHp = 36, BonusAtk = 0, BonusDef = 6, BonusMoveSpeed = 6, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 14, ItemId = 14, BaseHp = 0, BaseAtk = 0, BaseDef = 7, BonusHp = 0, BonusAtk = 0, BonusDef = 3, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 8, BonusCritDamage = 25, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 15, ItemId = 15, BaseHp = 0, BaseAtk = 4, BaseDef = 3, BonusHp = 0, BonusAtk = 2, BonusDef = 1, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 2 },
+                new EquipmentStats { EquipmentStatsId = 16, ItemId = 16, BaseHp = 0, BaseAtk = 3, BaseDef = 2, BonusHp = 0, BonusAtk = 1, BonusDef = 1, BonusMoveSpeed = 3, BonusAttackSpeed = 3, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 17, ItemId = 17, BaseHp = 18, BaseAtk = 2, BaseDef = 0, BonusHp = 7, BonusAtk = 1, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 3, BonusCritDamage = 6, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 18, ItemId = 18, BaseHp = 35, BaseAtk = 0, BaseDef = 4, BonusHp = 15, BonusAtk = 0, BonusDef = 1, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 901, ItemId = 901, BaseHp = 0, BaseAtk = 13, BaseDef = 0, BonusHp = 0, BonusAtk = 5, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 5, BonusCritDamage = 18, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 902, ItemId = 902, BaseHp = 56, BaseAtk = 0, BaseDef = 11, BonusHp = 24, BonusAtk = 0, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 903, ItemId = 903, BaseHp = 0, BaseAtk = 22, BaseDef = 0, BonusHp = 0, BonusAtk = 10, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 8, BonusCritDamage = 25, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 904, ItemId = 904, BaseHp = 112, BaseAtk = 0, BaseDef = 21, BonusHp = 48, BonusAtk = 0, BonusDef = 9, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 905, ItemId = 905, BaseHp = 49, BaseAtk = 8, BaseDef = 11, BonusHp = 21, BonusAtk = 4, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 4, BonusCritDamage = 10, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 906, ItemId = 906, BaseHp = 147, BaseAtk = 0, BaseDef = 28, BonusHp = 63, BonusAtk = 0, BonusDef = 12, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 907, ItemId = 907, BaseHp = 0, BaseAtk = 38, BaseDef = 0, BonusHp = 0, BonusAtk = 17, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 12, BonusCritDamage = 35, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 908, ItemId = 908, BaseHp = 98, BaseAtk = 6, BaseDef = 24, BonusHp = 42, BonusAtk = 2, BonusDef = 10, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 5, BonusCritDamage = 15, BonusDamageBonus = 0 }
             );
 
             modelBuilder.Entity<MonsterDrop>().HasData(
@@ -914,6 +495,64 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 .WithMany()
                 .HasForeignKey(q => q.BossMonsterId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+
+            // ─────────────────────────────────────────────────────────────────────────
+            // QUEST REWARD GEAR – the gear curve that makes player power track story
+            // progress. Before this, 13 of 14 equipment items were unreachable: there is
+            // no starting equipment (CreateCharacter grants none) and no shop seed, so the
+            // only gear in the game came from 4 boss drops.
+            //
+            // One piece per milestone (chapter boss / chapter end), so the power gained is
+            // paced by the quest chain instead of arriving all at once.
+            //
+            // ClaimRewardCore prefers this collection over Quest.RewardItemId, so quests
+            // 14/22/30/33 are deliberately NOT listed here — their RewardItemId carries a
+            // story-critical item (Silver Necklace, Magic Flour, Spirit Skull, Mystic Key)
+            // that adding a row here would silently replace.
+            // ─────────────────────────────────────────────────────────────────────────
+            modelBuilder.Entity<QuestRewardItem>().HasData(
+                new QuestRewardItem { QuestRewardItemId = 1, QuestId = 6, ItemId = 10, Quantity = 1 },
+                new QuestRewardItem { QuestRewardItemId = 2, QuestId = 8, ItemId = 15, Quantity = 1 },
+                new QuestRewardItem { QuestRewardItemId = 3, QuestId = 18, ItemId = 17, Quantity = 1 },
+                new QuestRewardItem { QuestRewardItemId = 4, QuestId = 19, ItemId = 11, Quantity = 1 },
+                new QuestRewardItem { QuestRewardItemId = 5, QuestId = 26, ItemId = 14, Quantity = 1 },
+                new QuestRewardItem { QuestRewardItemId = 6, QuestId = 27, ItemId = 13, Quantity = 1 },
+                new QuestRewardItem { QuestRewardItemId = 7, QuestId = 39, ItemId = 8, Quantity = 1 },
+                new QuestRewardItem { QuestRewardItemId = 8, QuestId = 45, ItemId = 12, Quantity = 1 }
+            );
+
+            // ─────────────────────────────────────────────────────────────────────────
+            // SHOP – the gold sink. Quest rewards pay out ~2.3k gold across the campaign
+            // and nothing was buyable, so gold was a dead currency.
+            //
+            // Prices are set against that curve: the class starter weapons and the basic
+            // armor set are affordable inside chapter 1-2, mid gear lands around chapter 3,
+            // and Dragon Scale Armor stays a late-campaign purchase. Every row is
+            // ShopSections.Fixed — PlayerShopRepository only reads Fixed for the permanent
+            // catalogue (DailyDeal rows are rolled per player, not seeded).
+            // ─────────────────────────────────────────────────────────────────────────
+            modelBuilder.Entity<ShopItem>().HasData(
+                new ShopItem { ShopItemId = 1, ItemId = 19, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 25m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 2, ItemId = 20, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 70m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 3, ItemId = 21, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 50m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 4, ItemId = 22, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 40m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 5, ItemId = 5, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 6, ItemId = 6, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 7, ItemId = 7, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 8, ItemId = 9, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 100m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 9, ItemId = 10, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 85m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 10, ItemId = 16, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 80m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 11, ItemId = 15, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 110m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 12, ItemId = 17, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 70m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 13, ItemId = 11, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 160m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 14, ItemId = 18, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 170m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 15, ItemId = 14, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 16, ItemId = 13, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 800m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 17, ItemId = 8, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 700m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 18, ItemId = 12, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 1800m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 19, ItemId = 4, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 100m, Stock = -1, IsActive = true }
+            );
 
             modelBuilder.Entity<QuestRewardItem>()
                 .HasOne(r => r.Quest)
@@ -1105,25 +744,25 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 .HasIndex(l => l.GuildId);
 
             modelBuilder.Entity<Skill>().HasData(
-                new Skill { SkillId = 1, Name = "Accelerationarrow", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 2, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 2, Name = "ArrowofLight", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 5, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 1, Name = "Accelerationarrow", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 2, BaseDamage = 55.0, DamagePerLevel = 8.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 2, Name = "ArrowofLight", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 5, BaseDamage = 115.0, DamagePerLevel = 14.0, DamageGrowthPercent = 3.5, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
                 new Skill { SkillId = 3, Name = "Holymagic", Description = "Heals allies within range.", Type = "Buff", DamageType = "Magical", TargetType = "Ally", ClassRequirement = "Mage", CooldownSeconds = 4, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 4, Name = "Purification", Description = "Casts a spell in the direction the character is facing.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "Mage", CooldownSeconds = 3, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 5, Name = "Stardust", Description = "Selects and attacks a random monster within range.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "Mage", CooldownSeconds = 3, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 6, Name = "Lightsabers", Description = "Selects a target with the monster tag to attack.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 5, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 7, Name = "LightWaves", Description = "Casts a spell in the direction the character is facing.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 4, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 4, Name = "Purification", Description = "Casts a spell in the direction the character is facing.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "Mage", CooldownSeconds = 3, BaseDamage = 75.0, DamagePerLevel = 10.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 5, Name = "Stardust", Description = "Selects and attacks a random monster within range.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "Mage", CooldownSeconds = 3, BaseDamage = 75.0, DamagePerLevel = 10.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 6, Name = "Lightsabers", Description = "Selects a target with the monster tag to attack.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 5, BaseDamage = 115.0, DamagePerLevel = 14.0, DamageGrowthPercent = 3.5, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 7, Name = "LightWaves", Description = "Casts a spell in the direction the character is facing.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 4, BaseDamage = 95.0, DamagePerLevel = 12.0, DamageGrowthPercent = 3.5, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
                 new Skill { SkillId = 8, Name = "ProtectiveShield", Description = "Protects all allies within range.", Type = "Buff", DamageType = "Magical", TargetType = "Ally", ClassRequirement = "Knight", CooldownSeconds = 8, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 9, Name = "DarkExplosion", Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "All", CooldownSeconds = 8, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 15, IsActive = true },
-                new Skill { SkillId = 10, Name = "DarkPoisonZone", Description = "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "All", CooldownSeconds = 6, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 10, IsActive = true },
-                new Skill { SkillId = 11, Name = "DeadlyCurse", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 5, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 12, Name = "NightMagic", Description = "Selects an area within range to attack.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "Mage", CooldownSeconds = 2, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 13, Name = "DeadlyExplosion", Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "All", CooldownSeconds = 6, BaseDamage = 200, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 8, IsActive = true },
-                new Skill { SkillId = 14, Name = "BloodySlash", Description = "A short-range slash in the direction the knight is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 2, BaseDamage = 0, DamagePerLevel = 0, DamageGrowthPercent = 0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 15, Name = "FrozenSash", Description = "Selects an area within range to unleash an icy slash.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 3, BaseDamage = 38, DamagePerLevel = 11, DamageGrowthPercent = 4, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 16, Name = "PumpkinMagic", Description = "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Archer", CooldownSeconds = 5, BaseDamage = 50, DamagePerLevel = 12, DamageGrowthPercent = 4, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 17, Name = "PumpkinThrow", Description = "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 5, BaseDamage = 45, DamagePerLevel = 10, DamageGrowthPercent = 4, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 18, Name = "PumpkinSlash", Description = "A short-range pumpkin slash in the direction the knight is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 2, BaseDamage = 40, DamagePerLevel = 9, DamageGrowthPercent = 3, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
-                new Skill { SkillId = 19, Name = "BoomBoomPumpkin", Description = "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "Mage", CooldownSeconds = 2, BaseDamage = 30, DamagePerLevel = 8, DamageGrowthPercent = 3, UnlockLevel = 1, CorruptionCost = 0, IsActive = true }
+                new Skill { SkillId = 9, Name = "DarkExplosion", Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "All", CooldownSeconds = 8, BaseDamage = 180.0, DamagePerLevel = 22.0, DamageGrowthPercent = 4.0, UnlockLevel = 1, CorruptionCost = 15, IsActive = true },
+                new Skill { SkillId = 10, Name = "DarkPoisonZone", Description = "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "All", CooldownSeconds = 6, BaseDamage = 140.0, DamagePerLevel = 18.0, DamageGrowthPercent = 4.0, UnlockLevel = 1, CorruptionCost = 10, IsActive = true },
+                new Skill { SkillId = 11, Name = "DeadlyCurse", Description = "Automatically fires in the direction the archer is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Archer", CooldownSeconds = 5, BaseDamage = 115.0, DamagePerLevel = 14.0, DamageGrowthPercent = 3.5, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 12, Name = "NightMagic", Description = "Selects an area within range to attack.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "Mage", CooldownSeconds = 2, BaseDamage = 55.0, DamagePerLevel = 8.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 13, Name = "DeadlyExplosion", Description = "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", Type = "Active", DamageType = "Magical", TargetType = "SingleTarget", ClassRequirement = "All", CooldownSeconds = 6, BaseDamage = 140.0, DamagePerLevel = 18.0, DamageGrowthPercent = 4.0, UnlockLevel = 1, CorruptionCost = 8, IsActive = true },
+                new Skill { SkillId = 14, Name = "BloodySlash", Description = "A short-range slash in the direction the knight is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 2, BaseDamage = 55.0, DamagePerLevel = 8.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 15, Name = "FrozenSash", Description = "Selects an area within range to unleash an icy slash.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 3, BaseDamage = 75.0, DamagePerLevel = 10.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 16, Name = "PumpkinMagic", Description = "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Archer", CooldownSeconds = 5, BaseDamage = 115.0, DamagePerLevel = 14.0, DamageGrowthPercent = 3.5, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 17, Name = "PumpkinThrow", Description = "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", Type = "Active", DamageType = "Physical", TargetType = "Area", ClassRequirement = "Knight", CooldownSeconds = 5, BaseDamage = 115.0, DamagePerLevel = 14.0, DamageGrowthPercent = 3.5, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 18, Name = "PumpkinSlash", Description = "A short-range pumpkin slash in the direction the knight is facing.", Type = "Active", DamageType = "Physical", TargetType = "SingleTarget", ClassRequirement = "Knight", CooldownSeconds = 2, BaseDamage = 55.0, DamagePerLevel = 8.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true },
+                new Skill { SkillId = 19, Name = "BoomBoomPumpkin", Description = "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", Type = "Active", DamageType = "Magical", TargetType = "Area", ClassRequirement = "Mage", CooldownSeconds = 2, BaseDamage = 55.0, DamagePerLevel = 8.0, DamageGrowthPercent = 3.0, UnlockLevel = 1, CorruptionCost = 0, IsActive = true }
             );
 
             // ─────────────────────────────────────────────────────────────────────────
@@ -1183,24 +822,6 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             // ─────────────────────────────────────────────────────────────────────────
             // EQUIPMENT STATS – for system weapon/armor items (IDs match their ItemId)
             // ─────────────────────────────────────────────────────────────────────────
-            modelBuilder.Entity<EquipmentStats>().HasData(
-                // Weapons
-                new EquipmentStats { EquipmentStatsId = 5,  ItemId = 5,  BaseHp = 0,   BaseAtk = 35,  BaseDef = 0,   BonusHp = 0,   BonusAtk = 8,  BonusDef = 0,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 30, BonusCritDamage = 50,  BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 6,  ItemId = 6,  BaseHp = 0,   BaseAtk = 30,  BaseDef = 0,   BonusHp = 0,   BonusAtk = 6,  BonusDef = 0,  BonusMoveSpeed = 0,  BonusAttackSpeed = 10, BonusCritRate = 40, BonusCritDamage = 30,  BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 7,  ItemId = 7,  BaseHp = 0,   BaseAtk = 28,  BaseDef = 0,   BonusHp = 0,   BonusAtk = 5,  BonusDef = 0,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 20, BonusCritDamage = 80,  BonusDamageBonus = 10 },
-                new EquipmentStats { EquipmentStatsId = 8,  ItemId = 8,  BaseHp = 0,   BaseAtk = 80,  BaseDef = 0,   BonusHp = 0,   BonusAtk = 20, BonusDef = 0,  BonusMoveSpeed = 0,  BonusAttackSpeed = 5,  BonusCritRate = 60, BonusCritDamage = 100, BonusDamageBonus = 15 },
-                // Armors
-                new EquipmentStats { EquipmentStatsId = 9,  ItemId = 9,  BaseHp = 50,  BaseAtk = 0,   BaseDef = 12,  BonusHp = 10,  BonusAtk = 0,  BonusDef = 3,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 10, ItemId = 10, BaseHp = 100, BaseAtk = 0,   BaseDef = 30,  BonusHp = 20,  BonusAtk = 0,  BonusDef = 8,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 11, ItemId = 11, BaseHp = 0,   BaseAtk = 0,   BaseDef = 5,   BonusHp = 0,   BonusAtk = 0,  BonusDef = 2,  BonusMoveSpeed = 20, BonusAttackSpeed = 0,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 12, ItemId = 12, BaseHp = 500, BaseAtk = 0,   BaseDef = 120, BonusHp = 100, BonusAtk = 0,  BonusDef = 30, BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 13, ItemId = 13, BaseHp = 0,   BaseAtk = 0,   BaseDef = 60,  BonusHp = 0,   BonusAtk = 0,  BonusDef = 15, BonusMoveSpeed = 15, BonusAttackSpeed = 0,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 14, ItemId = 14, BaseHp = 0,   BaseAtk = 0,   BaseDef = 20,  BonusHp = 0,   BonusAtk = 0,  BonusDef = 5,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 80, BonusCritDamage = 120, BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 15, ItemId = 15, BaseHp = 0,   BaseAtk = 20,  BaseDef = 5,   BonusHp = 0,   BonusAtk = 5,  BonusDef = 2,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 5 },
-                new EquipmentStats { EquipmentStatsId = 16, ItemId = 16, BaseHp = 0,   BaseAtk = 15,  BaseDef = 3,   BonusHp = 0,   BonusAtk = 3,  BonusDef = 1,  BonusMoveSpeed = 5,  BonusAttackSpeed = 5,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 17, ItemId = 17, BaseHp = 30,  BaseAtk = 5,   BaseDef = 3,   BonusHp = 5,   BonusAtk = 2,  BonusDef = 1,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 10, BonusCritDamage = 10,  BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 18, ItemId = 18, BaseHp = 80,  BaseAtk = 0,   BaseDef = 5,   BonusHp = 20,  BonusAtk = 0,  BonusDef = 2,  BonusMoveSpeed = 0,  BonusAttackSpeed = 0,  BonusCritRate = 0,  BonusCritDamage = 0,   BonusDamageBonus = 0 }
-            );
 
             // ─────────────────────────────────────────────────────────────────────────
             // NPCs – Fixed IDs so Quest/Dialogue FK references are stable
@@ -1255,56 +876,56 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             // ─────────────────────────────────────────────────────────────────────────
             modelBuilder.Entity<Quest>().HasData(
                 // ── MAP 1: Elf Forest ────────────────────────────────────────────────
-                new Quest { QuestId = 1,  Title = "[Chapter 1] A Word with Elder Rowan",      Description = "You wake at the edge of the Elf Forest with no memory of how you arrived. Elder Rowan is waiting by the great roots — go to him and hear why the forest called you here.",                Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 1,  RewardExperience = 5,    RewardGold = 10m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Elder Rowan",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
-                new Quest { QuestId = 2,  Title = "[Chapter 1] Gather White Flowers",         Description = "The elders brew their healing draught from white flowers that only bloom in the shade of the old woods. Search the clearings and gather 3 White Flowers for Elder Rowan.",              Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 3,  RewardExperience = 10,   RewardGold = 8m,    RewardGems = 5m, ObjectiveType = "Collect",    ObjectiveTarget = "White Flower",   ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
-                new Quest { QuestId = 3,  Title = "[Chapter 1] Deliver the White Flowers",    Description = "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.",                                                                     Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 1,  RewardExperience = 5,    RewardGold = 5m,    RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Elder Rowan",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true, RewardSkillId = 10 },
-                new Quest { QuestId = 4,  Title = "[Chapter 1] Equip Your First Skill",       Description = "A skill is useless until it sits in your hand. Open the Skill panel and equip the technique Elder Rowan just taught you.",                                                             Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 1,  RewardExperience = 10,   RewardGold = 10m,   RewardGems = 5m, ObjectiveType = "EquipSkill", ObjectiveTarget = "Skill Panel",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
-                new Quest { QuestId = 5,  Title = "[Chapter 1] Cull the Little Slimes",       Description = "Little slimes have crept out of the marsh and are eating the flower beds. Put your new skill to work and defeat 3 of them.",                                                           Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 3,  RewardExperience = 15,   RewardGold = 15m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Slime Little",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
-                new Quest { QuestId = 6,  Title = "[Chapter 1] Slay the Swamp Demon",         Description = "The slimes were only fleeing something worse. A Swamp Demon broods in the deep woods over some old relic, and the water rots around it. Kill it and take whatever it is guarding.",                                       Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 2,  TargetAmount = 1,  RewardExperience = 25,   RewardGold = 50m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Swamp Demon",     ObjectiveLocation = "Deep Woods",       QuestGiverName = "Elder Rowan",          IsActive = true, BossMonsterId = 2 },
-                new Quest { QuestId = 7,  Title = "[Chapter 1] Lyra and the Origin Tree",     Description = "Rowan cannot name the relic you took from the swamp. Carry it to Lyra at the Origin Tree — she is older than every elf alive, and she will know what you are holding.",                              Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 2,  TargetAmount = 1,  RewardExperience = 10,   RewardGold = 10m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Lyra",           ObjectiveLocation = "Origin Tree",      QuestGiverName = "Lyra",                 IsActive = true },
-                new Quest { QuestId = 8,  Title = "[Chapter 1] Follow the Cloaked Figure",    Description = "A cloaked figure has been watching you since you woke, and now walks into a portal at the forest edge. Step through it before the way closes.",                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 2,  TargetAmount = 1,  RewardExperience = 5,    RewardGold = 5m,    RewardGems = 5m, ObjectiveType = "Explore",    ObjectiveTarget = "Portal",         ObjectiveLocation = "Elf Forest",       QuestGiverName = "Mysterious Figure",    IsActive = true },
+                new Quest { QuestId = 1,  Title = "[Chapter 1] A Word with Elder Rowan",      Description = "You wake at the edge of the Elf Forest with no memory of how you arrived. Elder Rowan is waiting by the great roots — go to him and hear why the forest called you here.",                Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 1,  RewardExperience = 15,    RewardGold = 20m,   RewardGems = 3m, ObjectiveType = "Talk",       ObjectiveTarget = "Elder Rowan",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
+                new Quest { QuestId = 2,  Title = "[Chapter 1] Gather White Flowers",         Description = "The elders brew their healing draught from white flowers that only bloom in the shade of the old woods. Search the clearings and gather 3 White Flowers for Elder Rowan.",              Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 3,  RewardExperience = 15,   RewardGold = 20m,    RewardGems = 3m, ObjectiveType = "Collect",    ObjectiveTarget = "White Flower",   ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
+                new Quest { QuestId = 3,  Title = "[Chapter 1] Deliver the White Flowers",    Description = "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.",                                                                     Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 1,  RewardExperience = 15,    RewardGold = 20m,    RewardGems = 3m, ObjectiveType = "Talk",       ObjectiveTarget = "Elder Rowan",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true, RewardSkillId = 10 },
+                new Quest { QuestId = 4,  Title = "[Chapter 1] Equip Your First Skill",       Description = "A skill is useless until it sits in your hand. Open the Skill panel and equip the technique Elder Rowan just taught you.",                                                             Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 1,  RewardExperience = 15,   RewardGold = 20m,   RewardGems = 3m, ObjectiveType = "EquipSkill", ObjectiveTarget = "Skill Panel",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
+                new Quest { QuestId = 5,  Title = "[Chapter 1] Cull the Little Slimes",       Description = "Little slimes have crept out of the marsh and are eating the flower beds. Put your new skill to work and defeat 3 of them.",                                                           Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 1,  TargetAmount = 3,  RewardExperience = 15,   RewardGold = 20m,   RewardGems = 3m, ObjectiveType = "Defeat",     ObjectiveTarget = "Slime Little",    ObjectiveLocation = "Elf Forest",       QuestGiverName = "Elder Rowan",          IsActive = true },
+                new Quest { QuestId = 6,  Title = "[Chapter 1] Slay the Swamp Demon",         Description = "The slimes were only fleeing something worse. A Swamp Demon broods in the deep woods over some old relic, and the water rots around it. Kill it and take whatever it is guarding.",                                       Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 2,  TargetAmount = 1,  RewardExperience = 65,   RewardGold = 60m,   RewardGems = 8m, ObjectiveType = "Defeat",     ObjectiveTarget = "Swamp Demon",     ObjectiveLocation = "Deep Woods",       QuestGiverName = "Elder Rowan",          IsActive = true, BossMonsterId = 2 },
+                new Quest { QuestId = 7,  Title = "[Chapter 1] Lyra and the Origin Tree",     Description = "Rowan cannot name the relic you took from the swamp. Carry it to Lyra at the Origin Tree — she is older than every elf alive, and she will know what you are holding.",                              Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 2,  TargetAmount = 1,  RewardExperience = 15,   RewardGold = 20m,   RewardGems = 3m, ObjectiveType = "Talk",       ObjectiveTarget = "Lyra",           ObjectiveLocation = "Origin Tree",      QuestGiverName = "Lyra",                 IsActive = true },
+                new Quest { QuestId = 8,  Title = "[Chapter 1] Follow the Cloaked Figure",    Description = "A cloaked figure has been watching you since you woke, and now walks into a portal at the forest edge. Step through it before the way closes.",                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest",      RequiredLevel = 2,  TargetAmount = 1,  RewardExperience = 15,    RewardGold = 55m,    RewardGems = 7m, ObjectiveType = "Explore",    ObjectiveTarget = "Portal",         ObjectiveLocation = "Elf Forest",       QuestGiverName = "Mysterious Figure",    IsActive = true },
                 // ── MAP 2: Autumn Pumpkin ────────────────────────────────────────────
-                new Quest { QuestId = 9,  Title = "[Chapter 2] Ask Where You Are",            Description = "The portal spits you onto a cold beach under an autumn sky. Climb to the castle and find Drake, the one soul here willing to speak to a stranger, and ask what land this is.",                    Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 100,  RewardGold = 5m,    RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Drake",          ObjectiveLocation = "Autumn Pumpkin",   QuestGiverName = "Drake",                IsActive = true },
-                new Quest { QuestId = 10, Title = "[Chapter 2] Harvest for Your Supper",      Description = "You have no coin in this land and no one gives bread away. Farmer Fa will trade a meal for labour: pick 8 Enchanted Pumpkins from his field.",                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 8,  RewardExperience = 300,  RewardGold = 10m,   RewardGems = 5m, ObjectiveType = "Collect",    ObjectiveTarget = "Enchanted Pumpkin",ObjectiveLocation = "Pumpkin Town",   QuestGiverName = "Fa",                   IsActive = true },
-                new Quest { QuestId = 11, Title = "[Chapter 2] Deliver the Harvest",          Description = "Fa is too old to make the road alone. Carry the harvest to the city gate and hand it to the guard Tristan.",                                                                          Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 200,  RewardGold = 5m,    RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Tristan",        ObjectiveLocation = "City Gate",        QuestGiverName = "Fa",                   IsActive = true },
-                new Quest { QuestId = 12, Title = "[Chapter 2] Examine the Fallen",           Description = "Beyond the gate the city is silent and the streets are full of the dead. Examine 5 of the bodies and learn what killed them.",                                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 5,  RewardExperience = 250,  RewardGold = 5m,    RewardGems = 5m, ObjectiveType = "Interact",   ObjectiveTarget = "Corpse",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Tristan",              IsActive = true },
-                new Quest { QuestId = 13, Title = "[Chapter 2] Seek the Silver Knight",       Description = "Tristan pales at your report: only one man ever held these ruins. Search the city for the silver knight Arthur and ask for his help.",                                               Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 250,  RewardGold = 5m,    RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Arthur",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Tristan",              IsActive = true },
-                new Quest { QuestId = 14, Title = "[Chapter 2] Train in the Old Dungeon",     Description = "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.",       Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 1,  RewardExperience = 250,  RewardGold = 15m,   RewardGems = 5m, ObjectiveType = "Explore",    ObjectiveTarget = "Dungeon_2",      ObjectiveLocation = "Dungeon",          QuestGiverName = "Arthur",               IsActive = true, RewardSkillId = 9, RewardItemId = 18 },
-                new Quest { QuestId = 15, Title = "[Chapter 2] Trial I: The Robber Camp",      Description = "Arthur will not send you at a dragon on faith. He sets four trials, and the first is the robbers holding the eastern camp. Cut down 6 of them.",                       Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 6, RewardExperience = 250,  RewardGold = 25m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Robber", ObjectiveLocation = "Robber Camp", QuestGiverName = "Arthur", IsActive = true },
-                new Quest { QuestId = 16, Title = "[Chapter 2] Trial II: The Haunted Quarter", Description = "One trial stands to your name. The second is the haunted quarter - ghosts, necromancers, and the red guard who died at their posts. Put down 10.",                     Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 10, RewardExperience = 300,  RewardGold = 30m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Ghost", ObjectiveLocation = "Haunted Quarter", QuestGiverName = "Arthur", IsActive = true },
-                new Quest { QuestId = 17, Title = "[Chapter 2] Trial III: The Goblin Grounds", Description = "Two trials done. The third lies south of the ruins, where goblin spear and axe bands have dug in. Break 3 of them.",                                                   Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 3, RewardExperience = 250,  RewardGold = 25m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Goblin", ObjectiveLocation = "Goblin Grounds", QuestGiverName = "Arthur", IsActive = true },
-                new Quest { QuestId = 18, Title = "[Chapter 2] Trial IV: The Goblin Warlord",  Description = "The goblins you broke were only a warband, and every warband answers to someone. Their warlord still holds the Goblin Grounds. Kill him and the last trial is yours.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 1, RewardExperience = 350,  RewardGold = 40m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Goblin Warlord", ObjectiveLocation = "Goblin Grounds", QuestGiverName = "Arthur", IsActive = true, BossMonsterId = 22 },
-                new Quest { QuestId = 19, Title = "[Chapter 2] Slay the Dragon",              Description = "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.",                                                 Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 5,  TargetAmount = 1,  RewardExperience = 350,  RewardGold = 100m,  RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Red Dragon", ObjectiveLocation = "Ruined City",      QuestGiverName = "Arthur",               IsActive = true, BossMonsterId = 7 },
-                new Quest { QuestId = 20, Title = "[Chapter 2] Arthur's Parting Words",       Description = "Return to Arthur for the knight's thanks and ask where the cursed codex came from. He points north, to a kingdom the codex froze solid.",                                            Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 5,  TargetAmount = 1,  RewardExperience = 150,  RewardGold = 10m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Arthur",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Arthur",               IsActive = true },
+                new Quest { QuestId = 9,  Title = "[Chapter 2] Ask Where You Are",            Description = "The portal spits you onto a cold beach under an autumn sky. Climb to the castle and find Drake, the one soul here willing to speak to a stranger, and ask what land this is.",                    Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,    RewardGems = 4m, ObjectiveType = "Talk",       ObjectiveTarget = "Drake",          ObjectiveLocation = "Autumn Pumpkin",   QuestGiverName = "Drake",                IsActive = true },
+                new Quest { QuestId = 10, Title = "[Chapter 2] Harvest for Your Supper",      Description = "You have no coin in this land and no one gives bread away. Farmer Fa will trade a meal for labour: pick 8 Enchanted Pumpkins from his field.",                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 8,  RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Collect",    ObjectiveTarget = "Enchanted Pumpkin",ObjectiveLocation = "Pumpkin Town",   QuestGiverName = "Fa",                   IsActive = true },
+                new Quest { QuestId = 11, Title = "[Chapter 2] Deliver the Harvest",          Description = "Fa is too old to make the road alone. Carry the harvest to the city gate and hand it to the guard Tristan.",                                                                          Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,    RewardGems = 4m, ObjectiveType = "Talk",       ObjectiveTarget = "Tristan",        ObjectiveLocation = "City Gate",        QuestGiverName = "Fa",                   IsActive = true },
+                new Quest { QuestId = 12, Title = "[Chapter 2] Examine the Fallen",           Description = "Beyond the gate the city is silent and the streets are full of the dead. Examine 5 of the bodies and learn what killed them.",                                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 5,  RewardExperience = 10,  RewardGold = 30m,    RewardGems = 4m, ObjectiveType = "Interact",   ObjectiveTarget = "Corpse",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Tristan",              IsActive = true },
+                new Quest { QuestId = 13, Title = "[Chapter 2] Seek the Silver Knight",       Description = "Tristan pales at your report: only one man ever held these ruins. Search the city for the silver knight Arthur and ask for his help.",                                               Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,    RewardGems = 4m, ObjectiveType = "Talk",       ObjectiveTarget = "Arthur",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Tristan",              IsActive = true },
+                new Quest { QuestId = 14, Title = "[Chapter 2] Train in the Old Dungeon",     Description = "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.",       Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Explore",    ObjectiveTarget = "Dungeon_2",      ObjectiveLocation = "Dungeon",          QuestGiverName = "Arthur",               IsActive = true, RewardSkillId = 9, RewardItemId = 18 },
+                new Quest { QuestId = 15, Title = "[Chapter 2] Trial I: The Robber Camp",      Description = "Arthur will not send you at a dragon on faith. He sets four trials, and the first is the robbers holding the eastern camp. Cut down 6 of them.",                       Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 6, RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Defeat",     ObjectiveTarget = "Robber", ObjectiveLocation = "Robber Camp", QuestGiverName = "Arthur", IsActive = true },
+                new Quest { QuestId = 16, Title = "[Chapter 2] Trial II: The Haunted Quarter", Description = "One trial stands to your name. The second is the haunted quarter - ghosts, necromancers, and the red guard who died at their posts. Put down 10.",                     Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 10, RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Defeat",     ObjectiveTarget = "Ghost", ObjectiveLocation = "Haunted Quarter", QuestGiverName = "Arthur", IsActive = true },
+                new Quest { QuestId = 17, Title = "[Chapter 2] Trial III: The Goblin Grounds", Description = "Two trials done. The third lies south of the ruins, where goblin spear and axe bands have dug in. Break 3 of them.",                                                   Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 3, RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Defeat",     ObjectiveTarget = "Goblin", ObjectiveLocation = "Goblin Grounds", QuestGiverName = "Arthur", IsActive = true },
+                new Quest { QuestId = 18, Title = "[Chapter 2] Trial IV: The Goblin Warlord",  Description = "The goblins you broke were only a warband, and every warband answers to someone. Their warlord still holds the Goblin Grounds. Kill him and the last trial is yours.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 1, RewardExperience = 35,  RewardGold = 120m,   RewardGems = 16m, ObjectiveType = "Defeat",     ObjectiveTarget = "Goblin Warlord", ObjectiveLocation = "Goblin Grounds", QuestGiverName = "Arthur", IsActive = true, BossMonsterId = 22 },
+                new Quest { QuestId = 19, Title = "[Chapter 2] Slay the Dragon",              Description = "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.",                                                 Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 5,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 120m,  RewardGems = 16m, ObjectiveType = "Defeat",     ObjectiveTarget = "Red Dragon", ObjectiveLocation = "Ruined City",      QuestGiverName = "Arthur",               IsActive = true, BossMonsterId = 7 },
+                new Quest { QuestId = 20, Title = "[Chapter 2] Arthur's Parting Words",       Description = "Return to Arthur for the knight's thanks and ask where the cursed codex came from. He points north, to a kingdom the codex froze solid.",                                            Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 5,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 80m,   RewardGems = 10m, ObjectiveType = "Talk",       ObjectiveTarget = "Arthur",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Arthur",               IsActive = true },
                 // ── MAP 3: Frozen Mountain ───────────────────────────────────────────
-                new Quest { QuestId = 21, Title = "[Chapter 3] The Ice Slimes",               Description = "Cedric holds the snow fields with farmers and borrowed spears, and he has no reason to trust a stranger off the ice road. The slimes are on his fields tonight. Defeat 8 of them and he will hear you out.", Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 6,  TargetAmount = 8,  RewardExperience = 200,  RewardGold = 30m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Slime Ice",      ObjectiveLocation = "Snow Fields",      QuestGiverName = "Cedric", IsActive = true },
-                new Quest { QuestId = 22, Title = "[Chapter 3] A Word to the Queen",          Description = "The fields are clear, and Cedric has stopped calling you stranger. He says the Queen has been searching for someone with the strength to stand against what is coming, and that he intends to give her your name. Speak with Roselyn Aurora at the citadel.", Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 6,  TargetAmount = 1,  RewardExperience = 150,  RewardGold = 20m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Roselyn Aurora Queen", ObjectiveLocation = "Snow Fields",   QuestGiverName = "Cedric", IsActive = true, RewardItemId = 31 },
-                new Quest { QuestId = 23, Title = "[Chapter 3] Magic Flour for the Priest",   Description = "The Queen speaks of the ancient king whose statue this kingdom still honours, and of a priest who studies the old magics. Deliver her Magic Flour to Zephyr and ask him what she could not answer.", Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 6,  TargetAmount = 1,  RewardExperience = 150,  RewardGold = 15m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Zephyr",         ObjectiveLocation = "Frozen Mountain",  QuestGiverName = "Roselyn Aurora Queen", IsActive = true },
-                new Quest { QuestId = 24, Title = "[Chapter 3] Dragons of Snow",              Description = "Zephyr has studied the vanished seal books for thirty years. Something is driving the ice dragons against the people below. Bring down 5 of them on the mountain and report what you saw.",       Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 7,  TargetAmount = 5,  RewardExperience = 250,  RewardGold = 40m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Ice Dragon",     ObjectiveLocation = "Frozen Mountain",  QuestGiverName = "Zephyr",               IsActive = true },
-                new Quest { QuestId = 25, Title = "[Chapter 3] The Forbidden Zone",           Description = "Zephyr shares what he suspects: the codex may have been corrupted, not born evil. The rest lies in the sealed north, The Doomed Land of Snow. Find the guard Roland and ask for passage.",         Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 7,  TargetAmount = 1,  RewardExperience = 150,  RewardGold = 15m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Roland",         ObjectiveLocation = "Forbidden Zone",   QuestGiverName = "Roland",               IsActive = true },
-                new Quest { QuestId = 26, Title = "[Chapter 3] The Sealed Guardians",         Description = "Two ancient things wait inside the ban: a giant of stone, and the spirit that never leaves his side. Defeat them both and take the Golem Seal Book.",                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 8,  TargetAmount = 2,  RewardExperience = 400,  RewardGold = 150m,  RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Golem Boss / Ice Fairy", ObjectiveLocation = "Forbidden Zone", QuestGiverName = "Roland",               IsActive = true, BossMonsterId = 10 },
-                new Quest { QuestId = 27, Title = "[Chapter 3] Truth of the Codex",           Description = "Roland is waiting where you left him, and what you carry out of the ban is heavier than a book. Speak with him and put together what was really done to the guardians.",              Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 8,  TargetAmount = 1,  RewardExperience = 200,  RewardGold = 50m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Roland",             ObjectiveLocation = "Forbidden Zone", QuestGiverName = "Roland",               IsActive = true },
+                new Quest { QuestId = 21, Title = "[Chapter 3] The Ice Slimes",               Description = "Cedric holds the snow fields with farmers and borrowed spears, and he has no reason to trust a stranger off the ice road. The slimes are on his fields tonight. Defeat 8 of them and he will hear you out.", Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 6,  TargetAmount = 8,  RewardExperience = 15,  RewardGold = 40m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Slime Ice",      ObjectiveLocation = "Snow Fields",      QuestGiverName = "Cedric", IsActive = true },
+                new Quest { QuestId = 22, Title = "[Chapter 3] A Word to the Queen",          Description = "The fields are clear, and Cedric has stopped calling you stranger. He says the Queen has been searching for someone with the strength to stand against what is coming, and that he intends to give her your name. Speak with Roselyn Aurora at the citadel.", Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 6,  TargetAmount = 1,  RewardExperience = 15,  RewardGold = 40m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Roselyn Aurora Queen", ObjectiveLocation = "Snow Fields",   QuestGiverName = "Cedric", IsActive = true, RewardItemId = 31 },
+                new Quest { QuestId = 23, Title = "[Chapter 3] Magic Flour for the Priest",   Description = "The Queen speaks of the ancient king whose statue this kingdom still honours, and of a priest who studies the old magics. Deliver her Magic Flour to Zephyr and ask him what she could not answer.", Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 6,  TargetAmount = 1,  RewardExperience = 15,  RewardGold = 40m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Zephyr",         ObjectiveLocation = "Frozen Mountain",  QuestGiverName = "Roselyn Aurora Queen", IsActive = true },
+                new Quest { QuestId = 24, Title = "[Chapter 3] Dragons of Snow",              Description = "Zephyr has studied the vanished seal books for thirty years. Something is driving the ice dragons against the people below. Bring down 5 of them on the mountain and report what you saw.",       Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 7,  TargetAmount = 5,  RewardExperience = 15,  RewardGold = 40m,   RewardGems = 5m, ObjectiveType = "Defeat",     ObjectiveTarget = "Ice Dragon",     ObjectiveLocation = "Frozen Mountain",  QuestGiverName = "Zephyr",               IsActive = true },
+                new Quest { QuestId = 25, Title = "[Chapter 3] The Forbidden Zone",           Description = "Zephyr shares what he suspects: the codex may have been corrupted, not born evil. The rest lies in the sealed north, The Doomed Land of Snow. Find the guard Roland and ask for passage.",         Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 7,  TargetAmount = 1,  RewardExperience = 15,  RewardGold = 40m,   RewardGems = 5m, ObjectiveType = "Talk",       ObjectiveTarget = "Roland",         ObjectiveLocation = "Forbidden Zone",   QuestGiverName = "Roland",               IsActive = true },
+                new Quest { QuestId = 26, Title = "[Chapter 3] The Sealed Guardians",         Description = "Two ancient things wait inside the ban: a giant of stone, and the spirit that never leaves his side. Defeat them both and take the Golem Seal Book.",                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 8,  TargetAmount = 2,  RewardExperience = 15,  RewardGold = 180m,  RewardGems = 24m, ObjectiveType = "Defeat",     ObjectiveTarget = "Golem Boss / Ice Fairy", ObjectiveLocation = "Forbidden Zone", QuestGiverName = "Roland",               IsActive = true, BossMonsterId = 10 },
+                new Quest { QuestId = 27, Title = "[Chapter 3] Truth of the Codex",           Description = "Roland is waiting where you left him, and what you carry out of the ban is heavier than a book. Speak with him and put together what was really done to the guardians.",              Type = "Main", DefaultStatus = "NotStarted", MapName = "FrozenMountain", RequiredLevel = 8,  TargetAmount = 1,  RewardExperience = 15,  RewardGold = 105m,   RewardGems = 13m, ObjectiveType = "Talk",       ObjectiveTarget = "Roland",             ObjectiveLocation = "Forbidden Zone", QuestGiverName = "Roland",               IsActive = true },
                 // ── MAP 4: Abandoned Castle ──────────────────────────────────────────
-                new Quest { QuestId = 28, Title = "[Chapter 4] Break the Skeleton Army", Description = "The Valiant Warrior is Natalie's father, returned from war to find Tide-Knell dead. Help him put down 12 skeletons and hold the valley.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 9, TargetAmount = 12, RewardExperience = 300, RewardGold = 50m, RewardGems = 5m, ObjectiveType = "Defeat", ObjectiveTarget = "Skeleton", ObjectiveLocation = "Valley", QuestGiverName = "Valiant Warrior", IsActive = true },
-                new Quest { QuestId = 29, Title = "[Chapter 4] Names Beneath the Bone", Description = "Recover 5 remembrance tokens so the Valiant Warrior can name the people he is forced to fight.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 9, TargetAmount = 5, RewardExperience = 220, RewardGold = 35m, RewardGems = 5m, ObjectiveType = "Collect", ObjectiveTarget = "Tide-Knell Remembrance", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Valiant Warrior", IsActive = true },
-                new Quest { QuestId = 30, Title = "[Chapter 4] The Skull by the Well", Description = "Natalie's ghost asks you to dig beside the old well and recover the skull buried there.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 9, TargetAmount = 1, RewardExperience = 200, RewardGold = 30m, RewardGems = 5m, ObjectiveType = "Interact", ObjectiveTarget = "Skull", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Natalie", IsActive = true, RewardItemId = 32 },
-                new Quest { QuestId = 31, Title = "[Chapter 4] The Voice Beneath the Well", Description = "Find 3 traces of the old seal around the cursed well and force its promise into the open.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 3, RewardExperience = 240, RewardGold = 35m, RewardGems = 5m, ObjectiveType = "Interact", ObjectiveTarget = "Cursed Well", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Natalie", IsActive = true },
-                new Quest { QuestId = 32, Title = "[Chapter 4] The Father's Last Letter", Description = "Find 3 memories left by Natalie's father and let his daughter hear the truth.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 3, RewardExperience = 240, RewardGold = 35m, RewardGems = 5m, ObjectiveType = "Collect", ObjectiveTarget = "Natalie's Memory", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Valiant Warrior", IsActive = true },
-                new Quest { QuestId = 33, Title = "[Chapter 4] Lay Natalie to Rest", Description = "Bury Natalie beneath the ivy tree and forgive the lonely child who opened the seal.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 1, RewardExperience = 200, RewardGold = 40m, RewardGems = 5m, ObjectiveType = "Interact", ObjectiveTarget = "Ivy Tree", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Natalie", IsActive = true, RewardItemId = 33 },
-                new Quest { QuestId = 34, Title = "[Chapter 4] The Key to the Island", Description = "Use Natalie's Mystic Key at the bridge gate and open the road to the deserted island.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 1, RewardExperience = 160, RewardGold = 25m, RewardGems = 5m, ObjectiveType = "Interact", ObjectiveTarget = "Locked Bridge Gate", ObjectiveLocation = "Bridge", QuestGiverName = "Valiant Warrior", IsActive = true },
-                new Quest { QuestId = 35, Title = "[Chapter 4] Ancient Leaves of the Isle", Description = "Gather 5 Ancient Leaves to restore the old rite and open King Aderyn's prison.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 5, RewardExperience = 250, RewardGold = 45m, RewardGems = 5m, ObjectiveType = "Collect", ObjectiveTarget = "Ancient Leaves", ObjectiveLocation = "Northern Plateau", QuestGiverName = "Elf Guard", IsActive = true },
-                new Quest { QuestId = 36, Title = "[Chapter 4] The Warden's Oath", Description = "Recover 4 relics from the old sealing party and confront the Elf Guard's guilt.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 11, TargetAmount = 4, RewardExperience = 260, RewardGold = 50m, RewardGems = 5m, ObjectiveType = "Collect", ObjectiveTarget = "Warden Relic", ObjectiveLocation = "Deserted Island", QuestGiverName = "Elf Guard", IsActive = true },
-                new Quest { QuestId = 37, Title = "[Chapter 4] The King's Garden", Description = "Cleanse 3 cursed roots in King Aderyn's abandoned garden.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 11, TargetAmount = 3, RewardExperience = 280, RewardGold = 55m, RewardGems = 5m, ObjectiveType = "Interact", ObjectiveTarget = "Cursed Root", ObjectiveLocation = "Northern Plateau", QuestGiverName = "Brother Cael", IsActive = true },
-                new Quest { QuestId = 38, Title = "[Chapter 4] The Man Beneath the Crown", Description = "Read 3 memory fragments and learn why King Aderyn chose imprisonment before entering the crypt.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 11, TargetAmount = 3, RewardExperience = 300, RewardGold = 60m, RewardGems = 5m, ObjectiveType = "Interact", ObjectiveTarget = "Aderyn Memory", ObjectiveLocation = "Deserted Island", QuestGiverName = "Brother Cael", IsActive = true },
-                new Quest { QuestId = 39, Title = "[Chapter 4] Free the UnderKing", Description = "Defeat the UnderKing and release the hero beneath the crown.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 500, RewardGold = 300m, RewardGems = 5m, ObjectiveType = "Defeat", ObjectiveTarget = "UnderKing", ObjectiveLocation = "Deserted Island", QuestGiverName = "Elf Guard", IsActive = true, BossMonsterId = 15 },
-                new Quest { QuestId = 40, Title = "[Chapter 4] Ask for the Way Home", Description = "Hear the Elf Guard's farewell to his old friend, then open the portal back to the Elf Forest.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 150, RewardGold = 10m, RewardGems = 5m, ObjectiveType = "Talk", ObjectiveTarget = "Elf Guard", ObjectiveLocation = "Deserted Island", QuestGiverName = "Elf Guard", IsActive = true },
+                new Quest { QuestId = 28, Title = "[Chapter 4] Break the Skeleton Army", Description = "The Valiant Warrior is Natalie's father, returned from war to find Tide-Knell dead. Help him put down 12 skeletons and hold the valley.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 9, TargetAmount = 12, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Defeat", ObjectiveTarget = "Skeleton", ObjectiveLocation = "Valley", QuestGiverName = "Valiant Warrior", IsActive = true },
+                new Quest { QuestId = 29, Title = "[Chapter 4] Names Beneath the Bone", Description = "Recover 5 remembrance tokens so the Valiant Warrior can name the people he is forced to fight.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 9, TargetAmount = 5, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Collect", ObjectiveTarget = "Tide-Knell Remembrance", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Valiant Warrior", IsActive = true },
+                new Quest { QuestId = 30, Title = "[Chapter 4] The Skull by the Well", Description = "Natalie's ghost asks you to dig beside the old well and recover the skull buried there.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 9, TargetAmount = 1, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Interact", ObjectiveTarget = "Skull", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Natalie", IsActive = true, RewardItemId = 32 },
+                new Quest { QuestId = 31, Title = "[Chapter 4] The Voice Beneath the Well", Description = "Find 3 traces of the old seal around the cursed well and force its promise into the open.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 3, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Interact", ObjectiveTarget = "Cursed Well", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Natalie", IsActive = true },
+                new Quest { QuestId = 32, Title = "[Chapter 4] The Father's Last Letter", Description = "Find 3 memories left by Natalie's father and let his daughter hear the truth.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 3, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Collect", ObjectiveTarget = "Natalie's Memory", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Valiant Warrior", IsActive = true },
+                new Quest { QuestId = 33, Title = "[Chapter 4] Lay Natalie to Rest", Description = "Bury Natalie beneath the ivy tree and forgive the lonely child who opened the seal.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 1, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Interact", ObjectiveTarget = "Ivy Tree", ObjectiveLocation = "Tide-Knell", QuestGiverName = "Natalie", IsActive = true, RewardItemId = 33 },
+                new Quest { QuestId = 34, Title = "[Chapter 4] The Key to the Island", Description = "Use Natalie's Mystic Key at the bridge gate and open the road to the deserted island.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 1, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Interact", ObjectiveTarget = "Locked Bridge Gate", ObjectiveLocation = "Bridge", QuestGiverName = "Valiant Warrior", IsActive = true },
+                new Quest { QuestId = 35, Title = "[Chapter 4] Ancient Leaves of the Isle", Description = "Gather 5 Ancient Leaves to restore the old rite and open King Aderyn's prison.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 10, TargetAmount = 5, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Collect", ObjectiveTarget = "Ancient Leaves", ObjectiveLocation = "Northern Plateau", QuestGiverName = "Elf Guard", IsActive = true },
+                new Quest { QuestId = 36, Title = "[Chapter 4] The Warden's Oath", Description = "Recover 4 relics from the old sealing party and confront the Elf Guard's guilt.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 11, TargetAmount = 4, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Collect", ObjectiveTarget = "Warden Relic", ObjectiveLocation = "Deserted Island", QuestGiverName = "Elf Guard", IsActive = true },
+                new Quest { QuestId = 37, Title = "[Chapter 4] The King's Garden", Description = "Cleanse 3 cursed roots in King Aderyn's abandoned garden.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 11, TargetAmount = 3, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Interact", ObjectiveTarget = "Cursed Root", ObjectiveLocation = "Northern Plateau", QuestGiverName = "Brother Cael", IsActive = true },
+                new Quest { QuestId = 38, Title = "[Chapter 4] The Man Beneath the Crown", Description = "Read 3 memory fragments and learn why King Aderyn chose imprisonment before entering the crypt.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 11, TargetAmount = 3, RewardExperience = 15, RewardGold = 50m, RewardGems = 6m, ObjectiveType = "Interact", ObjectiveTarget = "Aderyn Memory", ObjectiveLocation = "Deserted Island", QuestGiverName = "Brother Cael", IsActive = true },
+                new Quest { QuestId = 39, Title = "[Chapter 4] Free the UnderKing", Description = "Defeat the UnderKing and release the hero beneath the crown.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 15, RewardGold = 240m, RewardGems = 32m, ObjectiveType = "Defeat", ObjectiveTarget = "UnderKing", ObjectiveLocation = "Deserted Island", QuestGiverName = "Elf Guard", IsActive = true, BossMonsterId = 15 },
+                new Quest { QuestId = 40, Title = "[Chapter 4] Ask for the Way Home", Description = "Hear the Elf Guard's farewell to his old friend, then open the portal back to the Elf Forest.", Type = "Main", DefaultStatus = "NotStarted", MapName = "AbandonedCastle", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 15, RewardGold = 130m, RewardGems = 16m, ObjectiveType = "Talk", ObjectiveTarget = "Elf Guard", ObjectiveLocation = "Deserted Island", QuestGiverName = "Elf Guard", IsActive = true },
                 // ── FINALE: back to the Elf Forest ───────────────────────────────────
-                new Quest { QuestId = 41, Title = "[Chapter 5] Return with the Seals", Description = "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 250, RewardGold = 50m, RewardGems = 5m, ObjectiveType = "Talk", ObjectiveTarget = "Lyra", ObjectiveLocation = "Origin Tree", QuestGiverName = "Lyra", IsActive = true },
-                new Quest { QuestId = 42, Title = "[Chapter 5] The Forest Remembers", Description = "Return to Elder Rowan. The forest still remembers the first healing flowers and the people they saved.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 200, RewardGold = 40m, RewardGems = 5m, ObjectiveType = "Talk", ObjectiveTarget = "Elder Rowan", ObjectiveLocation = "Elf Forest", QuestGiverName = "Lyra", IsActive = true },
-                new Quest { QuestId = 43, Title = "[Chapter 5] Flowers Before Dawn", Description = "Gather 3 White Flowers from the old clearing so Elder Rowan can brew the last healing draught.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 3, RewardExperience = 220, RewardGold = 35m, RewardGems = 5m, ObjectiveType = "Collect", ObjectiveTarget = "White Flower", ObjectiveLocation = "Elf Forest", QuestGiverName = "Elder Rowan", IsActive = true },
-                new Quest { QuestId = 44, Title = "[Chapter 5] The Last Healing Draught", Description = "Bring the flowers to Elder Rowan, then return to Lyra with the finished draught.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 250, RewardGold = 45m, RewardGems = 5m, ObjectiveType = "Talk", ObjectiveTarget = "Lyra", ObjectiveLocation = "Origin Tree", QuestGiverName = "Elder Rowan", IsActive = true },
-                new Quest { QuestId = 45, Title = "[Chapter 5] Heal the Origin Tree", Description = "Set the four Seal Books and the last healing draught upon the Origin Tree and break the curse.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 500, RewardGold = 300m, RewardGems = 5m, ObjectiveType = "Interact", ObjectiveTarget = "Origin Tree", ObjectiveLocation = "Origin Tree", QuestGiverName = "Lyra", IsActive = true },
-                new Quest { QuestId = 46, Title = "[Chapter 5] A New Dawn", Description = "Speak with Lyra one last time and learn what still waits beyond the healed forest.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 350, RewardGold = 250m, RewardGems = 5m, ObjectiveType = "Talk", ObjectiveTarget = "Lyra", ObjectiveLocation = "Origin Tree", QuestGiverName = "Lyra", IsActive = true }
+                new Quest { QuestId = 41, Title = "[Chapter 5] Return with the Seals", Description = "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 15, RewardGold = 60m, RewardGems = 7m, ObjectiveType = "Talk", ObjectiveTarget = "Lyra", ObjectiveLocation = "Origin Tree", QuestGiverName = "Lyra", IsActive = true },
+                new Quest { QuestId = 42, Title = "[Chapter 5] The Forest Remembers", Description = "Return to Elder Rowan. The forest still remembers the first healing flowers and the people they saved.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 15, RewardGold = 60m, RewardGems = 7m, ObjectiveType = "Talk", ObjectiveTarget = "Elder Rowan", ObjectiveLocation = "Elf Forest", QuestGiverName = "Lyra", IsActive = true },
+                new Quest { QuestId = 43, Title = "[Chapter 5] Flowers Before Dawn", Description = "Gather 3 White Flowers from the old clearing so Elder Rowan can brew the last healing draught.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 3, RewardExperience = 15, RewardGold = 60m, RewardGems = 7m, ObjectiveType = "Collect", ObjectiveTarget = "White Flower", ObjectiveLocation = "Elf Forest", QuestGiverName = "Elder Rowan", IsActive = true },
+                new Quest { QuestId = 44, Title = "[Chapter 5] The Last Healing Draught", Description = "Bring the flowers to Elder Rowan, then return to Lyra with the finished draught.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 15, RewardGold = 60m, RewardGems = 7m, ObjectiveType = "Talk", ObjectiveTarget = "Lyra", ObjectiveLocation = "Origin Tree", QuestGiverName = "Elder Rowan", IsActive = true },
+                new Quest { QuestId = 45, Title = "[Chapter 5] Heal the Origin Tree", Description = "Set the four Seal Books and the last healing draught upon the Origin Tree and break the curse.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 15, RewardGold = 300m, RewardGems = 40m, ObjectiveType = "Interact", ObjectiveTarget = "Origin Tree", ObjectiveLocation = "Origin Tree", QuestGiverName = "Lyra", IsActive = true },
+                new Quest { QuestId = 46, Title = "[Chapter 5] A New Dawn", Description = "Speak with Lyra one last time and learn what still waits beyond the healed forest.", Type = "Main", DefaultStatus = "NotStarted", MapName = "ElfForest", RequiredLevel = 12, TargetAmount = 1, RewardExperience = 15, RewardGold = 300m, RewardGems = 40m, ObjectiveType = "Talk", ObjectiveTarget = "Lyra", ObjectiveLocation = "Origin Tree", QuestGiverName = "Lyra", IsActive = true }
             );
 
             // ─────────────────────────────────────────────────────────────────────────

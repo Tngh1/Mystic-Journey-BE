@@ -1796,9 +1796,9 @@ namespace DAL.Migrations
                 columns: new[] { "ClassConfigId", "Atk", "AttackSpeed", "ClassName", "CritDamage", "CritRate", "DamageBonus", "Def", "MaxHp", "MoveSpeed" },
                 values: new object[,]
                 {
-                    { 1, 50, 100, "Knight", 150, 5, 0, 40, 500, 100 },
-                    { 2, 70, 100, "Archer", 150, 5, 0, 20, 350, 100 },
-                    { 3, 90, 100, "Mage", 150, 5, 0, 15, 300, 100 }
+                    { 1, 42, 100, "Knight", 150, 5, 0, 45, 620, 100 },
+                    { 2, 52, 100, "Archer", 150, 5, 0, 26, 420, 100 },
+                    { 3, 46, 100, "Mage", 150, 5, 0, 20, 360, 100 }
                 });
 
             migrationBuilder.InsertData(
@@ -1861,32 +1861,33 @@ namespace DAL.Migrations
                 columns: new[] { "MonsterId", "Atk", "AttackSpeed", "CreatedAt", "CritDamage", "CritRate", "Def", "Description", "ExperienceReward", "GemReward", "GoldReward", "ImageUrl", "IsActive", "Level", "MaxHp", "MoveSpeed", "Name", "Type" },
                 values: new object[,]
                 {
-                    { 1, 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 187, 10, 2, "A basic slime monster.", 5, 0m, 15m, null, true, 1, 50, 1, "SlimeLittle", "Normal" },
-                    { 2, 20, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 130, 20, 10, "A dangerous swamp demon.", 100, 0m, 200m, null, true, 10, 500, 1, "SwampDemon", "Boss" },
-                    { 3, 15, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 183, 10, 5, "A water elemental monster.", 10, 0m, 30m, null, true, 5, 80, 1, "WaterElemental", "Normal" },
-                    { 4, 30, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 180, 20, 15, "A fierce dragon.", 20, 0m, 50m, null, true, 5, 200, 1, "Dragon", "Normal" },
-                    { 5, 35, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 156, 20, 20, "A frosty blue dragon.", 22, 0m, 55m, null, true, 6, 250, 5, "BlueDragonFrost", "Normal" },
-                    { 6, 37, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 12, 25, "A forest green dragon.", 25, 0m, 62m, null, true, 7, 270, 6, "GreenDragonForest", "Normal" },
-                    { 7, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 250, 30, 35, "A terrifying boss dragon.", 300, 0m, 1000m, null, true, 20, 1000, 0, "DragonBossIdle", "Boss" },
-                    { 8, 25, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 12, 50, "An icy slime.", 30, 0m, 70m, null, true, 8, 300, 1, "SlimeIce", "Normal" },
-                    { 9, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 170, 25, 70, "An icy dragon.", 32, 0m, 100m, null, true, 9, 350, 2, "IceDragon", "Normal" },
-                    { 10, 150, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 30, 70, "A giant stone golem boss.", 1500, 10m, 2000m, null, true, 15, 3000, 3, "GolemBoss", "Boss" },
-                    { 11, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 166, 25, 100, "An undead orc skeleton.", 40, 0m, 70m, null, true, 5, 400, 2, "OrcSkeleton", "Normal" },
-                    { 12, 70, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 164, 15, 70, "A melee skeleton warrior.", 42, 0m, 74m, null, true, 6, 350, 3, "SkeletonMelee", "Normal" },
-                    { 13, 100, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 163, 25, 30, "A ranged skeleton archer.", 38, 0m, 78m, null, true, 6, 250, 3, "SkeletonArcher", "Normal" },
-                    { 14, 90, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 185, 30, 150, "A floating ghost.", 45, 0m, 85m, null, true, 5, 300, 4, "Ghost", "Normal" },
-                    { 15, 200, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 20, 40, 300, "Once a great human king who accepted two Seal Books and imprisoned himself beneath the deserted island to spare the world their curse. Centuries of darkness eroded the hero into the UnderKing.", 900, 500m, 2500m, null, true, 20, 10000, 4, "UnderKing", "Boss" },
-                    { 16, 70, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 40, 30, "A terrifying demon.", 50, 0m, 100m, null, true, 8, 500, 2, "Demon", "Normal" },
-                    { 17, 70, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 80, "A strong goblin warrior.", 50, 0m, 100m, null, true, 6, 450, 3, "GoblinWarrior", "Normal" },
-                    { 18, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 40, "A goblin spearman.", 50, 0m, 100m, null, true, 6, 450, 3, "GoblinSpear", "Normal" },
-                    { 19, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 40, "A fierce ogre.", 50, 0m, 100m, null, true, 6, 450, 3, "Ogre", "Normal" },
-                    { 20, 100, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 175, 28, 80, "A formidable orc warlord.", 55, 0m, 100m, null, true, 7, 600, 3, "OrcWarlord", "Normal" },
-                    { 21, 40, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 10, 30, "A support boss fairy in Frozen Mountain.", 200, 50m, 500m, null, true, 10, 2500, 4, "IceFairy", "Boss" },
-                    { 22, 60, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 40, "A fierce goblin warlord boss.", 300, 80m, 800m, null, true, 12, 2000, 3, "GoblinWarlord", "Boss" },
-                    { 23, 45, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 15, 20, "A dark necromancer casting dark spells.", 40, 0m, 80m, null, true, 5, 520, 2, "NecromancerCast", "Normal" },
-                    { 24, 50, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 20, 25, "A rogue robber archer wielding a crossbow.", 40, 0m, 75m, null, true, 5, 500, 3, "RobberArcher", "Normal" },
-                    { 25, 55, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 170, 25, 35, "A stealthy robber assassin wielding a sword and shield.", 45, 0m, 90m, null, true, 6, 550, 3, "RobberAssassin", "Normal" },
-                    { 26, 60, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 15, 50, "A heavy red guard soldier carrying a mace and shield.", 50, 0m, 100m, null, true, 6, 600, 2, "RedGuard", "Normal" }
+                    { 1, 30, 85, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 130, 5, 2, "A basic slime monster. The first thing a new player ever fights.", 4, 0m, 8m, null, true, 1, 300, 70, "SlimeLittle", "Normal" },
+                    { 2, 32, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 12, 10, "A dangerous swamp demon brooding over an old relic in the deep woods.", 22, 5m, 110m, null, true, 3, 1380, 90, "SwampDemon", "Boss" },
+                    { 3, 39, 95, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 140, 8, 5, "A water elemental monster from the forest marshes.", 4, 0m, 8m, null, true, 3, 400, 80, "WaterElemental", "Normal" },
+                    { 4, 47, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 15, 12, "A fierce dragon nesting in the ruined city.", 6, 0m, 13m, null, true, 6, 560, 110, "Dragon", "Normal" },
+                    { 5, 48, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 15, 14, "A frosty blue dragon.", 6, 0m, 13m, null, true, 7, 580, 110, "BlueDragonFrost", "Normal" },
+                    { 6, 49, 105, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 15, 15, "A forest green dragon.", 6, 0m, 13m, null, true, 7, 590, 110, "GreenDragonForest", "Normal" },
+                    { 7, 53, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 175, 20, 22, "The dragon that broke the city. It never leaves its nest, so MoveSpeed is 0 by design.", 35, 10m, 176m, null, true, 7, 2930, 0, "DragonBossIdle", "Boss" },
+                    { 8, 50, 90, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 10, 15, "An icy slime that creeps onto the snow fields at night.", 10, 0m, 19m, null, true, 7, 620, 75, "SlimeIce", "Normal" },
+                    { 9, 55, 105, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 165, 20, 18, "An icy dragon driven down the mountain against the people below.", 10, 0m, 19m, null, true, 9, 840, 115, "IceDragon", "Normal" },
+                    { 10, 65, 90, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 170, 20, 28, "A giant stone golem sealed inside the Doomed Land of Snow.", 53, 15m, 264m, null, true, 9, 4300, 80, "GolemBoss", "Boss" },
+                    { 11, 61, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 15, 20, "An undead orc skeleton risen in the valley of Tide-Knell.", 13, 0m, 26m, null, true, 9, 850, 95, "OrcSkeleton", "Normal" },
+                    { 12, 71, 105, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 15, 22, "A melee skeleton warrior.", 13, 0m, 26m, null, true, 11, 1050, 100, "SkeletonMelee", "Normal" },
+                    { 13, 78, 115, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 165, 22, 16, "A ranged skeleton archer. Glass cannon: highest Atk of the skeletons, lowest Def.", 13, 0m, 26m, null, true, 12, 1160, 100, "SkeletonArcher", "Normal" },
+                    { 14, 42, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 15, 10, "A floating ghost haunting the ruined quarter.", 6, 0m, 13m, null, true, 4, 480, 95, "Ghost", "Normal" },
+                    { 15, 94, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 180, 25, 35, "Once a great human king who accepted two Seal Books and imprisoned himself beneath the deserted island to spare the world their curse. Centuries of darkness eroded the hero into the UnderKing.", 70, 30m, 352m, null, true, 12, 6040, 95, "UnderKing", "Boss" },
+                    { 16, 51, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 165, 20, 18, "A terrifying demon.", 10, 0m, 19m, null, true, 8, 730, 95, "Demon", "Normal" },
+                    { 17, 45, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 12, 13, "A strong goblin warrior.", 6, 0m, 13m, null, true, 5, 530, 95, "GoblinWarrior", "Normal" },
+                    { 18, 44, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 10, 10, "A goblin spearman.", 6, 0m, 13m, null, true, 5, 510, 100, "GoblinSpear", "Normal" },
+                    { 19, 46, 90, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 165, 15, 19, "The brutal ogre holding the Goblin barracks. Dungeon 5 boss.", 35, 10m, 176m, null, true, 7, 2560, 85, "Ogre", "Boss" },
+                    { 20, 73, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 175, 22, 30, "A formidable orc warlord guarding the gate to the underworld. Dungeon 6 boss.", 70, 30m, 352m, null, true, 12, 4490, 95, "OrcWarlord", "Boss" },
+                    { 21, 54, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 12, 16, "The spirit that never leaves the golem's side. Fought together with GolemBoss.", 53, 15m, 264m, null, true, 9, 3230, 100, "IceFairy", "Boss" },
+                    { 22, 41, 100, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 165, 18, 18, "A fierce goblin warlord holding the Goblin Grounds.", 35, 10m, 176m, null, true, 7, 2180, 95, "GoblinWarlord", "Boss" },
+                    { 23, 43, 90, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 155, 10, 7, "A dark necromancer casting dark spells.", 6, 0m, 13m, null, true, 4, 500, 85, "NecromancerCast", "Normal" },
+                    { 24, 40, 110, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 12, 6, "A rogue robber archer wielding a crossbow.", 6, 0m, 13m, null, true, 3, 440, 100, "RobberArcher", "Normal" },
+                    { 25, 41, 115, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 18, 9, "A stealthy robber assassin wielding a sword and shield.", 6, 0m, 13m, null, true, 3, 460, 105, "RobberAssassin", "Normal" },
+                    { 26, 46, 95, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 10, 15, "A heavy red guard soldier carrying a mace and shield.", 6, 0m, 13m, null, true, 6, 540, 85, "RedGuard", "Normal" },
+                    { 27, 65, 95, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 160, 15, 24, "An orc skeleton standing watch in the valley of Tide-Knell. Slower and tougher than its roaming kin.", 13, 0m, 26m, null, true, 10, 950, 90, "OrcSkeletonAfk", "Normal" }
                 });
 
             migrationBuilder.InsertData(
@@ -1916,42 +1917,42 @@ namespace DAL.Migrations
                 columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
                 values: new object[,]
                 {
-                    { 1, null, "NotStarted", "You wake at the edge of the Elf Forest with no memory of how you arrived. Elder Rowan is waiting by the great roots — go to him and hear why the forest called you here.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 5, 5m, 10m, null, null, 1, "[Chapter 1] A Word with Elder Rowan", "Main" },
-                    { 2, null, "NotStarted", "The elders brew their healing draught from white flowers that only bloom in the shade of the old woods. Search the clearings and gather 3 White Flowers for Elder Rowan.", true, "ElfForest", "Elf Forest", "White Flower", "Collect", "Elder Rowan", null, 1, 10, 5m, 8m, null, null, 3, "[Chapter 1] Gather White Flowers", "Main" },
-                    { 4, null, "NotStarted", "A skill is useless until it sits in your hand. Open the Skill panel and equip the technique Elder Rowan just taught you.", true, "ElfForest", "Elf Forest", "Skill Panel", "EquipSkill", "Elder Rowan", null, 1, 10, 5m, 10m, null, null, 1, "[Chapter 1] Equip Your First Skill", "Main" },
-                    { 5, null, "NotStarted", "Little slimes have crept out of the marsh and are eating the flower beds. Put your new skill to work and defeat 3 of them.", true, "ElfForest", "Elf Forest", "Slime Little", "Defeat", "Elder Rowan", null, 1, 15, 5m, 15m, null, null, 3, "[Chapter 1] Cull the Little Slimes", "Main" },
-                    { 7, null, "NotStarted", "Rowan cannot name the relic you took from the swamp. Carry it to Lyra at the Origin Tree — she is older than every elf alive, and she will know what you are holding.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 2, 10, 5m, 10m, null, null, 1, "[Chapter 1] Lyra and the Origin Tree", "Main" },
-                    { 8, null, "NotStarted", "A cloaked figure has been watching you since you woke, and now walks into a portal at the forest edge. Step through it before the way closes.", true, "ElfForest", "Elf Forest", "Portal", "Explore", "Mysterious Figure", null, 2, 5, 5m, 5m, null, null, 1, "[Chapter 1] Follow the Cloaked Figure", "Main" },
-                    { 9, null, "NotStarted", "The portal spits you onto a cold beach under an autumn sky. Climb to the castle and find Drake, the one soul here willing to speak to a stranger, and ask what land this is.", true, "AutumnPumpkin", "Autumn Pumpkin", "Drake", "Talk", "Drake", null, 3, 100, 5m, 5m, null, null, 1, "[Chapter 2] Ask Where You Are", "Main" },
-                    { 10, null, "NotStarted", "You have no coin in this land and no one gives bread away. Farmer Fa will trade a meal for labour: pick 8 Enchanted Pumpkins from his field.", true, "AutumnPumpkin", "Pumpkin Town", "Enchanted Pumpkin", "Collect", "Fa", null, 3, 300, 5m, 10m, null, null, 8, "[Chapter 2] Harvest for Your Supper", "Main" },
-                    { 11, null, "NotStarted", "Fa is too old to make the road alone. Carry the harvest to the city gate and hand it to the guard Tristan.", true, "AutumnPumpkin", "City Gate", "Tristan", "Talk", "Fa", null, 3, 200, 5m, 5m, null, null, 1, "[Chapter 2] Deliver the Harvest", "Main" },
-                    { 12, null, "NotStarted", "Beyond the gate the city is silent and the streets are full of the dead. Examine 5 of the bodies and learn what killed them.", true, "AutumnPumpkin", "Ruined City", "Corpse", "Interact", "Tristan", null, 3, 250, 5m, 5m, null, null, 5, "[Chapter 2] Examine the Fallen", "Main" },
-                    { 13, null, "NotStarted", "Tristan pales at your report: only one man ever held these ruins. Search the city for the silver knight Arthur and ask for his help.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Tristan", null, 3, 250, 5m, 5m, null, null, 1, "[Chapter 2] Seek the Silver Knight", "Main" },
-                    { 15, null, "NotStarted", "Arthur will not send you at a dragon on faith. He sets four trials, and the first is the robbers holding the eastern camp. Cut down 6 of them.", true, "AutumnPumpkin", "Robber Camp", "Robber", "Defeat", "Arthur", null, 4, 250, 5m, 25m, null, null, 6, "[Chapter 2] Trial I: The Robber Camp", "Main" },
-                    { 16, null, "NotStarted", "One trial stands to your name. The second is the haunted quarter - ghosts, necromancers, and the red guard who died at their posts. Put down 10.", true, "AutumnPumpkin", "Haunted Quarter", "Ghost", "Defeat", "Arthur", null, 4, 300, 5m, 30m, null, null, 10, "[Chapter 2] Trial II: The Haunted Quarter", "Main" },
-                    { 17, null, "NotStarted", "Two trials done. The third lies south of the ruins, where goblin spear and axe bands have dug in. Break 3 of them.", true, "AutumnPumpkin", "Goblin Grounds", "Goblin", "Defeat", "Arthur", null, 4, 250, 5m, 25m, null, null, 3, "[Chapter 2] Trial III: The Goblin Grounds", "Main" },
-                    { 20, null, "NotStarted", "Return to Arthur for the knight's thanks and ask where the cursed codex came from. He points north, to a kingdom the codex froze solid.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Arthur", null, 5, 150, 5m, 10m, null, null, 1, "[Chapter 2] Arthur's Parting Words", "Main" },
-                    { 21, null, "NotStarted", "Cedric holds the snow fields with farmers and borrowed spears, and he has no reason to trust a stranger off the ice road. The slimes are on his fields tonight. Defeat 8 of them and he will hear you out.", true, "FrozenMountain", "Snow Fields", "Slime Ice", "Defeat", "Cedric", null, 6, 200, 5m, 30m, null, null, 8, "[Chapter 3] The Ice Slimes", "Main" },
-                    { 23, null, "NotStarted", "The Queen speaks of the ancient king whose statue this kingdom still honours, and of a priest who studies the old magics. Deliver her Magic Flour to Zephyr and ask him what she could not answer.", true, "FrozenMountain", "Frozen Mountain", "Zephyr", "Talk", "Roselyn Aurora Queen", null, 6, 150, 5m, 15m, null, null, 1, "[Chapter 3] Magic Flour for the Priest", "Main" },
-                    { 24, null, "NotStarted", "Zephyr has studied the vanished seal books for thirty years. Something is driving the ice dragons against the people below. Bring down 5 of them on the mountain and report what you saw.", true, "FrozenMountain", "Frozen Mountain", "Ice Dragon", "Defeat", "Zephyr", null, 7, 250, 5m, 40m, null, null, 5, "[Chapter 3] Dragons of Snow", "Main" },
-                    { 25, null, "NotStarted", "Zephyr shares what he suspects: the codex may have been corrupted, not born evil. The rest lies in the sealed north, The Doomed Land of Snow. Find the guard Roland and ask for passage.", true, "FrozenMountain", "Forbidden Zone", "Roland", "Talk", "Roland", null, 7, 150, 5m, 15m, null, null, 1, "[Chapter 3] The Forbidden Zone", "Main" },
-                    { 27, null, "NotStarted", "Roland is waiting where you left him, and what you carry out of the ban is heavier than a book. Speak with him and put together what was really done to the guardians.", true, "FrozenMountain", "Forbidden Zone", "Roland", "Talk", "Roland", null, 8, 200, 5m, 50m, null, null, 1, "[Chapter 3] Truth of the Codex", "Main" },
-                    { 28, null, "NotStarted", "The Valiant Warrior is Natalie's father, returned from war to find Tide-Knell dead. Help him put down 12 skeletons and hold the valley.", true, "AbandonedCastle", "Valley", "Skeleton", "Defeat", "Valiant Warrior", null, 9, 300, 5m, 50m, null, null, 12, "[Chapter 4] Break the Skeleton Army", "Main" },
-                    { 29, null, "NotStarted", "Recover 5 remembrance tokens so the Valiant Warrior can name the people he is forced to fight.", true, "AbandonedCastle", "Tide-Knell", "Tide-Knell Remembrance", "Collect", "Valiant Warrior", null, 9, 220, 5m, 35m, null, null, 5, "[Chapter 4] Names Beneath the Bone", "Main" },
-                    { 31, null, "NotStarted", "Find 3 traces of the old seal around the cursed well and force its promise into the open.", true, "AbandonedCastle", "Tide-Knell", "Cursed Well", "Interact", "Natalie", null, 10, 240, 5m, 35m, null, null, 3, "[Chapter 4] The Voice Beneath the Well", "Main" },
-                    { 32, null, "NotStarted", "Find 3 memories left by Natalie's father and let his daughter hear the truth.", true, "AbandonedCastle", "Tide-Knell", "Natalie's Memory", "Collect", "Valiant Warrior", null, 10, 240, 5m, 35m, null, null, 3, "[Chapter 4] The Father's Last Letter", "Main" },
-                    { 34, null, "NotStarted", "Use Natalie's Mystic Key at the bridge gate and open the road to the deserted island.", true, "AbandonedCastle", "Bridge", "Locked Bridge Gate", "Interact", "Valiant Warrior", null, 10, 160, 5m, 25m, null, null, 1, "[Chapter 4] The Key to the Island", "Main" },
-                    { 35, null, "NotStarted", "Gather 5 Ancient Leaves to restore the old rite and open King Aderyn's prison.", true, "AbandonedCastle", "Northern Plateau", "Ancient Leaves", "Collect", "Elf Guard", null, 10, 250, 5m, 45m, null, null, 5, "[Chapter 4] Ancient Leaves of the Isle", "Main" },
-                    { 36, null, "NotStarted", "Recover 4 relics from the old sealing party and confront the Elf Guard's guilt.", true, "AbandonedCastle", "Deserted Island", "Warden Relic", "Collect", "Elf Guard", null, 11, 260, 5m, 50m, null, null, 4, "[Chapter 4] The Warden's Oath", "Main" },
-                    { 37, null, "NotStarted", "Cleanse 3 cursed roots in King Aderyn's abandoned garden.", true, "AbandonedCastle", "Northern Plateau", "Cursed Root", "Interact", "Brother Cael", null, 11, 280, 5m, 55m, null, null, 3, "[Chapter 4] The King's Garden", "Main" },
-                    { 38, null, "NotStarted", "Read 3 memory fragments and learn why King Aderyn chose imprisonment before entering the crypt.", true, "AbandonedCastle", "Deserted Island", "Aderyn Memory", "Interact", "Brother Cael", null, 11, 300, 5m, 60m, null, null, 3, "[Chapter 4] The Man Beneath the Crown", "Main" },
-                    { 40, null, "NotStarted", "Hear the Elf Guard's farewell to his old friend, then open the portal back to the Elf Forest.", true, "AbandonedCastle", "Deserted Island", "Elf Guard", "Talk", "Elf Guard", null, 12, 150, 5m, 10m, null, null, 1, "[Chapter 4] Ask for the Way Home", "Main" },
-                    { 41, null, "NotStarted", "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 12, 250, 5m, 50m, null, null, 1, "[Chapter 5] Return with the Seals", "Main" },
-                    { 42, null, "NotStarted", "Return to Elder Rowan. The forest still remembers the first healing flowers and the people they saved.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Lyra", null, 12, 200, 5m, 40m, null, null, 1, "[Chapter 5] The Forest Remembers", "Main" },
-                    { 43, null, "NotStarted", "Gather 3 White Flowers from the old clearing so Elder Rowan can brew the last healing draught.", true, "ElfForest", "Elf Forest", "White Flower", "Collect", "Elder Rowan", null, 12, 220, 5m, 35m, null, null, 3, "[Chapter 5] Flowers Before Dawn", "Main" },
-                    { 44, null, "NotStarted", "Bring the flowers to Elder Rowan, then return to Lyra with the finished draught.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Elder Rowan", null, 12, 250, 5m, 45m, null, null, 1, "[Chapter 5] The Last Healing Draught", "Main" },
-                    { 45, null, "NotStarted", "Set the four Seal Books and the last healing draught upon the Origin Tree and break the curse.", true, "ElfForest", "Origin Tree", "Origin Tree", "Interact", "Lyra", null, 12, 500, 5m, 300m, null, null, 1, "[Chapter 5] Heal the Origin Tree", "Main" },
-                    { 46, null, "NotStarted", "Speak with Lyra one last time and learn what still waits beyond the healed forest.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 12, 350, 5m, 250m, null, null, 1, "[Chapter 5] A New Dawn", "Main" }
+                    { 1, null, "NotStarted", "You wake at the edge of the Elf Forest with no memory of how you arrived. Elder Rowan is waiting by the great roots — go to him and hear why the forest called you here.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 15, 3m, 20m, null, null, 1, "[Chapter 1] A Word with Elder Rowan", "Main" },
+                    { 2, null, "NotStarted", "The elders brew their healing draught from white flowers that only bloom in the shade of the old woods. Search the clearings and gather 3 White Flowers for Elder Rowan.", true, "ElfForest", "Elf Forest", "White Flower", "Collect", "Elder Rowan", null, 1, 15, 3m, 20m, null, null, 3, "[Chapter 1] Gather White Flowers", "Main" },
+                    { 4, null, "NotStarted", "A skill is useless until it sits in your hand. Open the Skill panel and equip the technique Elder Rowan just taught you.", true, "ElfForest", "Elf Forest", "Skill Panel", "EquipSkill", "Elder Rowan", null, 1, 15, 3m, 20m, null, null, 1, "[Chapter 1] Equip Your First Skill", "Main" },
+                    { 5, null, "NotStarted", "Little slimes have crept out of the marsh and are eating the flower beds. Put your new skill to work and defeat 3 of them.", true, "ElfForest", "Elf Forest", "Slime Little", "Defeat", "Elder Rowan", null, 1, 15, 3m, 20m, null, null, 3, "[Chapter 1] Cull the Little Slimes", "Main" },
+                    { 7, null, "NotStarted", "Rowan cannot name the relic you took from the swamp. Carry it to Lyra at the Origin Tree — she is older than every elf alive, and she will know what you are holding.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 2, 15, 3m, 20m, null, null, 1, "[Chapter 1] Lyra and the Origin Tree", "Main" },
+                    { 8, null, "NotStarted", "A cloaked figure has been watching you since you woke, and now walks into a portal at the forest edge. Step through it before the way closes.", true, "ElfForest", "Elf Forest", "Portal", "Explore", "Mysterious Figure", null, 2, 15, 7m, 55m, null, null, 1, "[Chapter 1] Follow the Cloaked Figure", "Main" },
+                    { 9, null, "NotStarted", "The portal spits you onto a cold beach under an autumn sky. Climb to the castle and find Drake, the one soul here willing to speak to a stranger, and ask what land this is.", true, "AutumnPumpkin", "Autumn Pumpkin", "Drake", "Talk", "Drake", null, 3, 10, 4m, 30m, null, null, 1, "[Chapter 2] Ask Where You Are", "Main" },
+                    { 10, null, "NotStarted", "You have no coin in this land and no one gives bread away. Farmer Fa will trade a meal for labour: pick 8 Enchanted Pumpkins from his field.", true, "AutumnPumpkin", "Pumpkin Town", "Enchanted Pumpkin", "Collect", "Fa", null, 3, 10, 4m, 30m, null, null, 8, "[Chapter 2] Harvest for Your Supper", "Main" },
+                    { 11, null, "NotStarted", "Fa is too old to make the road alone. Carry the harvest to the city gate and hand it to the guard Tristan.", true, "AutumnPumpkin", "City Gate", "Tristan", "Talk", "Fa", null, 3, 10, 4m, 30m, null, null, 1, "[Chapter 2] Deliver the Harvest", "Main" },
+                    { 12, null, "NotStarted", "Beyond the gate the city is silent and the streets are full of the dead. Examine 5 of the bodies and learn what killed them.", true, "AutumnPumpkin", "Ruined City", "Corpse", "Interact", "Tristan", null, 3, 10, 4m, 30m, null, null, 5, "[Chapter 2] Examine the Fallen", "Main" },
+                    { 13, null, "NotStarted", "Tristan pales at your report: only one man ever held these ruins. Search the city for the silver knight Arthur and ask for his help.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Tristan", null, 3, 10, 4m, 30m, null, null, 1, "[Chapter 2] Seek the Silver Knight", "Main" },
+                    { 15, null, "NotStarted", "Arthur will not send you at a dragon on faith. He sets four trials, and the first is the robbers holding the eastern camp. Cut down 6 of them.", true, "AutumnPumpkin", "Robber Camp", "Robber", "Defeat", "Arthur", null, 4, 10, 4m, 30m, null, null, 6, "[Chapter 2] Trial I: The Robber Camp", "Main" },
+                    { 16, null, "NotStarted", "One trial stands to your name. The second is the haunted quarter - ghosts, necromancers, and the red guard who died at their posts. Put down 10.", true, "AutumnPumpkin", "Haunted Quarter", "Ghost", "Defeat", "Arthur", null, 4, 10, 4m, 30m, null, null, 10, "[Chapter 2] Trial II: The Haunted Quarter", "Main" },
+                    { 17, null, "NotStarted", "Two trials done. The third lies south of the ruins, where goblin spear and axe bands have dug in. Break 3 of them.", true, "AutumnPumpkin", "Goblin Grounds", "Goblin", "Defeat", "Arthur", null, 4, 10, 4m, 30m, null, null, 3, "[Chapter 2] Trial III: The Goblin Grounds", "Main" },
+                    { 20, null, "NotStarted", "Return to Arthur for the knight's thanks and ask where the cursed codex came from. He points north, to a kingdom the codex froze solid.", true, "AutumnPumpkin", "Ruined City", "Arthur", "Talk", "Arthur", null, 5, 10, 10m, 80m, null, null, 1, "[Chapter 2] Arthur's Parting Words", "Main" },
+                    { 21, null, "NotStarted", "Cedric holds the snow fields with farmers and borrowed spears, and he has no reason to trust a stranger off the ice road. The slimes are on his fields tonight. Defeat 8 of them and he will hear you out.", true, "FrozenMountain", "Snow Fields", "Slime Ice", "Defeat", "Cedric", null, 6, 15, 5m, 40m, null, null, 8, "[Chapter 3] The Ice Slimes", "Main" },
+                    { 23, null, "NotStarted", "The Queen speaks of the ancient king whose statue this kingdom still honours, and of a priest who studies the old magics. Deliver her Magic Flour to Zephyr and ask him what she could not answer.", true, "FrozenMountain", "Frozen Mountain", "Zephyr", "Talk", "Roselyn Aurora Queen", null, 6, 15, 5m, 40m, null, null, 1, "[Chapter 3] Magic Flour for the Priest", "Main" },
+                    { 24, null, "NotStarted", "Zephyr has studied the vanished seal books for thirty years. Something is driving the ice dragons against the people below. Bring down 5 of them on the mountain and report what you saw.", true, "FrozenMountain", "Frozen Mountain", "Ice Dragon", "Defeat", "Zephyr", null, 7, 15, 5m, 40m, null, null, 5, "[Chapter 3] Dragons of Snow", "Main" },
+                    { 25, null, "NotStarted", "Zephyr shares what he suspects: the codex may have been corrupted, not born evil. The rest lies in the sealed north, The Doomed Land of Snow. Find the guard Roland and ask for passage.", true, "FrozenMountain", "Forbidden Zone", "Roland", "Talk", "Roland", null, 7, 15, 5m, 40m, null, null, 1, "[Chapter 3] The Forbidden Zone", "Main" },
+                    { 27, null, "NotStarted", "Roland is waiting where you left him, and what you carry out of the ban is heavier than a book. Speak with him and put together what was really done to the guardians.", true, "FrozenMountain", "Forbidden Zone", "Roland", "Talk", "Roland", null, 8, 15, 13m, 105m, null, null, 1, "[Chapter 3] Truth of the Codex", "Main" },
+                    { 28, null, "NotStarted", "The Valiant Warrior is Natalie's father, returned from war to find Tide-Knell dead. Help him put down 12 skeletons and hold the valley.", true, "AbandonedCastle", "Valley", "Skeleton", "Defeat", "Valiant Warrior", null, 9, 15, 6m, 50m, null, null, 12, "[Chapter 4] Break the Skeleton Army", "Main" },
+                    { 29, null, "NotStarted", "Recover 5 remembrance tokens so the Valiant Warrior can name the people he is forced to fight.", true, "AbandonedCastle", "Tide-Knell", "Tide-Knell Remembrance", "Collect", "Valiant Warrior", null, 9, 15, 6m, 50m, null, null, 5, "[Chapter 4] Names Beneath the Bone", "Main" },
+                    { 31, null, "NotStarted", "Find 3 traces of the old seal around the cursed well and force its promise into the open.", true, "AbandonedCastle", "Tide-Knell", "Cursed Well", "Interact", "Natalie", null, 10, 15, 6m, 50m, null, null, 3, "[Chapter 4] The Voice Beneath the Well", "Main" },
+                    { 32, null, "NotStarted", "Find 3 memories left by Natalie's father and let his daughter hear the truth.", true, "AbandonedCastle", "Tide-Knell", "Natalie's Memory", "Collect", "Valiant Warrior", null, 10, 15, 6m, 50m, null, null, 3, "[Chapter 4] The Father's Last Letter", "Main" },
+                    { 34, null, "NotStarted", "Use Natalie's Mystic Key at the bridge gate and open the road to the deserted island.", true, "AbandonedCastle", "Bridge", "Locked Bridge Gate", "Interact", "Valiant Warrior", null, 10, 15, 6m, 50m, null, null, 1, "[Chapter 4] The Key to the Island", "Main" },
+                    { 35, null, "NotStarted", "Gather 5 Ancient Leaves to restore the old rite and open King Aderyn's prison.", true, "AbandonedCastle", "Northern Plateau", "Ancient Leaves", "Collect", "Elf Guard", null, 10, 15, 6m, 50m, null, null, 5, "[Chapter 4] Ancient Leaves of the Isle", "Main" },
+                    { 36, null, "NotStarted", "Recover 4 relics from the old sealing party and confront the Elf Guard's guilt.", true, "AbandonedCastle", "Deserted Island", "Warden Relic", "Collect", "Elf Guard", null, 11, 15, 6m, 50m, null, null, 4, "[Chapter 4] The Warden's Oath", "Main" },
+                    { 37, null, "NotStarted", "Cleanse 3 cursed roots in King Aderyn's abandoned garden.", true, "AbandonedCastle", "Northern Plateau", "Cursed Root", "Interact", "Brother Cael", null, 11, 15, 6m, 50m, null, null, 3, "[Chapter 4] The King's Garden", "Main" },
+                    { 38, null, "NotStarted", "Read 3 memory fragments and learn why King Aderyn chose imprisonment before entering the crypt.", true, "AbandonedCastle", "Deserted Island", "Aderyn Memory", "Interact", "Brother Cael", null, 11, 15, 6m, 50m, null, null, 3, "[Chapter 4] The Man Beneath the Crown", "Main" },
+                    { 40, null, "NotStarted", "Hear the Elf Guard's farewell to his old friend, then open the portal back to the Elf Forest.", true, "AbandonedCastle", "Deserted Island", "Elf Guard", "Talk", "Elf Guard", null, 12, 15, 16m, 130m, null, null, 1, "[Chapter 4] Ask for the Way Home", "Main" },
+                    { 41, null, "NotStarted", "You are home, and the Origin Tree is worse than you left it. Bring all four Seal Books to Lyra.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 12, 15, 7m, 60m, null, null, 1, "[Chapter 5] Return with the Seals", "Main" },
+                    { 42, null, "NotStarted", "Return to Elder Rowan. The forest still remembers the first healing flowers and the people they saved.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Lyra", null, 12, 15, 7m, 60m, null, null, 1, "[Chapter 5] The Forest Remembers", "Main" },
+                    { 43, null, "NotStarted", "Gather 3 White Flowers from the old clearing so Elder Rowan can brew the last healing draught.", true, "ElfForest", "Elf Forest", "White Flower", "Collect", "Elder Rowan", null, 12, 15, 7m, 60m, null, null, 3, "[Chapter 5] Flowers Before Dawn", "Main" },
+                    { 44, null, "NotStarted", "Bring the flowers to Elder Rowan, then return to Lyra with the finished draught.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Elder Rowan", null, 12, 15, 7m, 60m, null, null, 1, "[Chapter 5] The Last Healing Draught", "Main" },
+                    { 45, null, "NotStarted", "Set the four Seal Books and the last healing draught upon the Origin Tree and break the curse.", true, "ElfForest", "Origin Tree", "Origin Tree", "Interact", "Lyra", null, 12, 15, 40m, 300m, null, null, 1, "[Chapter 5] Heal the Origin Tree", "Main" },
+                    { 46, null, "NotStarted", "Speak with Lyra one last time and learn what still waits beyond the healed forest.", true, "ElfForest", "Origin Tree", "Lyra", "Talk", "Lyra", null, 12, 15, 40m, 300m, null, null, 1, "[Chapter 5] A New Dawn", "Main" }
                 });
 
             migrationBuilder.InsertData(
@@ -1969,25 +1970,25 @@ namespace DAL.Migrations
                 columns: new[] { "SkillId", "BaseDamage", "ClassRequirement", "CooldownSeconds", "CorruptionCost", "DamageGrowthPercent", "DamagePerLevel", "DamageType", "Description", "IsActive", "Name", "TargetType", "Type", "UnlockLevel" },
                 values: new object[,]
                 {
-                    { 1, 0.0, "Archer", 2, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "Accelerationarrow", "SingleTarget", "Active", 1 },
-                    { 2, 0.0, "Archer", 5, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "ArrowofLight", "SingleTarget", "Active", 1 },
+                    { 1, 55.0, "Archer", 2, 0f, 3.0, 8.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "Accelerationarrow", "SingleTarget", "Active", 1 },
+                    { 2, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "ArrowofLight", "SingleTarget", "Active", 1 },
                     { 3, 0.0, "Mage", 4, 0f, 0.0, 0.0, "Magical", "Heals allies within range.", true, "Holymagic", "Ally", "Buff", 1 },
-                    { 4, 0.0, "Mage", 3, 0f, 0.0, 0.0, "Magical", "Casts a spell in the direction the character is facing.", true, "Purification", "SingleTarget", "Active", 1 },
-                    { 5, 0.0, "Mage", 3, 0f, 0.0, 0.0, "Magical", "Selects and attacks a random monster within range.", true, "Stardust", "SingleTarget", "Active", 1 },
-                    { 6, 0.0, "Knight", 5, 0f, 0.0, 0.0, "Physical", "Selects a target with the monster tag to attack.", true, "Lightsabers", "SingleTarget", "Active", 1 },
-                    { 7, 0.0, "Knight", 4, 0f, 0.0, 0.0, "Physical", "Casts a spell in the direction the character is facing.", true, "LightWaves", "Area", "Active", 1 },
+                    { 4, 75.0, "Mage", 3, 0f, 3.0, 10.0, "Magical", "Casts a spell in the direction the character is facing.", true, "Purification", "SingleTarget", "Active", 1 },
+                    { 5, 75.0, "Mage", 3, 0f, 3.0, 10.0, "Magical", "Selects and attacks a random monster within range.", true, "Stardust", "SingleTarget", "Active", 1 },
+                    { 6, 115.0, "Knight", 5, 0f, 3.5, 14.0, "Physical", "Selects a target with the monster tag to attack.", true, "Lightsabers", "SingleTarget", "Active", 1 },
+                    { 7, 95.0, "Knight", 4, 0f, 3.5, 12.0, "Physical", "Casts a spell in the direction the character is facing.", true, "LightWaves", "Area", "Active", 1 },
                     { 8, 0.0, "Knight", 8, 0f, 0.0, 0.0, "Magical", "Protects all allies within range.", true, "ProtectiveShield", "Ally", "Buff", 1 },
-                    { 9, 0.0, "All", 8, 15f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", true, "DarkExplosion", "Area", "Active", 1 },
-                    { 10, 0.0, "All", 6, 10f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", true, "DarkPoisonZone", "Area", "Active", 1 },
-                    { 11, 0.0, "Archer", 5, 0f, 0.0, 0.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "DeadlyCurse", "SingleTarget", "Active", 1 },
-                    { 12, 0.0, "Mage", 2, 0f, 0.0, 0.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
-                    { 13, 200.0, "All", 6, 8f, 0.0, 0.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
-                    { 14, 0.0, "Knight", 2, 0f, 0.0, 0.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
-                    { 15, 38.0, "Knight", 3, 0f, 4.0, 11.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 },
-                    { 16, 50.0, "Archer", 5, 0f, 4.0, 12.0, "Physical", "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", true, "PumpkinMagic", "Area", "Active", 1 },
-                    { 17, 45.0, "Knight", 5, 0f, 4.0, 10.0, "Physical", "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", true, "PumpkinThrow", "Area", "Active", 1 },
-                    { 18, 40.0, "Knight", 2, 0f, 3.0, 9.0, "Physical", "A short-range pumpkin slash in the direction the knight is facing.", true, "PumpkinSlash", "SingleTarget", "Active", 1 },
-                    { 19, 30.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", true, "BoomBoomPumpkin", "Area", "Active", 1 }
+                    { 9, 180.0, "All", 8, 15f, 4.0, 22.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", true, "DarkExplosion", "Area", "Active", 1 },
+                    { 10, 140.0, "All", 6, 10f, 4.0, 18.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", true, "DarkPoisonZone", "Area", "Active", 1 },
+                    { 11, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "DeadlyCurse", "SingleTarget", "Active", 1 },
+                    { 12, 55.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
+                    { 13, 140.0, "All", 6, 8f, 4.0, 18.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
+                    { 14, 55.0, "Knight", 2, 0f, 3.0, 8.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
+                    { 15, 75.0, "Knight", 3, 0f, 3.0, 10.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 },
+                    { 16, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", true, "PumpkinMagic", "Area", "Active", 1 },
+                    { 17, 115.0, "Knight", 5, 0f, 3.5, 14.0, "Physical", "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", true, "PumpkinThrow", "Area", "Active", 1 },
+                    { 18, 55.0, "Knight", 2, 0f, 3.0, 8.0, "Physical", "A short-range pumpkin slash in the direction the knight is facing.", true, "PumpkinSlash", "SingleTarget", "Active", 1 },
+                    { 19, 55.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", true, "BoomBoomPumpkin", "Area", "Active", 1 }
                 });
 
             migrationBuilder.InsertData(
@@ -1995,28 +1996,28 @@ namespace DAL.Migrations
                 columns: new[] { "EquipmentStatsId", "BaseAtk", "BaseDef", "BaseHp", "BonusAtk", "BonusAttackSpeed", "BonusCritDamage", "BonusCritRate", "BonusDamageBonus", "BonusDef", "BonusHp", "BonusMoveSpeed", "ItemId" },
                 values: new object[,]
                 {
-                    { 5, 35, 0, 0, 8, 0, 50, 30, 0, 0, 0, 0, 5 },
-                    { 6, 30, 0, 0, 6, 10, 30, 40, 0, 0, 0, 0, 6 },
-                    { 7, 28, 0, 0, 5, 0, 80, 20, 10, 0, 0, 0, 7 },
-                    { 8, 80, 0, 0, 20, 5, 100, 60, 15, 0, 0, 0, 8 },
-                    { 9, 0, 12, 50, 0, 0, 0, 0, 0, 3, 10, 0, 9 },
-                    { 10, 0, 30, 100, 0, 0, 0, 0, 0, 8, 20, 0, 10 },
-                    { 11, 0, 5, 0, 0, 0, 0, 0, 0, 2, 0, 20, 11 },
-                    { 12, 0, 120, 500, 0, 0, 0, 0, 0, 30, 100, 0, 12 },
-                    { 13, 0, 60, 0, 0, 0, 0, 0, 0, 15, 0, 15, 13 },
-                    { 14, 0, 20, 0, 0, 0, 120, 80, 0, 5, 0, 0, 14 },
-                    { 15, 20, 5, 0, 5, 0, 0, 0, 5, 2, 0, 0, 15 },
-                    { 16, 15, 3, 0, 3, 5, 0, 0, 0, 1, 0, 5, 16 },
-                    { 17, 5, 3, 30, 2, 0, 10, 10, 0, 1, 5, 0, 17 },
-                    { 18, 0, 5, 80, 0, 0, 0, 0, 0, 2, 20, 0, 18 },
-                    { 901, 15, 0, 0, 0, 0, 10, 5, 0, 0, 0, 0, 901 },
-                    { 902, 0, 20, 100, 0, 0, 0, 0, 0, 0, 0, 0, 902 },
-                    { 903, 100, 0, 0, 0, 0, 20, 15, 0, 0, 0, 0, 903 },
-                    { 904, 0, 100, 500, 0, 0, 0, 0, 0, 0, 0, 0, 904 },
-                    { 905, 50, 50, 200, 0, 0, 5, 5, 0, 0, 0, 0, 905 },
-                    { 906, 0, 200, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 906 },
-                    { 907, 200, 0, 0, 0, 0, 20, 20, 0, 0, 0, 0, 907 },
-                    { 908, 50, 300, 1000, 0, 0, 10, 10, 0, 0, 0, 0, 908 }
+                    { 5, 7, 0, 0, 3, 0, 15, 3, 0, 0, 0, 0, 5 },
+                    { 6, 6, 0, 0, 2, 6, 10, 6, 0, 0, 0, 0, 6 },
+                    { 7, 6, 0, 0, 3, 0, 20, 2, 2, 0, 0, 0, 7 },
+                    { 8, 29, 0, 0, 13, 4, 30, 10, 4, 0, 0, 0, 8 },
+                    { 9, 0, 6, 31, 0, 0, 0, 0, 0, 2, 14, 0, 9 },
+                    { 10, 0, 4, 21, 0, 0, 0, 0, 0, 2, 9, 0, 10 },
+                    { 11, 0, 4, 0, 0, 0, 0, 0, 0, 1, 0, 8, 11 },
+                    { 12, 0, 32, 196, 0, 0, 0, 0, 0, 14, 84, 0, 12 },
+                    { 13, 0, 14, 84, 0, 0, 0, 0, 0, 6, 36, 6, 13 },
+                    { 14, 0, 7, 0, 0, 0, 25, 8, 0, 3, 0, 0, 14 },
+                    { 15, 4, 3, 0, 2, 0, 0, 0, 2, 1, 0, 0, 15 },
+                    { 16, 3, 2, 0, 1, 3, 0, 0, 0, 1, 0, 3, 16 },
+                    { 17, 2, 0, 18, 1, 0, 6, 3, 0, 0, 7, 0, 17 },
+                    { 18, 0, 4, 35, 0, 0, 0, 0, 0, 1, 15, 0, 18 },
+                    { 901, 13, 0, 0, 5, 0, 18, 5, 0, 0, 0, 0, 901 },
+                    { 902, 0, 11, 56, 0, 0, 0, 0, 0, 5, 24, 0, 902 },
+                    { 903, 22, 0, 0, 10, 0, 25, 8, 0, 0, 0, 0, 903 },
+                    { 904, 0, 21, 112, 0, 0, 0, 0, 0, 9, 48, 0, 904 },
+                    { 905, 8, 11, 49, 4, 0, 10, 4, 0, 5, 21, 0, 905 },
+                    { 906, 0, 28, 147, 0, 0, 0, 0, 0, 12, 63, 0, 906 },
+                    { 907, 38, 0, 0, 17, 0, 35, 12, 0, 0, 0, 0, 907 },
+                    { 908, 6, 24, 98, 2, 0, 15, 5, 0, 10, 42, 0, 908 }
                 });
 
             migrationBuilder.InsertData(
@@ -2174,20 +2175,56 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "QuestRewardItems",
+                columns: new[] { "QuestRewardItemId", "ItemId", "Quantity", "QuestId" },
+                values: new object[,]
+                {
+                    { 2, 15, 1, 8 },
+                    { 6, 13, 1, 27 },
+                    { 8, 12, 1, 45 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Quests",
                 columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
                 values: new object[,]
                 {
-                    { 3, null, "NotStarted", "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 5, 5m, 5m, null, 10, 1, "[Chapter 1] Deliver the White Flowers", "Main" },
-                    { 6, 2, "NotStarted", "The slimes were only fleeing something worse. A Swamp Demon broods in the deep woods over some old relic, and the water rots around it. Kill it and take whatever it is guarding.", true, "ElfForest", "Deep Woods", "Swamp Demon", "Defeat", "Elder Rowan", null, 2, 25, 5m, 50m, null, null, 1, "[Chapter 1] Slay the Swamp Demon", "Main" },
-                    { 14, null, "NotStarted", "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.", true, "AutumnPumpkin", "Dungeon", "Dungeon_2", "Explore", "Arthur", null, 4, 250, 5m, 15m, 18, 9, 1, "[Chapter 2] Train in the Old Dungeon", "Main" },
-                    { 18, 22, "NotStarted", "The goblins you broke were only a warband, and every warband answers to someone. Their warlord still holds the Goblin Grounds. Kill him and the last trial is yours.", true, "AutumnPumpkin", "Goblin Grounds", "Goblin Warlord", "Defeat", "Arthur", null, 4, 350, 5m, 40m, null, null, 1, "[Chapter 2] Trial IV: The Goblin Warlord", "Main" },
-                    { 19, 7, "NotStarted", "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.", true, "AutumnPumpkin", "Ruined City", "Red Dragon", "Defeat", "Arthur", null, 5, 350, 5m, 100m, null, null, 1, "[Chapter 2] Slay the Dragon", "Main" },
-                    { 22, null, "NotStarted", "The fields are clear, and Cedric has stopped calling you stranger. He says the Queen has been searching for someone with the strength to stand against what is coming, and that he intends to give her your name. Speak with Roselyn Aurora at the citadel.", true, "FrozenMountain", "Snow Fields", "Roselyn Aurora Queen", "Talk", "Cedric", null, 6, 150, 5m, 20m, 31, null, 1, "[Chapter 3] A Word to the Queen", "Main" },
-                    { 26, 10, "NotStarted", "Two ancient things wait inside the ban: a giant of stone, and the spirit that never leaves his side. Defeat them both and take the Golem Seal Book.", true, "FrozenMountain", "Forbidden Zone", "Golem Boss / Ice Fairy", "Defeat", "Roland", null, 8, 400, 5m, 150m, null, null, 2, "[Chapter 3] The Sealed Guardians", "Main" },
-                    { 30, null, "NotStarted", "Natalie's ghost asks you to dig beside the old well and recover the skull buried there.", true, "AbandonedCastle", "Tide-Knell", "Skull", "Interact", "Natalie", null, 9, 200, 5m, 30m, 32, null, 1, "[Chapter 4] The Skull by the Well", "Main" },
-                    { 33, null, "NotStarted", "Bury Natalie beneath the ivy tree and forgive the lonely child who opened the seal.", true, "AbandonedCastle", "Tide-Knell", "Ivy Tree", "Interact", "Natalie", null, 10, 200, 5m, 40m, 33, null, 1, "[Chapter 4] Lay Natalie to Rest", "Main" },
-                    { 39, 15, "NotStarted", "Defeat the UnderKing and release the hero beneath the crown.", true, "AbandonedCastle", "Deserted Island", "UnderKing", "Defeat", "Elf Guard", null, 12, 500, 5m, 300m, null, null, 1, "[Chapter 4] Free the UnderKing", "Main" }
+                    { 3, null, "NotStarted", "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 15, 3m, 20m, null, 10, 1, "[Chapter 1] Deliver the White Flowers", "Main" },
+                    { 6, 2, "NotStarted", "The slimes were only fleeing something worse. A Swamp Demon broods in the deep woods over some old relic, and the water rots around it. Kill it and take whatever it is guarding.", true, "ElfForest", "Deep Woods", "Swamp Demon", "Defeat", "Elder Rowan", null, 2, 65, 8m, 60m, null, null, 1, "[Chapter 1] Slay the Swamp Demon", "Main" },
+                    { 14, null, "NotStarted", "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.", true, "AutumnPumpkin", "Dungeon", "Dungeon_2", "Explore", "Arthur", null, 4, 10, 4m, 30m, 18, 9, 1, "[Chapter 2] Train in the Old Dungeon", "Main" },
+                    { 18, 22, "NotStarted", "The goblins you broke were only a warband, and every warband answers to someone. Their warlord still holds the Goblin Grounds. Kill him and the last trial is yours.", true, "AutumnPumpkin", "Goblin Grounds", "Goblin Warlord", "Defeat", "Arthur", null, 4, 35, 16m, 120m, null, null, 1, "[Chapter 2] Trial IV: The Goblin Warlord", "Main" },
+                    { 19, 7, "NotStarted", "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.", true, "AutumnPumpkin", "Ruined City", "Red Dragon", "Defeat", "Arthur", null, 5, 10, 16m, 120m, null, null, 1, "[Chapter 2] Slay the Dragon", "Main" },
+                    { 22, null, "NotStarted", "The fields are clear, and Cedric has stopped calling you stranger. He says the Queen has been searching for someone with the strength to stand against what is coming, and that he intends to give her your name. Speak with Roselyn Aurora at the citadel.", true, "FrozenMountain", "Snow Fields", "Roselyn Aurora Queen", "Talk", "Cedric", null, 6, 15, 5m, 40m, 31, null, 1, "[Chapter 3] A Word to the Queen", "Main" },
+                    { 26, 10, "NotStarted", "Two ancient things wait inside the ban: a giant of stone, and the spirit that never leaves his side. Defeat them both and take the Golem Seal Book.", true, "FrozenMountain", "Forbidden Zone", "Golem Boss / Ice Fairy", "Defeat", "Roland", null, 8, 15, 24m, 180m, null, null, 2, "[Chapter 3] The Sealed Guardians", "Main" },
+                    { 30, null, "NotStarted", "Natalie's ghost asks you to dig beside the old well and recover the skull buried there.", true, "AbandonedCastle", "Tide-Knell", "Skull", "Interact", "Natalie", null, 9, 15, 6m, 50m, 32, null, 1, "[Chapter 4] The Skull by the Well", "Main" },
+                    { 33, null, "NotStarted", "Bury Natalie beneath the ivy tree and forgive the lonely child who opened the seal.", true, "AbandonedCastle", "Tide-Knell", "Ivy Tree", "Interact", "Natalie", null, 10, 15, 6m, 50m, 33, null, 1, "[Chapter 4] Lay Natalie to Rest", "Main" },
+                    { 39, 15, "NotStarted", "Defeat the UnderKing and release the hero beneath the crown.", true, "AbandonedCastle", "Deserted Island", "UnderKing", "Defeat", "Elf Guard", null, 12, 15, 32m, 240m, null, null, 1, "[Chapter 4] Free the UnderKing", "Main" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ShopItems",
+                columns: new[] { "ShopItemId", "AvailableFrom", "AvailableTo", "Currency", "DailyPurchaseLimit", "IsActive", "ItemId", "Price", "ShopSection", "Stock", "WeeklyPurchaseLimit" },
+                values: new object[,]
+                {
+                    { 1, null, null, "Gold", 0, true, 19, 25m, "Fixed", -1, 0 },
+                    { 2, null, null, "Gold", 0, true, 20, 70m, "Fixed", -1, 0 },
+                    { 3, null, null, "Gold", 0, true, 21, 50m, "Fixed", -1, 0 },
+                    { 4, null, null, "Gold", 0, true, 22, 40m, "Fixed", -1, 0 },
+                    { 5, null, null, "Gold", 0, true, 5, 120m, "Fixed", -1, 0 },
+                    { 6, null, null, "Gold", 0, true, 6, 120m, "Fixed", -1, 0 },
+                    { 7, null, null, "Gold", 0, true, 7, 120m, "Fixed", -1, 0 },
+                    { 8, null, null, "Gold", 0, true, 9, 100m, "Fixed", -1, 0 },
+                    { 9, null, null, "Gold", 0, true, 10, 85m, "Fixed", -1, 0 },
+                    { 10, null, null, "Gold", 0, true, 16, 80m, "Fixed", -1, 0 },
+                    { 11, null, null, "Gold", 0, true, 15, 110m, "Fixed", -1, 0 },
+                    { 12, null, null, "Gold", 0, true, 17, 70m, "Fixed", -1, 0 },
+                    { 13, null, null, "Gold", 0, true, 11, 160m, "Fixed", -1, 0 },
+                    { 14, null, null, "Gold", 0, true, 18, 170m, "Fixed", -1, 0 },
+                    { 15, null, null, "Gold", 0, true, 14, 450m, "Fixed", -1, 0 },
+                    { 16, null, null, "Gold", 0, true, 13, 800m, "Fixed", -1, 0 },
+                    { 17, null, null, "Gold", 0, true, 8, 700m, "Fixed", -1, 0 },
+                    { 18, null, null, "Gold", 0, true, 12, 1800m, "Fixed", -1, 0 },
+                    { 19, null, null, "Gems", 0, true, 4, 100m, "Fixed", -1, 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -2232,6 +2269,18 @@ namespace DAL.Migrations
                     { 178, "She has asked every captain on this mountain, and every captain has sent back the same answer: no one. I am tired of writing that answer.", 3, true, 22, null, 14, "None" },
                     { 179, "Go up to the citadel and stand in front of Roselyn Aurora. I am sending a runner ahead of you — for once with a name in it.", 4, true, 22, null, 14, "Quest" },
                     { 180, "Cedric's runner reached me an hour before you did. That man does not praise people, so I read it twice. Stay a moment — there are things you should hear from me and not from a soldier.", 1, true, 22, null, 8, "Reward" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "QuestRewardItems",
+                columns: new[] { "QuestRewardItemId", "ItemId", "Quantity", "QuestId" },
+                values: new object[,]
+                {
+                    { 1, 10, 1, 6 },
+                    { 3, 17, 1, 18 },
+                    { 4, 11, 1, 19 },
+                    { 5, 14, 1, 26 },
+                    { 7, 8, 1, 39 }
                 });
 
             migrationBuilder.CreateIndex(

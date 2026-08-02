@@ -727,19 +727,19 @@ namespace Mystic_Journey_API.Controllers
                 var poisonZoneSkill = UpsertSkill(
                     "Dark Poison Zone",
                     "Tạo bãi độc gây sát thương diện rộng. Hắc hóa +10.",
-                    "Active", "Magical", "Area", "All", 6, 80.0, 10.0, 3.0, 10f);
+                    "Active", "Magical", "Area", "All", 6, 135.0, 16.0, 3.5, 10f);
 
                 var explosionSkill = UpsertSkill(
                     "Dark Explosion",
                     "Tạo vụ nổ gây sát thương khủng khiếp. Hắc hóa +5.",
-                    "Active", "Magical", "Area", "All", 8, 150.0, 20.0, 5.0, 5f);
+                    "Active", "Magical", "Area", "All", 8, 175.0, 20.0, 3.5, 5f);
 
                 // Add 5 custom skills
-                var apSkill = UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 4, 100.0, 15.0, 3.0);
-                var skillAd = UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 45.0, 8.0, 2.0);
-                var skillKnightAttack = UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 2, 80.0, 12.0, 2.5);
-                var skillMuiTenBang = UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 60.0, 10.0, 2.0);
-                var skillThapAS = UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 5, 120.0, 20.0, 4.0);
+                var apSkill = UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 4, 95.0, 12.0, 3.5);
+                var skillAd = UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
+                var skillKnightAttack = UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 2, 55.0, 8.0, 3.0);
+                var skillMuiTenBang = UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
+                var skillThapAS = UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 5, 115.0, 14.0, 3.5);
 
                 await _ctx.SaveChangesAsync();
 
@@ -1613,14 +1613,14 @@ namespace Mystic_Journey_API.Controllers
                     return m;
                 }
 
-                var slime = UpsertMonster("Slime", "Normal", "A normal slime monster found outside.", 3, 200, 15, 5, 100, 100, 5, 150, 20, 10);
-                var skeleton = UpsertMonster("SkeletonMelee", "Normal", "A skeleton warrior from the dark dungeon.", 5, 350, 25, 10, 110, 100, 5, 150, 40, 25);
-                var goblinSpear = UpsertMonster("GoblinSpear", "Normal", "A goblin with a spear.", 4, 300, 20, 8, 115, 100, 5, 150, 30, 20);
-                var goblinWarrior = UpsertMonster("GoblinWarrior", "Normal", "A tough goblin warrior.", 6, 400, 30, 15, 105, 100, 5, 150, 45, 30);
-                var ogre = UpsertMonster("Ogre", "Boss", "The brutal boss of the dungeon.", 10, 2500, 100, 40, 80, 80, 10, 200, 1000, 500);
-                var dragon = UpsertMonster("Dragon", "Normal", "A fearsome dragon.", 15, 5000, 150, 60, 120, 90, 15, 200, 2500, 1000);
-                var dragonForest = UpsertMonster("DragonForest", "Normal", "A dragon from the deep forest.", 12, 4000, 120, 50, 110, 90, 10, 200, 1800, 800);
-                var demon = UpsertMonster("Demon", "Normal", "A terrifying demon from the underworld.", 20, 8000, 200, 80, 130, 100, 20, 250, 4000, 2000);
+                var slime = UpsertMonster("Slime", "Normal", "A normal slime monster found outside.", 2, 240, 18, 5, 80, 95, 8, 140, 4, 12m);
+                var skeleton = UpsertMonster("SkeletonMelee", "Normal", "A skeleton warrior from the dark dungeon.", 10, 800, 52, 22, 100, 105, 15, 160, 10, 34m);
+                var goblinSpear = UpsertMonster("GoblinSpear", "Normal", "A goblin with a spear.", 5, 400, 30, 10, 100, 100, 10, 150, 6, 18m);
+                var goblinWarrior = UpsertMonster("GoblinWarrior", "Normal", "A tough goblin warrior.", 5, 440, 32, 13, 95, 100, 12, 150, 6, 20m);
+                var ogre = UpsertMonster("Ogre", "Boss", "The brutal boss of the dungeon.", 6, 1900, 46, 19, 85, 90, 15, 165, 28, 280m);
+                var dragon = UpsertMonster("Dragon", "Normal", "A fearsome dragon.", 5, 480, 34, 12, 110, 100, 15, 160, 6, 22m);
+                var dragonForest = UpsertMonster("DragonForest", "Normal", "A dragon from the deep forest.", 6, 540, 38, 15, 110, 105, 15, 160, 7, 24m);
+                var demon = UpsertMonster("Demon", "Normal", "A terrifying demon from the underworld.", 8, 680, 46, 18, 95, 100, 20, 165, 9, 30m);
 
                 await _ctx.SaveChangesAsync();
 
@@ -1858,8 +1858,8 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 //  5   |  BlueDragonFrost      | Normal
                 //  6   |  GreenDragonForest    | Normal
                 //  7   |  DragonBossIdle       | Boss
-                //  8   |  Slime_ice            | Normal
-                //  9   |  Ice_Dragon           | Normal
+                //  8   |  SlimeIce            | Normal
+                //  9   |  IceDragon           | Normal
                 //  10  |  GolemBoss            | Boss
                 //  11  |  OrcSkeleton          | Normal
                 //  12  |  SkeletonMelee        | Normal
@@ -1872,49 +1872,71 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 //  19  |  Ogre                 | Boss
                 //  20  |  OrcWarlord           | Boss
 
-                void EnsureMonster(int id, string name, string type, int hp, int atk, int def)
+                // ponytail: giữ ĐỒNG BỘ với modelBuilder.Entity<Monster>().HasData trong
+                // MysticJourneyDbContext. Trước đây hàm này chỉ nhận (hp, atk, def) nên mọi
+                // quái do nó tạo ra có Level=0, MoveSpeed=0 và CritDamage=0 — tức là không
+                // bao giờ đuổi được người chơi (EnemyBehaviour tính MoveSpeed/100*3.5) và
+                // đòn "chí mạng" chỉ gây 0x sát thương. Nhận đủ chỉ số để tránh hai lỗi đó.
+                void EnsureMonster(int id, string name, string type, int level, int hp, int atk, int def,
+                                   int moveSpeed, int attackSpeed, int critRate, int critDamage,
+                                   int expReward, decimal goldReward, decimal gemReward = 0m)
                 {
                     var m = _ctx.Monsters.Local.FirstOrDefault(x => x.MonsterId == id)
                          ?? _ctx.Monsters.Find(id);
                     if (m == null)
                     {
-                        _ctx.Monsters.Add(new Monster
-                        {
-                            MonsterId = id, Name = name, Type = type,
-                            MaxHp = hp, Atk = atk, Def = def, IsActive = true
-                        });
+                        m = new Monster { MonsterId = id };
+                        _ctx.Monsters.Add(m);
                     }
+
+                    // Ghi đè có chủ ý: seed endpoint là nguồn sự thật duy nhất khi chạy lại,
+                    // nếu chỉ insert-khi-thiếu thì các hàng có số liệu cũ sẽ sống mãi.
+                    m.Name = name;
+                    m.Type = type;
+                    m.Level = level;
+                    m.MaxHp = hp;
+                    m.Atk = atk;
+                    m.Def = def;
+                    m.MoveSpeed = moveSpeed;
+                    m.AttackSpeed = attackSpeed;
+                    m.CritRate = critRate;
+                    m.CritDamage = critDamage;
+                    m.ExperienceReward = expReward;
+                    m.GoldReward = goldReward;
+                    m.GemReward = gemReward;
+                    m.IsActive = true;
                 }
 
                 // Normal monsters
-                EnsureMonster(1,  "SlimeLittle",       "Normal", 80,   8,  3);
-                EnsureMonster(3,  "WaterElemental",    "Normal", 150, 12,  6);
-                EnsureMonster(4,  "Dragon",            "Normal", 500, 40, 20);
-                EnsureMonster(5,  "BlueDragonFrost",   "Normal", 450, 35, 18);
-                EnsureMonster(6,  "GreenDragonForest", "Normal", 400, 30, 15);
-                EnsureMonster(8,  "Slime_ice",         "Normal", 120, 10,  5);
-                EnsureMonster(9,  "Ice_Dragon",        "Normal", 600, 50, 25);
-                EnsureMonster(11, "OrcSkeleton",       "Normal", 200, 20,  8);
-                EnsureMonster(12, "SkeletonMelee",     "Normal", 180, 18,  7);
-                EnsureMonster(13, "SkeletonArcher",    "Normal", 140, 22,  5);
-                EnsureMonster(14, "Ghost",             "Normal", 160, 25,  4);
-                EnsureMonster(16, "Demon",             "Normal", 800, 70, 30);
-                EnsureMonster(17, "GoblinWarrior",     "Normal", 220, 22, 10);
-                EnsureMonster(18, "GoblinSpear",       "Normal", 180, 18,  8);
-                EnsureMonster(23, "NecromancerCast",   "Normal", 520, 45, 20);
-                EnsureMonster(24, "RobberArcher",      "Normal", 500, 50, 25);
-                EnsureMonster(25, "RobberAssassin",    "Normal", 550, 55, 35);
-                EnsureMonster(26, "RedGuard",          "Normal", 600, 60, 50);
+                EnsureMonster(1,   "SlimeLittle",         "Normal",    1,   300,  30,   2,   70,  85,  5, 130,    4,     8m);
+                EnsureMonster(3,   "WaterElemental",      "Normal",    3,   400,  39,   5,   80,  95,  8, 140,    4,     8m);
+                EnsureMonster(4,   "Dragon",              "Normal",    6,   560,  47,  12,  110, 100, 15, 160,    6,    13m);
+                EnsureMonster(5,   "BlueDragonFrost",     "Normal",    7,   580,  48,  14,  110, 100, 15, 160,    6,    13m);
+                EnsureMonster(6,   "GreenDragonForest",   "Normal",    7,   590,  49,  15,  110, 105, 15, 160,    6,    13m);
+                EnsureMonster(8,   "SlimeIce",            "Normal",    7,   620,  50,  15,   75,  90, 10, 150,   10,    19m);
+                EnsureMonster(9,   "IceDragon",           "Normal",    9,   840,  55,  18,  115, 105, 20, 165,   10,    19m);
+                EnsureMonster(11,  "OrcSkeleton",         "Normal",    9,   850,  61,  20,   95, 100, 15, 160,   13,    26m);
+                EnsureMonster(12,  "SkeletonMelee",       "Normal",   11,  1050,  71,  22,  100, 105, 15, 160,   13,    26m);
+                EnsureMonster(13,  "SkeletonArcher",      "Normal",   12,  1160,  78,  16,  100, 115, 22, 165,   13,    26m);
+                EnsureMonster(14,  "Ghost",               "Normal",    4,   480,  42,  10,   95, 100, 15, 160,    6,    13m);
+                EnsureMonster(16,  "Demon",               "Normal",    8,   730,  51,  18,   95, 100, 20, 165,   10,    19m);
+                EnsureMonster(17,  "GoblinWarrior",       "Normal",    5,   530,  45,  13,   95, 100, 12, 150,    6,    13m);
+                EnsureMonster(18,  "GoblinSpear",         "Normal",    5,   510,  44,  10,  100, 100, 10, 150,    6,    13m);
+                EnsureMonster(23,  "NecromancerCast",     "Normal",    4,   500,  43,   7,   85,  90, 10, 155,    6,    13m);
+                EnsureMonster(24,  "RobberArcher",        "Normal",    3,   440,  40,   6,  100, 110, 12, 150,    6,    13m);
+                EnsureMonster(25,  "RobberAssassin",      "Normal",    3,   460,  41,   9,  105, 115, 18, 160,    6,    13m);
+                EnsureMonster(26,  "RedGuard",            "Normal",    6,   540,  46,  15,   85,  95, 10, 150,    6,    13m);
+                EnsureMonster(27,  "OrcSkeletonAfk",      "Normal",   10,   950,  65,  24,   90,  95, 15, 160,   13,    26m);
 
                 // Boss monsters
-                EnsureMonster(2,  "SwampDemon",   "Boss", 1500, 80,  30);
-                EnsureMonster(7,  "DragonBossIdle","Boss",3000, 150, 60);
-                EnsureMonster(10, "GolemBoss",    "Boss", 2500, 120, 80);
-                EnsureMonster(15, "UnderKing",    "Boss", 2800, 130, 50);
-                EnsureMonster(19, "Ogre",         "Boss", 2000, 100, 40);
-                EnsureMonster(20, "OrcWarlord",   "Boss", 3500, 160, 70);
-                EnsureMonster(21, "IceFairy",     "Boss", 2500,  40, 30);
-                EnsureMonster(22, "GoblinWarlord","Boss", 2000,  60, 40);
+                EnsureMonster(2,   "SwampDemon",          "Boss",      3,  1380,  32,  10,   90, 100, 12, 150,   22,   110m, 5m);
+                EnsureMonster(7,   "DragonBossIdle",      "Boss",      7,  2930,  53,  22,    0, 100, 20, 175,   35,   176m, 10m);
+                EnsureMonster(10,  "GolemBoss",           "Boss",      9,  4300,  65,  28,   80,  90, 20, 170,   53,   264m, 15m);
+                EnsureMonster(15,  "UnderKing",           "Boss",     12,  6040,  94,  35,   95, 100, 25, 180,   70,   352m, 30m);
+                EnsureMonster(19,  "Ogre",                "Boss",      7,  2560,  46,  19,   85,  90, 15, 165,   35,   176m, 10m);
+                EnsureMonster(20,  "OrcWarlord",          "Boss",     12,  4490,  73,  30,   95, 100, 22, 175,   70,   352m, 30m);
+                EnsureMonster(21,  "IceFairy",            "Boss",      9,  3230,  54,  16,  100, 100, 12, 150,   53,   264m, 15m);
+                EnsureMonster(22,  "GoblinWarlord",       "Boss",      7,  2180,  41,  18,   95, 100, 18, 165,   35,   176m, 10m);
 
                 await _ctx.SaveChangesAsync();
 
@@ -1992,7 +2014,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 var spawns = new List<MonsterSpawn>
                 {
                     // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
-                    // Quái thường: SlimeLittle (1) + Slime_ice (8)
+                    // Quái thường: SlimeLittle (1) + SlimeIce (8)
                     // Boss: SwampDemon (2)
                     new MonsterSpawn { DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = mapName, IsActive = true },
                     new MonsterSpawn { DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
@@ -2007,7 +2029,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     new MonsterSpawn { DungeonId = 2, MonsterId = 7,  SpawnCount = 1, MapName = mapName, IsActive = true },
 
                     // ── Dungeon 3: Cung điện Băng giá ────────────────────────────────
-                    // Quái thường: Slime_ice (8) + Ice_Dragon (9)
+                    // Quái thường: SlimeIce (8) + IceDragon (9)
                     // Boss: GolemBoss (10)
                     new MonsterSpawn { DungeonId = 3, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
                     new MonsterSpawn { DungeonId = 3, MonsterId = 9,  SpawnCount = 3, MapName = mapName, IsActive = true },
@@ -2045,9 +2067,9 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                     message = "Đã seed 6 Dungeons thành công!",
                     dungeons = new[]
                     {
-                        "D1: Đầm lầy Slime      → SlimeLittle×3, Slime_ice×3,     Boss: SwampDemon",
+                        "D1: Đầm lầy Slime      → SlimeLittle×3, SlimeIce×3,     Boss: SwampDemon",
                         "D2: Sào huyệt Rồng     → Dragon×2, BlueDragon×2, GreenDragon×2, Boss: DragonBossIdle",
-                        "D3: Cung điện Băng giá → WaterElemental×3, Ice_Dragon×3,  Boss: GolemBoss",
+                        "D3: Cung điện Băng giá → WaterElemental×3, IceDragon×3,  Boss: GolemBoss",
                         "D4: Nghĩa địa Bóng tối → SkeletonMelee×3, Archer×2, Orc×2, Boss: UnderKing",
                         "D5: Doanh trại Goblin  → GoblinWarrior×3, GoblinSpear×3, Boss: Ogre",
                         "D6: Cổng địa ngục      → Ghost×3, Demon×2, OrcSkeleton×2, Boss: OrcWarlord"
