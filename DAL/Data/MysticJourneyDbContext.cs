@@ -1163,6 +1163,329 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new NPCDialogue { NPCDialogueId = 186, NPCId = 2, LinkedQuestId = 46, ResponseType = "None", Content = "The forest remembers every hand that carried these seals: Rowan, the silent cities, the frozen guardians, Natalie, and Aderyn. You have given them all another dawn.", DisplayOrder = 1, IsActive = true },
                 new NPCDialogue { NPCDialogueId = 187, NPCId = 2, LinkedQuestId = 46, ResponseType = "Reward", Content = "But the codex was not masterless. Something taught it to drink from the Origin Tree, and that presence is still somewhere beyond these woods.", DisplayOrder = 2, IsActive = true }
             );
+
+            modelBuilder.Entity<CategoryContent>().HasData(
+                new CategoryContent
+                {
+                    CategoryContentId = 1,
+                    Name = "Elf Forest",
+                    Slug = "elf-forest",
+                    Description = "An ancient woodland inhabited by the Elven race, once protected by the Origin Tree before the curse befell the land.",
+                    IconUrl = null,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new CategoryContent
+                {
+                    CategoryContentId = 2,
+                    Name = "Seal Books",
+                    Slug = "seal-books",
+                    Description = "A collection of four ancient elemental seal books containing mysterious powers needed to unlock the realm's secrets.",
+                    IconUrl = null,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new CategoryContent
+                {
+                    CategoryContentId = 3,
+                    Name = "The Chronicle",
+                    Slug = "the-chronicle",
+                    Description = "A journal recording legends, lore, and key storyline events unfolding across the realms.",
+                    IconUrl = null,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<Content>().HasData(
+                new Content
+                {
+                    ContentId = 1,
+                    Title = "Secrets of the Origin Tree in Elf Forest",
+                    Slug = "secrets-of-the-origin-tree-in-elf-forest",
+                    Summary = "Discover the source of life power for the Elven race and the rising threat of dark forces surrounding the ancient forest.",
+                    ThumbnailUrl = null,
+                    CategoryContentId = 1,
+                    IsPublished = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedByAccountId = Guid.Empty
+                },
+                new Content
+                {
+                    ContentId = 2,
+                    Title = "Legend of the Fire Elemental Seal Book",
+                    Slug = "legend-of-the-fire-elemental-seal-book",
+                    Summary = "Details on the location and decryption of the first Seal Book to unlock Fire Magic skills.",
+                    ThumbnailUrl = null,
+                    CategoryContentId = 2,
+                    IsPublished = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedByAccountId = Guid.Empty
+                },
+                new Content
+                {
+                    ContentId = 3,
+                    Title = "Chapter 1: Awakening in the Deep Woods",
+                    Slug = "chapter-1-awakening-in-the-deep-woods",
+                    Summary = "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.",
+                    ThumbnailUrl = null,
+                    CategoryContentId = 3,
+                    IsPublished = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedByAccountId = Guid.Empty
+                },
+                new Content
+                {
+                    ContentId = 4,
+                    Title = "Guide to Collecting All 4 Seal Books",
+                    Slug = "guide-to-collecting-all-4-seal-books",
+                    Summary = "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.",
+                    ThumbnailUrl = null,
+                    CategoryContentId = 2,
+                    IsPublished = false,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    PublishedAt = null,
+                    CreatedByAccountId = Guid.Empty
+                },
+                new Content
+                {
+                    ContentId = 5,
+                    Title = "Ecosystem and Monsters in Elf Forest",
+                    Slug = "ecosystem-and-monsters-in-elf-forest",
+                    Summary = "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.",
+                    ThumbnailUrl = null,
+                    CategoryContentId = 1,
+                    IsPublished = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedByAccountId = Guid.Empty
+                }
+            );
+
+            modelBuilder.Entity<BlockContent>().HasData(
+                new BlockContent
+                {
+                    Id = 1,
+                    ContentId = 1,
+                    BlockType = "Text",
+                    ContentData = "Located at the heart of the Elf Forest, the Origin Tree once provided magical energy to all living beings. However, an ancient curse is causing its leaves to wither away...",
+                    MediaUrl = null,
+                    Caption = null,
+                    SortOrder = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new BlockContent
+                {
+                    Id = 2,
+                    ContentId = 1,
+                    BlockType = "Image",
+                    ContentData = null,
+                    MediaUrl = null,
+                    Caption = "origin_tree_pixel.png",
+                    SortOrder = 2,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new BlockContent
+                {
+                    Id = 3,
+                    ContentId = 2,
+                    BlockType = "Text",
+                    ContentData = "The four Seal Books contain remnants of ancient power. The Fire elemental book is currently sealed deep within the abandoned fortress of Autumn Pumpkin...",
+                    MediaUrl = null,
+                    Caption = null,
+                    SortOrder = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new BlockContent
+                {
+                    Id = 4,
+                    ContentId = 3,
+                    BlockType = "Text",
+                    ContentData = "You awaken in a cursed forest with no memories. Four Seal Books, four realms, and a fading Origin Tree — this is the only path forward.",
+                    MediaUrl = null,
+                    Caption = null,
+                    SortOrder = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new BlockContent
+                {
+                    Id = 5,
+                    ContentId = 3,
+                    BlockType = "Image",
+                    ContentData = null,
+                    MediaUrl = null,
+                    Caption = "awakening_scene.png",
+                    SortOrder = 2,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new BlockContent
+                {
+                    Id = 6,
+                    ContentId = 4,
+                    BlockType = "Text",
+                    ContentData = "Each Seal Book corresponds to a realm on the map: Elf Forest (Earth), Frozen Mountain (Ice), Autumn Pumpkin (Fire), and Abandoned Castle (Shadow)...",
+                    MediaUrl = null,
+                    Caption = null,
+                    SortOrder = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new BlockContent
+                {
+                    Id = 7,
+                    ContentId = 5,
+                    BlockType = "Text",
+                    ContentData = "Although a starter area, Elf Forest hides many dangers from corrupted forest spirits...",
+                    MediaUrl = null,
+                    Caption = null,
+                    SortOrder = 1,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new BlockContent
+                {
+                    Id = 8,
+                    ContentId = 5,
+                    BlockType = "Image",
+                    ContentData = null,
+                    MediaUrl = null,
+                    Caption = "monster_list_pixel.png",
+                    SortOrder = 2,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<Achievement>().HasData(
+                new Achievement
+                {
+                    AchievementId = 1,
+                    Name = "Pioneer",
+                    Description = "Complete the first chapter",
+                    BuffDescription = "+2% Max HP",
+                    RequiredValue = 1,
+                    Type = "Progression",
+                    IconUrl = "pioneer",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 2,
+                    Name = "Monster Hunter",
+                    Description = "Defeat 1,000 monsters",
+                    BuffDescription = "+2% Attack",
+                    RequiredValue = 1000,
+                    Type = "Combat",
+                    IconUrl = "monster_hunter",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 3,
+                    Name = "Deadeye",
+                    Description = "Reach the required cumulative Critical Rate",
+                    BuffDescription = "+2% Critical Rate",
+                    RequiredValue = 100,
+                    Type = "Progression",
+                    IconUrl = "deadeye",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 4,
+                    Name = "The Unyielding",
+                    Description = "Die fewer than 10 times before Level 30",
+                    BuffDescription = "+3% Defense",
+                    RequiredValue = 1,
+                    Type = "Progression",
+                    IconUrl = "unyielding",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 5,
+                    Name = "Swift Wanderer",
+                    Description = "Explore every region on the map",
+                    BuffDescription = "+3% Movement Speed",
+                    RequiredValue = 1,
+                    Type = "Exploration",
+                    IconUrl = "swift_wanderer",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 6,
+                    Name = "Treasure Seeker",
+                    Description = "Open 500 treasure chests",
+                    BuffDescription = "+5% Gold Gain",
+                    RequiredValue = 500,
+                    Type = "Collection",
+                    IconUrl = "treasure_seeker",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 7,
+                    Name = "Adventurer",
+                    Description = "Complete 100 quests",
+                    BuffDescription = "+3% EXP Gain",
+                    RequiredValue = 100,
+                    Type = "Progression",
+                    IconUrl = "adventurer",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 8,
+                    Name = "Faithful Companion",
+                    Description = "Complete 100 co-op dungeons",
+                    BuffDescription = "+2% Max HP, +2% Defense",
+                    RequiredValue = 100,
+                    Type = "Social",
+                    IconUrl = "faithful_companion",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 9,
+                    Name = "Conqueror",
+                    Description = "Defeat every Boss at least once",
+                    BuffDescription = "+3% Damage to Bosses",
+                    RequiredValue = 1,
+                    Type = "Combat",
+                    IconUrl = "conqueror",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Achievement
+                {
+                    AchievementId = 10,
+                    Name = "Legend of Elarion",
+                    Description = "Reach the maximum level and complete the main storyline",
+                    BuffDescription = "+2% to All Stats (HP, ATK, DEF)",
+                    RequiredValue = 1,
+                    Type = "Progression",
+                    IconUrl = "legend_elarion",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
         }
     }
 }

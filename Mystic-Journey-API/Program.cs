@@ -187,6 +187,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     context.Token = accessToken;
                 }
                 return Task.CompletedTask;
+            },
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                var response = new BLL.DTOs.ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Unauthorized access. Please log in to continue.",
+                    ErrorCode = Mystic_Journey_API.Extensions.ErrorCodes.Unauthorized
+                };
+                await context.Response.WriteAsJsonAsync(response);
+            },
+            OnForbidden = async context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+                var response = new BLL.DTOs.ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Access denied. You do not have permission to access this resource.",
+                    ErrorCode = Mystic_Journey_API.Extensions.ErrorCodes.Forbidden
+                };
+                await context.Response.WriteAsJsonAsync(response);
             }
         };
         options.TokenValidationParameters = new TokenValidationParameters
@@ -259,6 +284,25 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (!context.Response.HasStarted && context.Response.StatusCode >= 400 && context.Response.ContentType == null)
+    {
+        context.Response.ContentType = "application/json";
+        var message = ApiExceptionFilter.GetDefaultStatusMessage(context.Response.StatusCode);
+        var response = new BLL.DTOs.ApiResponse<object>
+        {
+            Success = false,
+            Message = message,
+            ErrorCode = $"HTTP_{context.Response.StatusCode}"
+        };
+        await context.Response.WriteAsJsonAsync(response);
+    }
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

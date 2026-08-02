@@ -189,7 +189,9 @@ namespace BLL.Mappings
             // Ánh xạ tài khoản sang response admin.
             CreateMap<Account, AccountAdminResponseDto>()
                 .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? (int?)src.PlayerProfile.PlayerProfileId : null))
-                .ForMember(dest => dest.PlayerDisplayName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null));
+                .ForMember(dest => dest.PlayerDisplayName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
+                .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.Class : null))
+                .ForMember(dest => dest.PlayerLevel, opt => opt.MapFrom(src => src.PlayerProfile != null ? (int?)src.PlayerProfile.Level : null));
 
             // ═══════════════════════════════════════════════════════════════════════
             // PHẦN THƯỞNG ĐĂNG NHẬP HÀNG NGÀY (Daily Login Reward)

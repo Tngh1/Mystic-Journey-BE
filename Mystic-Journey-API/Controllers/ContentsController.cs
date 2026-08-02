@@ -54,12 +54,12 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/contents ──────────────────────────────────────
         // Lấy danh sách tất cả contents có phân trang và lọc.
-        // Query: page, pageSize, search, isPublished.
+        // Query: page, pageSize, search, isPublished, categoryId.
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isPublished = null, [FromQuery] int? categoryId = null)
         {
-            var result = await _contentService.GetContentsPaged(page, pageSize, search, isPublished);
+            var result = await _contentService.GetContentsPaged(page, pageSize, search, isPublished, categoryId);
             return Ok(new ApiResponse<PagedResultDto<ContentResponseDto>> { Success = true, Data = result });
         }
 

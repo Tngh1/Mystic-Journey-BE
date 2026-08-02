@@ -250,9 +250,9 @@ namespace BLL.Services
             await _repository.RemoveBlock(id);
         }
 
-        public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished)
+        public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, int? categoryId = null)
         {
-            var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished);
+            var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished, categoryId);
 
             var dtos = _mapper.Map<List<ContentResponseDto>>(items);
             return new PagedResultDto<ContentResponseDto>(totalCount, dtos);
