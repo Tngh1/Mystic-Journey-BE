@@ -62,7 +62,7 @@ namespace DAL.Repositories.Interfaces
         // Hủy xuất bản tất cả nội dung thuộc một danh mục.
         Task<int> UnpublishByCategoryIdAsync(int categoryId);
 
-        // Lấy danh sách nội dung có phân trang, lọc theo tìm kiếm và trạng thái xuất bản.
-        Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished);
+        // Lấy danh sách nội dung có phân trang, lọc theo tìm kiếm, trạng thái xuất bản và danh mục.
+        Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, int? categoryId = null);
     }
 }

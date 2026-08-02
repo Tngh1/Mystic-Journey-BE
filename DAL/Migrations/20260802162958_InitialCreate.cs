@@ -1792,6 +1792,33 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Achievements",
+                columns: new[] { "AchievementId", "BuffDescription", "CreatedAt", "Description", "IconUrl", "IsActive", "Name", "Point", "RequiredValue", "RewardGem", "RewardGold", "RewardItemId", "RewardQuantity", "Type" },
+                values: new object[,]
+                {
+                    { 1, "+2% Max HP", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Complete the first chapter", "pioneer", true, "Pioneer", 0, 1, 0, 0m, null, 1, "Progression" },
+                    { 2, "+2% Attack", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Defeat 1,000 monsters", "monster_hunter", true, "Monster Hunter", 0, 1000, 0, 0m, null, 1, "Combat" },
+                    { 3, "+2% Critical Rate", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Reach the required cumulative Critical Rate", "deadeye", true, "Deadeye", 0, 100, 0, 0m, null, 1, "Progression" },
+                    { 4, "+3% Defense", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Die fewer than 10 times before Level 30", "unyielding", true, "The Unyielding", 0, 1, 0, 0m, null, 1, "Progression" },
+                    { 5, "+3% Movement Speed", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Explore every region on the map", "swift_wanderer", true, "Swift Wanderer", 0, 1, 0, 0m, null, 1, "Exploration" },
+                    { 6, "+5% Gold Gain", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Open 500 treasure chests", "treasure_seeker", true, "Treasure Seeker", 0, 500, 0, 0m, null, 1, "Collection" },
+                    { 7, "+3% EXP Gain", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Complete 100 quests", "adventurer", true, "Adventurer", 0, 100, 0, 0m, null, 1, "Progression" },
+                    { 8, "+2% Max HP, +2% Defense", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Complete 100 co-op dungeons", "faithful_companion", true, "Faithful Companion", 0, 100, 0, 0m, null, 1, "Social" },
+                    { 9, "+3% Damage to Bosses", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Defeat every Boss at least once", "conqueror", true, "Conqueror", 0, 1, 0, 0m, null, 1, "Combat" },
+                    { 10, "+2% to All Stats (HP, ATK, DEF)", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Reach the maximum level and complete the main storyline", "legend_elarion", true, "Legend of Elarion", 0, 1, 0, 0m, null, 1, "Progression" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "CategoryContents",
+                columns: new[] { "CategoryContentId", "CreatedAt", "Description", "IconUrl", "IsActive", "Name", "Slug" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Khu rừng cổ xưa nơi tộc Elf sinh sống. Nơi đây từng được bảo hộ bởi Cây Nguồn Cội (Origin Tree) trước khi lời nguyền giăng xuống.", null, true, "Elf Forest", "elf-forest" },
+                    { 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Tập hợp bốn cuốn sách phong ấn cổ đại chứa đựng sức mạnh nguyên tố dùng để giải mã các bí ẩn trong game.", null, true, "Seal Books", "seal-books" },
+                    { 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Nhật ký ghi lại các giai thoại, truyền thuyết và diễn biến cốt truyện chính diễn ra khắp các vùng đất.", null, true, "The Chronicle", "the-chronicle" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "ClassConfigs",
                 columns: new[] { "ClassConfigId", "Atk", "AttackSpeed", "ClassName", "CritDamage", "CritRate", "DamageBonus", "Def", "MaxHp", "MoveSpeed" },
                 values: new object[,]
@@ -1989,6 +2016,18 @@ namespace DAL.Migrations
                     { 17, 115.0, "Knight", 5, 0f, 3.5, 14.0, "Physical", "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", true, "PumpkinThrow", "Area", "Active", 1 },
                     { 18, 55.0, "Knight", 2, 0f, 3.0, 8.0, "Physical", "A short-range pumpkin slash in the direction the knight is facing.", true, "PumpkinSlash", "SingleTarget", "Active", 1 },
                     { 19, 55.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", true, "BoomBoomPumpkin", "Area", "Active", 1 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Contents",
+                columns: new[] { "ContentId", "CategoryContentId", "CreatedAt", "CreatedByAccountAccountId", "CreatedByAccountId", "IsPublished", "PublishedAt", "Slug", "SubCategoryContentId", "Summary", "ThumbnailUrl", "Title", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "bi-an-cay-nguon-coi-tai-elf-forest", null, "Khám phá nguồn gốc sức mạnh sinh mệnh của dòng tộc Elf và nguy cơ trỗi dậy của bóng tối xung quanh khu rừng cổ xưa.", null, "Bí ẩn Cây Nguồn Cội tại Elf Forest", null },
+                    { 2, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "truyen-thuyet-ve-cuon-sach-phong-an-nguyen-to-lua", null, "Chi tiết về vị trí và cách giải mã cuốn Seal Book đầu tiên để mở khóa kỹ năng ma thuật Lửa.", null, "Truyền thuyết về Cuốn Sách Phong Ấn Nguyên Tố Lửa", null },
+                    { 3, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "chuong-1-tinh-giac-trong-rung-tham", null, "Khởi đầu hành trình của nhân vật chính – tỉnh dậy không ký ức và manh mối duy nhất về 4 cuốn cổ sách.", null, "Chương 1: Tỉnh Giấc Trong Rừng Thẫm", null },
+                    { 4, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), false, null, "huong-dan-thu-thap-tron-bo-4-seal-books", null, "Tổng hợp yêu cầu, cấp độ tối thiểu và danh sách trùm (boss) cần vượt qua để hoàn thành bộ sưu tập cổ sách.", null, "Hướng dẫn thu thập trọn bộ 4 Seal Books", null },
+                    { 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "he-sinh-thai-va-quai-vat-tai-elf-forest", null, "Danh sách các sinh vật huyền bí và chỉ số quái vật mà người chơi sẽ gặp tại khu vực Elf Forest.", null, "Hệ sinh thái và Quái vật tại Elf Forest", null }
                 });
 
             migrationBuilder.InsertData(
@@ -2225,6 +2264,21 @@ namespace DAL.Migrations
                     { 17, null, null, "Gold", 0, true, 8, 700m, "Fixed", -1, 0 },
                     { 18, null, null, "Gold", 0, true, 12, 1800m, "Fixed", -1, 0 },
                     { 19, null, null, "Gems", 0, true, 4, 100m, "Fixed", -1, 0 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "BlockContents",
+                columns: new[] { "Id", "BlockType", "Caption", "ContentData", "ContentId", "CreatedAt", "Description", "IsActive", "MediaUrl", "SortOrder", "Title", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, "Text", null, "Nằm ở trung tâm của Elf Forest, Cây Nguồn Cội (Origin Tree) từng là nơi cung cấp năng lượng phép thuật cho toàn bộ sinh linh. Tuy nhiên, một lời nguyền cổ đại đang khiến lá cây dần héo quắt...", 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
+                    { 2, "Image", "origin_tree_pixel.png", null, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 2, "", null },
+                    { 3, "Text", null, "Bốn cuốn Seal Books chứa đựng tàn tích sức mạnh cổ đại. Cuốn sách nguyên tố Lửa hiện đang bị phong ấn sâu bên trong pháo đài bỏ hoang Autumn Pumpkin...", 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
+                    { 4, "Text", null, "Bạn tỉnh dậy mà không có bất kỳ ký ức nào trong một khu rừng bị nguyền rủa. Bốn cuốn Seal Books, bốn vùng đất và một Cây Nguồn Cội đang lụi tàn — đây là con đường duy nhất phía trước.", 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
+                    { 5, "Image", "awakening_scene.png", null, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 2, "", null },
+                    { 6, "Text", null, "Mỗi cuốn Seal Book tương ứng với một vùng đất trên bản đồ: Elf Forest (Đất), Frozen Mountain (Băng), Autumn Pumpkin (Lửa) và Abandoned Castle (Bóng tối)...", 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
+                    { 7, "Text", null, "Dù là vùng đất khởi đầu, Elf Forest vẫn ẩn chứa nhiều nguy hiểm từ các linh hồn rừng bị tha hóa...", 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
+                    { 8, "Image", "monster_list_pixel.png", null, 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 2, "", null }
                 });
 
             migrationBuilder.InsertData(

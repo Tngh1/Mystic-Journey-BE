@@ -20,7 +20,7 @@ namespace BLL.Services.Interfaces
         Task<ContentDetailResponseDto?> GetContentBySlug(string slug);
 
         // Lấy danh sách tất cả contents có phân trang và lọc.
-        Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished);
+        Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, int? categoryId = null);
 
         // Lấy danh sách categories.
         Task<List<CategoryContentResponseDto>> GetAllCategories(string? search = null, bool? isActive = null);

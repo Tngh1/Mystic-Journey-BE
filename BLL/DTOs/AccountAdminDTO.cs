@@ -14,6 +14,8 @@ namespace BLL.DTOs
         public DateTime? LastLogin { get; set; }
         public int? PlayerProfileId { get; set; }
         public string? PlayerDisplayName { get; set; }
+        public string? PlayerClass { get; set; }
+        public int? PlayerLevel { get; set; }
     }
 
     public class CreateAccountAdminRequestDto

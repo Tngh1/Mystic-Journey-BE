@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260802073417_InitialCreate")]
+    [Migration("20260802162958_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -132,6 +132,168 @@ namespace DAL.Migrations
                     b.HasIndex("RewardItemId");
 
                     b.ToTable("Achievements");
+
+                    b.HasData(
+                        new
+                        {
+                            AchievementId = 1,
+                            BuffDescription = "+2% Max HP",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Complete the first chapter",
+                            IconUrl = "pioneer",
+                            IsActive = true,
+                            Name = "Pioneer",
+                            Point = 0,
+                            RequiredValue = 1,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Progression"
+                        },
+                        new
+                        {
+                            AchievementId = 2,
+                            BuffDescription = "+2% Attack",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Defeat 1,000 monsters",
+                            IconUrl = "monster_hunter",
+                            IsActive = true,
+                            Name = "Monster Hunter",
+                            Point = 0,
+                            RequiredValue = 1000,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Combat"
+                        },
+                        new
+                        {
+                            AchievementId = 3,
+                            BuffDescription = "+2% Critical Rate",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Reach the required cumulative Critical Rate",
+                            IconUrl = "deadeye",
+                            IsActive = true,
+                            Name = "Deadeye",
+                            Point = 0,
+                            RequiredValue = 100,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Progression"
+                        },
+                        new
+                        {
+                            AchievementId = 4,
+                            BuffDescription = "+3% Defense",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Die fewer than 10 times before Level 30",
+                            IconUrl = "unyielding",
+                            IsActive = true,
+                            Name = "The Unyielding",
+                            Point = 0,
+                            RequiredValue = 1,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Progression"
+                        },
+                        new
+                        {
+                            AchievementId = 5,
+                            BuffDescription = "+3% Movement Speed",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Explore every region on the map",
+                            IconUrl = "swift_wanderer",
+                            IsActive = true,
+                            Name = "Swift Wanderer",
+                            Point = 0,
+                            RequiredValue = 1,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Exploration"
+                        },
+                        new
+                        {
+                            AchievementId = 6,
+                            BuffDescription = "+5% Gold Gain",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Open 500 treasure chests",
+                            IconUrl = "treasure_seeker",
+                            IsActive = true,
+                            Name = "Treasure Seeker",
+                            Point = 0,
+                            RequiredValue = 500,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Collection"
+                        },
+                        new
+                        {
+                            AchievementId = 7,
+                            BuffDescription = "+3% EXP Gain",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Complete 100 quests",
+                            IconUrl = "adventurer",
+                            IsActive = true,
+                            Name = "Adventurer",
+                            Point = 0,
+                            RequiredValue = 100,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Progression"
+                        },
+                        new
+                        {
+                            AchievementId = 8,
+                            BuffDescription = "+2% Max HP, +2% Defense",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Complete 100 co-op dungeons",
+                            IconUrl = "faithful_companion",
+                            IsActive = true,
+                            Name = "Faithful Companion",
+                            Point = 0,
+                            RequiredValue = 100,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Social"
+                        },
+                        new
+                        {
+                            AchievementId = 9,
+                            BuffDescription = "+3% Damage to Bosses",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Defeat every Boss at least once",
+                            IconUrl = "conqueror",
+                            IsActive = true,
+                            Name = "Conqueror",
+                            Point = 0,
+                            RequiredValue = 1,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Combat"
+                        },
+                        new
+                        {
+                            AchievementId = 10,
+                            BuffDescription = "+2% to All Stats (HP, ATK, DEF)",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Reach the maximum level and complete the main storyline",
+                            IconUrl = "legend_elarion",
+                            IsActive = true,
+                            Name = "Legend of Elarion",
+                            Point = 0,
+                            RequiredValue = 1,
+                            RewardGem = 0,
+                            RewardGold = 0m,
+                            RewardQuantity = 1,
+                            Type = "Progression"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.BlockContent", b =>
@@ -182,6 +344,96 @@ namespace DAL.Migrations
                     b.HasIndex("ContentId");
 
                     b.ToTable("BlockContents");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BlockType = "Text",
+                            ContentData = "Nằm ở trung tâm của Elf Forest, Cây Nguồn Cội (Origin Tree) từng là nơi cung cấp năng lượng phép thuật cho toàn bộ sinh linh. Tuy nhiên, một lời nguyền cổ đại đang khiến lá cây dần héo quắt...",
+                            ContentId = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 1,
+                            Title = ""
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BlockType = "Image",
+                            Caption = "origin_tree_pixel.png",
+                            ContentId = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 2,
+                            Title = ""
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BlockType = "Text",
+                            ContentData = "Bốn cuốn Seal Books chứa đựng tàn tích sức mạnh cổ đại. Cuốn sách nguyên tố Lửa hiện đang bị phong ấn sâu bên trong pháo đài bỏ hoang Autumn Pumpkin...",
+                            ContentId = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 1,
+                            Title = ""
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BlockType = "Text",
+                            ContentData = "Bạn tỉnh dậy mà không có bất kỳ ký ức nào trong một khu rừng bị nguyền rủa. Bốn cuốn Seal Books, bốn vùng đất và một Cây Nguồn Cội đang lụi tàn — đây là con đường duy nhất phía trước.",
+                            ContentId = 3,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 1,
+                            Title = ""
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BlockType = "Image",
+                            Caption = "awakening_scene.png",
+                            ContentId = 3,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 2,
+                            Title = ""
+                        },
+                        new
+                        {
+                            Id = 6,
+                            BlockType = "Text",
+                            ContentData = "Mỗi cuốn Seal Book tương ứng với một vùng đất trên bản đồ: Elf Forest (Đất), Frozen Mountain (Băng), Autumn Pumpkin (Lửa) và Abandoned Castle (Bóng tối)...",
+                            ContentId = 4,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 1,
+                            Title = ""
+                        },
+                        new
+                        {
+                            Id = 7,
+                            BlockType = "Text",
+                            ContentData = "Dù là vùng đất khởi đầu, Elf Forest vẫn ẩn chứa nhiều nguy hiểm từ các linh hồn rừng bị tha hóa...",
+                            ContentId = 5,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 1,
+                            Title = ""
+                        },
+                        new
+                        {
+                            Id = 8,
+                            BlockType = "Image",
+                            Caption = "monster_list_pixel.png",
+                            ContentId = 5,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            SortOrder = 2,
+                            Title = ""
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.CategoryContent", b =>
@@ -218,6 +470,35 @@ namespace DAL.Migrations
                     b.HasKey("CategoryContentId");
 
                     b.ToTable("CategoryContents");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryContentId = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Khu rừng cổ xưa nơi tộc Elf sinh sống. Nơi đây từng được bảo hộ bởi Cây Nguồn Cội (Origin Tree) trước khi lời nguyền giăng xuống.",
+                            IsActive = true,
+                            Name = "Elf Forest",
+                            Slug = "elf-forest"
+                        },
+                        new
+                        {
+                            CategoryContentId = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Tập hợp bốn cuốn sách phong ấn cổ đại chứa đựng sức mạnh nguyên tố dùng để giải mã các bí ẩn trong game.",
+                            IsActive = true,
+                            Name = "Seal Books",
+                            Slug = "seal-books"
+                        },
+                        new
+                        {
+                            CategoryContentId = 3,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Nhật ký ghi lại các giai thoại, truyền thuyết và diễn biến cốt truyện chính diễn ra khắp các vùng đất.",
+                            IsActive = true,
+                            Name = "The Chronicle",
+                            Slug = "the-chronicle"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.ChatMessage", b =>
@@ -546,6 +827,67 @@ namespace DAL.Migrations
                     b.HasIndex("SubCategoryContentId");
 
                     b.ToTable("Contents");
+
+                    b.HasData(
+                        new
+                        {
+                            ContentId = 1,
+                            CategoryContentId = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            IsPublished = true,
+                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Slug = "bi-an-cay-nguon-coi-tai-elf-forest",
+                            Summary = "Khám phá nguồn gốc sức mạnh sinh mệnh của dòng tộc Elf và nguy cơ trỗi dậy của bóng tối xung quanh khu rừng cổ xưa.",
+                            Title = "Bí ẩn Cây Nguồn Cội tại Elf Forest"
+                        },
+                        new
+                        {
+                            ContentId = 2,
+                            CategoryContentId = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            IsPublished = true,
+                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Slug = "truyen-thuyet-ve-cuon-sach-phong-an-nguyen-to-lua",
+                            Summary = "Chi tiết về vị trí và cách giải mã cuốn Seal Book đầu tiên để mở khóa kỹ năng ma thuật Lửa.",
+                            Title = "Truyền thuyết về Cuốn Sách Phong Ấn Nguyên Tố Lửa"
+                        },
+                        new
+                        {
+                            ContentId = 3,
+                            CategoryContentId = 3,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            IsPublished = true,
+                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Slug = "chuong-1-tinh-giac-trong-rung-tham",
+                            Summary = "Khởi đầu hành trình của nhân vật chính – tỉnh dậy không ký ức và manh mối duy nhất về 4 cuốn cổ sách.",
+                            Title = "Chương 1: Tỉnh Giấc Trong Rừng Thẫm"
+                        },
+                        new
+                        {
+                            ContentId = 4,
+                            CategoryContentId = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            IsPublished = false,
+                            Slug = "huong-dan-thu-thap-tron-bo-4-seal-books",
+                            Summary = "Tổng hợp yêu cầu, cấp độ tối thiểu và danh sách trùm (boss) cần vượt qua để hoàn thành bộ sưu tập cổ sách.",
+                            Title = "Hướng dẫn thu thập trọn bộ 4 Seal Books"
+                        },
+                        new
+                        {
+                            ContentId = 5,
+                            CategoryContentId = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            IsPublished = true,
+                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Slug = "he-sinh-thai-va-quai-vat-tai-elf-forest",
+                            Summary = "Danh sách các sinh vật huyền bí và chỉ số quái vật mà người chơi sẽ gặp tại khu vực Elf Forest.",
+                            Title = "Hệ sinh thái và Quái vật tại Elf Forest"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.DailyLoginReward", b =>

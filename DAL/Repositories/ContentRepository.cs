@@ -170,7 +170,7 @@ namespace DAL.Repositories
             return publishedContents.Count;
         }
 
-        public async Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished)
+        public async Task<(int TotalCount, List<Content> Items)> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, int? categoryId = null)
         {
             var query = _context.Contents
                 .Include(c => c.CategoryContent)
@@ -183,6 +183,10 @@ namespace DAL.Repositories
             if (isPublished.HasValue)
             {
                 query = query.Where(x => x.IsPublished == isPublished.Value);
+            }
+            if (categoryId.HasValue)
+            {
+                query = query.Where(x => x.CategoryContentId == categoryId.Value);
             }
 
             int totalCount = await query.CountAsync();
