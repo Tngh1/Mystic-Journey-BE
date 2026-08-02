@@ -188,16 +188,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
                 return Task.CompletedTask;
             },
+            OnTokenValidated = context =>
+            {
+                var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                if (cache != null)
+                {
+                    var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    var sidClaim = context.Principal?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sid)?.Value 
+                                ?? context.Principal?.FindFirst("sid")?.Value;
+
+                    if (!string.IsNullOrEmpty(userIdClaim) && !string.IsNullOrEmpty(sidClaim) && int.TryParse(userIdClaim, out int accountId))
+                    {
+                        if (cache.TryGetValue($"active_session:{accountId}", out object? activeSidObj) && activeSidObj?.ToString() != sidClaim)
+                        {
+                            context.Fail("SESSION_OVERRIDDEN");
+                        }
+                    }
+                }
+                return Task.CompletedTask;
+            },
             OnChallenge = async context =>
             {
                 context.HandleResponse();
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";
+
+                var isOverridden = context.AuthenticateFailure?.Message == "SESSION_OVERRIDDEN";
                 var response = new BLL.DTOs.ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Unauthorized access. Please log in to continue.",
-                    ErrorCode = Mystic_Journey_API.Extensions.ErrorCodes.Unauthorized
+                    Message = isOverridden 
+                        ? "Your account has been logged in on another device." 
+                        : "Unauthorized access. Please log in to continue.",
+                    ErrorCode = isOverridden 
+                        ? "SESSION_OVERRIDDEN" 
+                        : Mystic_Journey_API.Extensions.ErrorCodes.Unauthorized
                 };
                 await context.Response.WriteAsJsonAsync(response);
             },

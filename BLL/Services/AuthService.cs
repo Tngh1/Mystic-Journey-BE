@@ -74,16 +74,17 @@ namespace BLL.Services
             if (!await VerifyPasswordWithFallback(account, request.Password))
                 throw new UnauthorizedAccessException("Invalid email/username or password.");
 
-            // Một tài khoản chỉ được chơi trên MỘT client game tại một thời điểm. Client game
-            // ping /api/player/heartbeat mỗi 30 giây, nên LastSeen còn "tươi" nghĩa là có người
-            // đang chơi bằng tài khoản này. Ngưỡng GameSessionTimeoutSeconds (mặc định 90s =
-            // 3 nhịp heartbeat) để một client bị crash / tắt bằng Alt+F4 tự nhả khóa thay vì
-            // khoá tài khoản vĩnh viễn. Đăng xuất đúng cách sẽ xoá LastSeen và nhả khoá ngay.
-            // Chỉ áp dụng cho ClientType "Game": web admin portal đăng nhập bình thường.
-            if (IsGameClient(request.ClientType) && IsGameSessionActive(account.LastSeen))
-                throw new AccountInUseException("This account is already logged in on another device. Log out there first, or try again in a minute.");
+            // Một tài khoản chỉ chơi trên MỘT client game tại một thời điểm. Khi người chơi đăng
+            // nhập từ máy khác, phiên đăng nhập mới sẽ lập tức ghi đè sessionId trong cache và
+            // tự động đăng xuất phiên đăng nhập cũ trên máy trước (Single Active Session).
+            string? sessionId = null;
+            if (IsGameClient(request.ClientType))
+            {
+                sessionId = Guid.NewGuid().ToString();
+                _cache.Set($"active_session:{account.AccountId}", sessionId, TimeSpan.FromDays(7));
+            }
 
-            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
             account.RefreshToken = HashRefreshToken(refreshToken);
@@ -269,11 +270,8 @@ namespace BLL.Services
         public async Task RevokeRefreshToken(int accountId)
         {
             await _repository.RevokeRefreshToken(accountId);
-
-            // Đăng xuất đúng cách thì nhả khoá phiên game ngay, không bắt người chơi chờ
-            // GameSessionTimeoutSeconds. An toàn cho cả web: web không bao giờ ghi LastSeen,
-            // và nếu client game vẫn đang chạy thì nhịp heartbeat kế tiếp sẽ ghi lại mốc này.
             await _repository.ClearLastSeen(accountId);
+            _cache.Remove($"active_session:{accountId}");
         }
 
         public async Task RevokeRefreshTokenByToken(string refreshToken)
@@ -359,7 +357,7 @@ namespace BLL.Services
             return Convert.ToBase64String(bytes);
         }
 
-        private (string token, DateTime expires) GenerateAccessToken(Account account)
+        private (string token, DateTime expires) GenerateAccessToken(Account account, string? sessionId = null)
         {
             var jwt = _configuration.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
@@ -374,6 +372,11 @@ namespace BLL.Services
                 new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player"),
                 new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0")
             };
+
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.Sid, sessionId));
+            }
 
             var token = new JwtSecurityToken(
                 jwt["Issuer"], jwt["Audience"], claims,
