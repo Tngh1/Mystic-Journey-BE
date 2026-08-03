@@ -16,6 +16,10 @@ namespace BLL.DTOs
         public int EnergyCost { get; set; }
         public int? ChestId { get; set; }
         public bool IsActive { get; set; }
+        public int GoldMinReward { get; set; }
+        public int GoldMaxReward { get; set; }
+        public int ExperienceReward { get; set; }
+        public List<ChestItemResponseDto> PossibleDrops { get; set; } = new();
     }
 
     public class UpdateDungeonConfigRequestDto

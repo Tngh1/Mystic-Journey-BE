@@ -97,7 +97,7 @@ namespace Mystic_Journey_API.Controllers
                     return BadRequest(new ApiResponse<object>
                     {
                         Success = false,
-                        Message = "System items chưa có trong DB. Hãy chạy migration trước: 'Small Health Potion', 'Iron Sword', 'Iron Helmet'."
+                        Message = "System items not found in DB. Please run migration first: 'Small Health Potion', 'Iron Sword', 'Iron Helmet'."
                     });
 
                 // ── 2. Skins (seeded via migration – look up by name) ─────────
@@ -107,12 +107,22 @@ namespace Mystic_Journey_API.Controllers
                 var skinKnightPremium = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Knight Skin");
 
                 if (skinKnight == null || skinArcher == null || skinMage == null)
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "System skins not found in DB. Please run migration '20260804000000_SeedSkins' first."
-                    });
-
+                {
+                    // Auto-create basic skins if missing
+                    if (skinKnight == null) {
+                        skinKnight = new Skin { Name = "Knight Default", Description = "Knight default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                        _ctx.Skins.Add(skinKnight);
+                    }
+                    if (skinArcher == null) {
+                        skinArcher = new Skin { Name = "Archer Default", Description = "Archer default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                        _ctx.Skins.Add(skinArcher);
+                    }
+                    if (skinMage == null) {
+                        skinMage = new Skin { Name = "Mage Default", Description = "Mage default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                        _ctx.Skins.Add(skinMage);
+                    }
+                    await _ctx.SaveChangesAsync();
+                }
                 // ── 4. Account + PlayerProfile test ──────────────────────────
                 const string TEST_EMAIL    = "testplayer@mystic.test";
                 const string TEST_USERNAME = "testplayer";
@@ -335,7 +345,7 @@ namespace Mystic_Journey_API.Controllers
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Seed thành công!",
+                    Message = "Seed successful!",
                     Data = new
                     {
                         accountEmail    = TEST_EMAIL,
@@ -345,8 +355,8 @@ namespace Mystic_Journey_API.Controllers
                         playerClass     = "Knight",
                         items = new[]
                         {
-                            new { name = helm?.Name   ?? "(không tìm thấy)", type = "Armor (Helmet)", status = "EQUIPPED" },
-                            new { name = potion?.Name ?? "(không tìm thấy)", type = "Consumable",     status = "BAG x2"  },
+                            new { name = helm?.Name   ?? "(not found)", type = "Armor (Helmet)", status = "EQUIPPED" },
+                            new { name = potion?.Name ?? "(not found)", type = "Consumable",     status = "BAG x2"  },
                         },
                         skins = new[]
                         {
@@ -412,7 +422,7 @@ namespace Mystic_Journey_API.Controllers
                     return BadRequest(new ApiResponse<object>
                     {
                         Success = false,
-                        Message = $"System items chưa có trong DB. Hãy chạy migration items trước. Thiếu: {string.Join(", ", missingItems)}"
+                        Message = $"System items not found in DB. Please run items migration first. Missing: {string.Join(", ", missingItems)}"
                     });
 
                 // EquipmentStats đã được tạo sẵn qua migration cùng với item
@@ -421,12 +431,27 @@ namespace Mystic_Journey_API.Controllers
                 // 2. Skins are seeded via migration (20260804000000_SeedSkins) – look up by name
                 var skinArcher = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Archer Default");
                 if (skinArcher == null)
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "System skins not found in DB. Please run migration '20260804000000_SeedSkins' first."
-                    });
+                {
+                    skinArcher = new Skin { Name = "Archer Default", Description = "Archer default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                    _ctx.Skins.Add(skinArcher);
+                    await _ctx.SaveChangesAsync();
+                }
 
+                var skinMage = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Mage Default");
+                if (skinMage == null)
+                {
+                    skinMage = new Skin { Name = "Mage Default", Description = "Mage default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                    _ctx.Skins.Add(skinMage);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                var skinKnight = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Knight Default");
+                if (skinKnight == null)
+                {
+                    skinKnight = new Skin { Name = "Knight Default", Description = "Knight default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                    _ctx.Skins.Add(skinKnight);
+                    await _ctx.SaveChangesAsync();
+                }
                 // 3. Keep system quests intact (they are managed by HasData/migrations)
                 /* Legacy quest cleanup skipped to preserve system quests */
 
@@ -467,12 +492,12 @@ namespace Mystic_Journey_API.Controllers
 
                 var poisonZoneSkill = UpsertSkill(
                     "Dark Poison Zone",
-                    "Tạo bãi độc gây sát thương diện rộng. Hắc hóa +10.",
+                    "Creates a poisonous zone dealing AoE damage. Darkening +10.",
                     "Active", "Magical", "Area", "All", 6, 135.0, 16.0, 3.5, 10f);
 
                 var explosionSkill = UpsertSkill(
                     "Dark Explosion",
-                    "Tạo vụ nổ gây sát thương khủng khiếp. Hắc hóa +5.",
+                    "Creates an explosion dealing massive damage. Darkening +5.",
                     "Active", "Magical", "Area", "All", 8, 175.0, 20.0, 3.5, 5f);
 
                 // Add 5 custom skills
@@ -710,9 +735,9 @@ namespace Mystic_Journey_API.Controllers
                     // player skin: assign default skin for player's class (seeded via migration)
                     int defaultSkinId = cls switch
                     {
-                        "Archer" => 2,
-                        "Mage"   => 3,
-                        _        => 1  // Knight default
+                        "Archer" => skinArcher.SkinId,
+                        "Mage"   => skinMage.SkinId,
+                        _        => skinKnight.SkinId  // Knight default
                     };
                     _ctx.PlayerSkins.Add(new PlayerSkin
                     {
@@ -919,7 +944,7 @@ namespace Mystic_Journey_API.Controllers
                 var p2Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p2).ToListAsync();
                 foreach (var skin in p2Skins)
                 {
-                    skin.IsEquipped = (skin.SkinId == 2);
+                    skin.IsEquipped = (skin.SkinId == skinArcher.SkinId);
                 }
                 await _ctx.SaveChangesAsync();
 
@@ -1034,7 +1059,17 @@ namespace Mystic_Journey_API.Controllers
 
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed ElfForest completed", Data = new { players = new[] { p1, p2, p3, p4, p5 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } });
+                // Call other seeders sequentially to consolidate everything into ElfForest seed
+                await SeedDungeons();
+                await SeedContent();
+                await SeedFriends();
+                await SeedGuilds();
+
+                return Ok(new ApiResponse<object> { 
+                    Success = true, 
+                    Message = "Seed ElfForest and all related data (Dungeons, Content, Friends, Guilds) completed successfully!", 
+                    Data = new { players = new[] { p1, p2, p3, p4, p5 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } 
+                });
             }
             catch (Exception ex)
             {
@@ -1075,7 +1110,7 @@ namespace Mystic_Journey_API.Controllers
             {
                 if (systemItems.TryGetValue(name, out var item))
                     return item;
-                throw new InvalidOperationException($"System item '{name}' chưa có trong DB. Hãy chạy migration items trước.");
+                throw new InvalidOperationException($"System item '{name}' not found in DB. Please run items migration first.");
             }
 
             var ticketItem   = GetItem("Lucky Ticket");
@@ -1254,18 +1289,18 @@ namespace Mystic_Journey_API.Controllers
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = $"Seed {rewards.Count} daily login rewards thành công!",
+                    Message = $"Seeded {rewards.Count} daily login rewards successfully!",
                     Data = new
                     {
                         totalDays = rewards.Count,
                         itemRewardDays = new[] { 7, 14, 21, 28 },
                         itemsUsed = new
                         {
-                            potion = potion != null ? $"{potion.Name} (Id={potion.ItemId})" : "Không tìm thấy – ngày Item sẽ có Quantity=0",
-                            helm   = helm   != null ? $"{helm.Name} (Id={helm.ItemId})"     : "Không tìm thấy",
-                            sword  = sword  != null ? $"{sword.Name} (Id={sword.ItemId})"   : "Không tìm thấy",
+                            potion = potion != null ? $"{potion.Name} (Id={potion.ItemId})" : "Not found - day's Item will have Quantity=0",
+                            helm   = helm   != null ? $"{helm.Name} (Id={helm.ItemId})"     : "Not found",
+                            sword  = sword  != null ? $"{sword.Name} (Id={sword.ItemId})"   : "Not found",
                         },
-                        tip = "Chạy POST /api/seed/inventory trước để có item [SEED] rồi mới seed daily login."
+                        tip = "Run POST /api/seed/inventory first to get [SEED] items before seeding daily login."
                     }
                 });
             }
@@ -1316,7 +1351,7 @@ namespace Mystic_Journey_API.Controllers
                 await _ctx.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                return Ok(new ApiResponse<object> { Success = true, Message = "Xoá seed data thành công." });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Seed data deleted successfully." });
             }
             catch (Exception ex)
             {
@@ -1524,12 +1559,12 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 }
 
                 // Create chests for each dungeon
-                var chest1 = new Chest { Name = "Rương Đầm lầy Slime", Description = "Phần thưởng Đầm lầy Slime", Type = "Normal", GoldMinReward = 50, GoldMaxReward = 100, ExperienceReward = 50, IsActive = true };
-                var chest2 = new Chest { Name = "Rương Sào huyệt Rồng", Description = "Phần thưởng Sào huyệt Rồng", Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200, ExperienceReward = 150, IsActive = true };
-                var chest3 = new Chest { Name = "Rương Cung điện Băng giá", Description = "Phần thưởng Cung điện Băng", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 300, IsActive = true };
-                var chest4 = new Chest { Name = "Rương Nghĩa địa Bóng tối", Description = "Phần thưởng Nghĩa địa", Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400, ExperienceReward = 450, IsActive = true };
-                var chest5 = new Chest { Name = "Rương Doanh trại Goblin", Description = "Phần thưởng Doanh trại", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 350, IsActive = true };
-                var chest6 = new Chest { Name = "Rương Cổng địa ngục", Description = "Phần thưởng Cổng địa ngục", Type = "Epic", GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true };
+                var chest1 = new Chest { Name = "Slime Swamp Chest", Description = "Slime Swamp reward", Type = "Normal", GoldMinReward = 50, GoldMaxReward = 100, ExperienceReward = 50, IsActive = true };
+                var chest2 = new Chest { Name = "Dragon Lair Chest", Description = "Dragon Lair reward", Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200, ExperienceReward = 150, IsActive = true };
+                var chest3 = new Chest { Name = "Ice Palace Chest", Description = "Ice Palace reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 300, IsActive = true };
+                var chest4 = new Chest { Name = "Dark Graveyard Chest", Description = "Dark Graveyard reward", Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400, ExperienceReward = 450, IsActive = true };
+                var chest5 = new Chest { Name = "Goblin Camp Chest", Description = "Goblin Camp reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 350, IsActive = true };
+                var chest6 = new Chest { Name = "Hell Gate Chest", Description = "Hell Gate reward", Type = "Epic", GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true };
                 
                 _ctx.Chests.AddRange(chest1, chest2, chest3, chest4, chest5, chest6);
                 await _ctx.SaveChangesAsync();
@@ -1624,7 +1659,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
 
                 return Ok(new
                 {
-                    message = "Đã seed 6 Dungeons thành công!",
+                    message = "Seeded 6 Dungeons successfully!",
                     dungeons = new[]
                     {
                         "D1: Đầm lầy Slime      → SlimeLittle×3, SlimeIce×3,     Boss: SwampDemon",
@@ -1638,7 +1673,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Lỗi khi seed Dungeon: " + ex.Message, details = ex.InnerException?.Message });
+                return StatusCode(500, new { message = "Error seeding Dungeon: " + ex.Message, details = ex.InnerException?.Message });
             }
         }
 
@@ -1683,11 +1718,11 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 }
 
                 var catElfForest = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "elf-forest") 
-                    ?? new CategoryContent { Name = "Elf Forest", Slug = "elf-forest", Description = "Khu rừng cổ xưa nơi tộc Elf sinh sống. Nơi đây từng được bảo hộ bởi Cây Nguồn Cội (Origin Tree) trước khi lời nguyền giăng xuống.", IsActive = true, IconUrl = null };
+                    ?? new CategoryContent { Name = "Elf Forest", Slug = "elf-forest", Description = "The ancient forest where Elves live. It was once protected by the Origin Tree before the curse fell.", IsActive = true, IconUrl = null };
                 var catSealBooks = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "seal-books") 
-                    ?? new CategoryContent { Name = "Seal Books", Slug = "seal-books", Description = "Tập hợp bốn cuốn sách phong ấn cổ đại chứa đựng sức mạnh nguyên tố dùng để giải mã các bí ẩn trong game.", IsActive = true, IconUrl = null };
+                    ?? new CategoryContent { Name = "Seal Books", Slug = "seal-books", Description = "A collection of four ancient seal books containing elemental power used to solve mysteries in the game.", IsActive = true, IconUrl = null };
                 var catChronicle = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "the-chronicle") 
-                    ?? new CategoryContent { Name = "The Chronicle", Slug = "the-chronicle", Description = "Nhật ký ghi lại các giai thoại, truyền thuyết và diễn biến cốt truyện chính diễn ra khắp các vùng đất.", IsActive = true, IconUrl = null };
+                    ?? new CategoryContent { Name = "The Chronicle", Slug = "the-chronicle", Description = "A journal recording the legends, myths, and main story events happening across the lands.", IsActive = true, IconUrl = null };
 
                 var catNews = new CategoryContent { Name = "[SEED] News", Slug = "seed-news", Description = "Game News", IsActive = true };
                 var catGuides = new CategoryContent { Name = "[SEED] Guides", Slug = "seed-guides", Description = "Beginner Guides", IsActive = true };
@@ -1910,7 +1945,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 var guild1 = new Guild
                 {
                     Name = "Dragon Slayer",
-                    Notice = "Bang hội săn rồng, tuyển anh em onl thường xuyên!",
+                    Notice = "Dragon hunting guild, recruiting active members!",
                     IconId = 1,
                     BannerId = 1,
                     Level = 7,
@@ -1926,7 +1961,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 var guild2 = new Guild
                 {
                     Name = "Noob House",
-                    Notice = "Vui vẻ là chính, không quan trọng cấp độ.",
+                    Notice = "Just for fun, level doesn't matter.",
                     IconId = 2,
                     BannerId = 2,
                     Level = 2,
@@ -1942,7 +1977,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 var guild3 = new Guild
                 {
                     Name = "Solo Leveling",
-                    Notice = "Cày chay không nạp.",
+                    Notice = "F2P only.",
                     IconId = 3,
                     BannerId = 3,
                     Level = 5,
@@ -2298,6 +2333,37 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 {
                     Success = true,
                     Message = $"Admin account successfully seeded/updated! You can now log in with Email/Username: '{adminEmail}' or '{adminUsername}' and Password: '{adminPassword}'."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+            }
+        }
+
+        // ── POST /api/seed/all ───────────────────────────────────────
+        // Run all main seeds in logical order
+        // ─────────────────────────────────────────────────────────────
+        [HttpPost("all")]
+        public async Task<IActionResult> SeedAll()
+        {
+            try
+            {
+                // 1. Seed Dungeons
+                await SeedDungeons();
+                // 2. Seed Content
+                await SeedContent();
+                // 3. Seed ElfForest (creates accounts elf1 -> elf5)
+                await SeedElfForest();
+                // 4. Seed Friends (requires elf1@mystic.test)
+                await SeedFriends();
+                // 5. Seed Guilds (requires elf1@mystic.test)
+                await SeedGuilds();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "All seeds completed successfully (Dungeons, Content, ElfForest, Friends, Guilds)!"
                 });
             }
             catch (Exception ex)

@@ -12,13 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-<<<<<<<< Updated upstream:DAL/Migrations/20260803043735_InitialCreate.Designer.cs
-    [Migration("20260803043735_InitialCreate")]
-    partial class InitialCreate
-========
-    [Migration("20260802180358_Initial")]
+    [Migration("20260803180212_Initial")]
     partial class Initial
->>>>>>>> Stashed changes:DAL/Migrations/20260802180358_Initial.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
