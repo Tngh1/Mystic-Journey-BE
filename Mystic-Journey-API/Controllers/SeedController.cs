@@ -100,54 +100,18 @@ namespace Mystic_Journey_API.Controllers
                         Message = "System items chưa có trong DB. Hãy chạy migration trước: 'Small Health Potion', 'Iron Sword', 'Iron Helmet'."
                     });
 
-                // ── 2. Skins ─────────────────────────────────────────────────
-                var existingSkins = await _ctx.Skins
-                    .Where(s => EF.Functions.Like(s.Name, "[SEED]%"))
-                    .ToListAsync();
-                _ctx.Skins.RemoveRange(existingSkins);
-                await _ctx.SaveChangesAsync();
+                // ── 2. Skins (seeded via migration – look up by name) ─────────
+                var skinKnight = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Knight Default");
+                var skinArcher = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Archer Default");
+                var skinMage   = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Mage Default");
+                var skinKnightPremium = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Knight Skin");
 
-                var skinKnight = new Skin
-                {
-                    Name        = "[SEED] Knight Default",
-                    Description = "Trang phục mặc định của hiệp sĩ.",
-                    Type        = "FullSet",
-                    Rarity      = "Common",
-                    IsForSale   = false,
-                    IsActive    = true,
-                };
-                var skinArcher = new Skin
-                {
-                    Name        = "[SEED] Archer Default",
-                    Description = "Trang phục mặc định của xạ thủ.",
-                    Type        = "FullSet",
-                    Rarity      = "Common",
-                    IsForSale   = false,
-                    IsActive    = true,
-                };
-                var skinMage = new Skin
-                {
-                    Name        = "[SEED] Mage Default",
-                    Description = "Trang phục mặc định của pháp sư.",
-                    Type        = "FullSet",
-                    Rarity      = "Common",
-                    IsForSale   = false,
-                    IsActive    = true,
-                };
-                var skinDragon = new Skin
-                {
-                    Name        = "[SEED] Dragon Knight",
-                    Description = "Giáp rồng huyền thoại. Thay đổi ngoại hình.",
-                    Type        = "FullSet",
-                    Rarity      = "Epic",
-                    IsForSale   = true,
-                    Price       = 500,
-                    Currency    = "Gems",
-                    IsActive    = true,
-                };
-
-                _ctx.Skins.AddRange(skinKnight, skinArcher, skinMage, skinDragon);
-                await _ctx.SaveChangesAsync();
+                if (skinKnight == null || skinArcher == null || skinMage == null)
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "System skins not found in DB. Please run migration '20260804000000_SeedSkins' first."
+                    });
 
                 // ── 4. Account + PlayerProfile test ──────────────────────────
                 const string TEST_EMAIL    = "testplayer@mystic.test";
@@ -311,22 +275,24 @@ namespace Mystic_Journey_API.Controllers
 
                 // ── 6. PlayerSkins ────────────────────────────────────────────
                 // Knight Default – EQUIPPED (mặc định theo class)
-                _ctx.PlayerSkins.Add(new PlayerSkin
-                {
-                    PlayerProfileId = pid,
-                    SkinId          = skinKnight.SkinId,
-                    IsEquipped      = true,
-                    UnlockedAt      = DateTime.UtcNow,
-                });
+                if (skinKnight != null)
+                    _ctx.PlayerSkins.Add(new PlayerSkin
+                    {
+                        PlayerProfileId = pid,
+                        SkinId          = skinKnight.SkinId,
+                        IsEquipped      = true,
+                        UnlockedAt      = DateTime.UtcNow,
+                    });
 
-                // Dragon Knight – CÓ nhưng không mặc (skin khác)
-                _ctx.PlayerSkins.Add(new PlayerSkin
-                {
-                    PlayerProfileId = pid,
-                    SkinId          = skinDragon.SkinId,
-                    IsEquipped      = false,
-                    UnlockedAt      = DateTime.UtcNow,
-                });
+                // Knight Skin (premium) – unlocked but not equipped
+                if (skinKnightPremium != null)
+                    _ctx.PlayerSkins.Add(new PlayerSkin
+                    {
+                        PlayerProfileId = pid,
+                        SkinId          = skinKnightPremium.SkinId,
+                        IsEquipped      = false,
+                        UnlockedAt      = DateTime.UtcNow,
+                    });
 
                 await _ctx.SaveChangesAsync();
 
@@ -384,8 +350,8 @@ namespace Mystic_Journey_API.Controllers
                         },
                         skins = new[]
                         {
-                            new { name = "[SEED] Knight Default", status = "EQUIPPED (default)" },
-                            new { name = "[SEED] Dragon Knight",  status = "BAG (unlocked)"     },
+                            new { name = "Knight Default", status = "EQUIPPED (default)" },
+                            new { name = "Knight Skin",    status = "BAG (unlocked)"     },
                         },
                         quests = new[]
                         {
@@ -452,46 +418,18 @@ namespace Mystic_Journey_API.Controllers
                 // EquipmentStats đã được tạo sẵn qua migration cùng với item
                 // Không cần upsert lại ở đây
 
-                // 2. Upsert skins, same reason as items: player skin ownership can reference them.
-                var skinNames = new[] {
-                    "[ELF] ElfForest Default",
-                    "[SEED] Archer Default",
-                    "[ELF] Ranger Cloak",
-                    "[ELF] Elven Blade",
-                    "[ELF] Leaf Crown",
-                    "[ELF] Guardian Plate"
-                };
-                var existingSkins = await _ctx.Skins
-                    .Where(s => skinNames.Contains(s.Name))
-                    .ToListAsync();
-
-                Skin UpsertSkin(string name, string description, string type, string rarity)
-                {
-                    var skin = existingSkins.FirstOrDefault(s => s.Name == name);
-                    if (skin == null)
+                // 2. Skins are seeded via migration (20260804000000_SeedSkins) – look up by name
+                var skinArcher = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Archer Default");
+                if (skinArcher == null)
+                    return BadRequest(new ApiResponse<object>
                     {
-                        skin = new Skin { Name = name };
-                        _ctx.Skins.Add(skin);
-                    }
-
-                    skin.Description = description;
-                    skin.Type = type;
-                    skin.Rarity = rarity;
-                    skin.IsForSale = false;
-                    skin.IsActive = true;
-                    return skin;
-                }
-
-                var skinDefault = UpsertSkin("[ELF] ElfForest Default", "Default outfit for the ElfForest tutorial area.", "FullSet", "Common");
-                var skinArcher = UpsertSkin("[SEED] Archer Default", "Default outfit for Archers.", "FullSet", "Common");
-                var skinAlt = UpsertSkin("[ELF] Ranger Cloak", "A cloak worn by forest rangers.", "Cloak", "Rare");
-                var skinSword = UpsertSkin("[ELF] Elven Blade", "A beautiful blade glowing with forest magic.", "Weapon", "Epic");
-                var skinHelm = UpsertSkin("[ELF] Leaf Crown", "A crown made of mystical leaves.", "Helmet", "Uncommon");
-                var skinArmor = UpsertSkin("[ELF] Guardian Plate", "Sturdy plate armor worn by the forest guardians.", "Armor", "Rare");
-                await _ctx.SaveChangesAsync();
+                        Success = false,
+                        Message = "System skins not found in DB. Please run migration '20260804000000_SeedSkins' first."
+                    });
 
                 // 3. Keep system quests intact (they are managed by HasData/migrations)
                 /* Legacy quest cleanup skipped to preserve system quests */
+
 
                 // Upsert 3 tutorial skills rewarded when player delivers 3 White Flowers
                 var elfSkillNames = new[] { 
@@ -769,19 +707,18 @@ namespace Mystic_Journey_API.Controllers
                             IsSkin = false,
                         });
 
-                    // player skin: default equipped + one extra skin in bag
+                    // player skin: assign default skin for player's class (seeded via migration)
+                    int defaultSkinId = cls switch
+                    {
+                        "Archer" => 2,
+                        "Mage"   => 3,
+                        _        => 1  // Knight default
+                    };
                     _ctx.PlayerSkins.Add(new PlayerSkin
                     {
                         PlayerProfileId = pid,
-                        SkinId = skinDefault.SkinId,
+                        SkinId = defaultSkinId,
                         IsEquipped = true,
-                        UnlockedAt = DateTime.UtcNow,
-                    });
-                    _ctx.PlayerSkins.Add(new PlayerSkin
-                    {
-                        PlayerProfileId = pid,
-                        SkinId = skinAlt.SkinId,
-                        IsEquipped = false,
                         UnlockedAt = DateTime.UtcNow,
                     });
 
@@ -831,8 +768,17 @@ namespace Mystic_Journey_API.Controllers
                     return pid;
                 }
 
-                var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Knight 1", "Knight");
+                var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Archer 1", "Archer");
                 
+                // Cấp thêm skin ID 4 (Archer Skin) trong túi cho elf1 (đã có skin ID 2 Archer Default mặc định khi tạo)
+                _ctx.PlayerSkins.Add(new PlayerSkin
+                {
+                    PlayerProfileId = p1,
+                    SkinId = 4,
+                    IsEquipped = false,
+                    UnlockedAt = DateTime.UtcNow
+                });
+
                 // Cấp sẵn 7 kỹ năng cho elf1 (2 hắc hóa + 5 kỹ năng custom)
                 foreach (var skillId in new[] { 
                     poisonZoneSkill.SkillId, 
@@ -969,11 +915,11 @@ namespace Mystic_Journey_API.Controllers
                     await _ctx.SaveChangesAsync();
                 }
 
-                // Equip Archer skin for elf2 instead of Knight default skin
+                // Equip Archer Default skin (SkinId=2) for elf2 – Archer class
                 var p2Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p2).ToListAsync();
                 foreach (var skin in p2Skins)
                 {
-                    skin.IsEquipped = (skin.SkinId == skinAlt.SkinId || skin.SkinId == 2);
+                    skin.IsEquipped = (skin.SkinId == 2);
                 }
                 await _ctx.SaveChangesAsync();
 
