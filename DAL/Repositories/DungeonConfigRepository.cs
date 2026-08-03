@@ -77,7 +77,11 @@ namespace DAL.Repositories
         /// <summary>Lấy danh sách dungeon có phân trang, lọc theo tìm kiếm (tên), loại và trạng thái hoạt động.</summary>
         public async Task<(int TotalCount, List<DungeonConfig> Items)> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
-            var query = _context.DungeonConfigs.AsNoTracking();
+            var query = _context.DungeonConfigs.AsNoTracking()
+                .Include(d => d.Chest)
+                    .ThenInclude(c => c!.ChestItems)
+                        .ThenInclude(ci => ci.Item)
+                .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
             {

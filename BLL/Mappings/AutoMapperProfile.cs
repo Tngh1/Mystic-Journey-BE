@@ -299,7 +299,10 @@ namespace BLL.Mappings
             CreateMap<UpdateChestRequestDto, Chest>();
 
             // Ánh xạ vật phẩm trong rương.
-            CreateMap<ChestItem, ChestItemResponseDto>();
+            CreateMap<ChestItem, ChestItemResponseDto>()
+                .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
+                .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
+                .ForMember(dest => dest.ItemRarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : null));
             CreateMap<CreateChestItemRequestDto, ChestItem>();
 
             // Ánh xạ rương của người chơi.

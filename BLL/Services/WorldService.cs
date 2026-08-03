@@ -702,10 +702,10 @@ namespace BLL.Services
                 var key when key.Contains("lockedbridgegate") => new[] { (itemId: 33, quantity: 1, name: "Mystic Key") },
                 var key when key.Contains("origintree") => new[]
                 {
-                    (itemId: 909, quantity: 1, name: "Swamp Seal Book"),
-                    (itemId: 910, quantity: 1, name: "Dragon Seal Book"),
-                    (itemId: 911, quantity: 1, name: "Golem Seal Book"),
-                    (itemId: 912, quantity: 1, name: "UnderKing Seal Book")
+                    (itemId: 29, quantity: 1, name: "Swamp Seal Book"),
+                    (itemId: 26, quantity: 1, name: "Dragon Seal Book"),
+                    (itemId: 27, quantity: 1, name: "Golem Seal Book"),
+                    (itemId: 28, quantity: 1, name: "UnderKing Seal Book")
                 },
                 _ => Array.Empty<(int itemId, int quantity, string name)>()
             };

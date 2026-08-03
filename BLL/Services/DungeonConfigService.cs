@@ -23,11 +23,22 @@ namespace BLL.Services
 
         public async Task<DungeonConfigResponseDto?> GetDungeonById(int id)
         {
-            var dungeon = await _repository.GetDungeonConfigById(id);
+            var dungeon = await _repository.GetByIdWithChest(id);
             if (dungeon == null)
                 return null;
 
-            return _mapper.Map<DungeonConfigResponseDto>(dungeon);
+            var dto = _mapper.Map<DungeonConfigResponseDto>(dungeon);
+            if (dungeon.Chest != null)
+            {
+                dto.GoldMinReward = dungeon.Chest.GoldMinReward;
+                dto.GoldMaxReward = dungeon.Chest.GoldMaxReward;
+                dto.ExperienceReward = dungeon.Chest.ExperienceReward;
+                if (dungeon.Chest.ChestItems != null)
+                {
+                    dto.PossibleDrops = _mapper.Map<List<ChestItemResponseDto>>(dungeon.Chest.ChestItems);
+                }
+            }
+            return dto;
         }
 
         public async Task<DungeonConfigResponseDto> UpdateDungeon(int id, UpdateDungeonConfigRequestDto request)
@@ -55,6 +66,20 @@ namespace BLL.Services
             var (totalCount, items) = await _repository.GetDungeonsPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
 
             var dtos = _mapper.Map<List<DungeonConfigResponseDto>>(items);
+            for (int i = 0; i < dtos.Count; i++)
+            {
+                var dungeon = items[i];
+                if (dungeon.Chest != null)
+                {
+                    dtos[i].GoldMinReward = dungeon.Chest.GoldMinReward;
+                    dtos[i].GoldMaxReward = dungeon.Chest.GoldMaxReward;
+                    dtos[i].ExperienceReward = dungeon.Chest.ExperienceReward;
+                    if (dungeon.Chest.ChestItems != null)
+                    {
+                        dtos[i].PossibleDrops = _mapper.Map<List<ChestItemResponseDto>>(dungeon.Chest.ChestItems);
+                    }
+                }
+            }
             return new PagedResultDto<DungeonConfigResponseDto>(totalCount, dtos);
         }
     }
