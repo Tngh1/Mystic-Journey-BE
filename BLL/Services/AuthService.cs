@@ -315,10 +315,16 @@ namespace BLL.Services
 
             _cache.Set(cacheKey, otp, TimeSpan.FromMinutes(OtpExpiryMinutes));
 
+            var htmlBody = BuildHtmlEmailTemplate(
+                "Xác thực Tài khoản Người chơi",
+                "Mã xác thực đăng ký tài khoản <strong>Mystic Journey</strong> của bạn là:",
+                otp,
+                OtpExpiryMinutes);
+
             var sent = await SendEmailAsync(
                 normalizedEmail,
-                "Mystic Journey - Email Verification",
-                $"Your verification code is: {otp}\n\nThis code will expire in {OtpExpiryMinutes} minutes.\n\nIf you did not request this code, please ignore this email.");
+                "Mystic Journey - Email Verification (OTP)",
+                htmlBody);
 
             if (!sent)
                 throw new InvalidOperationException("Failed to send verification email.");
@@ -472,11 +478,84 @@ namespace BLL.Services
                     Credentials = new NetworkCredential(smtp["Username"], smtp["Password"]),
                     EnableSsl = bool.Parse(smtp["UseSSL"])
                 };
-                var mail = new MailMessage(smtp["FromEmail"], to, subject, body);
+                var mail = new MailMessage(smtp["FromEmail"], to, subject, body)
+                {
+                    IsBodyHtml = true
+                };
                 await client.SendMailAsync(mail);
                 return true;
             }
             catch { return false; }
+        }
+
+        private static string BuildHtmlEmailTemplate(string subtitle, string messageText, string otpCode, int expiryMinutes)
+        {
+            return $"""
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #e2e8f0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0b0f19; padding: 40px 10px;">
+                    <tr>
+                        <td align="center">
+                            <table role="presentation" width="100%" style="max-width: 520px; background-color: #151d30; border: 1px solid #2d3748; border-top: 4px solid #f59e0b; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); overflow: hidden; padding: 0;">
+                                <!-- Header -->
+                                <tr>
+                                    <td style="padding: 32px 32px 16px 32px; text-align: center; background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(21, 29, 48, 0) 100%);">
+                                        <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #fbbf24; letter-spacing: 2px; text-transform: uppercase;">
+                                            ⚔️ MYSTIC JOURNEY ⚔️
+                                        </h1>
+                                        <p style="margin: 8px 0 0 0; font-size: 15px; color: #94a3b8; font-weight: 600;">
+                                            {subtitle}
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <!-- Body Content -->
+                                <tr>
+                                    <td style="padding: 16px 32px 32px 32px; text-align: center;">
+                                        <p style="margin: 0 0 24px 0; font-size: 15px; color: #cbd5e1; line-height: 1.6;">
+                                            {messageText}
+                                        </p>
+
+                                        <!-- OTP Box -->
+                                        <div style="background-color: #0f172a; border: 2px dashed #f59e0b; border-radius: 12px; padding: 20px 10px; margin: 0 auto 24px auto; max-width: 320px;">
+                                            <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; color: #fbbf24; letter-spacing: 8px; display: inline-block;">
+                                                {otpCode}
+                                            </span>
+                                        </div>
+
+                                        <!-- Expiry Notice -->
+                                        <div style="display: inline-block; background-color: rgba(245, 158, 11, 0.1); border-radius: 20px; padding: 8px 18px; margin-bottom: 24px;">
+                                            <p style="margin: 0; font-size: 13px; color: #f59e0b; font-weight: 600;">
+                                                ⏳ Mã xác thực này sẽ hết hạn trong <strong>{expiryMinutes} phút</strong>.
+                                            </p>
+                                        </div>
+
+                                        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+                                            Nếu bạn không thực hiện yêu cầu này, vui lòng an tâm bỏ qua email này.
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 20px 32px; background-color: #0f172a; border-top: 1px solid #1e293b; text-align: center;">
+                                        <p style="margin: 0; font-size: 12px; color: #475569;">
+                                            © 2026 Mystic Journey Game. All rights reserved.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+            """;
         }
 
         public async Task ForgotPassword(string email)
@@ -491,10 +570,16 @@ namespace BLL.Services
 
             _cache.Set(cacheKey, otp, TimeSpan.FromMinutes(OtpExpiryMinutes));
 
+            var htmlBody = BuildHtmlEmailTemplate(
+                "Đặt lại Mật khẩu Người chơi",
+                "Mã xác thực yêu cầu đặt lại mật khẩu <strong>Mystic Journey</strong> của bạn là:",
+                otp,
+                OtpExpiryMinutes);
+
             var sent = await SendEmailAsync(
                 normalizedEmail,
-                "Mystic Journey - Password Reset",
-                $"Your password reset code is: {otp}\n\nThis code will expire in {OtpExpiryMinutes} minutes.\n\nIf you did not request this, please ignore this email.");
+                "Mystic Journey - Password Reset (OTP)",
+                htmlBody);
 
             if (!sent)
                 throw new InvalidOperationException("Failed to send reset email.");
