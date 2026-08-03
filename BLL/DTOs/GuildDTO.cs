@@ -15,6 +15,7 @@ namespace BLL.DTOs
         public int BannerId { get; set; }
         public int LeaderId { get; set; }
         public string? LeaderName { get; set; }
+        public string? LeaderAvatarUrl { get; set; }
         public int Level { get; set; }
         public int GuildExp { get; set; }
         public int ExpToNextLevel { get; set; }

@@ -1557,12 +1557,12 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 // ─── 3. Tạo 6 Dungeon (ID phải khớp với Unity DungeonConfig) ────────
                 var dungeons = new List<Dungeon>
                 {
-                    new Dungeon { DungeonId = 1, Name = "Đầm lầy Slime",          Description = "Vương quốc của những con Slime nguy hiểm",           IsRepeatable = true },
-                    new Dungeon { DungeonId = 2, Name = "Sào huyệt Rồng",          Description = "Hang ổ của những con rồng hung tàn",                  IsRepeatable = true },
-                    new Dungeon { DungeonId = 3, Name = "Cung điện Băng giá",      Description = "Pháo đài băng của Golem khổng lồ",                    IsRepeatable = true },
-                    new Dungeon { DungeonId = 4, Name = "Nghĩa địa Bóng tối",     Description = "Vương quốc ngầm của Vua Xương",                       IsRepeatable = true },
-                    new Dungeon { DungeonId = 5, Name = "Doanh trại Goblin",       Description = "Pháo đài kiên cố của bầy Goblin và Ogre",             IsRepeatable = true },
-                    new Dungeon { DungeonId = 6, Name = "Cổng địa ngục",           Description = "Cánh cổng dẫn đến thế giới của Quỷ và Chiến binh Orc", IsRepeatable = true },
+                    new Dungeon { DungeonId = 1, Name = "Slime Swamp",          Description = "Realm of dangerous Slimes",           IsRepeatable = true },
+                    new Dungeon { DungeonId = 2, Name = "Dragon's Lair",        Description = "The den of ferocious dragons",        IsRepeatable = true },
+                    new Dungeon { DungeonId = 3, Name = "Frozen Palace",        Description = "Ice fortress of the giant Golem",     IsRepeatable = true },
+                    new Dungeon { DungeonId = 4, Name = "Shadow Graveyard",     Description = "Underground kingdom of the Bone King",IsRepeatable = true },
+                    new Dungeon { DungeonId = 5, Name = "Goblin Camp",          Description = "Stronghold of Goblins and Ogres",     IsRepeatable = true },
+                    new Dungeon { DungeonId = 6, Name = "Hell's Gate",          Description = "Portal to the realm of Demons and Orc Warriors", IsRepeatable = true },
                 };
                 _ctx.Dungeons.AddRange(dungeons);
 
@@ -1611,12 +1611,12 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
 
                 var dungeonConfigs = new List<DungeonConfig>
                 {
-                    new DungeonConfig { DungeonConfigId = 1, Name = "Đầm lầy Slime",      Description = "Vương quốc của những con Slime nguy hiểm",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true, ChestId = chest1.ChestId },
-                    new DungeonConfig { DungeonConfigId = 2, Name = "Sào huyệt Rồng",      Description = "Hang ổ của những con rồng hung tàn",                  Type = "Normal", LevelRequirement = 5,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true, ChestId = chest2.ChestId },
-                    new DungeonConfig { DungeonConfigId = 3, Name = "Cung điện Băng giá",  Description = "Pháo đài băng của Golem khổng lồ",                    Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true, ChestId = chest3.ChestId },
-                    new DungeonConfig { DungeonConfigId = 4, Name = "Nghĩa địa Bóng tối", Description = "Vương quốc ngầm của Vua Xương",                       Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true, ChestId = chest4.ChestId },
-                    new DungeonConfig { DungeonConfigId = 5, Name = "Doanh trại Goblin",   Description = "Pháo đài kiên cố của bầy Goblin và Ogre",             Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true, ChestId = chest5.ChestId },
-                    new DungeonConfig { DungeonConfigId = 6, Name = "Cổng địa ngục",       Description = "Cánh cổng dẫn đến thế giới của Quỷ và Chiến binh Orc", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true, ChestId = chest6.ChestId },
+                    new DungeonConfig { DungeonConfigId = 1, Name = "Slime Swamp",      Description = "Realm of dangerous Slimes",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true, ChestId = chest1.ChestId },
+                    new DungeonConfig { DungeonConfigId = 2, Name = "Dragon's Lair",    Description = "The den of ferocious dragons",        Type = "Normal", LevelRequirement = 5,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true, ChestId = chest2.ChestId },
+                    new DungeonConfig { DungeonConfigId = 3, Name = "Frozen Palace",    Description = "Ice fortress of the giant Golem",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true, ChestId = chest3.ChestId },
+                    new DungeonConfig { DungeonConfigId = 4, Name = "Shadow Graveyard", Description = "Underground kingdom of the Bone King",Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true, ChestId = chest4.ChestId },
+                    new DungeonConfig { DungeonConfigId = 5, Name = "Goblin Camp",      Description = "Stronghold of Goblins and Ogres",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true, ChestId = chest5.ChestId },
+                    new DungeonConfig { DungeonConfigId = 6, Name = "Hell's Gate",      Description = "Portal to the realm of Demons and Orc Warriors", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true, ChestId = chest6.ChestId },
                 };
                 _ctx.DungeonConfigs.AddRange(dungeonConfigs);
                 await _ctx.SaveChangesAsync();

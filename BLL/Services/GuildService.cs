@@ -42,6 +42,8 @@ public class GuildService : IGuildService
             IconId = g.IconId,
             BannerId = g.BannerId,
             LeaderId = g.LeaderId,
+            LeaderName = g.Leader?.DisplayName ?? "Unknown",
+            LeaderAvatarUrl = g.Leader?.AvatarUrl ?? "",
             Level = g.Level,
             GuildExp = g.GuildExp,
             ExpToNextLevel = g.ExpToNextLevel,
@@ -197,7 +199,8 @@ public class GuildService : IGuildService
         dto.IsActive = baseDto.IsActive;
         dto.CreatedAt = baseDto.CreatedAt;
         dto.Description = baseDto.Description;
-        dto.LeaderName = guild.Leader?.DisplayName ?? "Unknown";
+        dto.LeaderName = baseDto.LeaderName;
+        dto.LeaderAvatarUrl = baseDto.LeaderAvatarUrl;
         dto.Members = guild.Members.Select(MapMemberDto).ToList();
         return dto;
     }
