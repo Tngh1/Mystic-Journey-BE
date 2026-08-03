@@ -347,7 +347,7 @@ namespace DAL.Migrations
                         {
                             Id = 1,
                             BlockType = "Text",
-                            ContentData = "Nằm ở trung tâm của Elf Forest, Cây Nguồn Cội (Origin Tree) từng là nơi cung cấp năng lượng phép thuật cho toàn bộ sinh linh. Tuy nhiên, một lời nguyền cổ đại đang khiến lá cây dần héo quắt...",
+                            ContentData = "Located at the heart of the Elf Forest, the Origin Tree once provided magical energy to all living beings. However, an ancient curse is causing its leaves to wither away...",
                             ContentId = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
@@ -369,7 +369,7 @@ namespace DAL.Migrations
                         {
                             Id = 3,
                             BlockType = "Text",
-                            ContentData = "Bốn cuốn Seal Books chứa đựng tàn tích sức mạnh cổ đại. Cuốn sách nguyên tố Lửa hiện đang bị phong ấn sâu bên trong pháo đài bỏ hoang Autumn Pumpkin...",
+                            ContentData = "The four Seal Books contain remnants of ancient power. The Fire elemental book is currently sealed deep within the abandoned fortress of Autumn Pumpkin...",
                             ContentId = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
@@ -380,7 +380,7 @@ namespace DAL.Migrations
                         {
                             Id = 4,
                             BlockType = "Text",
-                            ContentData = "Bạn tỉnh dậy mà không có bất kỳ ký ức nào trong một khu rừng bị nguyền rủa. Bốn cuốn Seal Books, bốn vùng đất và một Cây Nguồn Cội đang lụi tàn — đây là con đường duy nhất phía trước.",
+                            ContentData = "You awaken in a cursed forest with no memories. Four Seal Books, four realms, and a fading Origin Tree — this is the only path forward.",
                             ContentId = 3,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
@@ -402,7 +402,7 @@ namespace DAL.Migrations
                         {
                             Id = 6,
                             BlockType = "Text",
-                            ContentData = "Mỗi cuốn Seal Book tương ứng với một vùng đất trên bản đồ: Elf Forest (Đất), Frozen Mountain (Băng), Autumn Pumpkin (Lửa) và Abandoned Castle (Bóng tối)...",
+                            ContentData = "Each Seal Book corresponds to a realm on the map: Elf Forest (Earth), Frozen Mountain (Ice), Autumn Pumpkin (Fire), and Abandoned Castle (Shadow)...",
                             ContentId = 4,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
@@ -413,7 +413,7 @@ namespace DAL.Migrations
                         {
                             Id = 7,
                             BlockType = "Text",
-                            ContentData = "Dù là vùng đất khởi đầu, Elf Forest vẫn ẩn chứa nhiều nguy hiểm từ các linh hồn rừng bị tha hóa...",
+                            ContentData = "Although a starter area, Elf Forest hides many dangers from corrupted forest spirits...",
                             ContentId = 5,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
@@ -473,7 +473,7 @@ namespace DAL.Migrations
                         {
                             CategoryContentId = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Khu rừng cổ xưa nơi tộc Elf sinh sống. Nơi đây từng được bảo hộ bởi Cây Nguồn Cội (Origin Tree) trước khi lời nguyền giăng xuống.",
+                            Description = "An ancient woodland inhabited by the Elven race, once protected by the Origin Tree before the curse befell the land.",
                             IsActive = true,
                             Name = "Elf Forest",
                             Slug = "elf-forest"
@@ -482,7 +482,7 @@ namespace DAL.Migrations
                         {
                             CategoryContentId = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Tập hợp bốn cuốn sách phong ấn cổ đại chứa đựng sức mạnh nguyên tố dùng để giải mã các bí ẩn trong game.",
+                            Description = "A collection of four ancient elemental seal books containing mysterious powers needed to unlock the realm's secrets.",
                             IsActive = true,
                             Name = "Seal Books",
                             Slug = "seal-books"
@@ -491,7 +491,7 @@ namespace DAL.Migrations
                         {
                             CategoryContentId = 3,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Nhật ký ghi lại các giai thoại, truyền thuyết và diễn biến cốt truyện chính diễn ra khắp các vùng đất.",
+                            Description = "A journal recording legends, lore, and key storyline events unfolding across the realms.",
                             IsActive = true,
                             Name = "The Chronicle",
                             Slug = "the-chronicle"
@@ -834,9 +834,9 @@ namespace DAL.Migrations
                             CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "bi-an-cay-nguon-coi-tai-elf-forest",
-                            Summary = "Khám phá nguồn gốc sức mạnh sinh mệnh của dòng tộc Elf và nguy cơ trỗi dậy của bóng tối xung quanh khu rừng cổ xưa.",
-                            Title = "Bí ẩn Cây Nguồn Cội tại Elf Forest"
+                            Slug = "secrets-of-the-origin-tree-in-elf-forest",
+                            Summary = "Discover the source of life power for the Elven race and the rising threat of dark forces surrounding the ancient forest.",
+                            Title = "Secrets of the Origin Tree in Elf Forest"
                         },
                         new
                         {
@@ -846,9 +846,9 @@ namespace DAL.Migrations
                             CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "truyen-thuyet-ve-cuon-sach-phong-an-nguyen-to-lua",
-                            Summary = "Chi tiết về vị trí và cách giải mã cuốn Seal Book đầu tiên để mở khóa kỹ năng ma thuật Lửa.",
-                            Title = "Truyền thuyết về Cuốn Sách Phong Ấn Nguyên Tố Lửa"
+                            Slug = "legend-of-the-fire-elemental-seal-book",
+                            Summary = "Details on the location and decryption of the first Seal Book to unlock Fire Magic skills.",
+                            Title = "Legend of the Fire Elemental Seal Book"
                         },
                         new
                         {
@@ -858,9 +858,9 @@ namespace DAL.Migrations
                             CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "chuong-1-tinh-giac-trong-rung-tham",
-                            Summary = "Khởi đầu hành trình của nhân vật chính – tỉnh dậy không ký ức và manh mối duy nhất về 4 cuốn cổ sách.",
-                            Title = "Chương 1: Tỉnh Giấc Trong Rừng Thẫm"
+                            Slug = "chapter-1-awakening-in-the-deep-woods",
+                            Summary = "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.",
+                            Title = "Chapter 1: Awakening in the Deep Woods"
                         },
                         new
                         {
@@ -869,9 +869,9 @@ namespace DAL.Migrations
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = false,
-                            Slug = "huong-dan-thu-thap-tron-bo-4-seal-books",
-                            Summary = "Tổng hợp yêu cầu, cấp độ tối thiểu và danh sách trùm (boss) cần vượt qua để hoàn thành bộ sưu tập cổ sách.",
-                            Title = "Hướng dẫn thu thập trọn bộ 4 Seal Books"
+                            Slug = "guide-to-collecting-all-4-seal-books",
+                            Summary = "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.",
+                            Title = "Guide to Collecting All 4 Seal Books"
                         },
                         new
                         {
@@ -881,9 +881,9 @@ namespace DAL.Migrations
                             CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "he-sinh-thai-va-quai-vat-tai-elf-forest",
-                            Summary = "Danh sách các sinh vật huyền bí và chỉ số quái vật mà người chơi sẽ gặp tại khu vực Elf Forest.",
-                            Title = "Hệ sinh thái và Quái vật tại Elf Forest"
+                            Slug = "ecosystem-and-monsters-in-elf-forest",
+                            Summary = "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.",
+                            Title = "Ecosystem and Monsters in Elf Forest"
                         });
                 });
 
