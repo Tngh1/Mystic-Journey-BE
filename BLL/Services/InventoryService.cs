@@ -57,10 +57,16 @@ namespace BLL.Services
             };
 
             var playerSkins = await _inventoryRepository.GetPlayerSkinsByPlayerId(playerProfileId);
-            summary.TotalSkins = playerSkins.Count;
-            
+
+            var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId);
+            string playerClass = profile?.Class ?? string.Empty;
+
             var allSkins = await _inventoryRepository.GetAllActiveSkins();
-            summary.PlayerSkins = allSkins.Select(skin => {
+            var relevantSkins = allSkins.Where(skin => !IsSkinForAnotherClass(skin.Name, playerClass)).ToList();
+
+            summary.TotalSkins = playerSkins.Count(ps => relevantSkins.Any(s => s.SkinId == ps.SkinId));
+            
+            summary.PlayerSkins = relevantSkins.Select(skin => {
                 var ps = playerSkins.FirstOrDefault(x => x.SkinId == skin.SkinId);
                 return new PlayerSkinResponseDto
                 {
@@ -459,13 +465,18 @@ namespace BLL.Services
             if (skin.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("Skin does not belong to player.");
 
+            var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
+            string playerClass = profile?.Class ?? string.Empty;
+
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 skin.IsEquipped = false;
                 await _inventoryRepository.UpdatePlayerSkin(skin);
 
-                // Auto re-equip the Default skin if available
-                var defaultSkin = playerSkins.FirstOrDefault(ps => ps.Skin != null && ps.Skin.Name.Contains("Default"));
+                // Auto re-equip the Default skin for player's class if available
+                var defaultSkin = playerSkins.FirstOrDefault(ps => ps.Skin != null && 
+                    ps.Skin.Name.Contains("Default") && 
+                    !IsSkinForAnotherClass(ps.Skin.Name, playerClass));
 
                 if (defaultSkin != null && defaultSkin.PlayerSkinId != request.PlayerSkinId)
                 {
@@ -473,6 +484,28 @@ namespace BLL.Services
                     await _inventoryRepository.UpdatePlayerSkin(defaultSkin);
                 }
             });
+        }
+
+        private static bool IsSkinForAnotherClass(string skinName, string playerClass)
+        {
+            if (string.IsNullOrWhiteSpace(skinName) || string.IsNullOrWhiteSpace(playerClass))
+                return false;
+
+            string cleanName = skinName.Trim();
+            string cleanClass = playerClass.Trim();
+
+            bool isDefault = cleanName.IndexOf("Default", StringComparison.OrdinalIgnoreCase) >= 0;
+            if (isDefault)
+            {
+                if (cleanName.IndexOf("Knight", StringComparison.OrdinalIgnoreCase) >= 0 && !cleanClass.Equals("Knight", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (cleanName.IndexOf("Archer", StringComparison.OrdinalIgnoreCase) >= 0 && !cleanClass.Equals("Archer", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (cleanName.IndexOf("Mage", StringComparison.OrdinalIgnoreCase) >= 0 && !cleanClass.Equals("Mage", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
 
         public async Task<InventoryItemResponseDto> AddItemToInventory(int playerProfileId, int itemId, int quantity)

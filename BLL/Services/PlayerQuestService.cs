@@ -497,7 +497,9 @@ namespace BLL.Services
             if (!isTurnInQuest && reqs.Count == 0)
                 return reqs;
             
-            if (Contains(text, "White Flower") || Contains(text, "White Flowers"))
+            // White Flower được nộp ở Quest 2 (Gather White Flowers - Collect quest qua TurnInQuestItem).
+            // Quest 3 (Deliver the White Flowers) chỉ là Talk quest đối thoại nhận skill reward, không yêu cầu trừ hoa lần nữa.
+            if ((Contains(text, "White Flower") || Contains(text, "White Flowers")) && quest.QuestId != 3)
                 reqs.Add(("White Flower", 3));
 
             if (Contains(text, "Old Willow Branch") || Contains(text, "Willow Branch"))
