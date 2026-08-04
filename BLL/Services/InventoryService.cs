@@ -17,6 +17,7 @@ namespace BLL.Services
         private readonly IPlayerStatRepository _statRepository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly ITransactionManager _transactionManager;
+        private readonly ICharacterService _characterService;
 
         // enhancement scaling per level (unscaled integers for HP/Atk/Def)
         private const int HP_ENHANCEMENT_PER_LEVEL = 10;
@@ -30,17 +31,19 @@ namespace BLL.Services
         private const int DAMAGEBONUS_ENH_PER_LEVEL_SCALED = 0;
 
         public InventoryService(
-            IInventoryRepository inventoryRepository, 
-            IMapper mapper, 
+            IInventoryRepository inventoryRepository,
+            IMapper mapper,
             IPlayerStatRepository statRepository,
             IPlayerProfileRepository playerProfileRepository,
-            ITransactionManager transactionManager)
+            ITransactionManager transactionManager,
+            ICharacterService characterService)
         {
             _inventoryRepository = inventoryRepository;
             _mapper = mapper;
             _statRepository = statRepository;
             _playerProfileRepository = playerProfileRepository;
             _transactionManager = transactionManager;
+            _characterService = characterService;
         }
 
         public async Task<InventorySummaryDto> GetInventory(int playerProfileId)
@@ -350,13 +353,14 @@ namespace BLL.Services
                         if (stat != null)
                         {
                             int heal = 80 * request.Quantity;
-                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, stat.MaxHp);
+                            int effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
+                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, effectiveMaxHp);
                             stat.UpdatedAt = DateTime.UtcNow;
                             await _statRepository.Update(stat);
                             result.EffectType  = "Heal";
                             result.EffectValue = heal;
                             result.CurrentHp   = stat.CurrentHp;
-                            result.MaxHp       = stat.MaxHp;
+                            result.MaxHp       = effectiveMaxHp;
                         }
                     }
                     // Large Health Potion: restores 200 HP
@@ -366,13 +370,14 @@ namespace BLL.Services
                         if (stat != null)
                         {
                             int heal = 200 * request.Quantity;
-                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, stat.MaxHp);
+                            int effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
+                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, effectiveMaxHp);
                             stat.UpdatedAt = DateTime.UtcNow;
                             await _statRepository.Update(stat);
                             result.EffectType  = "Heal";
                             result.EffectValue = heal;
                             result.CurrentHp   = stat.CurrentHp;
-                            result.MaxHp       = stat.MaxHp;
+                            result.MaxHp       = effectiveMaxHp;
                         }
                     }
                     // Fallback: any item whose name contains "Health Potion" (legacy compatibility)
@@ -382,13 +387,14 @@ namespace BLL.Services
                         if (stat != null)
                         {
                             int heal = 100 * request.Quantity;
-                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, stat.MaxHp);
+                            int effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
+                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, effectiveMaxHp);
                             stat.UpdatedAt = DateTime.UtcNow;
                             await _statRepository.Update(stat);
                             result.EffectType  = "Heal";
                             result.EffectValue = heal;
                             result.CurrentHp   = stat.CurrentHp;
-                            result.MaxHp       = stat.MaxHp;
+                            result.MaxHp       = effectiveMaxHp;
                         }
                     }
                     // Energy Elixir: restores 60 Energy

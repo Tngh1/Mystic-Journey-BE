@@ -113,12 +113,11 @@ namespace BLL.Services
 
                 var totals = BLL.Helpers.AchievementBuffCalculator.ParseMany(completedBuffs);
 
-                // Áp dụng phần trăm tổng (ví dụ: 1 + 0.02 = 1.02)
-                dto.MaxHp = (int)(dto.MaxHp * (1m + totals.MaxHpPercent));
-                dto.Atk = (int)(dto.Atk * (1m + totals.AtkPercent));
-                dto.Def = (int)(dto.Def * (1m + totals.DefPercent));
-                dto.MoveSpeed = (int)(dto.MoveSpeed * (1m + totals.MoveSpeedPercent));
-                dto.AttackSpeed = (int)(dto.AttackSpeed * (1m + totals.AttackSpeedPercent));
+                dto.MaxHp = BLL.Helpers.AchievementBuffCalculator.CombineMaxHp(stat.MaxHp, snapshot?.MaxHp ?? 0, totals.MaxHpPercent);
+                dto.Atk = BLL.Helpers.AchievementBuffCalculator.ApplyPercent(dto.Atk, totals.AtkPercent);
+                dto.Def = BLL.Helpers.AchievementBuffCalculator.ApplyPercent(dto.Def, totals.DefPercent);
+                dto.MoveSpeed = BLL.Helpers.AchievementBuffCalculator.ApplyPercent(dto.MoveSpeed, totals.MoveSpeedPercent);
+                dto.AttackSpeed = BLL.Helpers.AchievementBuffCalculator.ApplyPercent(dto.AttackSpeed, totals.AttackSpeedPercent);
                 
                 // CritRate, DamageBonus là các chỉ số cộng thẳng % nên ta cộng trực tiếp
                 dto.CritRate += (int)totals.CritRatePercent;
@@ -232,11 +231,45 @@ namespace BLL.Services
                 throw new KeyNotFoundException("PlayerStats not found for the specified profile.");
             }
 
-            // Ensure currentHp doesn't exceed maxHp
-            stat.CurrentHp = Math.Min(currentHp, stat.MaxHp);
+            // Clamp theo max HP THỰC TẾ (gốc + trang bị + % danh hiệu), không phải stat.MaxHp.
+            // Clamp theo stat.MaxHp sẽ cắt HP client gửi lên xuống mức gốc mỗi lần đồng bộ, nên
+            // người chơi có trang bị/danh hiệu bị tụt máu về ngưỡng thấp hơn thanh máu họ thấy.
+            int effectiveMaxHp = await ResolveEffectiveMaxHp(stat);
+
+            // currentHp đến từ client nên không tin được: chặn cả hai đầu (âm và vượt trần).
+            stat.CurrentHp = Math.Clamp(currentHp, 0, effectiveMaxHp);
             stat.UpdatedAt = DateTime.UtcNow;
 
             await _statRepository.Update(stat);
+        }
+
+        /// <summary>
+        /// Max HP thực tế mà người chơi nhìn thấy trên thanh máu. Dùng chung cho mọi chỗ cần
+        /// clamp CurrentHp để giá trị chặn luôn khớp với giá trị hiển thị trong <see cref="GetStats"/>.
+        /// Trả về 0 nếu chưa tạo nhân vật.
+        /// </summary>
+        public async Task<int> GetEffectiveMaxHp(int playerProfileId)
+        {
+            var stat = await _statRepository.GetByPlayerProfileId(playerProfileId);
+            return stat == null ? 0 : await ResolveEffectiveMaxHp(stat);
+        }
+
+        // Nhận sẵn stat đã load để chỗ gọi không phải truy vấn lại.
+        private async Task<int> ResolveEffectiveMaxHp(PlayerStat stat)
+        {
+            var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(stat.PlayerProfileId);
+
+            var buffDescriptions = await _context.PlayerAchievements
+                .Where(pa => pa.PlayerProfileId == stat.PlayerProfileId
+                          && pa.IsCompleted
+                          && pa.Achievement != null
+                          && pa.Achievement.BuffDescription != null)
+                .Select(pa => pa.Achievement!.BuffDescription)
+                .ToListAsync();
+
+            var totals = BLL.Helpers.AchievementBuffCalculator.ParseMany(buffDescriptions);
+            return BLL.Helpers.AchievementBuffCalculator.CombineMaxHp(
+                stat.MaxHp, snapshot?.MaxHp ?? 0, totals.MaxHpPercent);
         }
 
         private static PlayerStatsResponseDto MapToStatsDto(PlayerStat stat, ICollection<PlayerBuff> buffs = null)

@@ -53,10 +53,12 @@ namespace BLL.Services
             var dungeon = await _dungeonConfigRepository.GetByIdWithChest(dungeonConfigId)
                 ?? throw new KeyNotFoundException($"Dungeon {dungeonConfigId} not found or is not active.");
 
-            // BR-03: Energy must be sufficient (NOT consumed here — BR-04/05)
-            if (profile.CurrentEnergy < dungeon.EnergyCost)
-                throw new InvalidOperationException(
-                    $"Insufficient energy. Required: {dungeon.EnergyCost}, Current: {profile.CurrentEnergy}.");
+            // BR-03: energy is deliberately NOT validated here. Entry is free; the cost is
+            // both checked and consumed at claim-reward (BR-10). Gating entry as well meant a
+            // player short on energy could not even start the run, and — because the Unity
+            // client enters the dungeon anyway on an Enter failure (session id -1) — they got
+            // a whole dungeon with a broken session and a silent +0 reward at the chest.
+            // Leaving entry open also lets energy regenerate during the run.
 
             // Validate party data - total party members (including host) must not exceed MaxMembers
             int totalMembersCount = 1 + (partyMembers?.Count ?? 0);
