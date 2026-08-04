@@ -134,5 +134,22 @@ namespace BLL.Helpers
 
             return (float)(baseValue * (double)(1m + percentBonus / 100m));
         }
+
+        /// <summary>
+        /// Max HP thực tế của người chơi: (chỉ số gốc + trang bị) rồi mới nhân % danh hiệu.
+        /// Thứ tự này quan trọng — % danh hiệu buff cả phần HP từ trang bị, nên không được
+        /// nhân trước khi cộng snapshot.
+        ///
+        /// Đây là NGUỒN DUY NHẤT cho max HP. Mọi chỗ clamp CurrentHp phải gọi hàm này chứ không
+        /// dùng thẳng PlayerStat.MaxHp: PlayerStat.MaxHp chỉ là chỉ số gốc, nên clamp theo nó sẽ
+        /// chặn người chơi ở mức thấp hơn thanh máu họ đang thấy (uống thuốc không đầy máu,
+        /// và HP client gửi lên bị cắt xuống mỗi lần sync).
+        /// </summary>
+        public static int CombineMaxHp(int baseMaxHp, int gearMaxHp, decimal achievementPercent)
+        {
+            // Chặn sàn ở 0: trang bị có thể mang BonusHp âm, mà chỗ gọi dùng
+            // Math.Clamp(hp, 0, max) — max âm sẽ ném ArgumentException (min > max).
+            return Math.Max(0, ApplyPercent(baseMaxHp + gearMaxHp, achievementPercent));
+        }
     }
 }

@@ -25,6 +25,10 @@ namespace BLL.Services.Interfaces
         // Cập nhật HP hiện tại của nhân vật (đồng bộ từ client).
         Task UpdateHp(int playerProfileId, int currentHp);
 
+        // Max HP thực tế = (chỉ số gốc + trang bị) × (1 + % danh hiệu) — đúng con số hiển thị
+        // trên thanh máu. Mọi chỗ clamp CurrentHp phải dùng hàm này thay cho PlayerStat.MaxHp.
+        Task<int> GetEffectiveMaxHp(int playerProfileId);
+
         // Đồng bộ danh sách Buff/Debuff của người chơi
         Task SyncBuffs(int playerProfileId, UpdatePlayerBuffsRequest request);
 
