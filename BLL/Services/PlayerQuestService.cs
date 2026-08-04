@@ -507,8 +507,8 @@ namespace BLL.Services
 
             // Deliver/Harvest quests in AutumnPumpkin require Enchanted Pumpkins
             // These quests have "Deliver" in title but may not have "Pumpkin" in description
-            if (Contains(text, "Pumpkin") || Contains(text, "Enchanted Pumpkin") ||
-                (Contains(text, "Deliver") && Contains(text, "Harvest")))
+            if ((Contains(text, "Pumpkin") || Contains(text, "Enchanted Pumpkin") ||
+                (Contains(text, "Deliver") && Contains(text, "Harvest"))) && quest.QuestId != 11)
                 reqs.Add(("Enchanted Pumpkin", Math.Max(1, quest.TargetAmount)));
 
             if (Contains(text, "Flour") || Contains(text, "Magic Flour"))
