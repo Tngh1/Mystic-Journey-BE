@@ -100,29 +100,8 @@ namespace Mystic_Journey_API.Controllers
                         Message = "System items not found in DB. Please run migration first: 'Small Health Potion', 'Iron Sword', 'Iron Helmet'."
                     });
 
-                // ── 2. Skins (seeded via migration – look up by name) ─────────
-                var skinKnight = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Knight Default");
-                var skinArcher = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Archer Default");
-                var skinMage   = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Mage Default");
-                var skinKnightPremium = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Knight Skin");
-
-                if (skinKnight == null || skinArcher == null || skinMage == null)
-                {
-                    // Auto-create basic skins if missing
-                    if (skinKnight == null) {
-                        skinKnight = new Skin { Name = "Knight Default", Description = "Knight default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
-                        _ctx.Skins.Add(skinKnight);
-                    }
-                    if (skinArcher == null) {
-                        skinArcher = new Skin { Name = "Archer Default", Description = "Archer default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
-                        _ctx.Skins.Add(skinArcher);
-                    }
-                    if (skinMage == null) {
-                        skinMage = new Skin { Name = "Mage Default", Description = "Mage default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
-                        _ctx.Skins.Add(skinMage);
-                    }
-                    await _ctx.SaveChangesAsync();
-                }
+                // ── 2. Skins (seeded matching Unity SkinDatabase.asset IDs: 1=Knight, 2=Archer, 3=Mage) ──
+                var (skinKnight, skinArcher, skinMage, skinArcherPremium, skinKnightPremium, skinMagePremium) = await EnsureBaseSkinsAsync();
                 // ── 4. Account + PlayerProfile test ──────────────────────────
                 const string TEST_EMAIL    = "testplayer@mystic.test";
                 const string TEST_USERNAME = "testplayer";
@@ -428,30 +407,8 @@ namespace Mystic_Journey_API.Controllers
                 // EquipmentStats đã được tạo sẵn qua migration cùng với item
                 // Không cần upsert lại ở đây
 
-                // 2. Skins are seeded via migration (20260804000000_SeedSkins) – look up by name
-                var skinArcher = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Archer Default");
-                if (skinArcher == null)
-                {
-                    skinArcher = new Skin { Name = "Archer Default", Description = "Archer default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
-                    _ctx.Skins.Add(skinArcher);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                var skinMage = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Mage Default");
-                if (skinMage == null)
-                {
-                    skinMage = new Skin { Name = "Mage Default", Description = "Mage default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
-                    _ctx.Skins.Add(skinMage);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                var skinKnight = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name == "Knight Default");
-                if (skinKnight == null)
-                {
-                    skinKnight = new Skin { Name = "Knight Default", Description = "Knight default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
-                    _ctx.Skins.Add(skinKnight);
-                    await _ctx.SaveChangesAsync();
-                }
+                // 2. Skins are seeded in exact order matching Unity's SkinDatabase.asset
+                var (skinKnight, skinArcher, skinMage, skinArcherPremium, skinKnightPremium, skinMagePremium) = await EnsureBaseSkinsAsync();
                 // 3. Keep system quests intact (they are managed by HasData/migrations)
                 /* Legacy quest cleanup skipped to preserve system quests */
 
@@ -795,14 +752,17 @@ namespace Mystic_Journey_API.Controllers
 
                 var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Archer 1", "Archer");
                 
-                // Cấp thêm skin ID 4 (Archer Skin) trong túi cho elf1 (đã có skin ID 2 Archer Default mặc định khi tạo)
-                _ctx.PlayerSkins.Add(new PlayerSkin
+                // Cấp thêm skin (Archer Skin) trong túi cho elf1 (đã có Archer Default mặc định khi tạo)
+                if (skinArcherPremium != null)
                 {
-                    PlayerProfileId = p1,
-                    SkinId = 4,
-                    IsEquipped = false,
-                    UnlockedAt = DateTime.UtcNow
-                });
+                    _ctx.PlayerSkins.Add(new PlayerSkin
+                    {
+                        PlayerProfileId = p1,
+                        SkinId = skinArcherPremium.SkinId,
+                        IsEquipped = false,
+                        UnlockedAt = DateTime.UtcNow
+                    });
+                }
 
                 // Cấp sẵn 7 kỹ năng cho elf1 (2 hắc hóa + 5 kỹ năng custom)
                 foreach (var skillId in new[] { 
@@ -2370,6 +2330,95 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
             {
                 return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
+        }
+
+        private async Task<(Skin skinKnight, Skin skinArcher, Skin skinMage, Skin skinArcherPremium, Skin skinKnightPremium, Skin skinMagePremium)> EnsureBaseSkinsAsync()
+        {
+            var skinKnight = await _ctx.Skins.FirstOrDefaultAsync(s => s.SkinId == 1 || s.Name == "Knight Default");
+            if (skinKnight == null)
+            {
+                skinKnight = new Skin { Name = "Knight Default", Description = "Knight default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Skins.Add(skinKnight);
+                await _ctx.SaveChangesAsync();
+            }
+            else if (skinKnight.Name != "Knight Default")
+            {
+                skinKnight.Name = "Knight Default";
+                skinKnight.Description = "Knight default skin";
+                await _ctx.SaveChangesAsync();
+            }
+
+            var skinArcher = await _ctx.Skins.FirstOrDefaultAsync(s => s.SkinId == 2 || s.Name == "Archer Default");
+            if (skinArcher == null)
+            {
+                skinArcher = new Skin { Name = "Archer Default", Description = "Archer default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Skins.Add(skinArcher);
+                await _ctx.SaveChangesAsync();
+            }
+            else if (skinArcher.Name != "Archer Default")
+            {
+                skinArcher.Name = "Archer Default";
+                skinArcher.Description = "Archer default skin";
+                await _ctx.SaveChangesAsync();
+            }
+
+            var skinMage = await _ctx.Skins.FirstOrDefaultAsync(s => s.SkinId == 3 || s.Name == "Mage Default");
+            if (skinMage == null)
+            {
+                skinMage = new Skin { Name = "Mage Default", Description = "Mage default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0, IsForSale = false, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Skins.Add(skinMage);
+                await _ctx.SaveChangesAsync();
+            }
+            else if (skinMage.Name != "Mage Default")
+            {
+                skinMage.Name = "Mage Default";
+                skinMage.Description = "Mage default skin";
+                await _ctx.SaveChangesAsync();
+            }
+
+            var skinArcherPremium = await _ctx.Skins.FirstOrDefaultAsync(s => s.SkinId == 4 || s.Name == "Archer Skin");
+            if (skinArcherPremium == null)
+            {
+                skinArcherPremium = new Skin { Name = "Archer Skin", Description = "Archer premium skin", Type = "FullSet", Rarity = "Rare", Currency = "Gems", Price = 100, IsForSale = true, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Skins.Add(skinArcherPremium);
+                await _ctx.SaveChangesAsync();
+            }
+            else if (skinArcherPremium.Name != "Archer Skin")
+            {
+                skinArcherPremium.Name = "Archer Skin";
+                skinArcherPremium.Description = "Archer premium skin";
+                await _ctx.SaveChangesAsync();
+            }
+
+            var skinKnightPremium = await _ctx.Skins.FirstOrDefaultAsync(s => s.SkinId == 5 || s.Name == "Knight Skin");
+            if (skinKnightPremium == null)
+            {
+                skinKnightPremium = new Skin { Name = "Knight Skin", Description = "Knight premium skin", Type = "FullSet", Rarity = "Rare", Currency = "Gems", Price = 100, IsForSale = true, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Skins.Add(skinKnightPremium);
+                await _ctx.SaveChangesAsync();
+            }
+            else if (skinKnightPremium.Name != "Knight Skin")
+            {
+                skinKnightPremium.Name = "Knight Skin";
+                skinKnightPremium.Description = "Knight premium skin";
+                await _ctx.SaveChangesAsync();
+            }
+
+            var skinMagePremium = await _ctx.Skins.FirstOrDefaultAsync(s => s.SkinId == 6 || s.Name == "Mage Skin");
+            if (skinMagePremium == null)
+            {
+                skinMagePremium = new Skin { Name = "Mage Skin", Description = "Mage premium skin", Type = "FullSet", Rarity = "Rare", Currency = "Gems", Price = 100, IsForSale = true, IsActive = true, CreatedAt = DateTime.UtcNow };
+                _ctx.Skins.Add(skinMagePremium);
+                await _ctx.SaveChangesAsync();
+            }
+            else if (skinMagePremium.Name != "Mage Skin")
+            {
+                skinMagePremium.Name = "Mage Skin";
+                skinMagePremium.Description = "Mage premium skin";
+                await _ctx.SaveChangesAsync();
+            }
+
+            return (skinKnight, skinArcher, skinMage, skinArcherPremium, skinKnightPremium, skinMagePremium);
         }
 
         private static string HashPassword(string password)
