@@ -18,26 +18,18 @@ namespace Mystic_Journey_API.Controllers
     // Dùng để tạo dữ liệu mẫu cho development/testing
     // Không phải code của Player hay Manager Dashboard
     // =============================================================================
-    // POST /api/seed/inventory  → Chèn toàn bộ dữ liệu mẫu
-    // DELETE /api/seed/inventory → Xoá toàn bộ dữ liệu mẫu (để reset)
+    // POST /api/seed/mysticjourney → Seed toàn bộ dữ liệu mẫu (endpoint DUY NHẤT)
     //
     // Dữ liệu tạo ra:
-    //   Items (4 loại):
-    //     [1] Skin item  (IsSkin=true, tạo bằng InventoryItem với IsSkin=true)
-    //     [2] Potion / Health Potion (Consumable, MaxStack=99)
-    //     [3] Sword of Dawn (Weapon, +stat)
-    //     [4] Iron Helm (Helmet/Armor, +stat)
-    //
-    //   Skins (3 loại):
-    //     [1] Knight Default Skin  (class default)
-    //     [2] Archer Default Skin  (class default)
-    //     [3] Mage Default Skin    (class default)
-    //     [4] Dragon Knight Skin   (premium skin)
-    //
-    //   Account test:
-    //     testplayer / testplayer@mystic.test / Abc@12345
-    //     Level 1, Class=Knight, mặc định skin Knight
-    //     Inventory: 1 mũ (equipped), 2 bình máu, 1 skin khác (Dragon Knight) trong túi
+    //   - Skills/monsters/drops/spawns cho ElfForest, 6 Dungeon, Content mẫu
+    //   - 5 account test elf1..elf5@mystic.test, mỗi account đứng ở CUỐI chương
+    //     tương ứng (elf1 = cuối chương 1 ... elf5 = cuối chương 5/hết game),
+    //     đứng tại spawn point của map chương đó, đã nhận đủ item/skill/gold/exp
+    //     mà một lượt chơi thật sự sẽ cấp tới điểm đó (xem ReplayChapterRewards).
+    //   - 1 account admin@mysticjourney.com (role Admin) cho FE admin portal
+    //   - 30 ngày DailyLoginReward
+    //   - Lịch sử mua hàng mẫu (PurchaseHistory) cho 5 account trên, từ catalogue
+    //     ShopItem đã có sẵn qua migration HasData
     //
     // =============================================================================
     [Route("api/[controller]")]
@@ -76,307 +68,31 @@ namespace Mystic_Journey_API.Controllers
         [NonAction]
         public void OnActionExecuted(ActionExecutedContext context) { }
 
+        // Mốc chương: quest cuối cùng đã Claimed + map/spawn nơi account đứng.
+        // Spawn world-position xác nhận trực tiếp trên scene Unity (không suy ra
+        // qua offset container) ngày 2026-08-05:
+        //   ElfForest / AutumnPumpkin: container ở gốc (0,0) nên toạ độ NPC = world.
+        //   FrozenMountain: PlayerSpawnRuntime (24.0889,-49.7661) + SpawnPoint_Tutorial
+        //     local (11.9,17.8) => world (35.9889,-31.9661). Giá trị cũ (-13.1,-44.2)
+        //     dùng nhầm toạ độ PlayerSpawnRuntime trước khi nó bị dời trong các fix map
+        //     sau này — xem memory map-spawn-coords-drift-from-seed.
+        //   AbandonedCastle: PlayerSpawner.spawnPoint -> PlayerSpawnPoint (-12.36,60.14).
+        private sealed record ChapterMilestone(string Email, string DisplayName, int LastQuestId, string Map, double X, double Y);
 
-        // ─────────────────────────────────────────────────────────────────────────
-        // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/inventory  → Seed toàn bộ dữ liệu mẫu UC 20
-        // Dùng item từ system migration (không tạo mới item trong seed)
-        // ─────────────────────────────────────────────────────────────────────────
-        [HttpPost("inventory")]
-        public async Task<IActionResult> SeedInventory()
+        private static readonly ChapterMilestone[] ChapterMilestones =
         {
-            await using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
-            {
-                // ── 1. Lookup system items (từ migration, không tự tạo) ──────────
-                var potion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
-                var sword  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
-                var helm   = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Helmet");
-
-                if (potion == null || sword == null || helm == null)
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "System items not found in DB. Please run migration first: 'Small Health Potion', 'Iron Sword', 'Iron Helmet'."
-                    });
-
-                // ── 2. Skins (seeded matching Unity SkinDatabase.asset IDs: 1=Knight, 2=Archer, 3=Mage) ──
-                var (skinKnight, skinArcher, skinMage, skinArcherPremium, skinKnightPremium, skinMagePremium) = await EnsureBaseSkinsAsync();
-                // ── 4. Account + PlayerProfile test ──────────────────────────
-                const string TEST_EMAIL    = "testplayer@mystic.test";
-                const string TEST_USERNAME = "testplayer";
-
-                // Clean up any existing friend relationships first
-                _ctx.Friends.RemoveRange(_ctx.Friends);
-                await _ctx.SaveChangesAsync();
-
-                // Xoá friend accounts nếu đã tồn tại
-                var friendEmails = new[] { "friend1@mystic.test", "friend2@mystic.test", "friend3@mystic.test" };
-                var existingFriends = await _ctx.Accounts
-                    .Include(a => a.PlayerProfile)
-                    .Where(a => friendEmails.Contains(a.Email))
-                    .ToListAsync();
-                foreach (var acc in existingFriends)
-                {
-                    var pp = acc.PlayerProfile;
-                    if (pp != null)
-                    {
-                        _ctx.InventoryItems.RemoveRange(_ctx.InventoryItems.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        await _ctx.SaveChangesAsync();
-                        _ctx.PlayerProfiles.Remove(pp);
-                    }
-                    _ctx.Accounts.Remove(acc);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                // Xoá nếu đã tồn tại testplayer
-                var existingAcc = await _ctx.Accounts
-                    .Include(a => a.PlayerProfile)
-                    .FirstOrDefaultAsync(a => a.Email == TEST_EMAIL);
-
-                if (existingAcc != null)
-                {
-                    var pp = existingAcc.PlayerProfile;
-                    if (pp != null)
-                    {
-                        // Xoá inventory, PlayerSkins, PlayerQuests, PlayerStats
-                        _ctx.InventoryItems.RemoveRange(
-                            _ctx.InventoryItems.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerSkins.RemoveRange(
-                            _ctx.PlayerSkins.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerQuests.RemoveRange(
-                            _ctx.PlayerQuests.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerStats.RemoveRange(
-                            _ctx.PlayerStats.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerStatsSnapshots.RemoveRange(
-                            _ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        await _ctx.SaveChangesAsync();
-                        _ctx.PlayerProfiles.Remove(pp);
-                    }
-                    _ctx.Accounts.Remove(existingAcc);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                // Tạo account
-                var account = new Account
-                {
-                    UserName       = TEST_USERNAME,
-                    Email          = TEST_EMAIL,
-                    HashPassword   = HashPassword("Abc@12345"),
-                    RoleId         = 1, // Player
-                    IsActive       = true,
-                    CreatedAt      = DateTime.UtcNow,
-                };
-                _ctx.Accounts.Add(account);
-                await _ctx.SaveChangesAsync();
-
-                // Tạo PlayerProfile
-                var profile = new PlayerProfile
-                {
-                    AccountId    = account.AccountId,
-                    DisplayName  = "Test Player",
-                    Class        = "Knight",
-                    Level        = 1,
-                    ExperiencePoints = 0,
-                    Gold         = 1500,
-                    Gems         = 200,
-                    CurrentEnergy = 100,
-                    MaxEnergy    = 100,
-                    LastEnergyUpdateTime = DateTime.UtcNow,
-                    LastMapName  = "ElfForest",
-                    PositionX    = 11.9,
-                    PositionY    = 17.8,
-                    AvatarUrl    = "",
-                };
-                _ctx.PlayerProfiles.Add(profile);
-                await _ctx.SaveChangesAsync();
-
-                int pid = profile.PlayerProfileId;
-                var gachaSeed = await SeedGachaBaseDataAsync(TEST_EMAIL, 11);
-
-                // Tạo friend accounts
-                 var f1Account = new Account { UserName = "friend1", Email = "friend1@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
-                 var f2Account = new Account { UserName = "friend2", Email = "friend2@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
-                 var f3Account = new Account { UserName = "friend3", Email = "friend3@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
-                 _ctx.Accounts.AddRange(f1Account, f2Account, f3Account);
-                 await _ctx.SaveChangesAsync();
-
-                 // Tạo friend profiles
-                 var f1Profile = new PlayerProfile { AccountId = f1Account.AccountId, DisplayName = "Arthur", Class = "Knight", Level = 10, Gold = 1000, Gems = 100, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
-                 var f2Profile = new PlayerProfile { AccountId = f2Account.AccountId, DisplayName = "Gwen", Class = "Archer", Level = 12, Gold = 1200, Gems = 150, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
-                 var f3Profile = new PlayerProfile { AccountId = f3Account.AccountId, DisplayName = "Merlin", Class = "Mage", Level = 15, Gold = 2000, Gems = 200, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
-                 _ctx.PlayerProfiles.AddRange(f1Profile, f2Profile, f3Profile);
-                 await _ctx.SaveChangesAsync();
-
-                 // Thiết lập quan hệ bạn bè (Accepted) với testplayer
-                 _ctx.Friends.AddRange(
-                     new Friend { RequesterId = pid, AddresseeId = f1Profile.PlayerProfileId, Status = "Accepted", CreatedAt = DateTime.UtcNow },
-                     new Friend { RequesterId = pid, AddresseeId = f2Profile.PlayerProfileId, Status = "Accepted", CreatedAt = DateTime.UtcNow },
-                     new Friend { RequesterId = f3Profile.PlayerProfileId, AddresseeId = pid, Status = "Accepted", CreatedAt = DateTime.UtcNow }
-                 );
-                 await _ctx.SaveChangesAsync();
-
-                 // Tạo PlayerStats (base stats lv 3)
-                _ctx.PlayerStats.Add(new PlayerStat
-                {
-                    PlayerProfileId = pid,
-                    CurrentHp = 350, MaxHp = 350,
-                    Atk = 45, Def = 20,
-                    MoveSpeed = 50, AttackSpeed = 100,
-                    CritRate = 50, CritDamage = 150,
-                    DamageBonus = 0,
-                    SkillPoints = 3,
-                    TotalWins = 5, TotalLosses = 2, TotalKills = 23, TotalDeaths = 4
-                });
-                await _ctx.SaveChangesAsync();
-
-                // ── 5. Inventory của player test (dùng system items) ──────────
-                // 5a. Iron Helmet – EQUIPPED (Helmet)
-                if (helm != null)
-                    _ctx.InventoryItems.Add(new InventoryItem
-                    {
-                        PlayerProfileId  = pid,
-                        ItemId           = helm.ItemId,
-                        Quantity         = 1,
-                        IsEquipped       = true,
-                        IsSkin           = false,
-                        EquippedSlot     = "Helmet",
-                        EnhancementLevel = 0,
-                    });
-
-                // 5b. Small Health Potion – 2 bình (trong túi)
-                if (potion != null)
-                    _ctx.InventoryItems.Add(new InventoryItem
-                    {
-                        PlayerProfileId  = pid,
-                        ItemId           = potion.ItemId,
-                        Quantity         = 2,
-                        IsEquipped       = false,
-                        IsSkin           = false,
-                        EnhancementLevel = 0,
-                    });
-
-                await _ctx.SaveChangesAsync();
-
-                // ── 6. PlayerSkins ────────────────────────────────────────────
-                // Knight Default – EQUIPPED (mặc định theo class)
-                if (skinKnight != null)
-                    _ctx.PlayerSkins.Add(new PlayerSkin
-                    {
-                        PlayerProfileId = pid,
-                        SkinId          = skinKnight.SkinId,
-                        IsEquipped      = true,
-                        UnlockedAt      = DateTime.UtcNow,
-                    });
-
-                // Knight Skin (premium) – unlocked but not equipped
-                if (skinKnightPremium != null)
-                    _ctx.PlayerSkins.Add(new PlayerSkin
-                    {
-                        PlayerProfileId = pid,
-                        SkinId          = skinKnightPremium.SkinId,
-                        IsEquipped      = false,
-                        UnlockedAt      = DateTime.UtcNow,
-                    });
-
-                await _ctx.SaveChangesAsync();
-
-                // ── 7. PlayerQuests ──────────────────────────────────────────
-                var quests = await _ctx.Quests
-                    .Where(q => EF.Functions.Like(q.Title, "[SEED]%"))
-                    .ToListAsync();
-
-                foreach (var q in quests)
-                {
-                    _ctx.PlayerQuests.Add(new PlayerQuest
-                    {
-                        PlayerProfileId = pid,
-                        QuestId         = q.QuestId,
-                        Status          = "NotStarted",
-                        TargetValue     = q.TargetAmount,
-                        AcceptedAt      = DateTime.UtcNow,
-                    });
-                }
-                await _ctx.SaveChangesAsync();
-
-                // ── 8. PlayerStatsSnapshot (equip snapshot) ──────────────────
-                _ctx.PlayerStatsSnapshots.Add(new PlayerStatsSnapshot
-                {
-                    PlayerProfileId = pid,
-                    MaxHp        = 350 + 100 + 20, // base + BaseHp(helm) + BonusHp(helm)
-                    Atk          = 45,
-                    Def          = 20 + 30 + 8,    // base + BaseDef + BonusDef
-                    CritRate     = 50,
-                    CritDamage   = 150,
-                    MoveSpeed    = 0,
-                    AttackSpeed  = 0,
-                    DamageBonus  = 0,
-                    CreatedAt    = DateTime.UtcNow,
-                });
-                await _ctx.SaveChangesAsync();
-
-                await tx.CommitAsync();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Seed successful!",
-                    Data = new
-                    {
-                        accountEmail    = TEST_EMAIL,
-                        password        = "Abc@12345",
-                        playerProfileId = pid,
-                        level           = 1,
-                        playerClass     = "Knight",
-                        items = new[]
-                        {
-                            new { name = helm?.Name   ?? "(not found)", type = "Armor (Helmet)", status = "EQUIPPED" },
-                            new { name = potion?.Name ?? "(not found)", type = "Consumable",     status = "BAG x2"  },
-                        },
-                        skins = new[]
-                        {
-                            new { name = "Knight Default", status = "EQUIPPED (default)" },
-                            new { name = "Knight Skin",    status = "BAG (unlocked)"     },
-                        },
-                        quests = new[]
-                        {
-                            new { title = "[SEED] Map 1 – The Forest Awakening", requiredLevel = 1 },
-                            new { title = "[SEED] Map 2 – Dark Caverns",         requiredLevel = 2 },
-                            new { title = "[SEED] Map 3 – Dragon Lair",          requiredLevel = 3 },
-                        },
-                        systemItemsUsed = new[]
-                        {
-                            new { name = potion?.Name ?? "(null)", itemId = potion?.ItemId },
-                            new { name = sword?.Name  ?? "(null)", itemId = sword?.ItemId  },
-                            new { name = helm?.Name   ?? "(null)", itemId = helm?.ItemId   },
-                        },
-                        gacha = new
-                        {
-                            bannerId     = gachaSeed.BannerId,
-                            ticketItemId = gachaSeed.TicketItemId,
-                            ticketCount  = 11,
-                            targetEmail  = TEST_EMAIL,
-                        },
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                // Return full exception details for debugging (includes inner exception)
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
-        }
+            new("elf1@mystic.test", "Tutorial Archer 1", 8,  "ElfForest",      11.9,   17.8),
+            new("elf2@mystic.test", "Tutorial Archer 2", 20, "AutumnPumpkin", -130.2,   37.8),
+            new("elf3@mystic.test", "Tutorial Archer 3", 27, "FrozenMountain", 35.9889, -31.9661),
+            new("elf4@mystic.test", "Tutorial Archer 4", 40, "AbandonedCastle", -12.36,  60.14),
+            new("elf5@mystic.test", "Tutorial Archer 5", 46, "ElfForest",      11.9,   17.8),
+        };
 
         // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/elfforest -> Seed tutorial world on map ElfForest
+        // POST /api/seed/mysticjourney → Seed toàn bộ dữ liệu mẫu (single source of truth)
         // ─────────────────────────────────────────────────────────────────────────
-        [HttpPost("elfforest")]
-        public async Task<IActionResult> SeedElfForest()
+        [HttpPost("mysticjourney")]
+        public async Task<IActionResult> SeedMysticJourney()
         {
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
@@ -384,17 +100,17 @@ namespace Mystic_Journey_API.Controllers
                 await EnsureElfForestSchema();
 
                 // 1. Lookup system items từ migration (không tạo item mới trong seed)
-                var potion      = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
-                var sword       = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
-                var armor       = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Leather Armor");
-                var whiteFlower = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "White Flower");
+                var potion       = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var sword        = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+                var armor        = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Leather Armor");
+                var whiteFlower  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "White Flower");
                 var upgradeStone = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Skill Upgrade Stone");
 
                 var missingItems = new List<string>();
-                if (potion == null)      missingItems.Add("Small Health Potion");
-                if (sword == null)       missingItems.Add("Iron Sword");
-                if (armor == null)       missingItems.Add("Leather Armor");
-                if (whiteFlower == null) missingItems.Add("White Flower");
+                if (potion == null)       missingItems.Add("Small Health Potion");
+                if (sword == null)        missingItems.Add("Iron Sword");
+                if (armor == null)        missingItems.Add("Leather Armor");
+                if (whiteFlower == null)  missingItems.Add("White Flower");
                 if (upgradeStone == null) missingItems.Add("Skill Upgrade Stone");
 
                 if (missingItems.Count > 0)
@@ -404,17 +120,11 @@ namespace Mystic_Journey_API.Controllers
                         Message = $"System items not found in DB. Please run items migration first. Missing: {string.Join(", ", missingItems)}"
                     });
 
-                // EquipmentStats đã được tạo sẵn qua migration cùng với item
-                // Không cần upsert lại ở đây
-
                 // 2. Skins are seeded in exact order matching Unity's SkinDatabase.asset
                 var (skinKnight, skinArcher, skinMage, skinArcherPremium, skinKnightPremium, skinMagePremium) = await EnsureBaseSkinsAsync();
-                // 3. Keep system quests intact (they are managed by HasData/migrations)
-                /* Legacy quest cleanup skipped to preserve system quests */
 
-
-                // Upsert 3 tutorial skills rewarded when player delivers 3 White Flowers
-                var elfSkillNames = new[] { 
+                // 3. Upsert tutorial skills (2 hắc hóa dùng chung + 5 skill lớp riêng)
+                var elfSkillNames = new[] {
                     "Dark Poison Zone", "Dark Explosion",
                     "AP_Skill", "Skill_Ad", "Skill_Knight Attack", "Skill_Mui_Ten_Bang", "Skill_Thap_AS"
                 };
@@ -430,7 +140,7 @@ namespace Mystic_Journey_API.Controllers
                     {
                         s = new Skill { Name = name };
                         _ctx.Skills.Add(s);
-                        existingElfSkills.Add(s); // keep local list in sync
+                        existingElfSkills.Add(s);
                     }
                     s.Description         = description;
                     s.Type                = type;
@@ -447,26 +157,17 @@ namespace Mystic_Journey_API.Controllers
                     return s;
                 }
 
-                var poisonZoneSkill = UpsertSkill(
-                    "Dark Poison Zone",
-                    "Creates a poisonous zone dealing AoE damage. Darkening +10.",
-                    "Active", "Magical", "Area", "All", 6, 135.0, 16.0, 3.5, 10f);
-
-                var explosionSkill = UpsertSkill(
-                    "Dark Explosion",
-                    "Creates an explosion dealing massive damage. Darkening +5.",
-                    "Active", "Magical", "Area", "All", 8, 175.0, 20.0, 3.5, 5f);
-
-                // Add 5 custom skills
-                var apSkill = UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 4, 95.0, 12.0, 3.5);
-                var skillAd = UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
-                var skillKnightAttack = UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 2, 55.0, 8.0, 3.0);
-                var skillMuiTenBang = UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
-                var skillThapAS = UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 5, 115.0, 14.0, 3.5);
+                UpsertSkill("Dark Poison Zone", "Creates a poisonous zone dealing AoE damage. Darkening +10.", "Active", "Magical", "Area", "All", 6, 135.0, 16.0, 3.5, 10f);
+                UpsertSkill("Dark Explosion", "Creates an explosion dealing massive damage. Darkening +5.", "Active", "Magical", "Area", "All", 8, 175.0, 20.0, 3.5, 5f);
+                UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 4, 95.0, 12.0, 3.5);
+                UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
+                UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 2, 55.0, 8.0, 3.0);
+                UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
+                UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 5, 115.0, 14.0, 3.5);
 
                 await _ctx.SaveChangesAsync();
 
-                // 3a. Upsert tutorial monsters for ElfForest
+                // 4. Upsert tutorial monsters for ElfForest
                 var monsterNames = new[] { "[ELF] Shadow Sprout", "[ELF] Forest Wolf", "[ELF] Sprout King" };
                 var existingMonsters = await _ctx.Monsters.Where(m => monsterNames.Contains(m.Name)).ToListAsync();
 
@@ -495,18 +196,13 @@ namespace Mystic_Journey_API.Controllers
                     return m;
                 }
 
-                var sprout = UpsertMonster(
-                    "[ELF] Shadow Sprout", "Normal", "A small sprout that lurks near the clearing.", 1, 80, 8, 2, 90, 100, 2, 120, 8, 2);
-
-                var wolf = UpsertMonster(
-                    "[ELF] Forest Wolf", "Normal", "A hungry wolf roaming the forest edge.", 2, 160, 18, 4, 110, 100, 5, 140, 18, 6);
-
-                var sproutKing = UpsertMonster(
-                    "[ELF] Sprout King", "Boss", "The corrupted guardian of the willow clearing.", 5, 1200, 60, 20, 80, 90, 10, 150, 600, 120);
+                var sprout = UpsertMonster("[ELF] Shadow Sprout", "Normal", "A small sprout that lurks near the clearing.", 1, 80, 8, 2, 90, 100, 2, 120, 8, 2);
+                var wolf = UpsertMonster("[ELF] Forest Wolf", "Normal", "A hungry wolf roaming the forest edge.", 2, 160, 18, 4, 110, 100, 5, 140, 18, 6);
+                var sproutKing = UpsertMonster("[ELF] Sprout King", "Boss", "The corrupted guardian of the willow clearing.", 5, 1200, 60, 20, 80, 90, 10, 150, 600, 120);
 
                 await _ctx.SaveChangesAsync();
 
-                // 3b. Upsert drops
+                // 5. Upsert drops
                 var monsterIds = existingMonsters.Select(m => m.MonsterId).ToList();
                 var existingDrops = await _ctx.MonsterDrops.Where(d => monsterIds.Contains(d.MonsterId)).ToListAsync();
 
@@ -527,12 +223,12 @@ namespace Mystic_Journey_API.Controllers
                     return ex;
                 }
 
-                if (potion != null)  UpsertDrop(sprout,     potion.ItemId, 40);
-                if (sword != null)   UpsertDrop(wolf,        sword.ItemId,  20);
-                if (sword != null)   UpsertDrop(sproutKing,  sword.ItemId,  100, 1, 1, true);
+                UpsertDrop(sprout, potion.ItemId, 40);
+                UpsertDrop(wolf, sword.ItemId, 20);
+                UpsertDrop(sproutKing, sword.ItemId, 100, 1, 1, true);
                 await _ctx.SaveChangesAsync();
 
-                // 3c. Upsert spawns
+                // 6. Upsert spawns
                 var existingSpawns = await _ctx.MonsterSpawns.Where(s => monsterIds.Contains(s.MonsterId)).ToListAsync();
 
                 MonsterSpawn UpsertSpawn(Monster m, string mapName, string region, string location, int count, int respawn)
@@ -556,479 +252,44 @@ namespace Mystic_Journey_API.Controllers
                 UpsertSpawn(sproutKing, "ElfForest", "Old Willow Clearing", "Willow Throne", 1, 0);
                 await _ctx.SaveChangesAsync();
 
-                // 3e. (Optional) seed discovery entries for test players (leave undiscovered by default)
+                // 7. Create/update the 5 chapter-milestone accounts + replay their rewards
+                var mainQuests = await _ctx.Quests
+                    .Where(q => q.Type == "Main" && q.IsActive)
+                    .Include(q => q.RewardItems)
+                    .Include(q => q.RewardSkills)
+                    .OrderBy(q => q.QuestId)
+                    .ToListAsync();
 
-                await _ctx.SaveChangesAsync();
+                var allSkills = await _ctx.Skills.ToListAsync();
 
-
-
-                // 4. Upsert 2 tutorial accounts with inventory.
-                async Task<int> CreatePlayer(string username, string email, string displayName, string cls)
+                var playerIds = new List<int>();
+                foreach (var milestone in ChapterMilestones)
                 {
-                    var account = await _ctx.Accounts
-                        .Include(a => a.PlayerProfile)
-                        .FirstOrDefaultAsync(a => a.Email == email || a.UserName == username);
-
-                    if (account == null)
-                    {
-                        account = new Account
-                        {
-                            CreatedAt = DateTime.UtcNow,
-                        };
-                        _ctx.Accounts.Add(account);
-                    }
-
-                    account.UserName = username;
-                    account.Email = email;
-                    account.HashPassword = HashPassword("Abc@12345");
-                    account.RoleId = 1;
-                    account.IsActive = true;
-                    account.RefreshToken = null;
-                    account.RefreshTokenExpiresAt = null;
-                    account.UpdatedAt = DateTime.UtcNow;
-                    await _ctx.SaveChangesAsync();
-
-                    var profile = account.PlayerProfile;
-                    if (profile == null)
-                    {
-                        profile = new PlayerProfile
-                        {
-                            AccountId = account.AccountId,
-                            CreatedAt = DateTime.UtcNow,
-                        };
-                        _ctx.PlayerProfiles.Add(profile);
-                        await _ctx.SaveChangesAsync();
-                    }
-
-                    int pid = profile.PlayerProfileId;
-
-                    _ctx.InventoryItems.RemoveRange(_ctx.InventoryItems.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerChests.RemoveRange(_ctx.PlayerChests.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerDailyLogins.RemoveRange(_ctx.PlayerDailyLogins.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerSkills.RemoveRange(_ctx.PlayerSkills.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerAchievements.RemoveRange(_ctx.PlayerAchievements.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerAnnouncements.RemoveRange(_ctx.PlayerAnnouncements.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerCurrencyLogs.RemoveRange(_ctx.PlayerCurrencyLogs.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PurchaseHistories.RemoveRange(_ctx.PurchaseHistories.Where(x => x.PlayerProfileId == pid));
-                    _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(x => x.PlayerProfileId == pid));
-                    _ctx.Mailboxes.RemoveRange(_ctx.Mailboxes.Where(x => x.PlayerProfileId == pid));
-                    _ctx.GuildMembers.RemoveRange(_ctx.GuildMembers.Where(x => x.PlayerProfileId == pid));
-                    await _ctx.SaveChangesAsync();
-
-                    profile.DisplayName = displayName;
-                    profile.Class = cls;
-                    profile.Level = 1;
-                    profile.ExperiencePoints = 0;
-                    profile.Gold = 100;
-                    profile.CurrentEnergy = 100;
-                    profile.MaxEnergy = 100;
-                    profile.LastEnergyUpdateTime = DateTime.UtcNow;
-                    profile.LastMapName = "ElfForest";
-                    profile.PositionX = 11.9;
-                    profile.PositionY = 17.8;
-                    profile.AvatarUrl = string.Empty;
-                    profile.UpdatedAt = DateTime.UtcNow;
-                    await _ctx.SaveChangesAsync();
-
-                    // player stats
-                    _ctx.PlayerStats.Add(new PlayerStat
-                    {
-                        PlayerProfileId = pid,
-                        CurrentHp = 200,
-                        MaxHp = 200,
-                        Atk = 25,
-                        Def = 10,
-                        MoveSpeed = 50,
-                        AttackSpeed = 100,
-                        CritRate = 50,
-                        CritDamage = 150,
-                    });
-                    await _ctx.SaveChangesAsync();
-
-                    // inventory: dùng system items từ migration
-                    if (sword != null)
-                        _ctx.InventoryItems.Add(new InventoryItem
-                        {
-                            PlayerProfileId = pid,
-                            ItemId = sword.ItemId,
-                            Quantity = 1,
-                            IsEquipped = true,
-                            IsSkin = false,
-                            EquippedSlot = "Weapon",
-                        });
-                    if (armor != null)
-                        _ctx.InventoryItems.Add(new InventoryItem
-                        {
-                            PlayerProfileId = pid,
-                            ItemId = armor.ItemId,
-                            Quantity = 1,
-                            IsEquipped = true,
-                            IsSkin = false,
-                            EquippedSlot = "Armor",
-                        });
-                    if (potion != null)
-                        _ctx.InventoryItems.Add(new InventoryItem
-                        {
-                            PlayerProfileId = pid,
-                            ItemId = potion.ItemId,
-                            Quantity = 3,
-                            IsEquipped = false,
-                            IsSkin = false,
-                        });
-                    if (upgradeStone != null)
-                        _ctx.InventoryItems.Add(new InventoryItem
-                        {
-                            PlayerProfileId = pid,
-                            ItemId = upgradeStone.ItemId,
-                            Quantity = 99,
-                            IsEquipped = false,
-                            IsSkin = false,
-                        });
-
-                    // player skin: assign default skin for player's class (seeded via migration)
-                    int defaultSkinId = cls switch
-                    {
-                        "Archer" => skinArcher.SkinId,
-                        "Mage"   => skinMage.SkinId,
-                        _        => skinKnight.SkinId  // Knight default
-                    };
-                    _ctx.PlayerSkins.Add(new PlayerSkin
-                    {
-                        PlayerProfileId = pid,
-                        SkinId = defaultSkinId,
-                        IsEquipped = true,
-                        UnlockedAt = DateTime.UtcNow,
-                    });
-
-                    await _ctx.SaveChangesAsync();
-
-                    // assign quests
-                    var elfQuests = await _ctx.Quests
-                        .Where(q => q.MapName == "ElfForest" && q.RequiredLevel <= profile.Level)
-                        .ToListAsync();
-                    foreach (var q in elfQuests)
-                    {
-                        _ctx.PlayerQuests.Add(new PlayerQuest
-                        {
-                            PlayerProfileId = pid,
-                            QuestId = q.QuestId,
-                            Status = "NotStarted",
-                            TargetValue = q.TargetAmount,
-                            AcceptedAt = DateTime.UtcNow,
-                        });
-                    }
-                    await _ctx.SaveChangesAsync();
-
-                    // Unlock 3 skills rewarded from the Gather White Flowers quest
-                    // [DA UPDATE] Đã comment đoạn này lại để testplayer KHÔNG có sẵn skill,
-                    // giúp test tính năng: Làm xong Quest nhận thưởng mới được mở khóa skill.
-                    /*
-                    foreach (var skill in new[] { apSkill, skillAd, skillKnightAttack })
-                    {
-                        var alreadyHas = await _ctx.PlayerSkills.AnyAsync(
-                            ps => ps.PlayerProfileId == pid && ps.SkillId == skill.SkillId);
-                        if (!alreadyHas)
-                        {
-                            _ctx.PlayerSkills.Add(new PlayerSkill
-                            {
-                                PlayerProfileId = pid,
-                                SkillId        = skill.SkillId,
-                                Level          = 1,
-                                Experience     = 0,
-                                EquippedSlot   = null, // chưa trang bị, player tự chọn
-                                UnlockedAt     = DateTime.UtcNow,
-                            });
-                        }
-                    }
-                    await _ctx.SaveChangesAsync();
-                    */
-
-                    return pid;
-                }
-
-                var p1 = await CreatePlayer("elf_user1", "elf1@mystic.test", "Tutorial Archer 1", "Archer");
-                
-                // Cấp thêm skin (Archer Skin) trong túi cho elf1 (đã có Archer Default mặc định khi tạo)
-                if (skinArcherPremium != null)
-                {
-                    _ctx.PlayerSkins.Add(new PlayerSkin
-                    {
-                        PlayerProfileId = p1,
-                        SkinId = skinArcherPremium.SkinId,
-                        IsEquipped = false,
-                        UnlockedAt = DateTime.UtcNow
-                    });
-                }
-
-                // Cấp sẵn 7 kỹ năng cho elf1 (2 hắc hóa + 5 kỹ năng custom)
-                foreach (var skillId in new[] { 
-                    poisonZoneSkill.SkillId, 
-                    explosionSkill.SkillId, 
-                    apSkill.SkillId, 
-                    skillAd.SkillId, 
-                    skillKnightAttack.SkillId, 
-                    skillMuiTenBang.SkillId, 
-                    skillThapAS.SkillId 
-                })
-                {
-                    _ctx.PlayerSkills.Add(new PlayerSkill
-                    {
-                        PlayerProfileId = p1,
-                        SkillId = skillId,
-                        Level = 1,
-                        Experience = 0,
-                        UnlockedAt = DateTime.UtcNow
-                    });
+                    int pid = await UpsertChapterAccount(
+                        milestone, mainQuests, allSkills,
+                        potion, sword, armor, upgradeStone,
+                        skinKnight, skinArcher, skinMage);
+                    playerIds.Add(pid);
                 }
                 await _ctx.SaveChangesAsync();
 
                 await SeedGachaBaseDataAsync("elf1@mystic.test", 11);
-                var p2 = await CreatePlayer("elf_user2", "elf2@mystic.test", "Tutorial Archer 2", "Archer");
-                
-                var p3 = await CreatePlayer("elf_user3", "elf3@mystic.test", "Tutorial Archer 3", "Archer");
-                var p5 = await CreatePlayer("elf_user5", "elf5@mystic.test", "Tutorial Archer 5", "Archer");
-
-                // elf3 và elf5 chung một mốc quest: xong hết Chapter 2 (claim tới quest 20 "Arthur's
-                // Parting Words"), quest 21 NotStarted — tức đứng ngay đầu Chapter 3. Khác nhau chỗ
-                // đứng: elf3 còn ở Autumn Pumpkin (bước kế tiếp là đi thuyền), elf5 đã sang tới
-                // FrozenMountain (bước kế tiếp là gặp Cedric ngay chỗ vừa lên bờ).
-                // Level 6 = RequiredLevel của quest 21; thấp hơn thì HUD hiện "Suggested: Level 6".
-                var p3Profile = await _ctx.PlayerProfiles.FirstAsync(p => p.PlayerProfileId == p3);
-                p3Profile.Class = "Archer";
-                p3Profile.Level = 6;
-                p3Profile.LastMapName = "AutumnPumpkin";
-                // Đứng cạnh Arthur (-32, 58) — chỗ vừa nói chuyện xong ở quest 20. Quest 21 nằm ở
-                // map khác nên waypoint sẽ chỉ ra Boat (QuestWaypointManager.FindMapExit).
-                p3Profile.PositionX = -29.0;
-                p3Profile.PositionY = 58.0;
-
-                var p5Profile = await _ctx.PlayerProfiles.FirstAsync(p => p.PlayerProfileId == p5);
-                p5Profile.Class = "Archer";
-                p5Profile.Level = 6;
-                p5Profile.LastMapName = "FrozenMountain";
-                // Đúng chỗ thuyền thả người chơi xuống: BoatVideoTeleporter đặt useSpecificSpawn = 0
-                // nên điểm đến là SpawnPoint_Tutorial trong FrozenMountain.unity — local (11.9, 17.8)
-                // dưới PlayerSpawnRuntime (-25, -62) => world (-13.1, -44.2). Dùng lại toạ độ này
-                // thay vì đặt cạnh Nữ hoàng, vì đây là chỗ chắc chắn đứng được (không kẹt collider).
-                p5Profile.PositionX = -13.1;
-                p5Profile.PositionY = -44.2;
-
-                foreach (var archerPid in new[] { p3, p5 })
-                {
-                    var archerSkins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == archerPid).ToListAsync();
-                    foreach (var skin in archerSkins)
-                        skin.IsEquipped = skin.SkinId == skinArcher.SkinId;
-                    if (archerSkins.All(skin => skin.SkinId != skinArcher.SkinId))
-                    {
-                        _ctx.PlayerSkins.Add(new PlayerSkin
-                        {
-                            PlayerProfileId = archerPid,
-                            SkinId = skinArcher.SkinId,
-                            IsEquipped = true,
-                            UnlockedAt = DateTime.UtcNow
-                        });
-                    }
-                }
-
-                _ctx.PlayerQuests.RemoveRange(
-                    _ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p3 || pq.PlayerProfileId == p5));
-                await _ctx.SaveChangesAsync();
-
-                // Chapter 2 xong hết: quest 1..20 Claimed, quest 21 ("[Chapter 3] The Ice Slimes",
-                // map FrozenMountain) NotStarted -> bước kế tiếp là nhận quest từ Cedric (đội trưởng
-                // dân binh đứng ngay chỗ thuyền cập bờ), KHÔNG phải Nữ hoàng: chương 3 giờ mở bằng
-                // phép thử của Cedric, xong rồi anh ta mới tiến cử lên citadel.
-                //
-                // Bản ghi NotStarted phải khớp CreateInitialQuestRecord của PlayerQuestService
-                // (Progress = 0, ClaimedAt/CompletedAt = null), nếu không client sẽ hiểu sai trạng
-                // thái. Chuỗi main mở khoá theo "quest trước đã Claimed" (IsMainQuestUnlocked) nên
-                // 21 hợp lệ ngay khi 20 đã Claimed.
-                const int lastClaimedQuestId = 20;
-                const int notStartedQuestId = 21;
-                var seededQuests = await _ctx.Quests
-                    .Where(q => q.QuestId <= notStartedQuestId)
-                    .ToListAsync();
-                foreach (var chapter3Pid in new[] { p3, p5 })
-                {
-                    foreach (var quest in seededQuests)
-                    {
-                        var isNotStarted = quest.QuestId > lastClaimedQuestId;
-                        var targetAmount = quest.TargetAmount < 1 ? 1 : quest.TargetAmount;
-                        _ctx.PlayerQuests.Add(new PlayerQuest
-                        {
-                            PlayerProfileId = chapter3Pid,
-                            QuestId = quest.QuestId,
-                            Status = isNotStarted ? "NotStarted" : "Claimed",
-                            TargetValue = targetAmount,
-                            Progress = isNotStarted ? 0 : targetAmount,
-                            AcceptedAt = DateTime.UtcNow,
-                            CompletedAt = isNotStarted ? null : DateTime.UtcNow,
-                            ClaimedAt = isNotStarted ? null : DateTime.UtcNow
-                        });
-                    }
-                }
-                await _ctx.SaveChangesAsync();
-
-                var p4 = await CreatePlayer("elf_user4", "elf4@mystic.test", "Tutorial Knight 4", "Knight");
-
-                var allSkillIds = await _ctx.Skills.Select(s => s.SkillId).ToListAsync();
-                foreach (var skillId in allSkillIds)
-                {
-                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p3, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
-                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p4, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
-                    // elf5 cùng mốc quest với elf3 nên cũng mở sẵn skill để đánh được quái Chapter 3
-                    _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = p5, SkillId = skillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
-                }
-                await _ctx.SaveChangesAsync();
-
-                // Update profile for elf2: Level 15, Archer class, AbandonedCastle map, đã claim tới
-                // quest "The Skull by the Well" (ID 28 sau khi chèn quest kết chương 3)
-                var p2Profile = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerProfileId == p2);
-                if (p2Profile != null)
-                {
-                    p2Profile.Class = "Archer";
-                    p2Profile.Level = 15;
-                    p2Profile.Gold = 5000;
-                    p2Profile.Gems = 500;
-                    p2Profile.LastMapName = "AbandonedCastle";
-                    p2Profile.PositionX = -10.66; // Vị trí đứng gần Valiant Warrior
-                    p2Profile.PositionY = 53.0; 
-                    await _ctx.SaveChangesAsync();
-                }
-
-                // Equip Archer Default skin (SkinId=2) for elf2 – Archer class
-                var p2Skins = await _ctx.PlayerSkins.Where(ps => ps.PlayerProfileId == p2).ToListAsync();
-                foreach (var skin in p2Skins)
-                {
-                    skin.IsEquipped = (skin.SkinId == skinArcher.SkinId);
-                }
-                await _ctx.SaveChangesAsync();
-
-                // Clear existing PlayerQuests for elf2 and seed Q1..Q29 as Claimed.
-                // Mốc này là "đã xong tới quest The Skull by the Well" (elf2 đứng ở AbandonedCastle
-                // cạnh Valiant Warrior). Bound này KHÔNG phải hằng số bất biến: mỗi lần chèn quest
-                // mới vào giữa chuỗi là nó lệch (27 -> 28 khi chèn "Truth of the Codex",
-                // 28 -> 29 khi chèn "A Word to the Queen"). Đối chiếu lại theo TITLE trong seed,
-                // đừng cộng số một cách máy móc.
-                _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(pq => pq.PlayerProfileId == p2));
-                await _ctx.SaveChangesAsync();
-
-                for (int qId = 1; qId <= 29; qId++)
-                {
-                    _ctx.PlayerQuests.Add(new PlayerQuest
-                    {
-                        PlayerProfileId = p2,
-                        QuestId = qId,
-                        Status = "Claimed",
-                        TargetValue = 1,
-                        Progress = 1,
-                        AcceptedAt = DateTime.UtcNow,
-                        CompletedAt = DateTime.UtcNow,
-                        ClaimedAt = DateTime.UtcNow
-                    });
-                }
-                await _ctx.SaveChangesAsync();
-
-                // Unlock skills for elf2
-                foreach (var skillId in new[] { 
-                    poisonZoneSkill.SkillId, 
-                    explosionSkill.SkillId, 
-                    apSkill.SkillId, 
-                    skillAd.SkillId, 
-                    skillKnightAttack.SkillId, 
-                    skillMuiTenBang.SkillId, 
-                    skillThapAS.SkillId 
-                })
-                {
-                    var alreadyHas = await _ctx.PlayerSkills.AnyAsync(ps => ps.PlayerProfileId == p2 && ps.SkillId == skillId);
-                    if (!alreadyHas)
-                    {
-                        _ctx.PlayerSkills.Add(new PlayerSkill
-                        {
-                            PlayerProfileId = p2,
-                            SkillId = skillId,
-                            Level = 1,
-                            Experience = 0,
-                            UnlockedAt = DateTime.UtcNow
-                        });
-                    }
-                }
-                await _ctx.SaveChangesAsync();
-
-                // Final tutorial-account normalization: each account starts at a chapter boundary.
-                // Keep this last so the seed remains deterministic after the legacy setup above.
-                var chapterStarts = new[]
-                {
-                    (PlayerId: p1, QuestId: 1, Map: "ElfForest", X: 11.9, Y: 17.8),
-                    (PlayerId: p2, QuestId: 9, Map: "AutumnPumpkin", X: -130.2, Y: 37.8),
-                    (PlayerId: p3, QuestId: 21, Map: "FrozenMountain", X: -13.1, Y: -44.2),
-                    (PlayerId: p4, QuestId: 28, Map: "AbandonedCastle", X: -12.36, Y: 60.14),
-                    (PlayerId: p5, QuestId: 41, Map: "ElfForest", X: 11.9, Y: 17.8)
-                };
-                var mainQuests = await _ctx.Quests
-                    .Where(q => q.Type == "Main" && q.IsActive)
-                    .OrderBy(q => q.QuestId)
-                    .ToListAsync();
-
-                foreach (var start in chapterStarts)
-                {
-                    var profile = await _ctx.PlayerProfiles.FirstAsync(p => p.PlayerProfileId == start.PlayerId);
-                    profile.Class = "Archer";
-                    profile.Level = 15;
-                    profile.LastMapName = start.Map;
-                    profile.PositionX = start.X;
-                    profile.PositionY = start.Y;
-
-                    var stats = await _ctx.PlayerStats.FirstAsync(s => s.PlayerProfileId == start.PlayerId);
-                    stats.Atk = 2000;
-
-                    var skins = await _ctx.PlayerSkins.Where(s => s.PlayerProfileId == start.PlayerId).ToListAsync();
-                    foreach (var skin in skins)
-                        skin.IsEquipped = skin.SkinId == skinArcher.SkinId;
-                    if (skins.All(s => s.SkinId != skinArcher.SkinId))
-                        _ctx.PlayerSkins.Add(new PlayerSkin
-                        {
-                            PlayerProfileId = start.PlayerId,
-                            SkinId = skinArcher.SkinId,
-                            IsEquipped = true,
-                            UnlockedAt = DateTime.UtcNow
-                        });
-
-                    _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(q => q.PlayerProfileId == start.PlayerId));
-                    foreach (var quest in mainQuests)
-                    {
-                        var claimed = quest.QuestId < start.QuestId;
-                        _ctx.PlayerQuests.Add(new PlayerQuest
-                        {
-                            PlayerProfileId = start.PlayerId,
-                            QuestId = quest.QuestId,
-                            Status = claimed ? "Claimed" : "NotStarted",
-                            TargetValue = Math.Max(1, quest.TargetAmount),
-                            Progress = claimed ? Math.Max(1, quest.TargetAmount) : 0,
-                            AcceptedAt = DateTime.UtcNow,
-                            CompletedAt = claimed ? DateTime.UtcNow : null,
-                            ClaimedAt = claimed ? DateTime.UtcNow : null
-                        });
-                    }
-                }
-                await _ctx.SaveChangesAsync();
 
                 await tx.CommitAsync();
 
-                // Call other seeders sequentially to consolidate everything into ElfForest seed
+                // Independent sub-seeds (each self-contained; safe to run after the
+                // core commit so a failure here doesn't roll back the accounts above)
                 await SeedDungeons();
                 await SeedContent();
-                await SeedFriends();
-                await SeedGuilds();
+                await SeedAdminAccount();
+                await SeedDailyLoginRewards();
+                await SeedShopPurchaseHistory(playerIds);
 
-                return Ok(new ApiResponse<object> { 
-                    Success = true, 
-                    Message = "Seed ElfForest and all related data (Dungeons, Content, Friends, Guilds) completed successfully!", 
-                    Data = new { players = new[] { p1, p2, p3, p4, p5 }, gacha = new { bannerName = "[SEED] Test Gacha Banner", grantedToEmail = "elf1@mystic.test", ticketCount = 11 } } 
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Seed MysticJourney completed successfully!",
+                    Data = new { players = playerIds, milestones = ChapterMilestones.Select(m => new { m.Email, endOfChapterQuestId = m.LastQuestId, m.Map }) }
                 });
             }
             catch (Exception ex)
@@ -1036,6 +297,192 @@ namespace Mystic_Journey_API.Controllers
                 await tx.RollbackAsync();
                 return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
             }
+        }
+
+        // Tạo/ghi đè 1 account đứng ở cuối chương: quest 1..LastQuestId Claimed (đã
+        // replay đủ gold/exp/gems/item/skill mà ClaimRewardCore thực sự cấp), quest
+        // kế tiếp NotStarted, các quest sau không insert (để IsMainQuestUnlocked hoạt
+        // động đúng như một account thật đang đứng ở mốc đó).
+        private async Task<int> UpsertChapterAccount(
+            ChapterMilestone milestone, List<Quest> mainQuests, List<Skill> allSkills,
+            Item potion, Item sword, Item armor, Item upgradeStone,
+            Skin skinKnight, Skin skinArcher, Skin skinMage)
+        {
+            var username = milestone.Email.Split('@')[0].Replace(".", "_");
+
+            var account = await _ctx.Accounts
+                .Include(a => a.PlayerProfile)
+                .FirstOrDefaultAsync(a => a.Email == milestone.Email || a.UserName == username);
+
+            if (account == null)
+            {
+                account = new Account { CreatedAt = DateTime.UtcNow };
+                _ctx.Accounts.Add(account);
+            }
+
+            account.UserName = username;
+            account.Email = milestone.Email;
+            account.HashPassword = HashPassword("Abc@12345");
+            account.RoleId = 1;
+            account.IsActive = true;
+            account.RefreshToken = null;
+            account.RefreshTokenExpiresAt = null;
+            account.UpdatedAt = DateTime.UtcNow;
+            await _ctx.SaveChangesAsync();
+
+            var profile = account.PlayerProfile;
+            if (profile == null)
+            {
+                profile = new PlayerProfile { AccountId = account.AccountId, CreatedAt = DateTime.UtcNow };
+                _ctx.PlayerProfiles.Add(profile);
+                await _ctx.SaveChangesAsync();
+            }
+
+            int pid = profile.PlayerProfileId;
+
+            // Rebuild toàn bộ dữ liệu phụ thuộc của account này (idempotent theo pid)
+            _ctx.InventoryItems.RemoveRange(_ctx.InventoryItems.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerChests.RemoveRange(_ctx.PlayerChests.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerDailyLogins.RemoveRange(_ctx.PlayerDailyLogins.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerSkills.RemoveRange(_ctx.PlayerSkills.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerAchievements.RemoveRange(_ctx.PlayerAchievements.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerAnnouncements.RemoveRange(_ctx.PlayerAnnouncements.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerCurrencyLogs.RemoveRange(_ctx.PlayerCurrencyLogs.Where(x => x.PlayerProfileId == pid));
+            _ctx.PurchaseHistories.RemoveRange(_ctx.PurchaseHistories.Where(x => x.PlayerProfileId == pid));
+            _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(x => x.PlayerProfileId == pid));
+            _ctx.Mailboxes.RemoveRange(_ctx.Mailboxes.Where(x => x.PlayerProfileId == pid));
+            _ctx.GuildMembers.RemoveRange(_ctx.GuildMembers.Where(x => x.PlayerProfileId == pid));
+            await _ctx.SaveChangesAsync();
+
+            const string cls = "Archer";
+            profile.DisplayName = milestone.DisplayName;
+            profile.Class = cls;
+            profile.ExperiencePoints = 0;
+            profile.Gold = 100;
+            profile.Gems = 0;
+            profile.CurrentEnergy = 100;
+            profile.MaxEnergy = 100;
+            profile.LastEnergyUpdateTime = DateTime.UtcNow;
+            profile.LastMapName = milestone.Map;
+            profile.PositionX = milestone.X;
+            profile.PositionY = milestone.Y;
+            profile.AvatarUrl = string.Empty;
+            profile.UpdatedAt = DateTime.UtcNow;
+            profile.Level = 1;
+            await _ctx.SaveChangesAsync();
+
+            // Quests: mọi quest QuestId <= LastQuestId = Claimed; quest kế tiếp = NotStarted.
+            var claimedQuests = mainQuests.Where(q => q.QuestId <= milestone.LastQuestId).ToList();
+            var nextQuest = mainQuests.FirstOrDefault(q => q.QuestId == milestone.LastQuestId + 1);
+
+            foreach (var quest in claimedQuests)
+            {
+                var targetAmount = Math.Max(1, quest.TargetAmount);
+                _ctx.PlayerQuests.Add(new PlayerQuest
+                {
+                    PlayerProfileId = pid,
+                    QuestId = quest.QuestId,
+                    Status = "Claimed",
+                    TargetValue = targetAmount,
+                    Progress = targetAmount,
+                    AcceptedAt = DateTime.UtcNow,
+                    CompletedAt = DateTime.UtcNow,
+                    ClaimedAt = DateTime.UtcNow
+                });
+            }
+            if (nextQuest != null)
+            {
+                _ctx.PlayerQuests.Add(new PlayerQuest
+                {
+                    PlayerProfileId = pid,
+                    QuestId = nextQuest.QuestId,
+                    Status = "NotStarted",
+                    TargetValue = Math.Max(1, nextQuest.TargetAmount),
+                    Progress = 0,
+                    AcceptedAt = DateTime.UtcNow
+                });
+            }
+            await _ctx.SaveChangesAsync();
+
+            // Replay rewards for every claimed quest (gold/exp/gems/items/skills),
+            // mirroring PlayerQuestService.ClaimRewardCore precedence rules.
+            decimal goldTotal = 100m;
+            decimal gemsTotal = 0m;
+            int expTotal = 0;
+            var grantedItemQty = new Dictionary<int, int>();
+
+            foreach (var quest in claimedQuests)
+            {
+                goldTotal += quest.RewardGold;
+                gemsTotal += quest.RewardGems;
+                expTotal += quest.RewardExperience;
+
+                var rewardItems = quest.RewardItems
+                    .Where(ri => ri.ItemId > 0 && ri.Quantity > 0)
+                    .ToList();
+                if (rewardItems.Count > 0)
+                {
+                    foreach (var ri in rewardItems)
+                        grantedItemQty[ri.ItemId] = grantedItemQty.GetValueOrDefault(ri.ItemId) + Math.Max(1, ri.Quantity);
+                }
+                else if (quest.RewardItemId.HasValue)
+                {
+                    grantedItemQty[quest.RewardItemId.Value] = grantedItemQty.GetValueOrDefault(quest.RewardItemId.Value) + 1;
+                }
+            }
+
+            profile.Gold = goldTotal;
+            profile.Gems = gemsTotal;
+            profile.AddExperience(expTotal);
+            await _ctx.SaveChangesAsync();
+
+            // Base loadout
+            _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = sword.ItemId, Quantity = 1, IsEquipped = true, IsSkin = false, EquippedSlot = "Weapon" });
+            _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = armor.ItemId, Quantity = 1, IsEquipped = true, IsSkin = false, EquippedSlot = "Armor" });
+            _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = potion.ItemId, Quantity = 3, IsEquipped = false, IsSkin = false });
+            _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = upgradeStone.ItemId, Quantity = 99, IsEquipped = false, IsSkin = false });
+
+            // Quest-granted items on top of the base loadout
+            foreach (var (itemId, qty) in grantedItemQty)
+            {
+                if (itemId == sword.ItemId || itemId == armor.ItemId || itemId == potion.ItemId || itemId == upgradeStone.ItemId)
+                    continue; // already covered by base loadout above
+                _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = itemId, Quantity = qty, IsEquipped = false, IsSkin = false });
+            }
+
+            // Default class skin
+            _ctx.PlayerSkins.Add(new PlayerSkin { PlayerProfileId = pid, SkinId = skinArcher.SkinId, IsEquipped = true, UnlockedAt = DateTime.UtcNow });
+
+            // Skills: claiming "[Chapter 1] Gather White Flowers" (Q2) triggers
+            // PlayerQuestService's tutorial hack that unlocks EVERY skill in the
+            // table — Q2 is Claimed for every milestone here, so every account ends
+            // up owning the full skill list, matching a real playthrough.
+            foreach (var skill in allSkills)
+            {
+                _ctx.PlayerSkills.Add(new PlayerSkill { PlayerProfileId = pid, SkillId = skill.SkillId, Level = 1, Experience = 0, UnlockedAt = DateTime.UtcNow });
+            }
+
+            // Stat baseline sized for QA/testing (not a balance reference) so every
+            // milestone account can survive its chapter's content immediately.
+            _ctx.PlayerStats.Add(new PlayerStat
+            {
+                PlayerProfileId = pid,
+                CurrentHp = 2000,
+                MaxHp = 2000,
+                Atk = 2000,
+                Def = 50,
+                MoveSpeed = 50,
+                AttackSpeed = 100,
+                CritRate = 50,
+                CritDamage = 150,
+            });
+
+            await _ctx.SaveChangesAsync();
+            return pid;
         }
 
         private async Task<(int BannerId, int TicketItemId)> SeedGachaBaseDataAsync(string? targetEmail = null, int ticketQuantity = 11)
@@ -1156,168 +603,137 @@ namespace Mystic_Journey_API.Controllers
             return (existingBanner.GachaBannerId, ticketItem.ItemId);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/dailylogin  → Seed 30 ngày DailyLoginRewards
-        // Xoá reward cũ rồi chèn mới đủ 30 ngày với nhiều loại phần thưởng.
-        // Các ngày có Item reward sẽ tự động dùng item [SEED] / [ELF] nếu tồn tại.
-        // ─────────────────────────────────────────────────────────────────────────
-        [HttpPost("dailylogin")]
-        public async Task<IActionResult> SeedDailyLogin()
+        // Seed 30 ngày DailyLoginReward (Gold/Energy/Gems/Item luân phiên, milestone
+        // item ở ngày 7/14/21/28). Idempotent: xoá hết reward cũ rồi chèn lại.
+        private async Task SeedDailyLoginRewards()
         {
-            await using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
+            var existingRewards = await _ctx.DailyLoginRewards.ToListAsync();
+            _ctx.DailyLoginRewards.RemoveRange(existingRewards);
+            await _ctx.SaveChangesAsync();
+
+            var potion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+            var sword  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+            var helm   = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Helmet");
+
+            var rewards = new List<DailyLoginReward>
             {
-                // Xoá toàn bộ reward cũ để seed lại sạch
-                var existingRewards = await _ctx.DailyLoginRewards.ToListAsync();
-                _ctx.DailyLoginRewards.RemoveRange(existingRewards);
-                await _ctx.SaveChangesAsync();
+                new DailyLoginReward { DayNumber = 1,  RewardType = "Gold",   RewardValue = 100,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 2,  RewardType = "Energy", RewardValue = 20,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 3,  RewardType = "Gold",   RewardValue = 200,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 4,  RewardType = "Gems",   RewardValue = 5,    IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 5,  RewardType = "Gold",   RewardValue = 300,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 6,  RewardType = "Energy", RewardValue = 30,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 7,  RewardType = "Item", RewardValue = 0, RewardItemId = potion?.ItemId, RewardItemQuantity = potion != null ? 3 : 0, IsActive = true, CreatedAt = DateTime.UtcNow },
 
-                // Dùng system items từ migration làm phần thưởng
-                var potion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
-                var sword  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
-                var helm   = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Helmet");
+                new DailyLoginReward { DayNumber = 8,  RewardType = "Gold",   RewardValue = 400,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 9,  RewardType = "Gems",   RewardValue = 10,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 10, RewardType = "Gold",   RewardValue = 500,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 11, RewardType = "Energy", RewardValue = 40,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 12, RewardType = "Gold",   RewardValue = 600,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 13, RewardType = "Gems",   RewardValue = 15,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 14, RewardType = "Item", RewardValue = 0, RewardItemId = helm?.ItemId, RewardItemQuantity = helm != null ? 1 : 0, IsActive = true, CreatedAt = DateTime.UtcNow },
 
-                // Định nghĩa phần thưởng cho 30 ngày
-                // RewardType: Gold | Gems | Energy | Item
-                var rewards = new List<DailyLoginReward>
-                {
-                    // Tuần 1 – khởi động
-                    new DailyLoginReward { DayNumber = 1,  RewardType = "Gold",   RewardValue = 100,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 2,  RewardType = "Energy", RewardValue = 20,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 3,  RewardType = "Gold",   RewardValue = 200,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 4,  RewardType = "Gems",   RewardValue = 5,    IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 5,  RewardType = "Gold",   RewardValue = 300,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 6,  RewardType = "Energy", RewardValue = 30,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward
-                    {
-                        DayNumber = 7, RewardType = "Item", RewardValue = 0,
-                        RewardItemId = potion?.ItemId, RewardItemQuantity = potion != null ? 3 : 0,
-                        IsActive = true, CreatedAt = DateTime.UtcNow
-                    },
+                new DailyLoginReward { DayNumber = 15, RewardType = "Gold",   RewardValue = 800,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 16, RewardType = "Gems",   RewardValue = 20,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 17, RewardType = "Energy", RewardValue = 50,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 18, RewardType = "Gold",   RewardValue = 900,  IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 19, RewardType = "Gems",   RewardValue = 25,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 20, RewardType = "Gold",   RewardValue = 1000, IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 21, RewardType = "Item", RewardValue = 0, RewardItemId = potion?.ItemId, RewardItemQuantity = potion != null ? 5 : 0, IsActive = true, CreatedAt = DateTime.UtcNow },
 
-                    // Tuần 2 – tăng dần
-                    new DailyLoginReward { DayNumber = 8,  RewardType = "Gold",   RewardValue = 400,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 9,  RewardType = "Gems",   RewardValue = 10,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 10, RewardType = "Gold",   RewardValue = 500,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 11, RewardType = "Energy", RewardValue = 40,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 12, RewardType = "Gold",   RewardValue = 600,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 13, RewardType = "Gems",   RewardValue = 15,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward
-                    {
-                        DayNumber = 14, RewardType = "Item", RewardValue = 0,
-                        RewardItemId = helm?.ItemId, RewardItemQuantity = helm != null ? 1 : 0,
-                        IsActive = true, CreatedAt = DateTime.UtcNow
-                    },
+                new DailyLoginReward { DayNumber = 22, RewardType = "Gold",   RewardValue = 1100, IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 23, RewardType = "Energy", RewardValue = 60,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 24, RewardType = "Gems",   RewardValue = 30,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 25, RewardType = "Gold",   RewardValue = 1200, IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 26, RewardType = "Gems",   RewardValue = 35,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 27, RewardType = "Energy", RewardValue = 70,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 28, RewardType = "Item", RewardValue = 0, RewardItemId = sword?.ItemId, RewardItemQuantity = sword != null ? 1 : 0, IsActive = true, CreatedAt = DateTime.UtcNow },
 
-                    // Tuần 3 – milestone giữa tháng
-                    new DailyLoginReward { DayNumber = 15, RewardType = "Gold",   RewardValue = 800,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 16, RewardType = "Gems",   RewardValue = 20,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 17, RewardType = "Energy", RewardValue = 50,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 18, RewardType = "Gold",   RewardValue = 900,  IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 19, RewardType = "Gems",   RewardValue = 25,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 20, RewardType = "Gold",   RewardValue = 1000, IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward
-                    {
-                        DayNumber = 21, RewardType = "Item", RewardValue = 0,
-                        RewardItemId = potion?.ItemId, RewardItemQuantity = potion != null ? 5 : 0,
-                        IsActive = true, CreatedAt = DateTime.UtcNow
-                    },
+                new DailyLoginReward { DayNumber = 29, RewardType = "Gems",   RewardValue = 50,   IsActive = true, CreatedAt = DateTime.UtcNow },
+                new DailyLoginReward { DayNumber = 30, RewardType = "Gold",   RewardValue = 2000, IsActive = true, CreatedAt = DateTime.UtcNow },
+            };
 
-                    // Tuần 4 – hướng tới cuối tháng
-                    new DailyLoginReward { DayNumber = 22, RewardType = "Gold",   RewardValue = 1100, IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 23, RewardType = "Energy", RewardValue = 60,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 24, RewardType = "Gems",   RewardValue = 30,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 25, RewardType = "Gold",   RewardValue = 1200, IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 26, RewardType = "Gems",   RewardValue = 35,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 27, RewardType = "Energy", RewardValue = 70,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward
-                    {
-                        DayNumber = 28, RewardType = "Item", RewardValue = 0,
-                        RewardItemId = sword?.ItemId, RewardItemQuantity = sword != null ? 1 : 0,
-                        IsActive = true, CreatedAt = DateTime.UtcNow
-                    },
-
-                    // Ngày 29–30 – phần thưởng lớn cuối tháng
-                    new DailyLoginReward { DayNumber = 29, RewardType = "Gems",   RewardValue = 50,   IsActive = true, CreatedAt = DateTime.UtcNow },
-                    new DailyLoginReward { DayNumber = 30, RewardType = "Gold",   RewardValue = 2000, IsActive = true, CreatedAt = DateTime.UtcNow },
-                };
-
-                _ctx.DailyLoginRewards.AddRange(rewards);
-                await _ctx.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = $"Seeded {rewards.Count} daily login rewards successfully!",
-                    Data = new
-                    {
-                        totalDays = rewards.Count,
-                        itemRewardDays = new[] { 7, 14, 21, 28 },
-                        itemsUsed = new
-                        {
-                            potion = potion != null ? $"{potion.Name} (Id={potion.ItemId})" : "Not found - day's Item will have Quantity=0",
-                            helm   = helm   != null ? $"{helm.Name} (Id={helm.ItemId})"     : "Not found",
-                            sword  = sword  != null ? $"{sword.Name} (Id={sword.ItemId})"   : "Not found",
-                        },
-                        tip = "Run POST /api/seed/inventory first to get [SEED] items before seeding daily login."
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
+            _ctx.DailyLoginRewards.AddRange(rewards);
+            await _ctx.SaveChangesAsync();
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
-        // DELETE /api/seed/inventory → Xoá toàn bộ seed data
-        // ─────────────────────────────────────────────────────────────────────────
-        [HttpDelete("inventory")]
-        public async Task<IActionResult> DeleteSeedData()
+        // Tạo/ghi đè account admin@mysticjourney.com cho FE admin portal.
+        private async Task SeedAdminAccount()
         {
-            await using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
+            const string adminEmail = "admin@mysticjourney.com";
+            const string adminUsername = "admin";
+            const string adminPassword = "AdminPassword123!";
+
+            var adminAcc = await _ctx.Accounts
+                .Include(a => a.PlayerProfile)
+                .FirstOrDefaultAsync(a => a.Email == adminEmail || a.UserName == adminUsername);
+
+            if (adminAcc == null)
             {
-                const string TEST_EMAIL = "testplayer@mystic.test";
-
-                var acc = await _ctx.Accounts
-                    .Include(a => a.PlayerProfile)
-                    .FirstOrDefaultAsync(a => a.Email == TEST_EMAIL);
-
-                if (acc?.PlayerProfile != null)
+                adminAcc = new Account
                 {
-                    int pid = acc.PlayerProfile.PlayerProfileId;
-                    _ctx.InventoryItems.RemoveRange(      _ctx.InventoryItems.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerSkins.RemoveRange(         _ctx.PlayerSkins.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerQuests.RemoveRange(        _ctx.PlayerQuests.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerStats.RemoveRange(         _ctx.PlayerStats.Where(x => x.PlayerProfileId == pid));
-                    _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pid));
-                    await _ctx.SaveChangesAsync();
-                    _ctx.PlayerProfiles.Remove(acc.PlayerProfile);
-                }
-                if (acc != null) _ctx.Accounts.Remove(acc);
-
-                var seedItems = await _ctx.Items.Where(i => EF.Functions.Like(i.Name, "[SEED]%")).ToListAsync();
-                _ctx.Items.RemoveRange(seedItems);
-
-                var seedSkins = await _ctx.Skins.Where(s => EF.Functions.Like(s.Name, "[SEED]%")).ToListAsync();
-                _ctx.Skins.RemoveRange(seedSkins);
-
-                var seedQuests = await _ctx.Quests.Where(q => EF.Functions.Like(q.Title, "[SEED]%")).ToListAsync();
-                _ctx.Quests.RemoveRange(seedQuests);
-
-                await _ctx.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed data deleted successfully." });
+                    Email = adminEmail,
+                    UserName = adminUsername,
+                    HashPassword = HashPassword(adminPassword),
+                    RoleId = 2, // Admin
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    PlayerProfile = new PlayerProfile
+                    {
+                        DisplayName = "System Admin",
+                        Class = "Knight",
+                        Level = 99,
+                        Gold = 100000,
+                        Gems = 10000,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+                _ctx.Accounts.Add(adminAcc);
             }
-            catch (Exception ex)
+            else
             {
-                await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+                adminAcc.HashPassword = HashPassword(adminPassword);
+                adminAcc.IsActive = true;
+                adminAcc.RoleId = 2;
+                adminAcc.UpdatedAt = DateTime.UtcNow;
             }
+
+            await _ctx.SaveChangesAsync();
+        }
+
+        // Lịch sử mua hàng mẫu cho các account chapter-milestone, rút từ catalogue
+        // ShopItem đã seed sẵn qua migration HasData (không tạo item/shopitem giả).
+        private async Task SeedShopPurchaseHistory(List<int> playerIds)
+        {
+            _ctx.PurchaseHistories.RemoveRange(_ctx.PurchaseHistories.Where(h => playerIds.Contains(h.PlayerProfileId)));
+            await _ctx.SaveChangesAsync();
+
+            var shopItems = await _ctx.ShopItems.Where(s => s.IsActive).ToListAsync();
+            if (shopItems.Count == 0)
+                return;
+
+            var rnd = new Random();
+            var histories = new List<PurchaseHistory>();
+            foreach (var pid in playerIds)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    var shopItem = shopItems[rnd.Next(shopItems.Count)];
+                    int qty = rnd.Next(1, 4);
+                    histories.Add(new PurchaseHistory
+                    {
+                        PlayerProfileId = pid,
+                        ShopItemId = shopItem.ShopItemId,
+                        Quantity = qty,
+                        TotalPrice = shopItem.Price * qty,
+                        PurchasedAt = DateTime.UtcNow.AddDays(-rnd.Next(0, 10)).AddHours(-rnd.Next(0, 24))
+                    });
+                }
+            }
+
+            _ctx.PurchaseHistories.AddRange(histories);
+            await _ctx.SaveChangesAsync();
         }
 
         private async Task EnsureElfForestSchema()
@@ -1385,951 +801,313 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
         }
 
         // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/dungeons → Tạo dữ liệu 3 Dungeon mẫu để test luồng Game
+        // Seed 6 Dungeon mẫu để test luồng Game (không phải route riêng, gọi từ
+        // SeedMysticJourney)
         // ─────────────────────────────────────────────────────────────────────────
-        [HttpPost("dungeons")]
-        public async Task<IActionResult> SeedDungeons()
+        private async Task SeedDungeons()
         {
-            try
+            // ─── 1. Xoá dữ liệu dungeon cũ ───────────────────────────────────────
+            var existingSpawns = await _ctx.MonsterSpawns.Where(ms => ms.DungeonId != null).ToListAsync();
+            _ctx.MonsterSpawns.RemoveRange(existingSpawns);
+
+            var existingDungeons = await _ctx.Dungeons.ToListAsync();
+            _ctx.Dungeons.RemoveRange(existingDungeons);
+
+            var existingConfigs = await _ctx.DungeonConfigs.ToListAsync();
+            _ctx.DungeonConfigs.RemoveRange(existingConfigs);
+
+            await _ctx.SaveChangesAsync();
+
+            // ─── 2. Đảm bảo tất cả monsters tồn tại (theo MonsterDatabaseSO) ────
+            //  ID  |  Tên                  | Type
+            //  1   |  SlimeLittle          | Normal
+            //  2   |  SwampDemon           | Boss
+            //  3   |  WaterElemental       | Normal
+            //  4   |  Dragon               | Normal
+            //  5   |  BlueDragonFrost      | Normal
+            //  6   |  GreenDragonForest    | Normal
+            //  7   |  DragonBossIdle       | Boss
+            //  8   |  SlimeIce            | Normal
+            //  9   |  IceDragon           | Normal
+            //  10  |  GolemBoss            | Boss
+            //  11  |  OrcSkeleton          | Normal
+            //  12  |  SkeletonMelee        | Normal
+            //  13  |  SkeletonArcher       | Normal
+            //  14  |  Ghost                | Normal
+            //  15  |  UnderKing            | Boss
+            //  16  |  Demon                | Normal
+            //  17  |  GoblinWarrior        | Normal
+            //  18  |  GoblinSpear          | Normal
+            //  19  |  Ogre                 | Boss
+            //  20  |  OrcWarlord           | Boss
+
+            // ponytail: giữ ĐỒNG BỘ với modelBuilder.Entity<Monster>().HasData trong
+            // MysticJourneyDbContext. Trước đây hàm này chỉ nhận (hp, atk, def) nên mọi
+            // quái do nó tạo ra có Level=0, MoveSpeed=0 và CritDamage=0 — tức là không
+            // bao giờ đuổi được người chơi (EnemyBehaviour tính MoveSpeed/100*3.5) và
+            // đòn "chí mạng" chỉ gây 0x sát thương. Nhận đủ chỉ số để tránh hai lỗi đó.
+            void EnsureMonster(int id, string name, string type, int level, int hp, int atk, int def,
+                               int moveSpeed, int attackSpeed, int critRate, int critDamage,
+                               int expReward, decimal goldReward, decimal gemReward = 0m)
             {
-                // ─── 1. Xoá dữ liệu dungeon cũ ───────────────────────────────────────
-                var existingSpawns = await _ctx.MonsterSpawns.Where(ms => ms.DungeonId != null).ToListAsync();
-                _ctx.MonsterSpawns.RemoveRange(existingSpawns);
-
-                var existingDungeons = await _ctx.Dungeons.ToListAsync();
-                _ctx.Dungeons.RemoveRange(existingDungeons);
-
-                var existingConfigs = await _ctx.DungeonConfigs.ToListAsync();
-                _ctx.DungeonConfigs.RemoveRange(existingConfigs);
-
-                await _ctx.SaveChangesAsync();
-
-                // ─── 2. Đảm bảo tất cả monsters tồn tại (theo MonsterDatabaseSO) ────
-                //  ID  |  Tên                  | Type
-                //  1   |  SlimeLittle          | Normal
-                //  2   |  SwampDemon           | Boss
-                //  3   |  WaterElemental       | Normal
-                //  4   |  Dragon               | Normal
-                //  5   |  BlueDragonFrost      | Normal
-                //  6   |  GreenDragonForest    | Normal
-                //  7   |  DragonBossIdle       | Boss
-                //  8   |  SlimeIce            | Normal
-                //  9   |  IceDragon           | Normal
-                //  10  |  GolemBoss            | Boss
-                //  11  |  OrcSkeleton          | Normal
-                //  12  |  SkeletonMelee        | Normal
-                //  13  |  SkeletonArcher       | Normal
-                //  14  |  Ghost                | Normal
-                //  15  |  UnderKing            | Boss
-                //  16  |  Demon                | Normal
-                //  17  |  GoblinWarrior        | Normal
-                //  18  |  GoblinSpear          | Normal
-                //  19  |  Ogre                 | Boss
-                //  20  |  OrcWarlord           | Boss
-
-                // ponytail: giữ ĐỒNG BỘ với modelBuilder.Entity<Monster>().HasData trong
-                // MysticJourneyDbContext. Trước đây hàm này chỉ nhận (hp, atk, def) nên mọi
-                // quái do nó tạo ra có Level=0, MoveSpeed=0 và CritDamage=0 — tức là không
-                // bao giờ đuổi được người chơi (EnemyBehaviour tính MoveSpeed/100*3.5) và
-                // đòn "chí mạng" chỉ gây 0x sát thương. Nhận đủ chỉ số để tránh hai lỗi đó.
-                void EnsureMonster(int id, string name, string type, int level, int hp, int atk, int def,
-                                   int moveSpeed, int attackSpeed, int critRate, int critDamage,
-                                   int expReward, decimal goldReward, decimal gemReward = 0m)
+                var m = _ctx.Monsters.Local.FirstOrDefault(x => x.MonsterId == id)
+                     ?? _ctx.Monsters.Find(id);
+                if (m == null)
                 {
-                    var m = _ctx.Monsters.Local.FirstOrDefault(x => x.MonsterId == id)
-                         ?? _ctx.Monsters.Find(id);
-                    if (m == null)
-                    {
-                        m = new Monster { MonsterId = id };
-                        _ctx.Monsters.Add(m);
-                    }
-
-                    // Ghi đè có chủ ý: seed endpoint là nguồn sự thật duy nhất khi chạy lại,
-                    // nếu chỉ insert-khi-thiếu thì các hàng có số liệu cũ sẽ sống mãi.
-                    m.Name = name;
-                    m.Type = type;
-                    m.Level = level;
-                    m.MaxHp = hp;
-                    m.Atk = atk;
-                    m.Def = def;
-                    m.MoveSpeed = moveSpeed;
-                    m.AttackSpeed = attackSpeed;
-                    m.CritRate = critRate;
-                    m.CritDamage = critDamage;
-                    m.ExperienceReward = expReward;
-                    m.GoldReward = goldReward;
-                    m.GemReward = gemReward;
-                    m.IsActive = true;
+                    m = new Monster { MonsterId = id };
+                    _ctx.Monsters.Add(m);
                 }
 
-                // Normal monsters
-                EnsureMonster(1,   "SlimeLittle",         "Normal",    1,   300,  30,   2,   70,  85,  5, 130,    4,     8m);
-                EnsureMonster(3,   "WaterElemental",      "Normal",    3,   400,  39,   5,   80,  95,  8, 140,    4,     8m);
-                EnsureMonster(4,   "Dragon",              "Normal",    6,   560,  47,  12,  110, 100, 15, 160,    6,    13m);
-                EnsureMonster(5,   "BlueDragonFrost",     "Normal",    7,   580,  48,  14,  110, 100, 15, 160,    6,    13m);
-                EnsureMonster(6,   "GreenDragonForest",   "Normal",    7,   590,  49,  15,  110, 105, 15, 160,    6,    13m);
-                EnsureMonster(8,   "SlimeIce",            "Normal",    7,   620,  50,  15,   75,  90, 10, 150,   10,    19m);
-                EnsureMonster(9,   "IceDragon",           "Normal",    9,   840,  55,  18,  115, 105, 20, 165,   10,    19m);
-                EnsureMonster(11,  "OrcSkeleton",         "Normal",    9,   850,  61,  20,   95, 100, 15, 160,   13,    26m);
-                EnsureMonster(12,  "SkeletonMelee",       "Normal",   11,  1050,  71,  22,  100, 105, 15, 160,   13,    26m);
-                EnsureMonster(13,  "SkeletonArcher",      "Normal",   12,  1160,  78,  16,  100, 115, 22, 165,   13,    26m);
-                EnsureMonster(14,  "Ghost",               "Normal",    4,   480,  42,  10,   95, 100, 15, 160,    6,    13m);
-                EnsureMonster(16,  "Demon",               "Normal",    8,   730,  51,  18,   95, 100, 20, 165,   10,    19m);
-                EnsureMonster(17,  "GoblinWarrior",       "Normal",    5,   530,  45,  13,   95, 100, 12, 150,    6,    13m);
-                EnsureMonster(18,  "GoblinSpear",         "Normal",    5,   510,  44,  10,  100, 100, 10, 150,    6,    13m);
-                EnsureMonster(23,  "NecromancerCast",     "Normal",    4,   500,  43,   7,   85,  90, 10, 155,    6,    13m);
-                EnsureMonster(24,  "RobberArcher",        "Normal",    3,   440,  40,   6,  100, 110, 12, 150,    6,    13m);
-                EnsureMonster(25,  "RobberAssassin",      "Normal",    3,   460,  41,   9,  105, 115, 18, 160,    6,    13m);
-                EnsureMonster(26,  "RedGuard",            "Normal",    6,   540,  46,  15,   85,  95, 10, 150,    6,    13m);
-                EnsureMonster(27,  "OrcSkeletonAfk",      "Normal",   10,   950,  65,  24,   90,  95, 15, 160,   13,    26m);
-
-                // Boss monsters
-                EnsureMonster(2,   "SwampDemon",          "Boss",      3,  1380,  32,  10,   90, 100, 12, 150,   22,   110m, 5m);
-                EnsureMonster(7,   "DragonBossIdle",      "Boss",      7,  2930,  53,  22,    0, 100, 20, 175,   35,   176m, 10m);
-                EnsureMonster(10,  "GolemBoss",           "Boss",      9,  4300,  65,  28,   80,  90, 20, 170,   53,   264m, 15m);
-                EnsureMonster(15,  "UnderKing",           "Boss",     12,  6040,  94,  35,   95, 100, 25, 180,   70,   352m, 30m);
-                EnsureMonster(19,  "Ogre",                "Boss",      7,  2560,  46,  19,   85,  90, 15, 165,   35,   176m, 10m);
-                EnsureMonster(20,  "OrcWarlord",          "Boss",     12,  4490,  73,  30,   95, 100, 22, 175,   70,   352m, 30m);
-                EnsureMonster(21,  "IceFairy",            "Boss",      9,  3230,  54,  16,  100, 100, 12, 150,   53,   264m, 15m);
-                EnsureMonster(22,  "GoblinWarlord",       "Boss",      7,  2180,  41,  18,   95, 100, 18, 165,   35,   176m, 10m);
-
-                await _ctx.SaveChangesAsync();
-
-                // ─── 3. Tạo 6 Dungeon (ID phải khớp với Unity DungeonConfig) ────────
-                var dungeons = new List<Dungeon>
-                {
-                    new Dungeon { DungeonId = 1, Name = "Slime Swamp",          Description = "Realm of dangerous Slimes",           IsRepeatable = true },
-                    new Dungeon { DungeonId = 2, Name = "Dragon's Lair",        Description = "The den of ferocious dragons",        IsRepeatable = true },
-                    new Dungeon { DungeonId = 3, Name = "Frozen Palace",        Description = "Ice fortress of the giant Golem",     IsRepeatable = true },
-                    new Dungeon { DungeonId = 4, Name = "Shadow Graveyard",     Description = "Underground kingdom of the Bone King",IsRepeatable = true },
-                    new Dungeon { DungeonId = 5, Name = "Goblin Camp",          Description = "Stronghold of Goblins and Ogres",     IsRepeatable = true },
-                    new Dungeon { DungeonId = 6, Name = "Hell's Gate",          Description = "Portal to the realm of Demons and Orc Warriors", IsRepeatable = true },
-                };
-                _ctx.Dungeons.AddRange(dungeons);
-
-                // ─── 4. Tạo Chest và DungeonConfig khớp với Unity ─────────────────────────────
-                
-                // Clear old chests associated with old dungeon configs
-                var chestIdsToRemove = existingConfigs.Where(c => c.ChestId.HasValue).Select(c => c.ChestId.Value).ToList();
-                if (chestIdsToRemove.Any())
-                {
-                    var chestsToRemove = await _ctx.Chests.Where(c => chestIdsToRemove.Contains(c.ChestId)).ToListAsync();
-                    _ctx.Chests.RemoveRange(chestsToRemove);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                // Create chests for each dungeon
-                var chest1 = new Chest { Name = "Slime Swamp Chest", Description = "Slime Swamp reward", Type = "Normal", GoldMinReward = 50, GoldMaxReward = 100, ExperienceReward = 50, IsActive = true };
-                var chest2 = new Chest { Name = "Dragon Lair Chest", Description = "Dragon Lair reward", Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200, ExperienceReward = 150, IsActive = true };
-                var chest3 = new Chest { Name = "Ice Palace Chest", Description = "Ice Palace reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 300, IsActive = true };
-                var chest4 = new Chest { Name = "Dark Graveyard Chest", Description = "Dark Graveyard reward", Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400, ExperienceReward = 450, IsActive = true };
-                var chest5 = new Chest { Name = "Goblin Camp Chest", Description = "Goblin Camp reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 350, IsActive = true };
-                var chest6 = new Chest { Name = "Hell Gate Chest", Description = "Hell Gate reward", Type = "Epic", GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true };
-                
-                _ctx.Chests.AddRange(chest1, chest2, chest3, chest4, chest5, chest6);
-                await _ctx.SaveChangesAsync();
-
-                // Add item drops to these chests
-                var hpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
-                var mpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Mana Potion");
-                var ironSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
-
-                var chestItems = new List<ChestItem>();
-                foreach (var chest in new[] { chest1, chest2, chest3, chest4, chest5, chest6 })
-                {
-                    if (hpPotion != null)
-                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = hpPotion.ItemId, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 });
-                    if (mpPotion != null)
-                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = mpPotion.ItemId, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 });
-                    if (ironSword != null && chest.Type == "Epic") // Cổng địa ngục is Epic
-                        chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = ironSword.ItemId, DropRate = 30.0m, QuantityMin = 1, QuantityMax = 1 });
-                }
-                if (chestItems.Any())
-                {
-                    _ctx.ChestItems.AddRange(chestItems);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                var dungeonConfigs = new List<DungeonConfig>
-                {
-                    new DungeonConfig { DungeonConfigId = 1, Name = "Slime Swamp",      Description = "Realm of dangerous Slimes",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true, ChestId = chest1.ChestId },
-                    new DungeonConfig { DungeonConfigId = 2, Name = "Dragon's Lair",    Description = "The den of ferocious dragons",        Type = "Normal", LevelRequirement = 5,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true, ChestId = chest2.ChestId },
-                    new DungeonConfig { DungeonConfigId = 3, Name = "Frozen Palace",    Description = "Ice fortress of the giant Golem",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true, ChestId = chest3.ChestId },
-                    new DungeonConfig { DungeonConfigId = 4, Name = "Shadow Graveyard", Description = "Underground kingdom of the Bone King",Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true, ChestId = chest4.ChestId },
-                    new DungeonConfig { DungeonConfigId = 5, Name = "Goblin Camp",      Description = "Stronghold of Goblins and Ogres",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true, ChestId = chest5.ChestId },
-                    new DungeonConfig { DungeonConfigId = 6, Name = "Hell's Gate",      Description = "Portal to the realm of Demons and Orc Warriors", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true, ChestId = chest6.ChestId },
-                };
-                _ctx.DungeonConfigs.AddRange(dungeonConfigs);
-                await _ctx.SaveChangesAsync();
-
-                // ─── 5. Tạo MonsterSpawns cho từng Dungeon ───────────────────────────
-                // MapName phải khớp với scene name trong Unity
-                string mapName = "HollowCryptDungeon";
-
-                var spawns = new List<MonsterSpawn>
-                {
-                    // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
-                    // Quái thường: SlimeLittle (1) + SlimeIce (8)
-                    // Boss: SwampDemon (2)
-                    new MonsterSpawn { DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                    // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────
-                    // Quái thường: Dragon (4) + BlueDragonFrost (5) + GreenDragonForest (6)
-                    // Boss: DragonBossIdle (7)
-                    new MonsterSpawn { DungeonId = 2, MonsterId = 4,  SpawnCount = 2, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 2, MonsterId = 5,  SpawnCount = 2, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 2, MonsterId = 6,  SpawnCount = 2, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 2, MonsterId = 7,  SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                    // ── Dungeon 3: Cung điện Băng giá ────────────────────────────────
-                    // Quái thường: SlimeIce (8) + IceDragon (9)
-                    // Boss: GolemBoss (10)
-                    new MonsterSpawn { DungeonId = 3, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 3, MonsterId = 9,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 3, MonsterId = 10, SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                    // ── Dungeon 4: Nghĩa địa Bóng tối ────────────────────────────────
-                    // Quái thường: SkeletonMelee (12) + SkeletonArcher (13) + OrcSkeleton (11)
-                    // Boss: UnderKing (15)
-                    new MonsterSpawn { DungeonId = 4, MonsterId = 12, SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 4, MonsterId = 13, SpawnCount = 2, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 4, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 4, MonsterId = 15, SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                    // ── Dungeon 5: Doanh trại Goblin ─────────────────────────────────
-                    // Quái thường: GoblinWarrior (17) + GoblinSpear (18)
-                    // Boss: Ogre (19)
-                    new MonsterSpawn { DungeonId = 5, MonsterId = 17, SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 5, MonsterId = 18, SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 5, MonsterId = 19, SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                    // ── Dungeon 6: Cổng địa ngục ─────────────────────────────────────
-                    // Quái thường: Ghost (14) + Demon (16) + OrcSkeleton (11)
-                    // Boss: OrcWarlord (20)
-                    new MonsterSpawn { DungeonId = 6, MonsterId = 14, SpawnCount = 3, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 6, MonsterId = 16, SpawnCount = 2, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 6, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
-                    new MonsterSpawn { DungeonId = 6, MonsterId = 20, SpawnCount = 1, MapName = mapName, IsActive = true },
-                };
-
-                _ctx.MonsterSpawns.AddRange(spawns);
-                await _ctx.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "Seeded 6 Dungeons successfully!",
-                    dungeons = new[]
-                    {
-                        "D1: Đầm lầy Slime      → SlimeLittle×3, SlimeIce×3,     Boss: SwampDemon",
-                        "D2: Sào huyệt Rồng     → Dragon×2, BlueDragon×2, GreenDragon×2, Boss: DragonBossIdle",
-                        "D3: Cung điện Băng giá → WaterElemental×3, IceDragon×3,  Boss: GolemBoss",
-                        "D4: Nghĩa địa Bóng tối → SkeletonMelee×3, Archer×2, Orc×2, Boss: UnderKing",
-                        "D5: Doanh trại Goblin  → GoblinWarrior×3, GoblinSpear×3, Boss: Ogre",
-                        "D6: Cổng địa ngục      → Ghost×3, Demon×2, OrcSkeleton×2, Boss: OrcWarlord"
-                    }
-                });
+                // Ghi đè có chủ ý: seed endpoint là nguồn sự thật duy nhất khi chạy lại,
+                // nếu chỉ insert-khi-thiếu thì các hàng có số liệu cũ sẽ sống mãi.
+                m.Name = name;
+                m.Type = type;
+                m.Level = level;
+                m.MaxHp = hp;
+                m.Atk = atk;
+                m.Def = def;
+                m.MoveSpeed = moveSpeed;
+                m.AttackSpeed = attackSpeed;
+                m.CritRate = critRate;
+                m.CritDamage = critDamage;
+                m.ExperienceReward = expReward;
+                m.GoldReward = goldReward;
+                m.GemReward = gemReward;
+                m.IsActive = true;
             }
-            catch (Exception ex)
+
+            // Normal monsters
+            EnsureMonster(1,   "SlimeLittle",         "Normal",    1,   300,  30,   2,   70,  85,  5, 130,    4,     8m);
+            EnsureMonster(3,   "WaterElemental",      "Normal",    3,   400,  39,   5,   80,  95,  8, 140,    4,     8m);
+            EnsureMonster(4,   "Dragon",              "Normal",    6,   560,  47,  12,  110, 100, 15, 160,    6,    13m);
+            EnsureMonster(5,   "BlueDragonFrost",     "Normal",    7,   580,  48,  14,  110, 100, 15, 160,    6,    13m);
+            EnsureMonster(6,   "GreenDragonForest",   "Normal",    7,   590,  49,  15,  110, 105, 15, 160,    6,    13m);
+            EnsureMonster(8,   "SlimeIce",            "Normal",    7,   620,  50,  15,   75,  90, 10, 150,   10,    19m);
+            EnsureMonster(9,   "IceDragon",           "Normal",    9,   840,  55,  18,  115, 105, 20, 165,   10,    19m);
+            EnsureMonster(11,  "OrcSkeleton",         "Normal",    9,   850,  61,  20,   95, 100, 15, 160,   13,    26m);
+            EnsureMonster(12,  "SkeletonMelee",       "Normal",   11,  1050,  71,  22,  100, 105, 15, 160,   13,    26m);
+            EnsureMonster(13,  "SkeletonArcher",      "Normal",   12,  1160,  78,  16,  100, 115, 22, 165,   13,    26m);
+            EnsureMonster(14,  "Ghost",               "Normal",    4,   480,  42,  10,   95, 100, 15, 160,    6,    13m);
+            EnsureMonster(16,  "Demon",               "Normal",    8,   730,  51,  18,   95, 100, 20, 165,   10,    19m);
+            EnsureMonster(17,  "GoblinWarrior",       "Normal",    5,   530,  45,  13,   95, 100, 12, 150,    6,    13m);
+            EnsureMonster(18,  "GoblinSpear",         "Normal",    5,   510,  44,  10,  100, 100, 10, 150,    6,    13m);
+            EnsureMonster(23,  "NecromancerCast",     "Normal",    4,   500,  43,   7,   85,  90, 10, 155,    6,    13m);
+            EnsureMonster(24,  "RobberArcher",        "Normal",    3,   440,  40,   6,  100, 110, 12, 150,    6,    13m);
+            EnsureMonster(25,  "RobberAssassin",      "Normal",    3,   460,  41,   9,  105, 115, 18, 160,    6,    13m);
+            EnsureMonster(26,  "RedGuard",            "Normal",    6,   540,  46,  15,   85,  95, 10, 150,    6,    13m);
+            EnsureMonster(27,  "OrcSkeletonAfk",      "Normal",   10,   950,  65,  24,   90,  95, 15, 160,   13,    26m);
+
+            // Boss monsters
+            EnsureMonster(2,   "SwampDemon",          "Boss",      3,  1380,  32,  10,   90, 100, 12, 150,   22,   110m, 5m);
+            EnsureMonster(7,   "DragonBossIdle",      "Boss",      7,  2930,  53,  22,    0, 100, 20, 175,   35,   176m, 10m);
+            EnsureMonster(10,  "GolemBoss",           "Boss",      9,  4300,  65,  28,   80,  90, 20, 170,   53,   264m, 15m);
+            EnsureMonster(15,  "UnderKing",           "Boss",     12,  6040,  94,  35,   95, 100, 25, 180,   70,   352m, 30m);
+            EnsureMonster(19,  "Ogre",                "Boss",      7,  2560,  46,  19,   85,  90, 15, 165,   35,   176m, 10m);
+            EnsureMonster(20,  "OrcWarlord",          "Boss",     12,  4490,  73,  30,   95, 100, 22, 175,   70,   352m, 30m);
+            EnsureMonster(21,  "IceFairy",            "Boss",      9,  3230,  54,  16,  100, 100, 12, 150,   53,   264m, 15m);
+            EnsureMonster(22,  "GoblinWarlord",       "Boss",      7,  2180,  41,  18,   95, 100, 18, 165,   35,   176m, 10m);
+
+            await _ctx.SaveChangesAsync();
+
+            // ─── 3. Tạo 6 Dungeon (ID phải khớp với Unity DungeonConfig) ────────
+            var dungeons = new List<Dungeon>
             {
-                return StatusCode(500, new { message = "Error seeding Dungeon: " + ex.Message, details = ex.InnerException?.Message });
+                new Dungeon { DungeonId = 1, Name = "Slime Swamp",          Description = "Realm of dangerous Slimes",           IsRepeatable = true },
+                new Dungeon { DungeonId = 2, Name = "Dragon's Lair",        Description = "The den of ferocious dragons",        IsRepeatable = true },
+                new Dungeon { DungeonId = 3, Name = "Frozen Palace",        Description = "Ice fortress of the giant Golem",     IsRepeatable = true },
+                new Dungeon { DungeonId = 4, Name = "Shadow Graveyard",     Description = "Underground kingdom of the Bone King",IsRepeatable = true },
+                new Dungeon { DungeonId = 5, Name = "Goblin Camp",          Description = "Stronghold of Goblins and Ogres",     IsRepeatable = true },
+                new Dungeon { DungeonId = 6, Name = "Hell's Gate",          Description = "Portal to the realm of Demons and Orc Warriors", IsRepeatable = true },
+            };
+            _ctx.Dungeons.AddRange(dungeons);
+
+            // ─── 4. Tạo Chest và DungeonConfig khớp với Unity ─────────────────────────────
+
+            // Clear old chests associated with old dungeon configs
+            var chestIdsToRemove = existingConfigs.Where(c => c.ChestId.HasValue).Select(c => c.ChestId.Value).ToList();
+            if (chestIdsToRemove.Any())
+            {
+                var chestsToRemove = await _ctx.Chests.Where(c => chestIdsToRemove.Contains(c.ChestId)).ToListAsync();
+                _ctx.Chests.RemoveRange(chestsToRemove);
+                await _ctx.SaveChangesAsync();
             }
+
+            // Create chests for each dungeon
+            var chest1 = new Chest { Name = "Slime Swamp Chest", Description = "Slime Swamp reward", Type = "Normal", GoldMinReward = 50, GoldMaxReward = 100, ExperienceReward = 50, IsActive = true };
+            var chest2 = new Chest { Name = "Dragon Lair Chest", Description = "Dragon Lair reward", Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200, ExperienceReward = 150, IsActive = true };
+            var chest3 = new Chest { Name = "Ice Palace Chest", Description = "Ice Palace reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 300, IsActive = true };
+            var chest4 = new Chest { Name = "Dark Graveyard Chest", Description = "Dark Graveyard reward", Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400, ExperienceReward = 450, IsActive = true };
+            var chest5 = new Chest { Name = "Goblin Camp Chest", Description = "Goblin Camp reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 350, IsActive = true };
+            var chest6 = new Chest { Name = "Hell Gate Chest", Description = "Hell Gate reward", Type = "Epic", GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true };
+
+            _ctx.Chests.AddRange(chest1, chest2, chest3, chest4, chest5, chest6);
+            await _ctx.SaveChangesAsync();
+
+            // Add item drops to these chests
+            var hpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+            var mpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Mana Potion");
+            var ironSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+
+            var chestItems = new List<ChestItem>();
+            foreach (var chest in new[] { chest1, chest2, chest3, chest4, chest5, chest6 })
+            {
+                if (hpPotion != null)
+                    chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = hpPotion.ItemId, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 });
+                if (mpPotion != null)
+                    chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = mpPotion.ItemId, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 });
+                if (ironSword != null && chest.Type == "Epic") // Cổng địa ngục is Epic
+                    chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = ironSword.ItemId, DropRate = 30.0m, QuantityMin = 1, QuantityMax = 1 });
+            }
+            if (chestItems.Any())
+            {
+                _ctx.ChestItems.AddRange(chestItems);
+                await _ctx.SaveChangesAsync();
+            }
+
+            var dungeonConfigs = new List<DungeonConfig>
+            {
+                new DungeonConfig { DungeonConfigId = 1, Name = "Slime Swamp",      Description = "Realm of dangerous Slimes",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true, ChestId = chest1.ChestId },
+                new DungeonConfig { DungeonConfigId = 2, Name = "Dragon's Lair",    Description = "The den of ferocious dragons",        Type = "Normal", LevelRequirement = 5,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true, ChestId = chest2.ChestId },
+                new DungeonConfig { DungeonConfigId = 3, Name = "Frozen Palace",    Description = "Ice fortress of the giant Golem",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true, ChestId = chest3.ChestId },
+                new DungeonConfig { DungeonConfigId = 4, Name = "Shadow Graveyard", Description = "Underground kingdom of the Bone King",Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true, ChestId = chest4.ChestId },
+                new DungeonConfig { DungeonConfigId = 5, Name = "Goblin Camp",      Description = "Stronghold of Goblins and Ogres",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true, ChestId = chest5.ChestId },
+                new DungeonConfig { DungeonConfigId = 6, Name = "Hell's Gate",      Description = "Portal to the realm of Demons and Orc Warriors", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true, ChestId = chest6.ChestId },
+            };
+            _ctx.DungeonConfigs.AddRange(dungeonConfigs);
+            await _ctx.SaveChangesAsync();
+
+            // ─── 5. Tạo MonsterSpawns cho từng Dungeon ───────────────────────────
+            // MapName phải khớp với scene name trong Unity
+            string mapName = "HollowCryptDungeon";
+
+            var spawns = new List<MonsterSpawn>
+            {
+                // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
+                new MonsterSpawn { DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────
+                new MonsterSpawn { DungeonId = 2, MonsterId = 4,  SpawnCount = 2, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 2, MonsterId = 5,  SpawnCount = 2, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 2, MonsterId = 6,  SpawnCount = 2, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 2, MonsterId = 7,  SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                // ── Dungeon 3: Cung điện Băng giá ────────────────────────────────
+                new MonsterSpawn { DungeonId = 3, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 3, MonsterId = 9,  SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 3, MonsterId = 10, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                // ── Dungeon 4: Nghĩa địa Bóng tối ────────────────────────────────
+                new MonsterSpawn { DungeonId = 4, MonsterId = 12, SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 4, MonsterId = 13, SpawnCount = 2, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 4, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 4, MonsterId = 15, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                // ── Dungeon 5: Doanh trại Goblin ─────────────────────────────────
+                new MonsterSpawn { DungeonId = 5, MonsterId = 17, SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 5, MonsterId = 18, SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 5, MonsterId = 19, SpawnCount = 1, MapName = mapName, IsActive = true },
+
+                // ── Dungeon 6: Cổng địa ngục ─────────────────────────────────────
+                new MonsterSpawn { DungeonId = 6, MonsterId = 14, SpawnCount = 3, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 6, MonsterId = 16, SpawnCount = 2, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 6, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
+                new MonsterSpawn { DungeonId = 6, MonsterId = 20, SpawnCount = 1, MapName = mapName, IsActive = true },
+            };
+
+            _ctx.MonsterSpawns.AddRange(spawns);
+            await _ctx.SaveChangesAsync();
         }
 
         // ─────────────────────────────────────────────────────────────────────────
+        // Seed Content mẫu (không phải route riêng, gọi từ SeedMysticJourney)
         // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/content -> Seed Content
-        // ─────────────────────────────────────────────────────────────────────────
-        [HttpPost("content")]
-        public async Task<IActionResult> SeedContent()
+        private async Task SeedContent()
         {
-            await using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
+            var adminAcc = await _ctx.Accounts.FirstOrDefaultAsync(a => a.Email == "admin@mystic.test");
+            if (adminAcc == null)
             {
-                var adminAcc = await _ctx.Accounts.FirstOrDefaultAsync(a => a.Email == "admin@mystic.test");
-                if (adminAcc == null)
+                adminAcc = new Account
                 {
-                    adminAcc = new Account
-                    {
-                        UserName = "admin_seed",
-                        Email = "admin@mystic.test",
-                        HashPassword = HashPassword("Abc@12345"),
-                        RoleId = 2,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _ctx.Accounts.Add(adminAcc);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                var existingContents = await _ctx.Contents.Where(c => c.Title.StartsWith("[SEED]")).ToListAsync();
-                if (existingContents.Any())
-                {
-                    _ctx.Contents.RemoveRange(existingContents);
-                    await _ctx.SaveChangesAsync();
-                }
-                
-                var existingCategories = await _ctx.CategoryContents.Where(c => c.Name.StartsWith("[SEED]")).ToListAsync();
-                if (existingCategories.Any())
-                {
-                    _ctx.CategoryContents.RemoveRange(existingCategories);
-                    await _ctx.SaveChangesAsync();
-                }
-
-                var catElfForest = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "elf-forest") 
-                    ?? new CategoryContent { Name = "Elf Forest", Slug = "elf-forest", Description = "The ancient forest where Elves live. It was once protected by the Origin Tree before the curse fell.", IsActive = true, IconUrl = null };
-                var catSealBooks = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "seal-books") 
-                    ?? new CategoryContent { Name = "Seal Books", Slug = "seal-books", Description = "A collection of four ancient seal books containing elemental power used to solve mysteries in the game.", IsActive = true, IconUrl = null };
-                var catChronicle = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "the-chronicle") 
-                    ?? new CategoryContent { Name = "The Chronicle", Slug = "the-chronicle", Description = "A journal recording the legends, myths, and main story events happening across the lands.", IsActive = true, IconUrl = null };
-
-                var catNews = new CategoryContent { Name = "[SEED] News", Slug = "seed-news", Description = "Game News", IsActive = true };
-                var catGuides = new CategoryContent { Name = "[SEED] Guides", Slug = "seed-guides", Description = "Beginner Guides", IsActive = true };
-
-                if (catElfForest.CategoryContentId == 0) _ctx.CategoryContents.Add(catElfForest);
-                if (catSealBooks.CategoryContentId == 0) _ctx.CategoryContents.Add(catSealBooks);
-                if (catChronicle.CategoryContentId == 0) _ctx.CategoryContents.Add(catChronicle);
-                _ctx.CategoryContents.AddRange(catNews, catGuides);
-                await _ctx.SaveChangesAsync();
-
-                var content1 = new Content
-                {
-                    Title = "[SEED] Welcome to Mystic Journey",
-                    Slug = "seed-welcome-to-mystic-journey",
-                    Summary = "Welcome to the world of Mystic Journey. Explore 4 mystical lands.",
-                    ThumbnailUrl = null,
-                    CategoryContentId = catNews.CategoryContentId,
-                    IsPublished = true,
-                    CreatedAt = DateTime.UtcNow,
-                    PublishedAt = DateTime.UtcNow,
-                    CreatedByAccountId = Guid.Empty,
-                    BlockContents = new List<BlockContent>
-                    {
-                        new BlockContent { Title = "Introduction", BlockType = "Text", ContentData = "Mystic Journey is an open-world RPG featuring 4 distinct lands...", SortOrder = 1 },
-                        new BlockContent { Title = "Lands", BlockType = "Text", ContentData = "Includes Elf Forest, Autumn Pumpkin, Frozen Mountains, and Vestige of an Era.", SortOrder = 2 }
-                    }
+                    UserName = "admin_seed",
+                    Email = "admin@mystic.test",
+                    HashPassword = HashPassword("Abc@12345"),
+                    RoleId = 2,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
                 };
-                
-                var content2 = new Content
-                {
-                    Title = "[SEED] Beginner Guide - Chapter 1",
-                    Slug = "seed-beginner-guide",
-                    Summary = "A survival handbook in Elf Forest for beginners.",
-                    ThumbnailUrl = null,
-                    CategoryContentId = catGuides.CategoryContentId,
-                    IsPublished = true,
-                    CreatedAt = DateTime.UtcNow,
-                    PublishedAt = DateTime.UtcNow,
-                    CreatedByAccountId = Guid.Empty,
-                    BlockContents = new List<BlockContent>
-                    {
-                        new BlockContent { Title = "Combat Guide", BlockType = "Text", ContentData = "Use basic skills to defeat Shadow Sprout.", SortOrder = 1 }
-                    }
-                };
-
-                _ctx.Contents.AddRange(content1, content2);
+                _ctx.Accounts.Add(adminAcc);
                 await _ctx.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed content successfully." });
             }
-            catch (Exception ex)
+
+            var existingContents = await _ctx.Contents.Where(c => c.Title.StartsWith("[SEED]")).ToListAsync();
+            if (existingContents.Any())
             {
-                await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
+                _ctx.Contents.RemoveRange(existingContents);
+                await _ctx.SaveChangesAsync();
             }
-        }
 
-        [HttpPost("friends")]
-        public async Task<IActionResult> SeedFriends()
-        {
-            using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
+            var existingCategories = await _ctx.CategoryContents.Where(c => c.Name.StartsWith("[SEED]")).ToListAsync();
+            if (existingCategories.Any())
             {
-                const string TEST_EMAIL = "elf1@mystic.test";
-                var mainAcc = await _ctx.Accounts
-                    .Include(a => a.PlayerProfile)
-                    .FirstOrDefaultAsync(a => a.Email == TEST_EMAIL);
-
-                if (mainAcc == null || mainAcc.PlayerProfile == null)
-                {
-                    return BadRequest(new ApiResponse<object> { Success = false, Message = $"{TEST_EMAIL} not found. Please create or login with this account first." });
-                }
-
-                int mainPid = mainAcc.PlayerProfile.PlayerProfileId;
-
-                // Xóa bots cũ
-                var botEmails = Enumerable.Range(1, 15).Select(i => $"bot{i}@mystic.test").ToList();
-                var existingBots = await _ctx.Accounts
-                    .Include(a => a.PlayerProfile)
-                    .Where(a => botEmails.Contains(a.Email))
-                    .ToListAsync();
-                
-                foreach (var acc in existingBots)
-                {
-                    if (acc.PlayerProfile != null)
-                    {
-                        _ctx.Friends.RemoveRange(_ctx.Friends.Where(f => f.RequesterId == acc.PlayerProfile.PlayerProfileId || f.AddresseeId == acc.PlayerProfile.PlayerProfileId));
-                        await _ctx.SaveChangesAsync();
-                        _ctx.PlayerProfiles.Remove(acc.PlayerProfile);
-                    }
-                    _ctx.Accounts.Remove(acc);
-                }
+                _ctx.CategoryContents.RemoveRange(existingCategories);
                 await _ctx.SaveChangesAsync();
-
-                // Tạo 15 Bots
-                var botProfiles = new List<PlayerProfile>();
-                var classes = new[] { "Knight", "Mage", "Archer" };
-                var names = new[] { "Alex", "Bob", "Charlie", "David", "Eve", "Fiona", "George", "Hannah", "Ian", "Jane", "Kevin", "Luna", "Mike", "Nina", "Oscar" };
-
-                for (int i = 1; i <= 15; i++)
-                {
-                    var botAcc = new Account
-                    {
-                        UserName = $"bot{i}",
-                        Email = $"bot{i}@mystic.test",
-                        HashPassword = HashPassword("Abc@12345"),
-                        RoleId = 1,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _ctx.Accounts.Add(botAcc);
-                    await _ctx.SaveChangesAsync();
-
-                    var botProf = new PlayerProfile
-                    {
-                        AccountId = botAcc.AccountId,
-                        DisplayName = names[i - 1],
-                        Class = classes[i % 3],
-                        Level = 5 + i,
-                        Gold = 1000,
-                        Gems = 100,
-                        CurrentEnergy = 100,
-                        MaxEnergy = 100,
-                        LastEnergyUpdateTime = DateTime.UtcNow,
-                        LastMapName = "ElfForest",
-                        PositionX = 0, PositionY = 0,
-                        AvatarUrl = ""
-                    };
-                    _ctx.PlayerProfiles.Add(botProf);
-                    await _ctx.SaveChangesAsync();
-                    botProfiles.Add(botProf);
-                }
-
-                // Gán Relationship
-                var friendsList = new List<Friend>();
-
-                // 5 Accepted (Bạn bè)
-                for (int i = 0; i < 5; i++)
-                {
-                    friendsList.Add(new Friend { RequesterId = mainPid, AddresseeId = botProfiles[i].PlayerProfileId, Status = "Accepted", CreatedAt = DateTime.UtcNow });
-                }
-
-                // 5 Pending (Lời mời kết bạn GỬI ĐẾN mainPid)
-                for (int i = 5; i < 10; i++)
-                {
-                    friendsList.Add(new Friend { RequesterId = botProfiles[i].PlayerProfileId, AddresseeId = mainPid, Status = "Pending", CreatedAt = DateTime.UtcNow });
-                }
-
-                // 3 Blocked (mainPid CHẶN bot)
-                for (int i = 10; i < 13; i++)
-                {
-                    friendsList.Add(new Friend { RequesterId = mainPid, AddresseeId = botProfiles[i].PlayerProfileId, Status = "Blocked", CreatedAt = DateTime.UtcNow });
-                }
-
-                // 2 Không có quan hệ (bot 14, 15) -> Sẽ hiện nút Add khi Search
-
-                _ctx.Friends.AddRange(friendsList);
-                await _ctx.SaveChangesAsync();
-                
-                await tx.CommitAsync();
-
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seed 15 friends successfully." });
             }
-            catch (Exception ex)
+
+            var catElfForest = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "elf-forest")
+                ?? new CategoryContent { Name = "Elf Forest", Slug = "elf-forest", Description = "The ancient forest where Elves live. It was once protected by the Origin Tree before the curse fell.", IsActive = true, IconUrl = null };
+            var catSealBooks = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "seal-books")
+                ?? new CategoryContent { Name = "Seal Books", Slug = "seal-books", Description = "A collection of four ancient seal books containing elemental power used to solve mysteries in the game.", IsActive = true, IconUrl = null };
+            var catChronicle = await _ctx.CategoryContents.FirstOrDefaultAsync(c => c.Slug == "the-chronicle")
+                ?? new CategoryContent { Name = "The Chronicle", Slug = "the-chronicle", Description = "A journal recording the legends, myths, and main story events happening across the lands.", IsActive = true, IconUrl = null };
+
+            var catNews = new CategoryContent { Name = "[SEED] News", Slug = "seed-news", Description = "Game News", IsActive = true };
+            var catGuides = new CategoryContent { Name = "[SEED] Guides", Slug = "seed-guides", Description = "Beginner Guides", IsActive = true };
+
+            if (catElfForest.CategoryContentId == 0) _ctx.CategoryContents.Add(catElfForest);
+            if (catSealBooks.CategoryContentId == 0) _ctx.CategoryContents.Add(catSealBooks);
+            if (catChronicle.CategoryContentId == 0) _ctx.CategoryContents.Add(catChronicle);
+            _ctx.CategoryContents.AddRange(catNews, catGuides);
+            await _ctx.SaveChangesAsync();
+
+            var content1 = new Content
             {
-                await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
-        }
+                Title = "[SEED] Welcome to Mystic Journey",
+                Slug = "seed-welcome-to-mystic-journey",
+                Summary = "Welcome to the world of Mystic Journey. Explore 4 mystical lands.",
+                ThumbnailUrl = null,
+                CategoryContentId = catNews.CategoryContentId,
+                IsPublished = true,
+                CreatedAt = DateTime.UtcNow,
+                PublishedAt = DateTime.UtcNow,
+                CreatedByAccountId = Guid.Empty,
+                BlockContents = new List<BlockContent>
+                {
+                    new BlockContent { Title = "Introduction", BlockType = "Text", ContentData = "Mystic Journey is an open-world RPG featuring 4 distinct lands...", SortOrder = 1 },
+                    new BlockContent { Title = "Lands", BlockType = "Text", ContentData = "Includes Elf Forest, Autumn Pumpkin, Frozen Mountains, and Vestige of an Era.", SortOrder = 2 }
+                }
+            };
 
-        // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/guilds → Seed dữ liệu Bang hội (Guild System v3)
-        // ─────────────────────────────────────────────────────────────────────────
-        [HttpPost("guilds")]
-        public async Task<IActionResult> SeedGuilds()
-        {
-            await using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
+            var content2 = new Content
             {
-                // 1. Xóa các Guild cũ do bot tạo
-                var botAccounts = await _ctx.Accounts.Where(a => a.Email.StartsWith("guildbot")).Select(a => a.AccountId).ToListAsync();
-                var oldBotProfiles = await _ctx.PlayerProfiles.Where(p => botAccounts.Contains(p.AccountId)).Select(p => p.PlayerProfileId).ToListAsync();
-                var existingGuilds = await _ctx.Guilds.Where(g => oldBotProfiles.Contains(g.CreatedByProfileId)).ToListAsync();
-                if (existingGuilds.Any())
+                Title = "[SEED] Beginner Guide - Chapter 1",
+                Slug = "seed-beginner-guide",
+                Summary = "A survival handbook in Elf Forest for beginners.",
+                ThumbnailUrl = null,
+                CategoryContentId = catGuides.CategoryContentId,
+                IsPublished = true,
+                CreatedAt = DateTime.UtcNow,
+                PublishedAt = DateTime.UtcNow,
+                CreatedByAccountId = Guid.Empty,
+                BlockContents = new List<BlockContent>
                 {
-                    _ctx.Guilds.RemoveRange(existingGuilds);
-                    await _ctx.SaveChangesAsync();
+                    new BlockContent { Title = "Combat Guide", BlockType = "Text", ContentData = "Use basic skills to defeat Shadow Sprout.", SortOrder = 1 }
                 }
+            };
 
-                // 2. Tạo 10 user giả để làm Leader / Member
-                var botProfiles = new List<PlayerProfile>();
-                for (int i = 1; i <= 10; i++)
-                {
-                    string email = $"guildbot{i}@mystic.test";
-                    var acc = await _ctx.Accounts.FirstOrDefaultAsync(a => a.Email == email);
-                    if (acc == null)
-                    {
-                        acc = new Account { UserName = $"guildbot{i}", Email = email, HashPassword = HashPassword("123"), IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = 1 };
-                        _ctx.Accounts.Add(acc);
-                        await _ctx.SaveChangesAsync();
-                    }
-
-                    var prof = await _ctx.PlayerProfiles.FirstOrDefaultAsync(p => p.AccountId == acc.AccountId);
-                    if (prof == null)
-                    {
-                        prof = new PlayerProfile { AccountId = acc.AccountId, DisplayName = $"GuildBot {i}", Level = i * 5, Class = "Knight", CreatedAt = DateTime.UtcNow };
-                        _ctx.PlayerProfiles.Add(prof);
-                    }
-                    else
-                    {
-                        // Cập nhật lại tên nếu account đã tồn tại từ lần seed trước
-                        prof.DisplayName = $"GuildBot {i}";
-                    }
-                    await _ctx.SaveChangesAsync();
-                    botProfiles.Add(prof);
-                }
-
-                // 3. Tạo 3 Guilds
-                var guild1 = new Guild
-                {
-                    Name = "Dragon Slayer",
-                    Notice = "Dragon hunting guild, recruiting active members!",
-                    IconId = 1,
-                    BannerId = 1,
-                    Level = 7,
-                    GuildExp = 50000,
-                    JoinPolicy = DAL.Models.GuildJoinPolicy.Approval,
-                    RequiredLevel = 20,
-                    LeaderId = botProfiles[0].PlayerProfileId,
-                    CreatedByProfileId = botProfiles[0].PlayerProfileId,
-                    TotalMedals = 150000,
-                    CreatedAt = DateTime.UtcNow.AddDays(-30)
-                };
-
-                var guild2 = new Guild
-                {
-                    Name = "Noob House",
-                    Notice = "Just for fun, level doesn't matter.",
-                    IconId = 2,
-                    BannerId = 2,
-                    Level = 2,
-                    GuildExp = 1500,
-                    JoinPolicy = DAL.Models.GuildJoinPolicy.Open,
-                    RequiredLevel = 1,
-                    LeaderId = botProfiles[1].PlayerProfileId,
-                    CreatedByProfileId = botProfiles[1].PlayerProfileId,
-                    TotalMedals = 5000,
-                    CreatedAt = DateTime.UtcNow.AddDays(-5)
-                };
-
-                var guild3 = new Guild
-                {
-                    Name = "Solo Leveling",
-                    Notice = "F2P only.",
-                    IconId = 3,
-                    BannerId = 3,
-                    Level = 5,
-                    GuildExp = 25000,
-                    JoinPolicy = DAL.Models.GuildJoinPolicy.InviteOnly,
-                    RequiredLevel = 50,
-                    LeaderId = botProfiles[2].PlayerProfileId,
-                    CreatedByProfileId = botProfiles[2].PlayerProfileId,
-                    TotalMedals = 75000,
-                    CreatedAt = DateTime.UtcNow.AddDays(-15)
-                };
-
-                _ctx.Guilds.AddRange(guild1, guild2, guild3);
-                await _ctx.SaveChangesAsync();
-
-                // 4. Thêm thành viên vào Guild 1
-                var members = new List<GuildMember>
-                {
-                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[0].PlayerProfileId, Role = DAL.Models.GuildRole.Leader, Feats = 10000, JoinedAt = DateTime.UtcNow.AddDays(-30) },
-                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[3].PlayerProfileId, Role = DAL.Models.GuildRole.Officer, Feats = 5000, JoinedAt = DateTime.UtcNow.AddDays(-20) },
-                    new GuildMember { GuildId = guild1.GuildId, PlayerProfileId = botProfiles[4].PlayerProfileId, Role = DAL.Models.GuildRole.Member, Feats = 200, JoinedAt = DateTime.UtcNow.AddDays(-5) }
-                };
-
-                // Guild 2
-                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[1].PlayerProfileId, Role = DAL.Models.GuildRole.Leader, Feats = 500, JoinedAt = DateTime.UtcNow.AddDays(-5) });
-                members.Add(new GuildMember { GuildId = guild2.GuildId, PlayerProfileId = botProfiles[5].PlayerProfileId, Role = DAL.Models.GuildRole.Member, Feats = 10, JoinedAt = DateTime.UtcNow.AddDays(-1) });
-
-                // Guild 3 (Chỉ có 1 leader cô đơn)
-                members.Add(new GuildMember { GuildId = guild3.GuildId, PlayerProfileId = botProfiles[2].PlayerProfileId, Role = DAL.Models.GuildRole.Leader, Feats = 99999, JoinedAt = DateTime.UtcNow.AddDays(-15) });
-
-                _ctx.GuildMembers.AddRange(members);
-                await _ctx.SaveChangesAsync();
-
-                await tx.CommitAsync();
-                return Ok(new ApiResponse<object> { Success = true, Message = "Seeded 3 Guilds successfully!" });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
-        }
-
-        // ─────────────────────────────────────────────────────────────────────────
-        // POST /api/seed/testcoopskill
-        // ─────────────────────────────────────────────────────────────────────────
-        [HttpPost("testcoopskill")]
-        public async Task<IActionResult> SeedTestCoopSkill()
-        {
-            await using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
-            {
-                var targetEmails = new[] { "elf3@mystic.test", "elf4@mystic.test" };
-                
-                // Cleanup existing
-                var existingAccounts = await _ctx.Accounts
-                    .Include(a => a.PlayerProfile)
-                    .Where(a => targetEmails.Contains(a.Email))
-                    .ToListAsync();
-                
-                foreach (var acc in existingAccounts)
-                {
-                    var pp = acc.PlayerProfile;
-                    if (pp != null)
-                    {
-                        _ctx.PlayerSkills.RemoveRange(_ctx.PlayerSkills.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pp.PlayerProfileId));
-                        _ctx.PlayerProfiles.Remove(pp);
-                    }
-                    _ctx.Accounts.Remove(acc);
-                }
-                await _ctx.SaveChangesAsync();
-
-                // Create Elf3 (Mage)
-                var elf3Account = new Account { UserName = "elf3", Email = "elf3@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
-                _ctx.Accounts.Add(elf3Account);
-                await _ctx.SaveChangesAsync();
-
-                var elf3Profile = new PlayerProfile { AccountId = elf3Account.AccountId, DisplayName = "Elf 3 Mage", Class = "Mage", Level = 12, ExperiencePoints = 1100, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "AutumnPumpkin", PositionX = 0, PositionY = 0, AvatarUrl = "" };
-                _ctx.PlayerProfiles.Add(elf3Profile);
-                await _ctx.SaveChangesAsync();
-
-                // Seed completed Quests Q1..Q19 for elf3 (Q16-Q19 are the Chapter 2 trials); Q20 Slay the Dragon is Claimed below
-                for (int qId = 1; qId <= 19; qId++)
-                {
-                    _ctx.PlayerQuests.Add(new PlayerQuest
-                    {
-                        PlayerProfileId = elf3Profile.PlayerProfileId,
-                        QuestId = qId,
-                        Status = "Claimed",
-                        Progress = qId >= 15 ? 10 : 1,
-                        AcceptedAt = DateTime.UtcNow,
-                        CompletedAt = DateTime.UtcNow,
-                        ClaimedAt = DateTime.UtcNow
-                    });
-                }
-                _ctx.PlayerQuests.Add(new PlayerQuest
-                {
-                    PlayerProfileId = elf3Profile.PlayerProfileId,
-                    QuestId = 20,
-                    Status = "Claimed",
-                    Progress = 1,
-                    TargetValue = 1,
-                    AcceptedAt = DateTime.UtcNow,
-                    CompletedAt = DateTime.UtcNow,
-                    ClaimedAt = DateTime.UtcNow
-                });
-                await _ctx.SaveChangesAsync();
-
-                _ctx.PlayerStats.Add(new PlayerStat
-                {
-                    PlayerProfileId = elf3Profile.PlayerProfileId,
-                    CurrentHp = 500, MaxHp = 500,
-                    Atk = 60, Def = 30,
-                    MoveSpeed = 50, AttackSpeed = 100,
-                    CritRate = 50, CritDamage = 150,
-                    DamageBonus = 0,
-                    SkillPoints = 10,
-                });
-                await _ctx.SaveChangesAsync();
-
-                // Create Elf4 (Archer)
-                var elf4Account = new Account { UserName = "elf4", Email = "elf4@mystic.test", HashPassword = HashPassword("Abc@12345"), RoleId = 1, IsActive = true, CreatedAt = DateTime.UtcNow };
-                _ctx.Accounts.Add(elf4Account);
-                await _ctx.SaveChangesAsync();
-
-                var elf4Profile = new PlayerProfile { AccountId = elf4Account.AccountId, DisplayName = "Elf 4 Knight", Class = "Knight", Level = 10, Gold = 5000, Gems = 500, CurrentEnergy = 100, MaxEnergy = 100, LastEnergyUpdateTime = DateTime.UtcNow, LastMapName = "ElfForest", PositionX = 0, PositionY = 0, AvatarUrl = "" };
-                _ctx.PlayerProfiles.Add(elf4Profile);
-                await _ctx.SaveChangesAsync();
-
-                _ctx.PlayerStats.Add(new PlayerStat
-                {
-                    PlayerProfileId = elf4Profile.PlayerProfileId,
-                    CurrentHp = 500, MaxHp = 500,
-                    Atk = 60, Def = 30,
-                    MoveSpeed = 50, AttackSpeed = 100,
-                    CritRate = 50, CritDamage = 150,
-                    DamageBonus = 0,
-                    SkillPoints = 10,
-                });
-                await _ctx.SaveChangesAsync();
-
-                // Add skills for Mage (Elf 3)
-                var mageSkills = await _ctx.Skills.Where(s => s.ClassRequirement == "Mage" || s.ClassRequirement == "All").ToListAsync();
-                int slot = 0;
-                foreach (var skill in mageSkills)
-                {
-                    _ctx.PlayerSkills.Add(new PlayerSkill
-                    {
-                        PlayerProfileId = elf3Profile.PlayerProfileId,
-                        SkillId = skill.SkillId,
-                        Level = 1,
-                        EquippedSlot = slot < 3 ? slot : (int?)null
-                    });
-                    slot++;
-                }
-
-                // Add skins for Knight (Elf 4)
-                var knightSkills = await _ctx.Skills.Where(s => s.ClassRequirement == "Knight" || s.ClassRequirement == "All").ToListAsync();
-                slot = 0;
-                foreach (var skill in knightSkills)
-                {
-                    _ctx.PlayerSkills.Add(new PlayerSkill
-                    {
-                        PlayerProfileId = elf4Profile.PlayerProfileId,
-                        SkillId = skill.SkillId,
-                        Level = 1,
-                        EquippedSlot = slot < 3 ? slot : (int?)null
-                    });
-                    slot++;
-                }
-
-                // Equip skin for Mage
-                var mageSkin = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name.Contains("Mage") || s.Name.Contains("Elven Blade"));
-                if (mageSkin != null)
-                {
-                    _ctx.PlayerSkins.Add(new PlayerSkin
-                    {
-                        PlayerProfileId = elf3Profile.PlayerProfileId,
-                        SkinId = mageSkin.SkinId,
-                        IsEquipped = true,
-                        UnlockedAt = DateTime.UtcNow
-                    });
-                }
-
-                // Equip skin for Knight
-                var knightSkin = await _ctx.Skins.FirstOrDefaultAsync(s => s.Name.Contains("Knight") || s.Name.Contains("ElfForest Default"));
-                if (knightSkin != null)
-                {
-                    _ctx.PlayerSkins.Add(new PlayerSkin
-                    {
-                        PlayerProfileId = elf4Profile.PlayerProfileId,
-                        SkinId = knightSkin.SkinId,
-                        IsEquipped = true,
-                        UnlockedAt = DateTime.UtcNow
-                    });
-                }
-
-                await _ctx.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Seeded elf3 (Mage) and elf4 (Knight) successfully with full skills!"
-                });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
-        }
-
-        [HttpPost("transactions")]
-        public async Task<IActionResult> SeedTransactions()
-        {
-            await using var tx = await _ctx.Database.BeginTransactionAsync();
-            try
-            {
-                var emails = new[] { "elf1@mystic.test", "elf2@mystic.test" };
-                var accounts = await _ctx.Accounts.Where(a => emails.Contains(a.Email)).ToListAsync();
-                var accountIds = accounts.Select(a => a.AccountId).ToList();
-                
-                var players = await _ctx.PlayerProfiles.Where(p => accountIds.Contains(p.AccountId)).ToListAsync();
-                
-                if (!players.Any())
-                {
-                    return BadRequest(new ApiResponse<object> { Success = false, Message = $"No player profiles found for accounts: {string.Join(", ", emails)}" });
-                }
-
-                var shopItems = await _ctx.ShopItems.Include(s => s.Item).Take(5).ToListAsync();
-                if (!shopItems.Any())
-                {
-                    var dummyItem = new Item
-                    {
-                        Name = "Legendary Sword",
-                        Description = "A very shiny sword for testing UI.",
-                        Type = "Weapon",
-                        Rarity = "Legendary",
-                        IconUrl = "https://res.cloudinary.com/du72t3082/image/upload/v1731608753/icon_g8z1c5.png", // Sample image
-                        MaxStack = 1,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _ctx.Items.Add(dummyItem);
-                    await _ctx.SaveChangesAsync();
-
-                    var dummyShopItem = new ShopItem
-                    {
-                        ItemId = dummyItem.ItemId,
-                        Currency = "Gem",
-                        Price = 500,
-                        IsActive = true
-                    };
-                    _ctx.ShopItems.Add(dummyShopItem);
-                    await _ctx.SaveChangesAsync();
-                    
-                    shopItems.Add(dummyShopItem);
-                    dummyShopItem.Item = dummyItem; 
-                }
-
-                var histories = new List<PurchaseHistory>();
-                var rnd = new Random();
-
-                foreach (var p in players)
-                {
-                    for (int i = 0; i < 15; i++)
-                    {
-                        var shopItem = shopItems[rnd.Next(shopItems.Count)];
-                        int qty = rnd.Next(1, 5);
-                        histories.Add(new PurchaseHistory
-                        {
-                            PlayerProfileId = p.PlayerProfileId,
-                            ShopItemId = shopItem.ShopItemId,
-                            Quantity = qty,
-                            TotalPrice = shopItem.Price * qty,
-                            PurchasedAt = DateTime.UtcNow.AddDays(-rnd.Next(0, 10)).AddHours(-rnd.Next(0, 24))
-                        });
-                    }
-                }
-
-                _ctx.PurchaseHistories.AddRange(histories);
-                await _ctx.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = $"Seeded {histories.Count} transactions for {players.Count} players."
-                });
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
-        }
-
-        // ── POST /api/seed/admin ─────────────────────────────────────
-        // Seed tài khoản Admin mặc định cho testing. Mật khẩu hardcode trong
-        // source, nên endpoint này chỉ tồn tại ở Development (xem
-        // OnActionExecuting ở đầu class).
-        // ─────────────────────────────────────────────────────────────
-        [HttpPost("admin")]
-        public async Task<IActionResult> SeedAdmin()
-        {
-            try
-            {
-                const string adminEmail = "admin@mysticjourney.com";
-                const string adminUsername = "admin";
-                const string adminPassword = "AdminPassword123!";
-
-                var adminAcc = await _ctx.Accounts
-                    .Include(a => a.PlayerProfile)
-                    .FirstOrDefaultAsync(a => a.Email == adminEmail || a.UserName == adminUsername);
-
-                if (adminAcc == null)
-                {
-                    adminAcc = new Account
-                    {
-                        Email = adminEmail,
-                        UserName = adminUsername,
-                        HashPassword = HashPassword(adminPassword),
-                        RoleId = 2, // Admin / SuperAdmin
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                        PlayerProfile = new PlayerProfile
-                        {
-                            DisplayName = "System Admin",
-                            Class = "Knight",
-                            Level = 99,
-                            Gold = 100000,
-                            Gems = 10000,
-                            CreatedAt = DateTime.UtcNow
-                        }
-                    };
-                    _ctx.Accounts.Add(adminAcc);
-                }
-                else
-                {
-                    adminAcc.HashPassword = HashPassword(adminPassword);
-                    adminAcc.IsActive = true;
-                    adminAcc.RoleId = 2;
-                    adminAcc.UpdatedAt = DateTime.UtcNow;
-                    _ctx.Accounts.Update(adminAcc);
-                }
-
-                await _ctx.SaveChangesAsync();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = $"Admin account successfully seeded/updated! You can now log in with Email/Username: '{adminEmail}' or '{adminUsername}' and Password: '{adminPassword}'."
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
-        }
-
-        // ── POST /api/seed/all ───────────────────────────────────────
-        // Run all main seeds in logical order
-        // ─────────────────────────────────────────────────────────────
-        [HttpPost("all")]
-        public async Task<IActionResult> SeedAll()
-        {
-            try
-            {
-                // 1. Seed Dungeons
-                await SeedDungeons();
-                // 2. Seed Content
-                await SeedContent();
-                // 3. Seed ElfForest (creates accounts elf1 -> elf5)
-                await SeedElfForest();
-                // 4. Seed Friends (requires elf1@mystic.test)
-                await SeedFriends();
-                // 5. Seed Guilds (requires elf1@mystic.test)
-                await SeedGuilds();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "All seeds completed successfully (Dungeons, Content, ElfForest, Friends, Guilds)!"
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.ToString(), ErrorCode = ErrorCodes.InternalError });
-            }
+            _ctx.Contents.AddRange(content1, content2);
+            await _ctx.SaveChangesAsync();
         }
 
         private async Task<(Skin skinKnight, Skin skinArcher, Skin skinMage, Skin skinArcherPremium, Skin skinKnightPremium, Skin skinMagePremium)> EnsureBaseSkinsAsync()
@@ -2427,4 +1205,3 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
         }
     }
 }
-
