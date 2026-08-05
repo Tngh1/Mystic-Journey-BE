@@ -81,11 +81,11 @@ namespace Mystic_Journey_API.Controllers
 
         private static readonly ChapterMilestone[] ChapterMilestones =
         {
-            new("elf1@mystic.test", "Tutorial Archer 1", 8,  "ElfForest",      11.9,   17.8),
-            new("elf2@mystic.test", "Tutorial Archer 2", 20, "AutumnPumpkin", -130.2,   37.8),
-            new("elf3@mystic.test", "Tutorial Archer 3", 27, "FrozenMountain", 35.9889, -31.9661),
-            new("elf4@mystic.test", "Tutorial Archer 4", 40, "AbandonedCastle", -12.36,  60.14),
-            new("elf5@mystic.test", "Tutorial Archer 5", 46, "ElfForest",      11.9,   17.8),
+            new("elf1@mystic.test", "Tutorial Archer 1", 0,  "ElfForest",      11.9,   17.8),
+            new("elf2@mystic.test", "Tutorial Archer 2", 8,  "AutumnPumpkin", -130.2,   37.8),
+            new("elf3@mystic.test", "Tutorial Archer 3", 20, "FrozenMountain", 35.9889, -31.9661),
+            new("elf4@mystic.test", "Tutorial Archer 4", 27, "AbandonedCastle", -12.36,  60.14),
+            new("elf5@mystic.test", "Tutorial Archer 5", 40, "ElfForest",      11.9,   17.8),
         };
 
         // ─────────────────────────────────────────────────────────────────────────
@@ -100,18 +100,26 @@ namespace Mystic_Journey_API.Controllers
                 await EnsureElfForestSchema();
 
                 // 1. Lookup system items từ migration (không tạo item mới trong seed)
-                var potion       = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
-                var sword        = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
-                var armor        = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Leather Armor");
-                var whiteFlower  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "White Flower");
-                var upgradeStone = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Skill Upgrade Stone");
+                var potion        = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
+                var sword         = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
+                var armor         = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Leather Armor");
+                var whiteFlower   = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "White Flower");
+                var upgradeStone  = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Skill Upgrade Stone");
+                var swampBook     = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Swamp Seal Book");
+                var dragonBook    = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Dragon Seal Book");
+                var golemBook     = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Golem Seal Book");
+                var underKingBook = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "UnderKing Seal Book");
 
                 var missingItems = new List<string>();
-                if (potion == null)       missingItems.Add("Small Health Potion");
-                if (sword == null)        missingItems.Add("Iron Sword");
-                if (armor == null)        missingItems.Add("Leather Armor");
-                if (whiteFlower == null)  missingItems.Add("White Flower");
-                if (upgradeStone == null) missingItems.Add("Skill Upgrade Stone");
+                if (potion == null)        missingItems.Add("Small Health Potion");
+                if (sword == null)         missingItems.Add("Iron Sword");
+                if (armor == null)         missingItems.Add("Leather Armor");
+                if (whiteFlower == null)   missingItems.Add("White Flower");
+                if (upgradeStone == null)  missingItems.Add("Skill Upgrade Stone");
+                if (swampBook == null)     missingItems.Add("Swamp Seal Book");
+                if (dragonBook == null)    missingItems.Add("Dragon Seal Book");
+                if (golemBook == null)     missingItems.Add("Golem Seal Book");
+                if (underKingBook == null) missingItems.Add("UnderKing Seal Book");
 
                 if (missingItems.Count > 0)
                     return BadRequest(new ApiResponse<object>
@@ -200,6 +208,7 @@ namespace Mystic_Journey_API.Controllers
                     int pid = await UpsertChapterAccount(
                         milestone, mainQuests, allSkills,
                         potion, sword, armor, upgradeStone,
+                        swampBook, dragonBook, golemBook, underKingBook,
                         skinKnight, skinArcher, skinMage);
                     playerIds.Add(pid);
                 }
@@ -238,6 +247,7 @@ namespace Mystic_Journey_API.Controllers
         private async Task<int> UpsertChapterAccount(
             ChapterMilestone milestone, List<Quest> mainQuests, List<Skill> allSkills,
             Item potion, Item sword, Item armor, Item upgradeStone,
+            Item swampBook, Item dragonBook, Item golemBook, Item underKingBook,
             Skin skinKnight, Skin skinArcher, Skin skinMage)
         {
             var username = milestone.Email.Split('@')[0].Replace(".", "_");
@@ -378,11 +388,25 @@ namespace Mystic_Journey_API.Controllers
             _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = potion.ItemId, Quantity = 3, IsEquipped = false, IsSkin = false });
             _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = upgradeStone.ItemId, Quantity = 99, IsEquipped = false, IsSkin = false });
 
+            // Seal Books (story books of completed chapter boss quests)
+            if (milestone.LastQuestId >= 6 && swampBook != null)
+                _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = swampBook.ItemId, Quantity = 1, IsEquipped = false, IsSkin = false });
+            if (milestone.LastQuestId >= 19 && dragonBook != null)
+                _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = dragonBook.ItemId, Quantity = 1, IsEquipped = false, IsSkin = false });
+            if (milestone.LastQuestId >= 26 && golemBook != null)
+                _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = golemBook.ItemId, Quantity = 1, IsEquipped = false, IsSkin = false });
+            if (milestone.LastQuestId >= 39 && underKingBook != null)
+                _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = underKingBook.ItemId, Quantity = 1, IsEquipped = false, IsSkin = false });
+
             // Quest-granted items on top of the base loadout
             foreach (var (itemId, qty) in grantedItemQty)
             {
-                if (itemId == sword.ItemId || itemId == armor.ItemId || itemId == potion.ItemId || itemId == upgradeStone.ItemId)
-                    continue; // already covered by base loadout above
+                if (itemId == sword.ItemId || itemId == armor.ItemId || itemId == potion.ItemId || itemId == upgradeStone.ItemId ||
+                    (swampBook != null && itemId == swampBook.ItemId) ||
+                    (dragonBook != null && itemId == dragonBook.ItemId) ||
+                    (golemBook != null && itemId == golemBook.ItemId) ||
+                    (underKingBook != null && itemId == underKingBook.ItemId))
+                    continue; // already covered above
                 _ctx.InventoryItems.Add(new InventoryItem { PlayerProfileId = pid, ItemId = itemId, Quantity = qty, IsEquipped = false, IsSkin = false });
             }
 
