@@ -83,7 +83,11 @@ namespace DAL.Repositories
         public async Task<PlayerProfile> UpdatePlayerProfile(PlayerProfile profile)
         {
             profile.UpdatedAt = DateTime.UtcNow;
-            _context.PlayerProfiles.Update(profile);
+            // ponytail: profile luôn được EF track từ các hàm Get* ở trên (không AsNoTracking),
+            // nên KHÔNG gọi .Update() ở đây — .Update() ép ghi lại toàn bộ cột theo snapshot
+            // trong bộ nhớ của request này, đè mất các cột mà request khác vừa lưu song song
+            // (VD: điểm cộng chỉ số khi lên level bị mất do trùng lúc đồng bộ vị trí/avatar).
+            // SaveChangesAsync tự phát hiện đúng cột đã đổi vì entity đã tracked.
             await _context.SaveChangesAsync();
             return profile;
         }
