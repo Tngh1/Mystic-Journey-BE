@@ -18,9 +18,12 @@ namespace DAL.Repositories.Interfaces
         // Lấy tất cả phiên chơi của người chơi (mới nhất trước).
         Task<List<DungeonSession>> GetByPlayerProfileId(int playerProfileId);
 
-        // Lấy phiên chơi đang hoạt động của người chơi trong dungeon cụ thể.
+        // Lấy phiên chơi đang hoạt động của người chơi trong dungeon cụ thể (mới nhất trước).
         // Dùng để ngăn chặn chạy nhiều phiên cùng lúc.
         Task<DungeonSession?> GetActiveSession(int playerProfileId, int? dungeonConfigId = null);
+
+        // Đánh dấu Failed cho mọi phiên đang Active của người chơi. Trả về số dòng đã ghi.
+        Task<int> FailActiveSessions(int playerProfileId);
 
         // Tạo phiên chơi dungeon mới.
         Task<DungeonSession> Create(DungeonSession session);

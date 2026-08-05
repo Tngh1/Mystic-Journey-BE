@@ -38,9 +38,8 @@ namespace DAL.Repositories
         }
 
         /// <summary>
-        /// Nhả "khoá phiên game" ngay khi đăng xuất, thay vì để người chơi chờ hết
-        /// GameSessionTimeoutSeconds mới đăng nhập lại được. Cùng cách ghi một cột như
-        /// <see cref="TouchLastSeen"/>.
+        /// Xoá mốc "online lần cuối" khi đăng xuất để presence không hiển thị người đã thoát
+        /// là đang online. Cùng cách ghi một cột như <see cref="TouchLastSeen"/>.
         /// </summary>
         public Task ClearLastSeen(int accountId)
         {

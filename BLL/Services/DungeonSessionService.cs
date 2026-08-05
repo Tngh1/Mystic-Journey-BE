@@ -73,14 +73,11 @@ namespace BLL.Services
             if (totalMembersCount > dungeon.MaxMembers)
                 throw new InvalidOperationException($"Party exceeds maximum allowed size of {dungeon.MaxMembers}.");
 
-            // Prevent duplicate concurrent active sessions for the same dungeon
-            // By abandoning the old session and starting a new one.
-            var existing = await _sessionRepository.GetActiveSession(playerProfileId, dungeonConfigId);
-            if (existing != null)
-            {
-                existing.Status = "Failed";
-                await _sessionRepository.Update(existing);
-            }
+            // A player can only be inside one dungeon at a time, so entering a new one kills
+            // every session still marked Active — not just those for this same dungeon. The old
+            // same-dungeon-only cleanup let a player leave dungeon 1 hanging, enter dungeon 2, and
+            // end up with two Active rows; Resume then had no defined way to pick between them.
+            await _sessionRepository.FailActiveSessions(playerProfileId);
 
             // Create session — Status = "Active", energy untouched
             var session = new DungeonSession

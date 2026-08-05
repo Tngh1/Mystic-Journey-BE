@@ -280,7 +280,6 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"Monster with id {monsterId} not found.");
 
             var existing = await _repository.GetPlayerDiscovery(playerProfileId, monsterId);
-            var wasDiscovered = existing?.IsDiscovered ?? false;
 
             await _repository.CreateOrUpdatePlayerDiscovery(new PlayerMonsterDiscovery
             {
@@ -324,37 +323,25 @@ namespace BLL.Services
             var existingDiscovery = await _repository.GetPlayerDiscovery(playerProfileId, monsterId);
             var wasDiscovered = existingDiscovery?.IsDiscovered ?? false;
 
-            // Randomize rewards per user requirements:
-            // 1. Gold: random 10 to 100 gold
-            int goldEarned = Random.Shared.Next(10, 101);
+            // Thưởng đọc từ bảng cân bằng của từng quái (seed: SlimeLittle 4exp/8g … GolemBoss
+            // 53exp/264g). Trước đây random 1-100exp/10-100g nên slime và boss trả như nhau.
+            var expEarned = monster.ExperienceReward;
+            var goldEarned = monster.GoldReward;
 
-            // 2. EXP: random 1 to 100 exp points
-            int expEarned = Random.Shared.Next(1, 101);
-
-            // 3. Skill Upgrade Stone: random 1 to 5 stones
-            int stoneCount = Random.Shared.Next(1, 6);
-
+            // Đá nâng cấp (ItemId 22) đã nằm trong MonsterDrops của cả 15 quái với
+            // DropRate=100/IsGuaranteed/Min=1/Max=5, nên RollDrops trả sẵn. Không cộng tay
+            // thêm 1-5 viên nữa — đó là lý do người chơi nhận 2-10 thay vì 1-5.
             var rolledItems = RollDrops(monster.MonsterDrops.Where(d => d.IsActive));
-
-            // Ensure Skill Upgrade Stone (ItemId = 22) is added to rolledItems
-            var stoneDrop = rolledItems.FirstOrDefault(i => i.ItemId == 22 || (i.ItemName != null && i.ItemName.Equals("Skill Upgrade Stone", StringComparison.OrdinalIgnoreCase)));
-            if (stoneDrop != null)
-            {
-                stoneDrop.Quantity += stoneCount;
-            }
-            else
-            {
-                rolledItems.Add(new MonsterDroppedItemDto
-                {
-                    ItemId = 22,
-                    ItemName = "Skill Upgrade Stone",
-                    ItemIconUrl = "/images/items/skill_upgrade_stone.png",
-                    Quantity = stoneCount
-                });
-            }
 
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
+                profile.AddExperience(expEarned);
+                profile.Gold += goldEarned;
+                await _playerProfileRepository.UpdatePlayerProfile(profile);
+
+                foreach (var item in rolledItems)
+                    await AddItemToInventory(playerProfileId, item.ItemId, item.Quantity);
+
                 await _repository.CreateOrUpdatePlayerDiscovery(new PlayerMonsterDiscovery
                 {
                     PlayerProfileId = playerProfileId,

@@ -127,18 +127,5 @@ namespace Mystic_Journey_API.Controllers
             var result = await _worldService.RetroactiveClaimDailyLoginReward(profileId, request.DayNumber);
             return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Success = true, Data = result });
         }
-
-        // ── POST /api/world/claim-drop ──────────────────────────────────
-        // Nhặt vật phẩm rơi ra map thế giới (World Drop Pickup)
-        [HttpPost("claim-drop")]
-        public async Task<IActionResult> ClaimDrop([FromBody] ClaimDropRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.ClaimDrop(profileId, request);
-            return Ok(new ApiResponse<ClaimDropResponseDto> { Success = true, Data = result });
-        }
     }
 }

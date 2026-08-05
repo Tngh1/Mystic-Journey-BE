@@ -123,11 +123,19 @@ namespace Mystic_Journey_API.Controllers
                 // 2. Skins are seeded in exact order matching Unity's SkinDatabase.asset
                 var (skinKnight, skinArcher, skinMage, skinArcherPremium, skinKnightPremium, skinMagePremium) = await EnsureBaseSkinsAsync();
 
-                // 3. Upsert tutorial skills (2 hắc hóa dùng chung + 5 skill lớp riêng)
+                // 3. Upsert tutorial skills (2 hắc hóa dùng chung)
                 var elfSkillNames = new[] {
-                    "Dark Poison Zone", "Dark Explosion",
+                    "Dark Poison Zone", "Dark Explosion"
+                };
+                var removedSkillNames = new[] {
                     "AP_Skill", "Skill_Ad", "Skill_Knight Attack", "Skill_Mui_Ten_Bang", "Skill_Thap_AS"
                 };
+                var obsoleteSkills = await _ctx.Skills.Where(s => removedSkillNames.Contains(s.Name)).ToListAsync();
+                if (obsoleteSkills.Any())
+                {
+                    _ctx.Skills.RemoveRange(obsoleteSkills);
+                }
+
                 var existingElfSkills = await _ctx.Skills
                     .Where(s => elfSkillNames.Contains(s.Name))
                     .ToListAsync();
@@ -159,98 +167,22 @@ namespace Mystic_Journey_API.Controllers
 
                 UpsertSkill("Dark Poison Zone", "Creates a poisonous zone dealing AoE damage. Darkening +10.", "Active", "Magical", "Area", "All", 6, 135.0, 16.0, 3.5, 10f);
                 UpsertSkill("Dark Explosion", "Creates an explosion dealing massive damage. Darkening +5.", "Active", "Magical", "Area", "All", 8, 175.0, 20.0, 3.5, 5f);
-                UpsertSkill("AP_Skill", "Mage Buff/Explosion skill", "Active", "Magical", "Area", "Mage", 4, 95.0, 12.0, 3.5);
-                UpsertSkill("Skill_Ad", "Archer normal arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
-                UpsertSkill("Skill_Knight Attack", "Knight heavy attack", "Active", "Physical", "Area", "Knight", 2, 55.0, 8.0, 3.0);
-                UpsertSkill("Skill_Mui_Ten_Bang", "Archer light arrow", "Active", "Physical", "SingleTarget", "Archer", 2, 55.0, 8.0, 3.0);
-                UpsertSkill("Skill_Thap_AS", "Mage light explosion", "Active", "Magical", "Area", "Mage", 5, 115.0, 14.0, 3.5);
 
                 await _ctx.SaveChangesAsync();
 
-                // 4. Upsert tutorial monsters for ElfForest
-                var monsterNames = new[] { "[ELF] Shadow Sprout", "[ELF] Forest Wolf", "[ELF] Sprout King" };
-                var existingMonsters = await _ctx.Monsters.Where(m => monsterNames.Contains(m.Name)).ToListAsync();
-
-                Monster UpsertMonster(string name, string type, string description, int level, int maxHp, int atk, int def, int moveSpeed, int attackSpeed, int critRate, int critDamage, int expReward, decimal goldReward)
+                // 4. Remove obsolete tutorial monsters for ElfForest if present
+                var obsoleteMonsterNames = new[] { "[ELF] Shadow Sprout", "[ELF] Forest Wolf", "[ELF] Sprout King" };
+                var obsoleteMonsters = await _ctx.Monsters.Where(m => obsoleteMonsterNames.Contains(m.Name)).ToListAsync();
+                if (obsoleteMonsters.Any())
                 {
-                    var m = existingMonsters.FirstOrDefault(x => x.Name == name);
-                    if (m == null)
-                    {
-                        m = new Monster { Name = name };
-                        _ctx.Monsters.Add(m);
-                        existingMonsters.Add(m);
-                    }
-                    m.Type = type;
-                    m.Description = description;
-                    m.Level = level;
-                    m.MaxHp = maxHp;
-                    m.Atk = atk;
-                    m.Def = def;
-                    m.MoveSpeed = moveSpeed;
-                    m.AttackSpeed = attackSpeed;
-                    m.CritRate = critRate;
-                    m.CritDamage = critDamage;
-                    m.ExperienceReward = expReward;
-                    m.GoldReward = goldReward;
-                    m.IsActive = true;
-                    return m;
+                    var obsoleteMonsterIds = obsoleteMonsters.Select(m => m.MonsterId).ToList();
+                    var obsoleteDrops = await _ctx.MonsterDrops.Where(d => obsoleteMonsterIds.Contains(d.MonsterId)).ToListAsync();
+                    var obsoleteSpawns = await _ctx.MonsterSpawns.Where(s => obsoleteMonsterIds.Contains(s.MonsterId)).ToListAsync();
+                    _ctx.MonsterSpawns.RemoveRange(obsoleteSpawns);
+                    _ctx.MonsterDrops.RemoveRange(obsoleteDrops);
+                    _ctx.Monsters.RemoveRange(obsoleteMonsters);
+                    await _ctx.SaveChangesAsync();
                 }
-
-                var sprout = UpsertMonster("[ELF] Shadow Sprout", "Normal", "A small sprout that lurks near the clearing.", 1, 80, 8, 2, 90, 100, 2, 120, 8, 2);
-                var wolf = UpsertMonster("[ELF] Forest Wolf", "Normal", "A hungry wolf roaming the forest edge.", 2, 160, 18, 4, 110, 100, 5, 140, 18, 6);
-                var sproutKing = UpsertMonster("[ELF] Sprout King", "Boss", "The corrupted guardian of the willow clearing.", 5, 1200, 60, 20, 80, 90, 10, 150, 600, 120);
-
-                await _ctx.SaveChangesAsync();
-
-                // 5. Upsert drops
-                var monsterIds = existingMonsters.Select(m => m.MonsterId).ToList();
-                var existingDrops = await _ctx.MonsterDrops.Where(d => monsterIds.Contains(d.MonsterId)).ToListAsync();
-
-                MonsterDrop UpsertDrop(Monster m, int itemId, double dropRate, int minQ = 1, int maxQ = 1, bool isGuaranteed = false)
-                {
-                    var ex = existingDrops.FirstOrDefault(x => x.MonsterId == m.MonsterId && x.ItemId == itemId);
-                    if (ex == null)
-                    {
-                        ex = new MonsterDrop { MonsterId = m.MonsterId, ItemId = itemId };
-                        _ctx.MonsterDrops.Add(ex);
-                        existingDrops.Add(ex);
-                    }
-                    ex.DropRate = dropRate;
-                    ex.MinQuantity = minQ;
-                    ex.MaxQuantity = maxQ;
-                    ex.IsGuaranteed = isGuaranteed;
-                    ex.IsActive = true;
-                    return ex;
-                }
-
-                UpsertDrop(sprout, potion.ItemId, 40);
-                UpsertDrop(wolf, sword.ItemId, 20);
-                UpsertDrop(sproutKing, sword.ItemId, 100, 1, 1, true);
-                await _ctx.SaveChangesAsync();
-
-                // 6. Upsert spawns
-                var existingSpawns = await _ctx.MonsterSpawns.Where(s => monsterIds.Contains(s.MonsterId)).ToListAsync();
-
-                MonsterSpawn UpsertSpawn(Monster m, string mapName, string region, string location, int count, int respawn)
-                {
-                    var ex = existingSpawns.FirstOrDefault(x => x.MonsterId == m.MonsterId && x.MapName == mapName && x.RegionName == region);
-                    if (ex == null)
-                    {
-                        ex = new MonsterSpawn { MonsterId = m.MonsterId, MapName = mapName, RegionName = region };
-                        _ctx.MonsterSpawns.Add(ex);
-                        existingSpawns.Add(ex);
-                    }
-                    ex.Location = location;
-                    ex.SpawnCount = count;
-                    ex.RespawnSeconds = respawn;
-                    ex.IsActive = true;
-                    return ex;
-                }
-
-                UpsertSpawn(sprout, "ElfForest", "Forest Edge", "Forest Edge - North", 4, 30);
-                UpsertSpawn(wolf, "ElfForest", "Forest Edge", "Forest Edge - South", 2, 45);
-                UpsertSpawn(sproutKing, "ElfForest", "Old Willow Clearing", "Willow Throne", 1, 0);
-                await _ctx.SaveChangesAsync();
 
                 // 7. Create/update the 5 chapter-milestone accounts + replay their rewards
                 var mainQuests = await _ctx.Quests
@@ -1102,7 +1034,7 @@ CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogue
                 CreatedByAccountId = Guid.Empty,
                 BlockContents = new List<BlockContent>
                 {
-                    new BlockContent { Title = "Combat Guide", BlockType = "Text", ContentData = "Use basic skills to defeat Shadow Sprout.", SortOrder = 1 }
+                    new BlockContent { Title = "Combat Guide", BlockType = "Text", ContentData = "Use basic skills to defeat monsters.", SortOrder = 1 }
                 }
             };
 

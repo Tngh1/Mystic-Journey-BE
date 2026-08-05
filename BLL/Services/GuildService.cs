@@ -1,5 +1,6 @@
 using BLL.DTOs;
 using BLL.Services.Interfaces;
+using BLL.Utils;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using System;
@@ -76,9 +77,7 @@ public class GuildService : IGuildService
             TotalContribution = m.TotalContribution,
             JoinedAt = m.JoinedAt,
             LastDonateAt = m.LastDonateAt,
-            IsOnline = m.PlayerProfile != null && m.PlayerProfile.Account != null
-                && m.PlayerProfile.Account.LastSeen.HasValue
-                && (DateTime.UtcNow - m.PlayerProfile.Account.LastSeen.Value).TotalMinutes < 5
+            IsOnline = OnlineTimeout.IsWithin(m.PlayerProfile?.Account?.LastSeen, OnlineTimeout.Presence)
         };
     }
 
