@@ -37,10 +37,6 @@ namespace BLL.Services
         private int AccessTokenExpiryMinutes => int.Parse(_configuration["TokenSettings:AccessTokenExpiryMinutes"] ?? _configuration["Jwt:AccessTokenExpiryMinutes"] ?? "30");
         private int RefreshTokenExpiryDays => int.Parse(_configuration["TokenSettings:RefreshTokenExpiryDays"] ?? _configuration["Jwt:RefreshTokenExpireDays"] ?? "7");
 
-        // Client game heartbeat mỗi 30 giây => 90 giây là 3 nhịp bị lỡ. Đủ rộng để không đá
-        // nhầm người đang chơi khi mạng chập chờn, đủ hẹp để client crash không khoá tài khoản lâu.
-        private int GameSessionTimeoutSeconds => int.Parse(_configuration["TokenSettings:GameSessionTimeoutSeconds"] ?? "90");
-
         public AuthService(
             IAuthRepository repository,
             IMapper mapper,
@@ -426,18 +422,6 @@ namespace BLL.Services
         private static bool IsGameClient(string? clientType)
             => string.Equals(clientType?.Trim(), "Game", StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// LastSeen chỉ được cập nhật bởi heartbeat của client game (và lúc login game), nên
-        /// LastSeen còn trong ngưỡng timeout nghĩa là đang có một phiên game sống.
-        /// </summary>
-        private bool IsGameSessionActive(DateTime? lastSeen)
-        {
-            if (!lastSeen.HasValue)
-                return false;
-
-            return lastSeen.Value >= DateTime.UtcNow.AddSeconds(-GameSessionTimeoutSeconds);
-        }
-
         private async Task<bool> VerifyPasswordWithFallback(Account account, string password)
         {
             try
@@ -615,14 +599,5 @@ namespace BLL.Services
     public class AccountNotFoundException : Exception
     {
         public AccountNotFoundException(string message) : base(message) { }
-    }
-
-    /// <summary>
-    /// Tài khoản đang được dùng để chơi ở một client game khác. Ánh xạ sang 409 Conflict để
-    /// client phân biệt được với 401 (sai mật khẩu) và hiển thị đúng thông báo.
-    /// </summary>
-    public class AccountInUseException : Exception
-    {
-        public AccountInUseException(string message) : base(message) { }
     }
 }
