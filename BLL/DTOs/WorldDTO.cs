@@ -103,21 +103,4 @@ namespace BLL.DTOs
         public int? ChestId { get; set; }
         public int? PlayerChestId { get; set; }
     }
-
-    public class ClaimDropRequestDto
-    {
-        public string DropType { get; set; } = string.Empty;
-        public int Quantity { get; set; } = 1;
-        public int ItemId { get; set; } = 0;
-        public string ItemName { get; set; } = string.Empty;
-    }
-
-    public class ClaimDropResponseDto
-    {
-        public bool Success { get; set; } = true;
-        public string Message { get; set; } = string.Empty;
-        public decimal NewGold { get; set; }
-        public int NewExperience { get; set; }
-        public int NewLevel { get; set; }
-    }
 }

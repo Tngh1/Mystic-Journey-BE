@@ -36,8 +36,5 @@ namespace BLL.Services.Interfaces
 
         // Nhận thưởng bù ngày trước (retroactive claim).
         Task<ClaimDailyRewardResponseDto> RetroactiveClaimDailyLoginReward(int playerProfileId, int dayToClaim);
-
-        // Nhặt vật phẩm rơi ra map thế giới (World Drop Pickup)
-        Task<ClaimDropResponseDto> ClaimDrop(int playerProfileId, ClaimDropRequestDto request);
     }
 }
