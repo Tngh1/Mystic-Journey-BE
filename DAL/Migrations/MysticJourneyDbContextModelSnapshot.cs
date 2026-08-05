@@ -3613,6 +3613,171 @@ namespace DAL.Migrations
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 15
+                        },
+                        new
+                        {
+                            MonsterDropId = 951,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 1
+                        },
+                        new
+                        {
+                            MonsterDropId = 952,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 2
+                        },
+                        new
+                        {
+                            MonsterDropId = 953,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 3
+                        },
+                        new
+                        {
+                            MonsterDropId = 954,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 4
+                        },
+                        new
+                        {
+                            MonsterDropId = 955,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 5
+                        },
+                        new
+                        {
+                            MonsterDropId = 956,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 6
+                        },
+                        new
+                        {
+                            MonsterDropId = 957,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 7
+                        },
+                        new
+                        {
+                            MonsterDropId = 958,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 8
+                        },
+                        new
+                        {
+                            MonsterDropId = 959,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 9
+                        },
+                        new
+                        {
+                            MonsterDropId = 960,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 10
+                        },
+                        new
+                        {
+                            MonsterDropId = 961,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 11
+                        },
+                        new
+                        {
+                            MonsterDropId = 962,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 12
+                        },
+                        new
+                        {
+                            MonsterDropId = 963,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 13
+                        },
+                        new
+                        {
+                            MonsterDropId = 964,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 14
+                        },
+                        new
+                        {
+                            MonsterDropId = 965,
+                            DropRate = 100.0,
+                            IsActive = true,
+                            IsGuaranteed = true,
+                            ItemId = 22,
+                            MaxQuantity = 5,
+                            MinQuantity = 1,
+                            MonsterId = 15
                         });
                 });
 

@@ -324,19 +324,37 @@ namespace BLL.Services
             var existingDiscovery = await _repository.GetPlayerDiscovery(playerProfileId, monsterId);
             var wasDiscovered = existingDiscovery?.IsDiscovered ?? false;
 
-            // GetMonsterByIdWithDrops đã Include MonsterDrops kèm Item ở trên,
-            // lọc IsActive trong bộ nhớ thay vì bắn thêm 1 truy vấn.
+            // Randomize rewards per user requirements:
+            // 1. Gold: random 10 to 100 gold
+            int goldEarned = Random.Shared.Next(10, 101);
+
+            // 2. EXP: random 1 to 100 exp points
+            int expEarned = Random.Shared.Next(1, 101);
+
+            // 3. Skill Upgrade Stone: random 1 to 5 stones
+            int stoneCount = Random.Shared.Next(1, 6);
+
             var rolledItems = RollDrops(monster.MonsterDrops.Where(d => d.IsActive));
+
+            // Ensure Skill Upgrade Stone (ItemId = 22) is added to rolledItems
+            var stoneDrop = rolledItems.FirstOrDefault(i => i.ItemId == 22 || (i.ItemName != null && i.ItemName.Equals("Skill Upgrade Stone", StringComparison.OrdinalIgnoreCase)));
+            if (stoneDrop != null)
+            {
+                stoneDrop.Quantity += stoneCount;
+            }
+            else
+            {
+                rolledItems.Add(new MonsterDroppedItemDto
+                {
+                    ItemId = 22,
+                    ItemName = "Skill Upgrade Stone",
+                    ItemIconUrl = "/images/items/skill_upgrade_stone.png",
+                    Quantity = stoneCount
+                });
+            }
 
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
-                profile.AddExperience(monster.ExperienceReward);
-                profile.Gold += monster.GoldReward;
-                profile.UpdatedAt = DateTime.UtcNow;
-
-                foreach (var drop in rolledItems)
-                    await AddItemToInventory(playerProfileId, drop.ItemId, drop.Quantity);
-
                 await _repository.CreateOrUpdatePlayerDiscovery(new PlayerMonsterDiscovery
                 {
                     PlayerProfileId = playerProfileId,
@@ -345,8 +363,6 @@ namespace BLL.Services
                     DiscoveredAt = existingDiscovery?.DiscoveredAt ?? DateTime.UtcNow,
                     TimesDefeated = (existingDiscovery?.TimesDefeated ?? 0) + 1
                 });
-
-                await _playerProfileRepository.UpdatePlayerProfile(profile);
             });
 
             return new MonsterDefeatResponseDto
@@ -354,8 +370,8 @@ namespace BLL.Services
                 MonsterId = monster.MonsterId,
                 MonsterName = monster.Name,
                 WasDiscovered = wasDiscovered,
-                ExperienceEarned = monster.ExperienceReward,
-                GoldEarned = monster.GoldReward,
+                ExperienceEarned = expEarned,
+                GoldEarned = goldEarned,
                 PlayerLevel = profile.Level,
                 PlayerExperience = profile.ExperiencePoints,
                 PlayerGold = profile.Gold,

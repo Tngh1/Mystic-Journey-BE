@@ -1003,5 +1003,51 @@ namespace BLL.Services
             }
             return new string(chars.ToArray()).Trim();
         }
+
+        public async Task<ClaimDropResponseDto> ClaimDrop(int playerProfileId, ClaimDropRequestDto request)
+        {
+            var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId);
+            if (profile == null)
+                throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
+
+            string type = request.DropType?.Trim() ?? "";
+
+            if (type.Equals("Gold", StringComparison.OrdinalIgnoreCase))
+            {
+                profile.Gold += Math.Max(0, request.Quantity);
+            }
+            else if (type.Equals("Exp", StringComparison.OrdinalIgnoreCase))
+            {
+                profile.AddExperience(Math.Max(0, request.Quantity));
+            }
+            else if (type.Equals("SkillUpgradeStone", StringComparison.OrdinalIgnoreCase) || type.Equals("Item", StringComparison.OrdinalIgnoreCase))
+            {
+                int targetItemId = request.ItemId;
+                if (targetItemId <= 0)
+                {
+                    if (!string.IsNullOrEmpty(request.ItemName) && (request.ItemName.Contains("Skill Upgrade Stone") || request.ItemName.Contains("Upgrade Stone")))
+                    {
+                        targetItemId = 22; // Skill Upgrade Stone ItemId
+                    }
+                    else
+                    {
+                        targetItemId = 22;
+                    }
+                }
+                await AddItemToInventory(playerProfileId, targetItemId, Math.Max(1, request.Quantity));
+            }
+
+            profile.UpdatedAt = DateTime.UtcNow;
+            await _playerProfileRepository.UpdatePlayerProfile(profile);
+
+            return new ClaimDropResponseDto
+            {
+                Success = true,
+                Message = $"Claimed {type} x{request.Quantity}",
+                NewGold = profile.Gold,
+                NewExperience = profile.ExperiencePoints,
+                NewLevel = profile.Level
+            };
+        }
     }
 }
