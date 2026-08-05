@@ -60,6 +60,14 @@ namespace BLL.Services
             // a whole dungeon with a broken session and a silent +0 reward at the chest.
             // Leaving entry open also lets energy regenerate during the run.
 
+            // BR-04: level requirement. Previously this was enforced ONLY on the Unity client
+            // (DungeonEntrance.RequiredLevel, a hardcoded 3 that matches no config), so any
+            // caller could POST Enter for a config far above their level — e.g. config 6 at
+            // LevelRequirement 20. Client-side gating is cosmetic; this is the real check.
+            if (profile.Level < dungeon.LevelRequirement)
+                throw new InvalidOperationException(
+                    $"Level {dungeon.LevelRequirement} required to enter {dungeon.Name}. You are level {profile.Level}.");
+
             // Validate party data - total party members (including host) must not exceed MaxMembers
             int totalMembersCount = 1 + (partyMembers?.Count ?? 0);
             if (totalMembersCount > dungeon.MaxMembers)
