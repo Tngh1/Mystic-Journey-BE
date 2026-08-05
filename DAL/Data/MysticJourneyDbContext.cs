@@ -441,7 +441,24 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop { MonsterDropId = 909, MonsterId = 2, ItemId = 909, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
                 new MonsterDrop { MonsterDropId = 910, MonsterId = 7, ItemId = 910, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
                 new MonsterDrop { MonsterDropId = 911, MonsterId = 10, ItemId = 911, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
-                new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 912, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true }
+                new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 912, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+
+                // Seed Skill Upgrade Stone (ItemId = 22) drop for all monsters & bosses directly in DbContext
+                new MonsterDrop { MonsterDropId = 951, MonsterId = 1, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 952, MonsterId = 2, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 953, MonsterId = 3, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 954, MonsterId = 4, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 955, MonsterId = 5, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 956, MonsterId = 6, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 957, MonsterId = 7, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 958, MonsterId = 8, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 959, MonsterId = 9, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 960, MonsterId = 10, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 961, MonsterId = 11, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 962, MonsterId = 12, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 963, MonsterId = 13, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 964, MonsterId = 14, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 965, MonsterId = 15, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true }
             );
 
 

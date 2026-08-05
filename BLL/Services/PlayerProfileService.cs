@@ -95,26 +95,26 @@ namespace BLL.Services
             if (request.PlayerClass != null)
                 profile.Class = request.PlayerClass;
 
-            if (request.Level > 0)
-                profile.Level = request.Level;
+            if (request.Level.HasValue && request.Level.Value > 0)
+                profile.Level = request.Level.Value;
 
-            if (request.ExperiencePoints >= 0)
-                profile.ExperiencePoints = request.ExperiencePoints;
+            if (request.ExperiencePoints.HasValue && request.ExperiencePoints.Value >= 0)
+                profile.ExperiencePoints = request.ExperiencePoints.Value;
 
-            if (request.Gold >= 0)
-                profile.Gold = request.Gold;
+            if (request.Gold.HasValue && request.Gold.Value >= 0)
+                profile.Gold = request.Gold.Value;
 
-            if (request.Gems >= 0)
-                profile.Gems = request.Gems;
+            if (request.Gems.HasValue && request.Gems.Value >= 0)
+                profile.Gems = request.Gems.Value;
 
             // Recalculate energy first before updating
             RecalculateEnergy(profile);
 
-            if (request.Energy >= 0)
-                profile.CurrentEnergy = request.Energy;
+            if (request.Energy.HasValue && request.Energy.Value >= 0)
+                profile.CurrentEnergy = request.Energy.Value;
 
-            if (request.MaxEnergy > 0)
-                profile.MaxEnergy = request.MaxEnergy;
+            if (request.MaxEnergy.HasValue && request.MaxEnergy.Value > 0)
+                profile.MaxEnergy = request.MaxEnergy.Value;
 
             if (request.CorruptionLevel.HasValue)
                 profile.CorruptionLevel = request.CorruptionLevel.Value;

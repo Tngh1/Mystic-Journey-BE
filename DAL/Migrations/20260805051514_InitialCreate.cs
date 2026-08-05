@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -2075,7 +2075,22 @@ namespace DAL.Migrations
                     { 909, 100.0, true, true, 909, 1, 1, 2 },
                     { 910, 100.0, true, true, 910, 1, 1, 7 },
                     { 911, 100.0, true, true, 911, 1, 1, 10 },
-                    { 912, 100.0, true, true, 912, 1, 1, 15 }
+                    { 912, 100.0, true, true, 912, 1, 1, 15 },
+                    { 951, 100.0, true, true, 22, 5, 1, 1 },
+                    { 952, 100.0, true, true, 22, 5, 1, 2 },
+                    { 953, 100.0, true, true, 22, 5, 1, 3 },
+                    { 954, 100.0, true, true, 22, 5, 1, 4 },
+                    { 955, 100.0, true, true, 22, 5, 1, 5 },
+                    { 956, 100.0, true, true, 22, 5, 1, 6 },
+                    { 957, 100.0, true, true, 22, 5, 1, 7 },
+                    { 958, 100.0, true, true, 22, 5, 1, 8 },
+                    { 959, 100.0, true, true, 22, 5, 1, 9 },
+                    { 960, 100.0, true, true, 22, 5, 1, 10 },
+                    { 961, 100.0, true, true, 22, 5, 1, 11 },
+                    { 962, 100.0, true, true, 22, 5, 1, 12 },
+                    { 963, 100.0, true, true, 22, 5, 1, 13 },
+                    { 964, 100.0, true, true, 22, 5, 1, 14 },
+                    { 965, 100.0, true, true, 22, 5, 1, 15 }
                 });
 
             migrationBuilder.InsertData(
