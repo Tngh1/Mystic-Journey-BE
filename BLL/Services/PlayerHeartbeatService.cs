@@ -1,4 +1,5 @@
 using BLL.Services.Interfaces;
+using BLL.Utils;
 using DAL.Repositories.Interfaces;
 using System;
 
@@ -21,11 +22,6 @@ namespace BLL.Services
         }
 
         public bool IsOnline(DateTime? lastSeen)
-        {
-            if (!lastSeen.HasValue)
-                return false;
-
-            return lastSeen.Value >= DateTime.UtcNow.AddMinutes(-5);
-        }
+            => OnlineTimeout.IsWithin(lastSeen, OnlineTimeout.Presence);
     }
 }

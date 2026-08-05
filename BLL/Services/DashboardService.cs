@@ -1,6 +1,7 @@
 using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
+using BLL.Utils;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using System;
@@ -63,14 +64,13 @@ namespace BLL.Services
         private async Task<(int online, int offline)> GetOnlineOfflineCountsAsync()
         {
             var accounts = await _authRepository.GetAllActiveAccountsAsync();
-            var oneMinuteAgo = DateTime.UtcNow.AddMinutes(-1);
 
             int online = 0;
             int offline = 0;
 
             foreach (var account in accounts)
             {
-                if (account.LastSeen != null && account.LastSeen >= oneMinuteAgo)
+                if (OnlineTimeout.IsWithin(account.LastSeen, OnlineTimeout.Dashboard))
                     online++;
                 else
                     offline++;
