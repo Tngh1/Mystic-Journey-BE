@@ -488,6 +488,44 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             );
 
             // ─────────────────────────────────────────────────────────────────────────
+            // Skill mở khoá theo tiến trình cốt truyện.
+            // ClaimRewardCore đọc Quest.RewardSkills nên chỉ cần seed bảng này,
+            // không cần sửa code BLL. SkillId lấy từ seed Skill bên dưới (1..19).
+            // ─────────────────────────────────────────────────────────────────────────
+            modelBuilder.Entity<QuestRewardSkill>().HasData(
+                // Q2 [Chapter 1] Gather White Flowers
+                new QuestRewardSkill { QuestRewardSkillId = 1,  QuestId = 2,  SkillId = 1 },  // Accelerationarrow
+                new QuestRewardSkill { QuestRewardSkillId = 2,  QuestId = 2,  SkillId = 5 },  // Stardust
+                new QuestRewardSkill { QuestRewardSkillId = 3,  QuestId = 2,  SkillId = 7 },  // LightWaves
+
+                // Q6 [Chapter 1] Slay the Swamp Demon
+                new QuestRewardSkill { QuestRewardSkillId = 4,  QuestId = 6,  SkillId = 2 },  // ArrowofLight
+                new QuestRewardSkill { QuestRewardSkillId = 5,  QuestId = 6,  SkillId = 3 },  // Holymagic
+                new QuestRewardSkill { QuestRewardSkillId = 6,  QuestId = 6,  SkillId = 4 },  // Purification
+                new QuestRewardSkill { QuestRewardSkillId = 7,  QuestId = 6,  SkillId = 8 },  // ProtectiveShield
+                new QuestRewardSkill { QuestRewardSkillId = 8,  QuestId = 6,  SkillId = 6 },  // Lightsabers
+
+                // Q11 [Chapter 2] Deliver the Harvest
+                new QuestRewardSkill { QuestRewardSkillId = 9,  QuestId = 11, SkillId = 16 }, // PumpkinMagic
+                new QuestRewardSkill { QuestRewardSkillId = 10, QuestId = 11, SkillId = 19 }, // BoomBoomPumpkin
+                new QuestRewardSkill { QuestRewardSkillId = 11, QuestId = 11, SkillId = 17 }, // PumpkinThrow (PumpkinBall)
+                new QuestRewardSkill { QuestRewardSkillId = 12, QuestId = 11, SkillId = 18 }, // PumpkinSlash
+
+                // Q19 [Chapter 2] Slay the Dragon
+                new QuestRewardSkill { QuestRewardSkillId = 13, QuestId = 19, SkillId = 9 },  // DarkExplosion
+                new QuestRewardSkill { QuestRewardSkillId = 14, QuestId = 19, SkillId = 10 }, // DarkPoisonZone
+                new QuestRewardSkill { QuestRewardSkillId = 15, QuestId = 19, SkillId = 13 }, // DeadlyExplosion
+
+                // Q22 [Chapter 3] A Word to the Queen
+                new QuestRewardSkill { QuestRewardSkillId = 16, QuestId = 22, SkillId = 15 }, // FrozenSash
+
+                // Q28 [Chapter 4] Break the Skeleton Army
+                new QuestRewardSkill { QuestRewardSkillId = 17, QuestId = 28, SkillId = 14 }, // BloodySlash
+                new QuestRewardSkill { QuestRewardSkillId = 18, QuestId = 28, SkillId = 12 }, // NightMagic
+                new QuestRewardSkill { QuestRewardSkillId = 19, QuestId = 28, SkillId = 11 }  // DeadlyCurse
+            );
+
+            // ─────────────────────────────────────────────────────────────────────────
             // SHOP – the gold sink. Quest rewards pay out ~2.3k gold across the campaign
             // and nothing was buyable, so gold was a dead currency.
             //

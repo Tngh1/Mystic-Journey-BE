@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260805150025_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260806152425_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2193,62 +2193,6 @@ namespace DAL.Migrations
                         },
                         new
                         {
-                            ItemId = 909,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Swamp Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 910,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Dragon Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 911,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Golem Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 912,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
                             ItemId = 1,
                             BaseValue = 1m,
                             CorruptionReduction = 0f,
@@ -3579,7 +3523,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 909,
+                            ItemId = 29,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 2
@@ -3590,7 +3534,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 910,
+                            ItemId = 26,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 7
@@ -3601,7 +3545,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 911,
+                            ItemId = 27,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 10
@@ -3612,7 +3556,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 912,
+                            ItemId = 28,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 15
@@ -7459,6 +7403,122 @@ namespace DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("QuestRewardSkills");
+
+                    b.HasData(
+                        new
+                        {
+                            QuestRewardSkillId = 1,
+                            QuestId = 2,
+                            SkillId = 1
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 2,
+                            QuestId = 2,
+                            SkillId = 5
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 3,
+                            QuestId = 2,
+                            SkillId = 7
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 4,
+                            QuestId = 6,
+                            SkillId = 2
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 5,
+                            QuestId = 6,
+                            SkillId = 3
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 6,
+                            QuestId = 6,
+                            SkillId = 4
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 7,
+                            QuestId = 6,
+                            SkillId = 8
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 8,
+                            QuestId = 6,
+                            SkillId = 6
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 9,
+                            QuestId = 11,
+                            SkillId = 16
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 10,
+                            QuestId = 11,
+                            SkillId = 19
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 11,
+                            QuestId = 11,
+                            SkillId = 17
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 12,
+                            QuestId = 11,
+                            SkillId = 18
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 13,
+                            QuestId = 19,
+                            SkillId = 9
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 14,
+                            QuestId = 19,
+                            SkillId = 10
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 15,
+                            QuestId = 19,
+                            SkillId = 13
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 16,
+                            QuestId = 22,
+                            SkillId = 15
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 17,
+                            QuestId = 28,
+                            SkillId = 14
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 18,
+                            QuestId = 28,
+                            SkillId = 12
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 19,
+                            QuestId = 28,
+                            SkillId = 11
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.Role", b =>

@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1876,11 +1876,7 @@ namespace DAL.Migrations
                     { 905, 800m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Heavy stone gloves dropped by GolemBoss.", null, true, 1, "Golem Boss Gloves", "Legendary", "Gloves", "Armor" },
                     { 906, 1000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A massive stone armor dropped by GolemBoss.", null, true, 1, "Golem Boss Armor", "Legendary", "Armor", "Armor" },
                     { 907, 1500m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A royal cursed sword dropped by UnderKing.", null, true, 1, "UnderKing Sword", "Legendary", "Weapon", "Weapon" },
-                    { 908, 2000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The crown of the UnderKing.", null, true, 1, "UnderKing Crown", "Legendary", "Helmet", "Armor" },
-                    { 909, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.", null, true, 1, "Swamp Seal Book", "Legendary", "None", "QuestItem" },
-                    { 910, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.", null, true, 1, "Dragon Seal Book", "Legendary", "None", "QuestItem" },
-                    { 911, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.", null, true, 1, "Golem Seal Book", "Legendary", "None", "QuestItem" },
-                    { 912, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The final magic book to seal the Origin Tree, guarded by UnderKing.", null, true, 1, "UnderKing Seal Book", "Legendary", "None", "QuestItem" }
+                    { 908, 2000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The crown of the UnderKing.", null, true, 1, "UnderKing Crown", "Legendary", "Helmet", "Armor" }
                 });
 
             migrationBuilder.InsertData(
@@ -2072,10 +2068,10 @@ namespace DAL.Migrations
                     { 906, 100.0, true, true, 906, 1, 1, 10 },
                     { 907, 100.0, true, true, 907, 1, 1, 15 },
                     { 908, 100.0, true, true, 908, 1, 1, 15 },
-                    { 909, 100.0, true, true, 909, 1, 1, 2 },
-                    { 910, 100.0, true, true, 910, 1, 1, 7 },
-                    { 911, 100.0, true, true, 911, 1, 1, 10 },
-                    { 912, 100.0, true, true, 912, 1, 1, 15 },
+                    { 909, 100.0, true, true, 29, 1, 1, 2 },
+                    { 910, 100.0, true, true, 26, 1, 1, 7 },
+                    { 911, 100.0, true, true, 27, 1, 1, 10 },
+                    { 912, 100.0, true, true, 28, 1, 1, 15 },
                     { 951, 100.0, true, true, 22, 5, 1, 1 },
                     { 952, 100.0, true, true, 22, 5, 1, 2 },
                     { 953, 100.0, true, true, 22, 5, 1, 3 },
@@ -2239,6 +2235,23 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "QuestRewardSkills",
+                columns: new[] { "QuestRewardSkillId", "QuestId", "SkillId" },
+                values: new object[,]
+                {
+                    { 1, 2, 1 },
+                    { 2, 2, 5 },
+                    { 3, 2, 7 },
+                    { 9, 11, 16 },
+                    { 10, 11, 19 },
+                    { 11, 11, 17 },
+                    { 12, 11, 18 },
+                    { 17, 28, 14 },
+                    { 18, 28, 12 },
+                    { 19, 28, 11 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Quests",
                 columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
                 values: new object[,]
@@ -2350,6 +2363,22 @@ namespace DAL.Migrations
                     { 4, 11, 1, 19 },
                     { 5, 14, 1, 26 },
                     { 7, 8, 1, 39 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "QuestRewardSkills",
+                columns: new[] { "QuestRewardSkillId", "QuestId", "SkillId" },
+                values: new object[,]
+                {
+                    { 4, 6, 2 },
+                    { 5, 6, 3 },
+                    { 6, 6, 4 },
+                    { 7, 6, 8 },
+                    { 8, 6, 6 },
+                    { 13, 19, 9 },
+                    { 14, 19, 10 },
+                    { 15, 19, 13 },
+                    { 16, 22, 15 }
                 });
 
             migrationBuilder.CreateIndex(
