@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260806152425_Initial")]
+    [Migration("20260806161736_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -6666,10 +6666,10 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Dungeon",
-                            ObjectiveTarget = "Dungeon_2",
+                            ObjectiveTarget = "Dungeon",
                             ObjectiveType = "Explore",
                             QuestGiverName = "Arthur",
-                            RequiredLevel = 4,
+                            RequiredLevel = 3,
                             RewardExperience = 10,
                             RewardGems = 4m,
                             RewardGold = 30m,
