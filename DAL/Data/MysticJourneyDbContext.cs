@@ -242,58 +242,6 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     MaxStack = 1,
                     IsActive = true,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 909,
-                    Name = "Swamp Seal Book",
-                    Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 910,
-                    Name = "Dragon Seal Book",
-                    Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 911,
-                    Name = "Golem Seal Book",
-                    Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 912,
-                    Name = "UnderKing Seal Book",
-                    Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 }
             );
 
@@ -438,10 +386,10 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     IsGuaranteed = true,
                     IsActive = true
                 },
-                new MonsterDrop { MonsterDropId = 909, MonsterId = 2, ItemId = 909, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
-                new MonsterDrop { MonsterDropId = 910, MonsterId = 7, ItemId = 910, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
-                new MonsterDrop { MonsterDropId = 911, MonsterId = 10, ItemId = 911, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
-                new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 912, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 909, MonsterId = 2, ItemId = 29, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 910, MonsterId = 7, ItemId = 26, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 911, MonsterId = 10, ItemId = 27, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 28, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
 
                 // Seed Skill Upgrade Stone (ItemId = 22) drop for all monsters & bosses directly in DbContext
                 new MonsterDrop { MonsterDropId = 951, MonsterId = 1, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
