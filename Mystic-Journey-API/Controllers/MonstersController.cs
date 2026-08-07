@@ -247,7 +247,7 @@ namespace Mystic_Journey_API.Controllers
         // Đọc playerProfileId từ JWT token.
         private int GetPlayerProfileId()
         {
-            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("playerProfileId")?.Value;
+            var claim = User.FindFirst("playerProfileId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(claim, out var id))
                 throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
             return id;
