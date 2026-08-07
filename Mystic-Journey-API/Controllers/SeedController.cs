@@ -22,10 +22,12 @@ namespace Mystic_Journey_API.Controllers
     //
     // Dữ liệu tạo ra:
     //   - Skills/monsters/drops/spawns cho ElfForest, 6 Dungeon, Content mẫu
-    //   - 5 account test elf1..elf5@mystic.test, mỗi account đứng ở CUỐI chương
-    //     tương ứng (elf1 = cuối chương 1 ... elf5 = cuối chương 5/hết game),
-    //     đứng tại spawn point của map chương đó, đã nhận đủ item/skill/gold/exp
-    //     mà một lượt chơi thật sự sẽ cấp tới điểm đó (xem ReplayChapterRewards).
+    //   - 5 account test elf1..elf5@mystic.test, mỗi account đứng ở ĐẦU một chương
+    //     (elf1 = đầu chương 1 ... elf5 = đầu chương 5), tại spawn point của map
+    //     chương đó, đã nhận đủ item/skill/gold/exp mà một lượt chơi thật sự sẽ
+    //     cấp tới điểm đó. LastQuestId là quest cuối ĐÃ Claimed, nên quest kế tiếp
+    //     (LastQuestId + 1) chính là quest đầu chương: 0→Q1, 8→Q9, 20→Q21,
+    //     27→Q28, 40→Q41. Không có account nào ở sau Q46 (hết game).
     //   - 1 account admin@mysticjourney.com (role Admin) cho FE admin portal
     //   - 30 ngày DailyLoginReward
     //   - Lịch sử mua hàng mẫu (PurchaseHistory) cho 5 account trên, từ catalogue
@@ -97,8 +99,6 @@ namespace Mystic_Journey_API.Controllers
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
             {
-                await EnsureElfForestSchema();
-
                 // 1. Lookup system items từ migration (không tạo item mới trong seed)
                 var potion        = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
                 var sword         = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
@@ -131,52 +131,28 @@ namespace Mystic_Journey_API.Controllers
                 // 2. Skins are seeded in exact order matching Unity's SkinDatabase.asset
                 var (skinKnight, skinArcher, skinMage, skinArcherPremium, skinKnightPremium, skinMagePremium) = await EnsureBaseSkinsAsync();
 
-                // 3. Upsert tutorial skills (2 hắc hóa dùng chung)
-                var elfSkillNames = new[] {
-                    "Dark Poison Zone", "Dark Explosion"
-                };
+                // 3. Skill rows are owned by modelBuilder.Entity<Skill>().HasData
+                // (SkillId 1-19) in MysticJourneyDbContext. This endpoint only deletes
+                // the pre-rework rows that HasData no longer covers — it must never
+                // author skill definitions of its own. The previous version upserted
+                // "Dark Poison Zone"/"Dark Explosion" (with spaces) while canonical
+                // names are "DarkPoisonZone"/"DarkExplosion", so the lookup never
+                // matched and every run INSERTed two duplicate skills — which then got
+                // granted to all 5 accounts by UpsertChapterAccount.
                 var removedSkillNames = new[] {
-                    "AP_Skill", "Skill_Ad", "Skill_Knight Attack", "Skill_Mui_Ten_Bang", "Skill_Thap_AS"
+                    "AP_Skill", "Skill_Ad", "Skill_Knight Attack", "Skill_Mui_Ten_Bang", "Skill_Thap_AS",
+                    "Dark Poison Zone", "Dark Explosion"
                 };
                 var obsoleteSkills = await _ctx.Skills.Where(s => removedSkillNames.Contains(s.Name)).ToListAsync();
                 if (obsoleteSkills.Any())
                 {
+                    var obsoleteSkillIds = obsoleteSkills.Select(s => s.SkillId).ToList();
+                    _ctx.PlayerSkills.RemoveRange(_ctx.PlayerSkills.Where(ps => obsoleteSkillIds.Contains(ps.SkillId)));
+                    _ctx.QuestRewardSkills.RemoveRange(_ctx.QuestRewardSkills.Where(qs => obsoleteSkillIds.Contains(qs.SkillId)));
+                    await _ctx.SaveChangesAsync();
                     _ctx.Skills.RemoveRange(obsoleteSkills);
+                    await _ctx.SaveChangesAsync();
                 }
-
-                var existingElfSkills = await _ctx.Skills
-                    .Where(s => elfSkillNames.Contains(s.Name))
-                    .ToListAsync();
-
-                Skill UpsertSkill(string name, string description, string type, string damageType,
-                    string targetType, string classReq, int cooldown, double baseDmg, double dmgPerLv, double growthPct, float corruptionCost = 0f)
-                {
-                    var s = existingElfSkills.FirstOrDefault(x => x.Name == name);
-                    if (s == null)
-                    {
-                        s = new Skill { Name = name };
-                        _ctx.Skills.Add(s);
-                        existingElfSkills.Add(s);
-                    }
-                    s.Description         = description;
-                    s.Type                = type;
-                    s.DamageType          = damageType;
-                    s.TargetType          = targetType;
-                    s.ClassRequirement    = classReq;
-                    s.CooldownSeconds     = cooldown;
-                    s.BaseDamage          = baseDmg;
-                    s.DamagePerLevel      = dmgPerLv;
-                    s.DamageGrowthPercent = growthPct;
-                    s.CorruptionCost      = corruptionCost;
-                    s.UnlockLevel         = 1;
-                    s.IsActive            = true;
-                    return s;
-                }
-
-                UpsertSkill("Dark Poison Zone", "Creates a poisonous zone dealing AoE damage. Darkening +10.", "Active", "Magical", "Area", "All", 6, 135.0, 16.0, 3.5, 10f);
-                UpsertSkill("Dark Explosion", "Creates an explosion dealing massive damage. Darkening +5.", "Active", "Magical", "Area", "All", 8, 175.0, 20.0, 3.5, 5f);
-
-                await _ctx.SaveChangesAsync();
 
                 // 4. Remove obsolete tutorial monsters for ElfForest if present
                 var obsoleteMonsterNames = new[] { "[ELF] Shadow Sprout", "[ELF] Forest Wolf", "[ELF] Sprout King" };
@@ -220,7 +196,8 @@ namespace Mystic_Journey_API.Controllers
 
                 // Independent sub-seeds (each self-contained; safe to run after the
                 // core commit so a failure here doesn't roll back the accounts above)
-                await SeedDungeons();
+                // Dungeon/DungeonConfig/Chest/ChestItem/MonsterSpawn giờ do
+                // MysticJourneyDbContext HasData quản — không seed lại ở đây.
                 await SeedContent();
                 await SeedAdminAccount();
                 await SeedDailyLoginRewards();
@@ -692,289 +669,14 @@ namespace Mystic_Journey_API.Controllers
             await _ctx.SaveChangesAsync();
         }
 
-        private async Task EnsureElfForestSchema()
-        {
-            await _ctx.Database.ExecuteSqlRawAsync(@"
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""TargetAmount"" integer NOT NULL DEFAULT 1;
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""MapName"" character varying(100) NOT NULL DEFAULT 'ElfForest';
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""RegionName"" character varying(100) NULL;
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveType"" text NOT NULL DEFAULT 'Explore';
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveTarget"" text NULL;
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""ObjectiveLocation"" text NULL;
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""QuestGiverName"" text NULL;
-ALTER TABLE ""Quests"" ADD COLUMN IF NOT EXISTS ""RewardSkillId"" integer NULL;
-
-CREATE TABLE IF NOT EXISTS ""NPCs"" (
-    ""NPCId"" integer GENERATED BY DEFAULT AS IDENTITY,
-    ""Name"" character varying(150) NOT NULL,
-    ""Description"" text NULL,
-    ""Type"" text NOT NULL,
-    ""MapName"" character varying(100) NOT NULL,
-    ""PositionX"" double precision NOT NULL,
-    ""PositionY"" double precision NOT NULL,
-    ""InteractionRadius"" real NOT NULL,
-    ""IconUrl"" text NULL,
-    ""IsActive"" boolean NOT NULL,
-    CONSTRAINT ""PK_NPCs"" PRIMARY KEY (""NPCId"")
-);
-
-CREATE TABLE IF NOT EXISTS ""NPCDialogues"" (
-    ""NPCDialogueId"" integer GENERATED BY DEFAULT AS IDENTITY,
-    ""NPCId"" integer NOT NULL,
-    ""Content"" text NOT NULL,
-    ""ResponseType"" text NOT NULL,
-    ""LinkedQuestId"" integer NULL,
-    ""LinkedShopItemId"" integer NULL,
-    ""DisplayOrder"" integer NOT NULL,
-    ""IsActive"" boolean NOT NULL,
-    CONSTRAINT ""PK_NPCDialogues"" PRIMARY KEY (""NPCDialogueId"")
-);
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_NPCDialogues_NPCs_NPCId') THEN
-        ALTER TABLE ""NPCDialogues"" ADD CONSTRAINT ""FK_NPCDialogues_NPCs_NPCId""
-            FOREIGN KEY (""NPCId"") REFERENCES ""NPCs"" (""NPCId"") ON DELETE CASCADE;
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_NPCDialogues_Quests_LinkedQuestId') THEN
-        ALTER TABLE ""NPCDialogues"" ADD CONSTRAINT ""FK_NPCDialogues_Quests_LinkedQuestId""
-            FOREIGN KEY (""LinkedQuestId"") REFERENCES ""Quests"" (""QuestId"") ON DELETE SET NULL;
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_NPCDialogues_ShopItems_LinkedShopItemId') THEN
-        ALTER TABLE ""NPCDialogues"" ADD CONSTRAINT ""FK_NPCDialogues_ShopItems_LinkedShopItemId""
-            FOREIGN KEY (""LinkedShopItemId"") REFERENCES ""ShopItems"" (""ShopItemId"") ON DELETE SET NULL;
-    END IF;
-END $$;
-
-CREATE INDEX IF NOT EXISTS ""IX_Quests_MapName"" ON ""Quests"" (""MapName"");
-CREATE INDEX IF NOT EXISTS ""IX_NPCs_MapName"" ON ""NPCs"" (""MapName"");
-CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_NPCId"" ON ""NPCDialogues"" (""NPCId"");
-CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedQuestId"" ON ""NPCDialogues"" (""LinkedQuestId"");
-CREATE INDEX IF NOT EXISTS ""IX_NPCDialogues_LinkedShopItemId"" ON ""NPCDialogues"" (""LinkedShopItemId"");
-");
-        }
-
         // ─────────────────────────────────────────────────────────────────────────
-        // Seed 6 Dungeon mẫu để test luồng Game (không phải route riêng, gọi từ
-        // SeedMysticJourney)
+        // ĐÃ XOÁ: SeedDungeons()
+        // 6 Dungeon, 6 Chest, 13 ChestItem, 6 DungeonConfig và 21 MonsterSpawn giờ
+        // nằm trong modelBuilder.HasData của MysticJourneyDbContext. Bản cũ xoá sạch
+        // rồi tạo lại mấy bảng này mỗi lần gọi /seed, nên ID nhảy theo identity
+        // sequence trong khi DungeonEntrance bên Unity hardcode dungeonConfigId 1-6.
         // ─────────────────────────────────────────────────────────────────────────
-        private async Task SeedDungeons()
-        {
-            // ─── 1. Xoá dữ liệu dungeon cũ ───────────────────────────────────────
-            var existingSpawns = await _ctx.MonsterSpawns.Where(ms => ms.DungeonId != null).ToListAsync();
-            _ctx.MonsterSpawns.RemoveRange(existingSpawns);
-
-            var existingDungeons = await _ctx.Dungeons.ToListAsync();
-            _ctx.Dungeons.RemoveRange(existingDungeons);
-
-            var existingConfigs = await _ctx.DungeonConfigs.ToListAsync();
-            _ctx.DungeonConfigs.RemoveRange(existingConfigs);
-
-            await _ctx.SaveChangesAsync();
-
-            // ─── 2. Đảm bảo tất cả monsters tồn tại (theo MonsterDatabaseSO) ────
-            //  ID  |  Tên                  | Type
-            //  1   |  SlimeLittle          | Normal
-            //  2   |  SwampDemon           | Boss
-            //  3   |  WaterElemental       | Normal
-            //  4   |  Dragon               | Normal
-            //  5   |  BlueDragonFrost      | Normal
-            //  6   |  GreenDragonForest    | Normal
-            //  7   |  DragonBossIdle       | Boss
-            //  8   |  SlimeIce            | Normal
-            //  9   |  IceDragon           | Normal
-            //  10  |  GolemBoss            | Boss
-            //  11  |  OrcSkeleton          | Normal
-            //  12  |  SkeletonMelee        | Normal
-            //  13  |  SkeletonArcher       | Normal
-            //  14  |  Ghost                | Normal
-            //  15  |  UnderKing            | Boss
-            //  16  |  Demon                | Normal
-            //  17  |  GoblinWarrior        | Normal
-            //  18  |  GoblinSpear          | Normal
-            //  19  |  Ogre                 | Boss
-            //  20  |  OrcWarlord           | Boss
-
-            // ponytail: giữ ĐỒNG BỘ với modelBuilder.Entity<Monster>().HasData trong
-            // MysticJourneyDbContext. Trước đây hàm này chỉ nhận (hp, atk, def) nên mọi
-            // quái do nó tạo ra có Level=0, MoveSpeed=0 và CritDamage=0 — tức là không
-            // bao giờ đuổi được người chơi (EnemyBehaviour tính MoveSpeed/100*3.5) và
-            // đòn "chí mạng" chỉ gây 0x sát thương. Nhận đủ chỉ số để tránh hai lỗi đó.
-            void EnsureMonster(int id, string name, string type, int level, int hp, int atk, int def,
-                               int moveSpeed, int attackSpeed, int critRate, int critDamage,
-                               int expReward, decimal goldReward, decimal gemReward = 0m)
-            {
-                var m = _ctx.Monsters.Local.FirstOrDefault(x => x.MonsterId == id)
-                     ?? _ctx.Monsters.Find(id);
-                if (m == null)
-                {
-                    m = new Monster { MonsterId = id };
-                    _ctx.Monsters.Add(m);
-                }
-
-                // Ghi đè có chủ ý: seed endpoint là nguồn sự thật duy nhất khi chạy lại,
-                // nếu chỉ insert-khi-thiếu thì các hàng có số liệu cũ sẽ sống mãi.
-                m.Name = name;
-                m.Type = type;
-                m.Level = level;
-                m.MaxHp = hp;
-                m.Atk = atk;
-                m.Def = def;
-                m.MoveSpeed = moveSpeed;
-                m.AttackSpeed = attackSpeed;
-                m.CritRate = critRate;
-                m.CritDamage = critDamage;
-                m.ExperienceReward = expReward;
-                m.GoldReward = goldReward;
-                m.GemReward = gemReward;
-                m.IsActive = true;
-            }
-
-            // Normal monsters
-            EnsureMonster(1,   "SlimeLittle",         "Normal",    1,   300,  30,   2,   70,  85,  5, 130,    4,     8m);
-            EnsureMonster(3,   "WaterElemental",      "Normal",    3,   400,  39,   5,   80,  95,  8, 140,    4,     8m);
-            EnsureMonster(4,   "Dragon",              "Normal",    6,   560,  47,  12,  110, 100, 15, 160,    6,    13m);
-            EnsureMonster(5,   "BlueDragonFrost",     "Normal",    7,   580,  48,  14,  110, 100, 15, 160,    6,    13m);
-            EnsureMonster(6,   "GreenDragonForest",   "Normal",    7,   590,  49,  15,  110, 105, 15, 160,    6,    13m);
-            EnsureMonster(8,   "SlimeIce",            "Normal",    7,   620,  50,  15,   75,  90, 10, 150,   10,    19m);
-            EnsureMonster(9,   "IceDragon",           "Normal",    9,   840,  55,  18,  115, 105, 20, 165,   10,    19m);
-            EnsureMonster(11,  "OrcSkeleton",         "Normal",    9,   850,  61,  20,   95, 100, 15, 160,   13,    26m);
-            EnsureMonster(12,  "SkeletonMelee",       "Normal",   11,  1050,  71,  22,  100, 105, 15, 160,   13,    26m);
-            EnsureMonster(13,  "SkeletonArcher",      "Normal",   12,  1160,  78,  16,  100, 115, 22, 165,   13,    26m);
-            EnsureMonster(14,  "Ghost",               "Normal",    4,   480,  42,  10,   95, 100, 15, 160,    6,    13m);
-            EnsureMonster(16,  "Demon",               "Normal",    8,   730,  51,  18,   95, 100, 20, 165,   10,    19m);
-            EnsureMonster(17,  "GoblinWarrior",       "Normal",    5,   530,  45,  13,   95, 100, 12, 150,    6,    13m);
-            EnsureMonster(18,  "GoblinSpear",         "Normal",    5,   510,  44,  10,  100, 100, 10, 150,    6,    13m);
-            EnsureMonster(23,  "NecromancerCast",     "Normal",    4,   500,  43,   7,   85,  90, 10, 155,    6,    13m);
-            EnsureMonster(24,  "RobberArcher",        "Normal",    3,   440,  40,   6,  100, 110, 12, 150,    6,    13m);
-            EnsureMonster(25,  "RobberAssassin",      "Normal",    3,   460,  41,   9,  105, 115, 18, 160,    6,    13m);
-            EnsureMonster(26,  "RedGuard",            "Normal",    6,   540,  46,  15,   85,  95, 10, 150,    6,    13m);
-            EnsureMonster(27,  "OrcSkeletonAfk",      "Normal",   10,   950,  65,  24,   90,  95, 15, 160,   13,    26m);
-
-            // Boss monsters
-            EnsureMonster(2,   "SwampDemon",          "Boss",      3,  1380,  32,  10,   90, 100, 12, 150,   22,   110m, 5m);
-            EnsureMonster(7,   "DragonBossIdle",      "Boss",      7,  2930,  53,  22,    0, 100, 20, 175,   35,   176m, 10m);
-            EnsureMonster(10,  "GolemBoss",           "Boss",      9,  4300,  65,  28,   80,  90, 20, 170,   53,   264m, 15m);
-            EnsureMonster(15,  "UnderKing",           "Boss",     12,  6040,  94,  35,   95, 100, 25, 180,   70,   352m, 30m);
-            EnsureMonster(19,  "Ogre",                "Boss",      7,  2560,  46,  19,   85,  90, 15, 165,   35,   176m, 10m);
-            EnsureMonster(20,  "OrcWarlord",          "Boss",     12,  4490,  73,  30,   95, 100, 22, 175,   70,   352m, 30m);
-            EnsureMonster(21,  "IceFairy",            "Boss",      9,  3230,  54,  16,  100, 100, 12, 150,   53,   264m, 15m);
-            EnsureMonster(22,  "GoblinWarlord",       "Boss",      7,  2180,  41,  18,   95, 100, 18, 165,   35,   176m, 10m);
-
-            await _ctx.SaveChangesAsync();
-
-            // ─── 3. Tạo 6 Dungeon (ID phải khớp với Unity DungeonConfig) ────────
-            var dungeons = new List<Dungeon>
-            {
-                new Dungeon { DungeonId = 1, Name = "Slime Swamp",          Description = "Realm of dangerous Slimes",           IsRepeatable = true },
-                new Dungeon { DungeonId = 2, Name = "Dragon's Lair",        Description = "The den of ferocious dragons",        IsRepeatable = true },
-                new Dungeon { DungeonId = 3, Name = "Frozen Palace",        Description = "Ice fortress of the giant Golem",     IsRepeatable = true },
-                new Dungeon { DungeonId = 4, Name = "Shadow Graveyard",     Description = "Underground kingdom of the Bone King",IsRepeatable = true },
-                new Dungeon { DungeonId = 5, Name = "Goblin Camp",          Description = "Stronghold of Goblins and Ogres",     IsRepeatable = true },
-                new Dungeon { DungeonId = 6, Name = "Hell's Gate",          Description = "Portal to the realm of Demons and Orc Warriors", IsRepeatable = true },
-            };
-            _ctx.Dungeons.AddRange(dungeons);
-
-            // ─── 4. Tạo Chest và DungeonConfig khớp với Unity ─────────────────────────────
-
-            // Clear old chests associated with old dungeon configs
-            var chestIdsToRemove = existingConfigs.Where(c => c.ChestId.HasValue).Select(c => c.ChestId.Value).ToList();
-            if (chestIdsToRemove.Any())
-            {
-                var chestsToRemove = await _ctx.Chests.Where(c => chestIdsToRemove.Contains(c.ChestId)).ToListAsync();
-                _ctx.Chests.RemoveRange(chestsToRemove);
-                await _ctx.SaveChangesAsync();
-            }
-
-            // Create chests for each dungeon
-            var chest1 = new Chest { Name = "Slime Swamp Chest", Description = "Slime Swamp reward", Type = "Normal", GoldMinReward = 50, GoldMaxReward = 100, ExperienceReward = 50, IsActive = true };
-            var chest2 = new Chest { Name = "Dragon Lair Chest", Description = "Dragon Lair reward", Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200, ExperienceReward = 150, IsActive = true };
-            var chest3 = new Chest { Name = "Ice Palace Chest", Description = "Ice Palace reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 300, IsActive = true };
-            var chest4 = new Chest { Name = "Dark Graveyard Chest", Description = "Dark Graveyard reward", Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400, ExperienceReward = 450, IsActive = true };
-            var chest5 = new Chest { Name = "Goblin Camp Chest", Description = "Goblin Camp reward", Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300, ExperienceReward = 350, IsActive = true };
-            var chest6 = new Chest { Name = "Hell Gate Chest", Description = "Hell Gate reward", Type = "Epic", GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true };
-
-            _ctx.Chests.AddRange(chest1, chest2, chest3, chest4, chest5, chest6);
-            await _ctx.SaveChangesAsync();
-
-            // Add item drops to these chests
-            var hpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Health Potion");
-            var mpPotion = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Small Mana Potion");
-            var ironSword = await _ctx.Items.FirstOrDefaultAsync(i => i.Name == "Iron Sword");
-
-            var chestItems = new List<ChestItem>();
-            foreach (var chest in new[] { chest1, chest2, chest3, chest4, chest5, chest6 })
-            {
-                if (hpPotion != null)
-                    chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = hpPotion.ItemId, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 });
-                if (mpPotion != null)
-                    chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = mpPotion.ItemId, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 });
-                if (ironSword != null && chest.Type == "Epic") // Cổng địa ngục is Epic
-                    chestItems.Add(new ChestItem { ChestId = chest.ChestId, ItemId = ironSword.ItemId, DropRate = 30.0m, QuantityMin = 1, QuantityMax = 1 });
-            }
-            if (chestItems.Any())
-            {
-                _ctx.ChestItems.AddRange(chestItems);
-                await _ctx.SaveChangesAsync();
-            }
-
-            var dungeonConfigs = new List<DungeonConfig>
-            {
-                new DungeonConfig { DungeonConfigId = 1, Name = "Slime Swamp",      Description = "Realm of dangerous Slimes",           Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  IsActive = true, ChestId = chest1.ChestId },
-                new DungeonConfig { DungeonConfigId = 2, Name = "Dragon's Lair",    Description = "The den of ferocious dragons",        Type = "Normal", LevelRequirement = 3,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  IsActive = true, ChestId = chest2.ChestId },
-                new DungeonConfig { DungeonConfigId = 3, Name = "Frozen Palace",    Description = "Ice fortress of the giant Golem",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  IsActive = true, ChestId = chest3.ChestId },
-                new DungeonConfig { DungeonConfigId = 4, Name = "Shadow Graveyard", Description = "Underground kingdom of the Bone King",Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  IsActive = true, ChestId = chest4.ChestId },
-                new DungeonConfig { DungeonConfigId = 5, Name = "Goblin Camp",      Description = "Stronghold of Goblins and Ogres",     Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  IsActive = true, ChestId = chest5.ChestId },
-                new DungeonConfig { DungeonConfigId = 6, Name = "Hell's Gate",      Description = "Portal to the realm of Demons and Orc Warriors", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, IsActive = true, ChestId = chest6.ChestId },
-            };
-            _ctx.DungeonConfigs.AddRange(dungeonConfigs);
-            await _ctx.SaveChangesAsync();
-
-            // ─── 5. Tạo MonsterSpawns cho từng Dungeon ───────────────────────────
-            // MapName phải khớp với scene name trong Unity
-            string mapName = "HollowCryptDungeon";
-
-            var spawns = new List<MonsterSpawn>
-            {
-                // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
-                new MonsterSpawn { DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────
-                new MonsterSpawn { DungeonId = 2, MonsterId = 4,  SpawnCount = 2, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 2, MonsterId = 5,  SpawnCount = 2, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 2, MonsterId = 6,  SpawnCount = 2, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 2, MonsterId = 7,  SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                // ── Dungeon 3: Cung điện Băng giá ────────────────────────────────
-                new MonsterSpawn { DungeonId = 3, MonsterId = 8,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 3, MonsterId = 9,  SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 3, MonsterId = 10, SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                // ── Dungeon 4: Nghĩa địa Bóng tối ────────────────────────────────
-                new MonsterSpawn { DungeonId = 4, MonsterId = 12, SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 4, MonsterId = 13, SpawnCount = 2, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 4, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 4, MonsterId = 15, SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                // ── Dungeon 5: Doanh trại Goblin ─────────────────────────────────
-                new MonsterSpawn { DungeonId = 5, MonsterId = 17, SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 5, MonsterId = 18, SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 5, MonsterId = 19, SpawnCount = 1, MapName = mapName, IsActive = true },
-
-                // ── Dungeon 6: Cổng địa ngục ─────────────────────────────────────
-                new MonsterSpawn { DungeonId = 6, MonsterId = 14, SpawnCount = 3, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 6, MonsterId = 16, SpawnCount = 2, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 6, MonsterId = 11, SpawnCount = 2, MapName = mapName, IsActive = true },
-                new MonsterSpawn { DungeonId = 6, MonsterId = 20, SpawnCount = 1, MapName = mapName, IsActive = true },
-            };
-
-            _ctx.MonsterSpawns.AddRange(spawns);
-            await _ctx.SaveChangesAsync();
-        }
+        // (không còn code — xem MysticJourneyDbContext.OnModelCreating)
 
         // ─────────────────────────────────────────────────────────────────────────
         // Seed Content mẫu (không phải route riêng, gọi từ SeedMysticJourney)

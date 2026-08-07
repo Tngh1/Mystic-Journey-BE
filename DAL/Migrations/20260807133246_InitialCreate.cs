@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1819,6 +1819,19 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Chests",
+                columns: new[] { "ChestId", "Description", "ExperienceReward", "GoldMaxReward", "GoldMinReward", "IsActive", "Name", "Type" },
+                values: new object[,]
+                {
+                    { 1, "Slime Swamp reward", 50, 100, 50, true, "Slime Swamp Chest", "Normal" },
+                    { 2, "Dragon Lair reward", 150, 200, 100, true, "Dragon Lair Chest", "Normal" },
+                    { 3, "Ice Palace reward", 300, 300, 150, true, "Ice Palace Chest", "Normal" },
+                    { 4, "Dark Graveyard reward", 450, 400, 200, true, "Dark Graveyard Chest", "Normal" },
+                    { 5, "Goblin Camp reward", 350, 300, 150, true, "Goblin Camp Chest", "Normal" },
+                    { 6, "Hell Gate reward", 1000, 1000, 500, true, "Hell Gate Chest", "Epic" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "ClassConfigs",
                 columns: new[] { "ClassConfigId", "Atk", "AttackSpeed", "ClassName", "CritDamage", "CritRate", "DamageBonus", "Def", "MaxHp", "MoveSpeed" },
                 values: new object[,]
@@ -1826,6 +1839,19 @@ namespace DAL.Migrations
                     { 1, 42, 100, "Knight", 150, 5, 0, 45, 620, 100 },
                     { 2, 52, 100, "Archer", 150, 5, 0, 26, 420, 100 },
                     { 3, 46, 100, "Mage", 150, 5, 0, 20, 360, 100 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Dungeons",
+                columns: new[] { "DungeonId", "Description", "IsRepeatable", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Realm of dangerous Slimes", true, "Slime Swamp" },
+                    { 2, "The den of ferocious dragons", true, "Dragon's Lair" },
+                    { 3, "Ice fortress of the giant Golem", true, "Frozen Palace" },
+                    { 4, "Underground kingdom of the Bone King", true, "Shadow Graveyard" },
+                    { 5, "Stronghold of Goblins and Ogres", true, "Goblin Camp" },
+                    { 6, "Portal to the realm of Demons and Orc Warriors", true, "Hell's Gate" }
                 });
 
             migrationBuilder.InsertData(
@@ -2015,6 +2041,26 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "ChestItems",
+                columns: new[] { "ChestItemId", "ChestId", "DropRate", "IsGuaranteed", "ItemId", "QuantityMax", "QuantityMin" },
+                values: new object[,]
+                {
+                    { 1, 1, 80.0m, false, 19, 3, 1 },
+                    { 2, 1, 60.0m, false, 21, 2, 1 },
+                    { 3, 2, 80.0m, false, 19, 3, 1 },
+                    { 4, 2, 60.0m, false, 21, 2, 1 },
+                    { 5, 3, 80.0m, false, 19, 3, 1 },
+                    { 6, 3, 60.0m, false, 21, 2, 1 },
+                    { 7, 4, 80.0m, false, 19, 3, 1 },
+                    { 8, 4, 60.0m, false, 21, 2, 1 },
+                    { 9, 5, 80.0m, false, 19, 3, 1 },
+                    { 10, 5, 60.0m, false, 21, 2, 1 },
+                    { 11, 6, 80.0m, false, 19, 3, 1 },
+                    { 12, 6, 60.0m, false, 21, 2, 1 },
+                    { 13, 6, 30.0m, false, 5, 1, 1 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Contents",
                 columns: new[] { "ContentId", "CategoryContentId", "CreatedAt", "CreatedByAccountAccountId", "CreatedByAccountId", "IsPublished", "PublishedAt", "Slug", "SubCategoryContentId", "Summary", "ThumbnailUrl", "Title", "UpdatedAt" },
                 values: new object[,]
@@ -2024,6 +2070,19 @@ namespace DAL.Migrations
                     { 3, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "chapter-1-awakening-in-the-deep-woods", null, "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.", null, "Chapter 1: Awakening in the Deep Woods", null },
                     { 4, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), false, null, "guide-to-collecting-all-4-seal-books", null, "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.", null, "Guide to Collecting All 4 Seal Books", null },
                     { 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "ecosystem-and-monsters-in-elf-forest", null, "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.", null, "Ecosystem and Monsters in Elf Forest", null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "DungeonConfigs",
+                columns: new[] { "DungeonConfigId", "ChestId", "Description", "Difficulty", "EnergyCost", "IsActive", "LevelRequirement", "MaxMembers", "Name", "RecommendedPower", "Type" },
+                values: new object[,]
+                {
+                    { 1, 1, "Realm of dangerous Slimes", 1, 10, true, 1, 4, "Slime Swamp", 100, "Normal" },
+                    { 2, 2, "The den of ferocious dragons", 2, 15, true, 3, 4, "Dragon's Lair", 300, "Normal" },
+                    { 3, 3, "Ice fortress of the giant Golem", 3, 20, true, 10, 4, "Frozen Palace", 600, "Normal" },
+                    { 4, 4, "Underground kingdom of the Bone King", 4, 25, true, 15, 4, "Shadow Graveyard", 900, "Normal" },
+                    { 5, 5, "Stronghold of Goblins and Ogres", 3, 20, true, 10, 4, "Goblin Camp", 700, "Normal" },
+                    { 6, 6, "Portal to the realm of Demons and Orc Warriors", 5, 30, true, 20, 4, "Hell's Gate", 1500, "Boss" }
                 });
 
             migrationBuilder.InsertData(
@@ -2087,6 +2146,34 @@ namespace DAL.Migrations
                     { 963, 100.0, true, true, 22, 5, 1, 13 },
                     { 964, 100.0, true, true, 22, 5, 1, 14 },
                     { 965, 100.0, true, true, 22, 5, 1, 15 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "MonsterSpawns",
+                columns: new[] { "MonsterSpawnId", "DungeonId", "IsActive", "Location", "MapName", "MonsterId", "RegionName", "RespawnSeconds", "SpawnCount" },
+                values: new object[,]
+                {
+                    { 1, 1, true, null, "HollowCryptDungeon", 1, null, 60, 3 },
+                    { 2, 1, true, null, "HollowCryptDungeon", 8, null, 60, 3 },
+                    { 3, 1, true, null, "HollowCryptDungeon", 2, null, 60, 1 },
+                    { 4, 2, true, null, "HollowCryptDungeon", 4, null, 60, 2 },
+                    { 5, 2, true, null, "HollowCryptDungeon", 5, null, 60, 2 },
+                    { 6, 2, true, null, "HollowCryptDungeon", 6, null, 60, 2 },
+                    { 7, 2, true, null, "HollowCryptDungeon", 7, null, 60, 1 },
+                    { 8, 3, true, null, "HollowCryptDungeon", 8, null, 60, 3 },
+                    { 9, 3, true, null, "HollowCryptDungeon", 9, null, 60, 3 },
+                    { 10, 3, true, null, "HollowCryptDungeon", 10, null, 60, 1 },
+                    { 11, 4, true, null, "HollowCryptDungeon", 12, null, 60, 3 },
+                    { 12, 4, true, null, "HollowCryptDungeon", 13, null, 60, 2 },
+                    { 13, 4, true, null, "HollowCryptDungeon", 11, null, 60, 2 },
+                    { 14, 4, true, null, "HollowCryptDungeon", 15, null, 60, 1 },
+                    { 15, 5, true, null, "HollowCryptDungeon", 17, null, 60, 3 },
+                    { 16, 5, true, null, "HollowCryptDungeon", 18, null, 60, 3 },
+                    { 17, 5, true, null, "HollowCryptDungeon", 19, null, 60, 1 },
+                    { 18, 6, true, null, "HollowCryptDungeon", 14, null, 60, 3 },
+                    { 19, 6, true, null, "HollowCryptDungeon", 16, null, 60, 2 },
+                    { 20, 6, true, null, "HollowCryptDungeon", 11, null, 60, 2 },
+                    { 21, 6, true, null, "HollowCryptDungeon", 20, null, 60, 1 }
                 });
 
             migrationBuilder.InsertData(
