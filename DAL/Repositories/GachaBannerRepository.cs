@@ -50,6 +50,7 @@ _context.GachaBanners.Update(banner);
         {
             await _context.GachaBannerItems.AddAsync(item);
             await _context.SaveChangesAsync();
+            await _context.Entry(item).Reference(i => i.Item).LoadAsync();
             return item;
         }
 

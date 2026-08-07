@@ -643,6 +643,10 @@ namespace BLL.Services
                         profile.LastEnergyUpdateTime = DateTime.UtcNow;
                     }
                     break;
+                case "EXP":
+                case "Experience":
+                    profile.AddExperience((int)reward.RewardValue);
+                    break;
                 case "Item":
                     if (reward.RewardItemId.HasValue)
                         await AddItemToInventory(profile.PlayerProfileId, reward.RewardItemId.Value, Math.Max(1, reward.RewardItemQuantity));
