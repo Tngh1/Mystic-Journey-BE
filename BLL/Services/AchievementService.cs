@@ -13,15 +13,21 @@ namespace BLL.Services
         private readonly IAchievementRepository _repository;
         private readonly IMapper _mapper;
         private readonly IPlayerAchievementRepository _playerAchievementRepository;
+        private readonly IPlayerProfileRepository _playerProfileRepository;
+        private readonly IPlayerQuestRepository _playerQuestRepository;
 
         public AchievementService(
             IAchievementRepository repository,
             IMapper mapper,
-            IPlayerAchievementRepository playerAchievementRepository)
+            IPlayerAchievementRepository playerAchievementRepository,
+            IPlayerProfileRepository playerProfileRepository,
+            IPlayerQuestRepository playerQuestRepository)
         {
             _repository = repository;
             _mapper = mapper;
             _playerAchievementRepository = playerAchievementRepository;
+            _playerProfileRepository = playerProfileRepository;
+            _playerQuestRepository = playerQuestRepository;
         }
 
         public async Task<AchievementResponseDto?> GetAchievementById(int id)
@@ -90,10 +96,12 @@ namespace BLL.Services
             if (newPAs.Any())
             {
                 await _playerAchievementRepository.AddRange(newPAs);
-                
+
                 // Re-fetch to include the Navigation properties like Achievement.IconUrl, etc.
                 existingPA = await _playerAchievementRepository.GetByPlayerProfileId(playerProfileId);
             }
+
+            await RecalculateProgress(playerProfileId, existingPA);
 
             var dtos = _mapper.Map<List<PlayerAchievementResponseDto>>(existingPA);
 
@@ -104,6 +112,60 @@ namespace BLL.Services
                 TotalCount = dtos.Count,
                 CompletedCount = dtos.Count(a => a.IsCompleted)
             };
+        }
+
+        // Progress trước đây luôn bằng 0 (chỉ được ghi lúc tạo dòng), nên điều kiện
+        // "Progress >= RequiredValue" trong UnlockAchievement không bao giờ đạt được
+        // => không thành tích nào có thể mở khoá. Ở đây tính lại Progress từ các bộ đếm
+        // đã có sẵn (PlayerStat, PlayerProfile, PlayerQuest) mỗi lần người chơi mở bảng
+        // thành tích. Không thêm cột/bảng mới.
+        private async Task RecalculateProgress(int playerProfileId, List<PlayerAchievement> playerAchievements)
+        {
+            if (playerAchievements.Count == 0)
+                return;
+
+            var profile = await _playerProfileRepository.GetByIdFull(playerProfileId);
+            if (profile == null)
+                return;
+
+            var stats = profile.PlayerStats;
+            var quests = await _playerQuestRepository.GetByPlayerId(playerProfileId);
+            // Claimed cũng là đã hoàn thành — chỉ khác ở chỗ đã nhận thưởng hay chưa.
+            var questsDone = quests.Count(q => q.Status == "Completed" || q.Status == "Claimed");
+
+            var changed = new List<PlayerAchievement>();
+            foreach (var pa in playerAchievements)
+            {
+                // Đã hoàn thành thì chốt lại, không tính ngược khi bộ đếm thay đổi.
+                if (pa.IsCompleted)
+                    continue;
+
+                int? progress = pa.AchievementId switch
+                {
+                    1 => Math.Min(questsDone, 1),                                             // Pioneer — xong chương đầu
+                    2 => stats?.TotalKills,                                                   // Monster Hunter — 1.000 monster
+                    3 => stats?.CritRate,                                                     // Deadeye — tổng Crit Rate
+                    4 => (profile.Level >= 30 && (stats?.TotalDeaths ?? 0) < 10) ? 1 : 0,     // The Unyielding
+                    7 => questsDone,                                                          // Adventurer — 100 quest
+                    8 => profile.TotalDungeonClears,                                          // Faithful Companion — 100 co-op dungeon
+                    // ponytail: 4 thành tích còn lại (5 Swift Wanderer, 6 Treasure Seeker,
+                    // 9 Conqueror, 10 Legend of Elarion) giữ Progress = 0 vì BE chưa có bộ đếm:
+                    // không có bảng vùng đã đi qua, IWorldRepository không có query đếm
+                    // PlayerChest.IsOpened, không có log boss đã hạ, và không có hằng số max level.
+                    // Muốn mở khoá thì phải thêm đúng bộ đếm còn thiếu rồi map thêm case ở đây.
+                    _ => null
+                };
+
+                if (progress == null || progress.Value == pa.Progress)
+                    continue;
+
+                pa.Progress = progress.Value;
+                changed.Add(pa);
+            }
+
+            // Update() gọi SaveChangesAsync mỗi lần -> dùng UpdateRange để chỉ ghi 1 lượt.
+            if (changed.Count > 0)
+                await _playerAchievementRepository.UpdateRange(changed);
         }
 
         public async Task<PlayerAchievementResponseDto> UnlockAchievement(int playerProfileId, int playerAchievementId)

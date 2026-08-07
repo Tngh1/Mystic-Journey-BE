@@ -190,6 +190,19 @@ namespace BLL.Services
 
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             account.UpdatedAt = DateTime.UtcNow;
+
+            // Đổi mật khẩu phải xoay phiên, không chỉ đổi hash: cả active_session và
+            // RefreshToken đều chỉ có MỘT slot, nên ghi đè ở đây là đá mọi thiết bị cũ ra
+            // (kẻ chiếm tài khoản mất token trong tức thì). Thiết bị hiện tại được cấp bộ
+            // token mới nên vẫn đăng nhập liên tục — đúng như trang Security đã hứa.
+            var sessionId = Guid.NewGuid().ToString();
+            _cache.Set($"active_session:{account.AccountId}", sessionId, TimeSpan.FromDays(7));
+
+            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId);
+            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
+            account.RefreshToken = HashRefreshToken(refreshToken);
+            account.RefreshTokenExpiresAt = refreshExpiry;
+
             await _repository.UpdateAccount(account);
 
             var hasCharacter = account.PlayerProfile != null;
@@ -207,7 +220,11 @@ namespace BLL.Services
                 Level = account.PlayerProfile?.Level ?? 1,
                 LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
                 PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
-                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY
+                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY,
+                AccessToken = accessToken,
+                AccessTokenExpiresAt = accessExpiry,
+                RefreshToken = refreshToken,
+                RefreshTokenExpiresAt = refreshExpiry
             };
         }
 
@@ -586,6 +603,10 @@ namespace BLL.Services
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
             account.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAccount(account);
+
+            // Đổi mật khẩu phải đá mọi phiên cũ ra: nếu không, kẻ đã chiếm được tài khoản
+            // vẫn giữ refresh token hợp lệ tới 7 ngày và việc đặt lại mật khẩu vô nghĩa.
+            await RevokeRefreshToken(account.AccountId);
 
             _cache.Remove(cacheKey);
         }

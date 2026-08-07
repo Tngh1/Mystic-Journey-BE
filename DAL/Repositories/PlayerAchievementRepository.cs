@@ -44,6 +44,13 @@ namespace DAL.Repositories
             return playerAchievement;
         }
 
+        /// <summary>Cập nhật nhiều thành tích trong một lần SaveChanges (tính lại Progress cho cả bảng).</summary>
+        public async Task UpdateRange(IEnumerable<PlayerAchievement> achievements)
+        {
+            _context.PlayerAchievements.UpdateRange(achievements);
+            await _context.SaveChangesAsync();
+        }
+
         /// <summary>Thêm nhiều thành tích người chơi cùng lúc.</summary>
         public async Task AddRange(IEnumerable<PlayerAchievement> achievements)
         {
