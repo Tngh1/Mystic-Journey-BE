@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1876,11 +1876,7 @@ namespace DAL.Migrations
                     { 905, 800m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Heavy stone gloves dropped by GolemBoss.", null, true, 1, "Golem Boss Gloves", "Legendary", "Gloves", "Armor" },
                     { 906, 1000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A massive stone armor dropped by GolemBoss.", null, true, 1, "Golem Boss Armor", "Legendary", "Armor", "Armor" },
                     { 907, 1500m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A royal cursed sword dropped by UnderKing.", null, true, 1, "UnderKing Sword", "Legendary", "Weapon", "Weapon" },
-                    { 908, 2000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The crown of the UnderKing.", null, true, 1, "UnderKing Crown", "Legendary", "Helmet", "Armor" },
-                    { 909, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.", null, true, 1, "Swamp Seal Book", "Legendary", "None", "QuestItem" },
-                    { 910, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.", null, true, 1, "Dragon Seal Book", "Legendary", "None", "QuestItem" },
-                    { 911, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.", null, true, 1, "Golem Seal Book", "Legendary", "None", "QuestItem" },
-                    { 912, 0m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The final magic book to seal the Origin Tree, guarded by UnderKing.", null, true, 1, "UnderKing Seal Book", "Legendary", "None", "QuestItem" }
+                    { 908, 2000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "The crown of the UnderKing.", null, true, 1, "UnderKing Crown", "Legendary", "Helmet", "Armor" }
                 });
 
             migrationBuilder.InsertData(
@@ -2072,10 +2068,10 @@ namespace DAL.Migrations
                     { 906, 100.0, true, true, 906, 1, 1, 10 },
                     { 907, 100.0, true, true, 907, 1, 1, 15 },
                     { 908, 100.0, true, true, 908, 1, 1, 15 },
-                    { 909, 100.0, true, true, 909, 1, 1, 2 },
-                    { 910, 100.0, true, true, 910, 1, 1, 7 },
-                    { 911, 100.0, true, true, 911, 1, 1, 10 },
-                    { 912, 100.0, true, true, 912, 1, 1, 15 },
+                    { 909, 100.0, true, true, 29, 1, 1, 2 },
+                    { 910, 100.0, true, true, 26, 1, 1, 7 },
+                    { 911, 100.0, true, true, 27, 1, 1, 10 },
+                    { 912, 100.0, true, true, 28, 1, 1, 15 },
                     { 951, 100.0, true, true, 22, 5, 1, 1 },
                     { 952, 100.0, true, true, 22, 5, 1, 2 },
                     { 953, 100.0, true, true, 22, 5, 1, 3 },
@@ -2239,13 +2235,30 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "QuestRewardSkills",
+                columns: new[] { "QuestRewardSkillId", "QuestId", "SkillId" },
+                values: new object[,]
+                {
+                    { 1, 2, 1 },
+                    { 2, 2, 5 },
+                    { 3, 2, 7 },
+                    { 9, 11, 16 },
+                    { 10, 11, 19 },
+                    { 11, 11, 17 },
+                    { 12, 11, 18 },
+                    { 17, 28, 14 },
+                    { 18, 28, 12 },
+                    { 19, 28, 11 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Quests",
                 columns: new[] { "QuestId", "BossMonsterId", "DefaultStatus", "Description", "IsActive", "MapName", "ObjectiveLocation", "ObjectiveTarget", "ObjectiveType", "QuestGiverName", "RegionName", "RequiredLevel", "RewardExperience", "RewardGems", "RewardGold", "RewardItemId", "RewardSkillId", "TargetAmount", "Title", "Type" },
                 values: new object[,]
                 {
                     { 3, null, "NotStarted", "Bring the gathered flowers back to Elder Rowan. In return he will teach you the first strike an elf ever learns.", true, "ElfForest", "Elf Forest", "Elder Rowan", "Talk", "Elder Rowan", null, 1, 15, 3m, 20m, null, 10, 1, "[Chapter 1] Deliver the White Flowers", "Main" },
                     { 6, 2, "NotStarted", "The slimes were only fleeing something worse. A Swamp Demon broods in the deep woods over some old relic, and the water rots around it. Kill it and take whatever it is guarding.", true, "ElfForest", "Deep Woods", "Swamp Demon", "Defeat", "Elder Rowan", null, 2, 65, 8m, 60m, null, null, 1, "[Chapter 1] Slay the Swamp Demon", "Main" },
-                    { 14, null, "NotStarted", "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.", true, "AutumnPumpkin", "Dungeon", "Dungeon_2", "Explore", "Arthur", null, 4, 10, 4m, 30m, 18, 9, 1, "[Chapter 2] Train in the Old Dungeon", "Main" },
+                    { 14, null, "NotStarted", "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.", true, "AutumnPumpkin", "Dungeon", "Dungeon", "Explore", "Arthur", null, 3, 10, 4m, 30m, 18, 9, 1, "[Chapter 2] Train in the Old Dungeon", "Main" },
                     { 18, 22, "NotStarted", "The goblins you broke were only a warband, and every warband answers to someone. Their warlord still holds the Goblin Grounds. Kill him and the last trial is yours.", true, "AutumnPumpkin", "Goblin Grounds", "Goblin Warlord", "Defeat", "Arthur", null, 4, 35, 16m, 120m, null, null, 1, "[Chapter 2] Trial IV: The Goblin Warlord", "Main" },
                     { 19, 7, "NotStarted", "Arthur admits you now fight as well as he once did — and tells you what truly broke the city. A dragon nests in the ruins. End it.", true, "AutumnPumpkin", "Ruined City", "Red Dragon", "Defeat", "Arthur", null, 5, 10, 16m, 120m, null, null, 1, "[Chapter 2] Slay the Dragon", "Main" },
                     { 22, null, "NotStarted", "The fields are clear, and Cedric has stopped calling you stranger. He says the Queen has been searching for someone with the strength to stand against what is coming, and that he intends to give her your name. Speak with Roselyn Aurora at the citadel.", true, "FrozenMountain", "Snow Fields", "Roselyn Aurora Queen", "Talk", "Cedric", null, 6, 15, 5m, 40m, 31, null, 1, "[Chapter 3] A Word to the Queen", "Main" },
@@ -2350,6 +2363,22 @@ namespace DAL.Migrations
                     { 4, 11, 1, 19 },
                     { 5, 14, 1, 26 },
                     { 7, 8, 1, 39 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "QuestRewardSkills",
+                columns: new[] { "QuestRewardSkillId", "QuestId", "SkillId" },
+                values: new object[,]
+                {
+                    { 4, 6, 2 },
+                    { 5, 6, 3 },
+                    { 6, 6, 4 },
+                    { 7, 6, 8 },
+                    { 8, 6, 6 },
+                    { 13, 19, 9 },
+                    { 14, 19, 10 },
+                    { 15, 19, 13 },
+                    { 16, 22, 15 }
                 });
 
             migrationBuilder.CreateIndex(

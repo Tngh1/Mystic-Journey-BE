@@ -26,6 +26,9 @@ namespace BLL.DTOs
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastFreeGachaTime { get; set; }
         public bool HasChangedName { get; set; }
+
+        /// <summary>Ban = Account.IsActive == false (soft delete). Nguồn duy nhất cho trạng thái ban trên UI admin.</summary>
+        public bool IsBanned { get; set; }
     }
 
     public class PlayerProfileDetailResponseDto : PlayerProfileResponseDto

@@ -377,30 +377,6 @@ namespace BLL.Services
 
                 owned.Add(newPlayerSkill);
             }
-// [HACK] Tutorial: Nhận đủ 3 skill cơ bản khi xong Quest Hái Hoa
-            if (quest.Title != null && quest.Title.Contains("Gather White Flowers", StringComparison.OrdinalIgnoreCase))
-            {
-                var allSkills = await _skillRepo.GetAllSkillsAsync();
-                if (allSkills != null)
-                {
-                    foreach (var skill in allSkills)
-                    {
-                        if (owned.Any(ps => ps.SkillId == skill.SkillId))
-                            continue;
-
-                        var createdSkill = await _skillRepo.CreatePlayerSkill(new PlayerSkill
-                        {
-                            PlayerProfileId = playerProfileId,
-                            SkillId         = skill.SkillId,
-                            Level           = 1,
-                            Experience      = 0,
-                            EquippedSlot    = null,
-                            UnlockedAt      = DateTime.UtcNow
-                        });
-                        owned.Add(createdSkill);
-                    }
-                }
-            }
 
             return _mapper.Map<PlayerQuestResponseDto>(pq);
         }

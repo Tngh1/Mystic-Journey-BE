@@ -140,7 +140,10 @@ namespace Mystic_Journey_API.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
             var accountId = GetCurrentAccountId();
-            await _authService.ChangePassword(accountId, request);
+            var result = await _authService.ChangePassword(accountId, request);
+            // Đổi mật khẩu xoay session + refresh token để đá thiết bị cũ ra, nên cookie
+            // hiện tại đã hết hiệu lực. Không set lại thì chính người vừa đổi cũng bị logout.
+            SetTokenCookies(result.AccessToken!, result.AccessTokenExpiresAt!.Value, result.RefreshToken!, result.RefreshTokenExpiresAt!.Value);
             return Ok(new ApiResponse<object> { Success = true, Message = "Password changed successfully." });
         }
 

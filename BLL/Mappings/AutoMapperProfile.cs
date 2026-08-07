@@ -156,7 +156,10 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.AccountEmail, opt => opt.MapFrom(src => src.Account != null ? src.Account.Email : null))
                 .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.Class))
                 .ForMember(dest => dest.Energy, opt => opt.MapFrom(src => src.CurrentEnergy))
-                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.AvatarUrl) ? null : src.AvatarUrl));
+                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.AvatarUrl) ? null : src.AvatarUrl))
+                // Ban là soft-delete trên Account (IsActive = false). Không trả field này thì
+                // trang manage-players không có cách nào biết ai đang bị ban sau khi F5.
+                .ForMember(dest => dest.IsBanned, opt => opt.MapFrom(src => src.Account != null && !src.Account.IsActive));
             // Ánh xạ hồ sơ người chơi sang chi tiết (kèm stats).
             CreateMap<PlayerProfile, PlayerProfileDetailResponseDto>()
                 .IncludeBase<PlayerProfile, PlayerProfileResponseDto>()

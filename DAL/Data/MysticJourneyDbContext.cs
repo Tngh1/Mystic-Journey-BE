@@ -242,58 +242,6 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     MaxStack = 1,
                     IsActive = true,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 909,
-                    Name = "Swamp Seal Book",
-                    Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 910,
-                    Name = "Dragon Seal Book",
-                    Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 911,
-                    Name = "Golem Seal Book",
-                    Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Item
-                {
-                    ItemId = 912,
-                    Name = "UnderKing Seal Book",
-                    Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
-                    Type = "QuestItem",
-                    Rarity = "Legendary",
-                    Slot = "None",
-                    BaseValue = 0m,
-                    MaxStack = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 }
             );
 
@@ -438,10 +386,10 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     IsGuaranteed = true,
                     IsActive = true
                 },
-                new MonsterDrop { MonsterDropId = 909, MonsterId = 2, ItemId = 909, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
-                new MonsterDrop { MonsterDropId = 910, MonsterId = 7, ItemId = 910, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
-                new MonsterDrop { MonsterDropId = 911, MonsterId = 10, ItemId = 911, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
-                new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 912, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 909, MonsterId = 2, ItemId = 29, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 910, MonsterId = 7, ItemId = 26, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 911, MonsterId = 10, ItemId = 27, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
+                new MonsterDrop { MonsterDropId = 912, MonsterId = 15, ItemId = 28, DropRate = 100, MinQuantity = 1, MaxQuantity = 1, IsGuaranteed = true, IsActive = true },
 
                 // Seed Skill Upgrade Stone (ItemId = 22) drop for all monsters & bosses directly in DbContext
                 new MonsterDrop { MonsterDropId = 951, MonsterId = 1, ItemId = 22, DropRate = 100, MinQuantity = 1, MaxQuantity = 5, IsGuaranteed = true, IsActive = true },
@@ -537,6 +485,44 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new QuestRewardItem { QuestRewardItemId = 6, QuestId = 27, ItemId = 13, Quantity = 1 },
                 new QuestRewardItem { QuestRewardItemId = 7, QuestId = 39, ItemId = 8, Quantity = 1 },
                 new QuestRewardItem { QuestRewardItemId = 8, QuestId = 45, ItemId = 12, Quantity = 1 }
+            );
+
+            // ─────────────────────────────────────────────────────────────────────────
+            // Skill mở khoá theo tiến trình cốt truyện.
+            // ClaimRewardCore đọc Quest.RewardSkills nên chỉ cần seed bảng này,
+            // không cần sửa code BLL. SkillId lấy từ seed Skill bên dưới (1..19).
+            // ─────────────────────────────────────────────────────────────────────────
+            modelBuilder.Entity<QuestRewardSkill>().HasData(
+                // Q2 [Chapter 1] Gather White Flowers
+                new QuestRewardSkill { QuestRewardSkillId = 1,  QuestId = 2,  SkillId = 1 },  // Accelerationarrow
+                new QuestRewardSkill { QuestRewardSkillId = 2,  QuestId = 2,  SkillId = 5 },  // Stardust
+                new QuestRewardSkill { QuestRewardSkillId = 3,  QuestId = 2,  SkillId = 7 },  // LightWaves
+
+                // Q6 [Chapter 1] Slay the Swamp Demon
+                new QuestRewardSkill { QuestRewardSkillId = 4,  QuestId = 6,  SkillId = 2 },  // ArrowofLight
+                new QuestRewardSkill { QuestRewardSkillId = 5,  QuestId = 6,  SkillId = 3 },  // Holymagic
+                new QuestRewardSkill { QuestRewardSkillId = 6,  QuestId = 6,  SkillId = 4 },  // Purification
+                new QuestRewardSkill { QuestRewardSkillId = 7,  QuestId = 6,  SkillId = 8 },  // ProtectiveShield
+                new QuestRewardSkill { QuestRewardSkillId = 8,  QuestId = 6,  SkillId = 6 },  // Lightsabers
+
+                // Q11 [Chapter 2] Deliver the Harvest
+                new QuestRewardSkill { QuestRewardSkillId = 9,  QuestId = 11, SkillId = 16 }, // PumpkinMagic
+                new QuestRewardSkill { QuestRewardSkillId = 10, QuestId = 11, SkillId = 19 }, // BoomBoomPumpkin
+                new QuestRewardSkill { QuestRewardSkillId = 11, QuestId = 11, SkillId = 17 }, // PumpkinThrow (PumpkinBall)
+                new QuestRewardSkill { QuestRewardSkillId = 12, QuestId = 11, SkillId = 18 }, // PumpkinSlash
+
+                // Q19 [Chapter 2] Slay the Dragon
+                new QuestRewardSkill { QuestRewardSkillId = 13, QuestId = 19, SkillId = 9 },  // DarkExplosion
+                new QuestRewardSkill { QuestRewardSkillId = 14, QuestId = 19, SkillId = 10 }, // DarkPoisonZone
+                new QuestRewardSkill { QuestRewardSkillId = 15, QuestId = 19, SkillId = 13 }, // DeadlyExplosion
+
+                // Q22 [Chapter 3] A Word to the Queen
+                new QuestRewardSkill { QuestRewardSkillId = 16, QuestId = 22, SkillId = 15 }, // FrozenSash
+
+                // Q28 [Chapter 4] Break the Skeleton Army
+                new QuestRewardSkill { QuestRewardSkillId = 17, QuestId = 28, SkillId = 14 }, // BloodySlash
+                new QuestRewardSkill { QuestRewardSkillId = 18, QuestId = 28, SkillId = 12 }, // NightMagic
+                new QuestRewardSkill { QuestRewardSkillId = 19, QuestId = 28, SkillId = 11 }  // DeadlyCurse
             );
 
             // ─────────────────────────────────────────────────────────────────────────
@@ -907,7 +893,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Quest { QuestId = 11, Title = "[Chapter 2] Deliver the Harvest",          Description = "Fa is too old to make the road alone. Carry the harvest to the city gate and hand it to the guard Tristan.",                                                                          Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,    RewardGems = 4m, ObjectiveType = "Talk",       ObjectiveTarget = "Tristan",        ObjectiveLocation = "City Gate",        QuestGiverName = "Fa",                   IsActive = true },
                 new Quest { QuestId = 12, Title = "[Chapter 2] Examine the Fallen",           Description = "Beyond the gate the city is silent and the streets are full of the dead. Examine 5 of the bodies and learn what killed them.",                                                        Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 5,  RewardExperience = 10,  RewardGold = 30m,    RewardGems = 4m, ObjectiveType = "Interact",   ObjectiveTarget = "Corpse",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Tristan",              IsActive = true },
                 new Quest { QuestId = 13, Title = "[Chapter 2] Seek the Silver Knight",       Description = "Tristan pales at your report: only one man ever held these ruins. Search the city for the silver knight Arthur and ask for his help.",                                               Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,    RewardGems = 4m, ObjectiveType = "Talk",       ObjectiveTarget = "Arthur",         ObjectiveLocation = "Ruined City",      QuestGiverName = "Tristan",              IsActive = true },
-                new Quest { QuestId = 14, Title = "[Chapter 2] Train in the Old Dungeon",     Description = "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.",       Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Explore",    ObjectiveTarget = "Dungeon_2",      ObjectiveLocation = "Dungeon",          QuestGiverName = "Arthur",               IsActive = true, RewardSkillId = 9, RewardItemId = 18 },
+                new Quest { QuestId = 14, Title = "[Chapter 2] Train in the Old Dungeon",     Description = "Arthur's wounds run deeper than his armour and his power is sealed away; he cannot fight for the city. He can, however, make you strong enough to. Clear his training dungeon.",       Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 3,  TargetAmount = 1,  RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Explore",    ObjectiveTarget = "Dungeon",        ObjectiveLocation = "Dungeon",          QuestGiverName = "Arthur",               IsActive = true, RewardSkillId = 9, RewardItemId = 18 },
                 new Quest { QuestId = 15, Title = "[Chapter 2] Trial I: The Robber Camp",      Description = "Arthur will not send you at a dragon on faith. He sets four trials, and the first is the robbers holding the eastern camp. Cut down 6 of them.",                       Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 6, RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Defeat",     ObjectiveTarget = "Robber", ObjectiveLocation = "Robber Camp", QuestGiverName = "Arthur", IsActive = true },
                 new Quest { QuestId = 16, Title = "[Chapter 2] Trial II: The Haunted Quarter", Description = "One trial stands to your name. The second is the haunted quarter - ghosts, necromancers, and the red guard who died at their posts. Put down 10.",                     Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 10, RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Defeat",     ObjectiveTarget = "Ghost", ObjectiveLocation = "Haunted Quarter", QuestGiverName = "Arthur", IsActive = true },
                 new Quest { QuestId = 17, Title = "[Chapter 2] Trial III: The Goblin Grounds", Description = "Two trials done. The third lies south of the ruins, where goblin spear and axe bands have dug in. Break 3 of them.",                                                   Type = "Main", DefaultStatus = "NotStarted", MapName = "AutumnPumpkin",  RequiredLevel = 4,  TargetAmount = 3, RewardExperience = 10,  RewardGold = 30m,   RewardGems = 4m, ObjectiveType = "Defeat",     ObjectiveTarget = "Goblin", ObjectiveLocation = "Goblin Grounds", QuestGiverName = "Arthur", IsActive = true },
