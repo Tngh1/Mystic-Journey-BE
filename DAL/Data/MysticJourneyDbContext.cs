@@ -455,6 +455,100 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 .HasForeignKey(s => s.DungeonId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // ─────────────────────────────────────────────────────────────────────────
+            // DUNGEONS – 6 dungeon, Chest thưởng, DungeonConfig và MonsterSpawn.
+            // Trước đây SeedController tạo mấy bảng này lúc runtime, nên mỗi lần gọi
+            // /seed là xoá sạch rồi tạo lại: ID nhảy theo identity sequence, còn
+            // DungeonEntrance bên Unity thì hardcode dungeonConfigId 1-6 → sau vài lần
+            // seed là cửa dungeon trỏ vào ID không còn tồn tại. Đưa về HasData để ID
+            // cố định theo migration.
+            //
+            // LƯU Ý: DungeonSpawner.cs truyền dungeonConfigId vào filter 'dungeonId'
+            // của API, tức MonsterSpawn.DungeonId được so với DungeonConfigId. Vì vậy
+            // DungeonId và DungeonConfigId phải khớp 1:1 (cùng số, cùng tên) – đừng
+            // thêm dungeon vào một bảng mà quên bảng kia.
+            modelBuilder.Entity<Dungeon>().HasData(
+                new Dungeon { DungeonId = 1, Name = "Slime Swamp",      Description = "Realm of dangerous Slimes",                       IsRepeatable = true },
+                new Dungeon { DungeonId = 2, Name = "Dragon's Lair",    Description = "The den of ferocious dragons",                    IsRepeatable = true },
+                new Dungeon { DungeonId = 3, Name = "Frozen Palace",    Description = "Ice fortress of the giant Golem",                 IsRepeatable = true },
+                new Dungeon { DungeonId = 4, Name = "Shadow Graveyard", Description = "Underground kingdom of the Bone King",             IsRepeatable = true },
+                new Dungeon { DungeonId = 5, Name = "Goblin Camp",      Description = "Stronghold of Goblins and Ogres",                 IsRepeatable = true },
+                new Dungeon { DungeonId = 6, Name = "Hell's Gate",      Description = "Portal to the realm of Demons and Orc Warriors",  IsRepeatable = true }
+            );
+
+            modelBuilder.Entity<Chest>().HasData(
+                new Chest { ChestId = 1, Name = "Slime Swamp Chest",     Description = "Slime Swamp reward",     Type = "Normal", GoldMinReward = 50,  GoldMaxReward = 100,  ExperienceReward = 50,   IsActive = true },
+                new Chest { ChestId = 2, Name = "Dragon Lair Chest",     Description = "Dragon Lair reward",     Type = "Normal", GoldMinReward = 100, GoldMaxReward = 200,  ExperienceReward = 150,  IsActive = true },
+                new Chest { ChestId = 3, Name = "Ice Palace Chest",      Description = "Ice Palace reward",      Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300,  ExperienceReward = 300,  IsActive = true },
+                new Chest { ChestId = 4, Name = "Dark Graveyard Chest",  Description = "Dark Graveyard reward",  Type = "Normal", GoldMinReward = 200, GoldMaxReward = 400,  ExperienceReward = 450,  IsActive = true },
+                new Chest { ChestId = 5, Name = "Goblin Camp Chest",     Description = "Goblin Camp reward",     Type = "Normal", GoldMinReward = 150, GoldMaxReward = 300,  ExperienceReward = 350,  IsActive = true },
+                new Chest { ChestId = 6, Name = "Hell Gate Chest",       Description = "Hell Gate reward",       Type = "Epic",   GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true }
+            );
+
+            // Vật phẩm trong chest. ItemId khớp Entity<Item>().HasData bên dưới:
+            // 19 = Small Health Potion, 21 = Energy Elixir, 5 = Iron Sword.
+            // Bản cũ tra "Small Mana Potion" – tên đó KHÔNG có trong Item HasData
+            // (game này không có mana, chỉ có Energy), nên lookup luôn trả null và
+            // chest chỉ rớt đúng 1 loại potion. Dùng Energy Elixir cho đúng ý định.
+            modelBuilder.Entity<ChestItem>().HasData(
+                new ChestItem { ChestItemId = 1,  ChestId = 1, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
+                new ChestItem { ChestItemId = 2,  ChestId = 1, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
+                new ChestItem { ChestItemId = 3,  ChestId = 2, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
+                new ChestItem { ChestItemId = 4,  ChestId = 2, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
+                new ChestItem { ChestItemId = 5,  ChestId = 3, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
+                new ChestItem { ChestItemId = 6,  ChestId = 3, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
+                new ChestItem { ChestItemId = 7,  ChestId = 4, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
+                new ChestItem { ChestItemId = 8,  ChestId = 4, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
+                new ChestItem { ChestItemId = 9,  ChestId = 5, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
+                new ChestItem { ChestItemId = 10, ChestId = 5, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
+                new ChestItem { ChestItemId = 11, ChestId = 6, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
+                new ChestItem { ChestItemId = 12, ChestId = 6, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
+                // Chỉ chest Epic (Hell's Gate) mới rớt trang bị
+                new ChestItem { ChestItemId = 13, ChestId = 6, ItemId = 5,  DropRate = 30.0m, QuantityMin = 1, QuantityMax = 1 }
+            );
+
+            modelBuilder.Entity<DungeonConfig>().HasData(
+                new DungeonConfig { DungeonConfigId = 1, Name = "Slime Swamp",      Description = "Realm of dangerous Slimes",                      Type = "Normal", LevelRequirement = 1,  MaxMembers = 4, Difficulty = 1, EnergyCost = 10, RecommendedPower = 100,  ChestId = 1, IsActive = true },
+                new DungeonConfig { DungeonConfigId = 2, Name = "Dragon's Lair",    Description = "The den of ferocious dragons",                   Type = "Normal", LevelRequirement = 3,  MaxMembers = 4, Difficulty = 2, EnergyCost = 15, RecommendedPower = 300,  ChestId = 2, IsActive = true },
+                new DungeonConfig { DungeonConfigId = 3, Name = "Frozen Palace",    Description = "Ice fortress of the giant Golem",                Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 600,  ChestId = 3, IsActive = true },
+                new DungeonConfig { DungeonConfigId = 4, Name = "Shadow Graveyard", Description = "Underground kingdom of the Bone King",            Type = "Normal", LevelRequirement = 15, MaxMembers = 4, Difficulty = 4, EnergyCost = 25, RecommendedPower = 900,  ChestId = 4, IsActive = true },
+                new DungeonConfig { DungeonConfigId = 5, Name = "Goblin Camp",      Description = "Stronghold of Goblins and Ogres",                Type = "Normal", LevelRequirement = 10, MaxMembers = 4, Difficulty = 3, EnergyCost = 20, RecommendedPower = 700,  ChestId = 5, IsActive = true },
+                new DungeonConfig { DungeonConfigId = 6, Name = "Hell's Gate",      Description = "Portal to the realm of Demons and Orc Warriors", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, ChestId = 6, IsActive = true }
+            );
+
+            // MonsterSpawn của dungeon. MonsterId khớp Entity<Monster>().HasData
+            // (1-27) và MonsterDatabaseSO bên Unity; MapName phải khớp tên scene
+            // "HollowCryptDungeon". Spawn của map thế giới không nằm ở đây.
+            modelBuilder.Entity<MonsterSpawn>().HasData(
+                // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
+                new MonsterSpawn { MonsterSpawnId = 1,  DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 2,  DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 3,  DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────
+                new MonsterSpawn { MonsterSpawnId = 4,  DungeonId = 2, MonsterId = 4,  SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 5,  DungeonId = 2, MonsterId = 5,  SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 6,  DungeonId = 2, MonsterId = 6,  SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 7,  DungeonId = 2, MonsterId = 7,  SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                // ── Dungeon 3: Cung điện Băng giá ────────────────────────────────
+                new MonsterSpawn { MonsterSpawnId = 8,  DungeonId = 3, MonsterId = 8,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 9,  DungeonId = 3, MonsterId = 9,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 10, DungeonId = 3, MonsterId = 10, SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                // ── Dungeon 4: Nghĩa địa Bóng tối ────────────────────────────────
+                new MonsterSpawn { MonsterSpawnId = 11, DungeonId = 4, MonsterId = 12, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 12, DungeonId = 4, MonsterId = 13, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 13, DungeonId = 4, MonsterId = 11, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 14, DungeonId = 4, MonsterId = 15, SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                // ── Dungeon 5: Doanh trại Goblin ─────────────────────────────────
+                new MonsterSpawn { MonsterSpawnId = 15, DungeonId = 5, MonsterId = 17, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 16, DungeonId = 5, MonsterId = 18, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 17, DungeonId = 5, MonsterId = 19, SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                // ── Dungeon 6: Cổng địa ngục ─────────────────────────────────────
+                new MonsterSpawn { MonsterSpawnId = 18, DungeonId = 6, MonsterId = 14, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 19, DungeonId = 6, MonsterId = 16, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 20, DungeonId = 6, MonsterId = 11, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
+                new MonsterSpawn { MonsterSpawnId = 21, DungeonId = 6, MonsterId = 20, SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true }
+            );
+
             modelBuilder.Entity<Quest>()
                 .HasOne(q => q.BossMonster)
                 .WithMany()
