@@ -258,8 +258,42 @@ namespace BLL.Services
             };
 
             var created = await _repository.CreateSpawn(spawn);
-            created.Monster = monster;
-            return _mapper.Map<MonsterSpawnResponseDto>(created);
+            
+            // Reload with relations if needed for DTO, but for now we just map what we have
+            var fullSpawn = await _repository.GetSpawnById(created.MonsterSpawnId) ?? created;
+            return _mapper.Map<MonsterSpawnResponseDto>(fullSpawn);
+        }
+
+        public async Task<MonsterSpawnResponseDto> UpdateSpawn(int spawnId, UpdateMonsterSpawnRequestDto request)
+        {
+            var spawn = await _repository.GetSpawnById(spawnId);
+            if (spawn == null)
+            {
+                throw new KeyNotFoundException($"Spawn with id {spawnId} not found.");
+            }
+
+            spawn.SpawnCount = request.SpawnCount;
+            spawn.RespawnSeconds = request.RespawnSeconds;
+
+            var updated = await _repository.UpdateSpawn(spawn);
+            return _mapper.Map<MonsterSpawnResponseDto>(updated);
+        }
+
+        public async Task DeleteSpawn(int spawnId)
+        {
+            var spawn = await _repository.GetSpawnById(spawnId);
+            if (spawn == null)
+            {
+                throw new KeyNotFoundException($"Spawn with id {spawnId} not found.");
+            }
+            await _repository.DeleteSpawn(spawnId);
+        }
+
+        public async Task<List<MonsterSpawnResponseDto>> GetSpawnsByDungeonId(int dungeonId)
+        {
+            // For admin, we don't suppress boss spawns like we do for players.
+            var spawns = await _repository.GetActiveSpawns(string.Empty, null, dungeonId);
+            return _mapper.Map<List<MonsterSpawnResponseDto>>(spawns);
         }
 
         public async Task<List<MonsterSpawnResponseDto>> GetSpawnsByMonsterId(int monsterId)

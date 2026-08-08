@@ -8471,9 +8471,9 @@ namespace DAL.Migrations
                         new
                         {
                             SkillId = 3,
-                            BaseDamage = 0.0,
+                            BaseDamage = 50.0,
                             ClassRequirement = "Mage",
-                            CooldownSeconds = 4,
+                            CooldownSeconds = 5,
                             CorruptionCost = 0f,
                             DamageGrowthPercent = 0.0,
                             DamagePerLevel = 0.0,

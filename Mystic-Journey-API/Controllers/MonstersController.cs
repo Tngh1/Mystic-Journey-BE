@@ -243,6 +243,43 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
+        // ── PUT /api/monsters/spawns/{id} ────────────────────────────────────
+        // Cập nhật spawn.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPut("spawns/{id}")]
+        public async Task<IActionResult> UpdateSpawn(int id, [FromBody] UpdateMonsterSpawnRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Invalid request.", Data = ModelState });
+
+            try
+            {
+                var updated = await _monsterService.UpdateSpawn(id, request);
+                return Ok(new ApiResponse<MonsterSpawnResponseDto> { Success = true, Data = updated, Message = "Spawn updated successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+            }
+        }
+
+        // ── DELETE /api/monsters/spawns/{id} ─────────────────────────────────
+        // Xoá spawn.
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpDelete("spawns/{id}")]
+        public async Task<IActionResult> DeleteSpawn(int id)
+        {
+            try
+            {
+                await _monsterService.DeleteSpawn(id);
+                return Ok(new ApiResponse<object> { Success = true, Message = "Spawn deleted successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+            }
+        }
+
         // ── Helper ──────────────────────────────────────────────────────────
         // Đọc playerProfileId từ JWT token.
         private int GetPlayerProfileId()

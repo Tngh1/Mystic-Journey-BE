@@ -23,5 +23,10 @@ namespace BLL.Services.Interfaces
 
         // Cập nhật dungeon hiện có.
         Task<DungeonConfigResponseDto> UpdateDungeon(int id, UpdateDungeonConfigRequestDto request);
+
+        // Quản lý vật phẩm trong rương của dungeon
+        Task<ChestItemResponseDto> AddChestItem(int dungeonId, CreateChestItemRequestDto request);
+        Task<ChestItemResponseDto> UpdateChestItem(int dungeonId, int chestItemId, CreateChestItemRequestDto request);
+        Task RemoveChestItem(int dungeonId, int chestItemId);
     }
 }

@@ -44,6 +44,15 @@ namespace DAL.Repositories.Interfaces
         // Tạo hoặc cập nhật trạng thái khám phá quái vật của người chơi.
         Task<PlayerMonsterDiscovery> CreateOrUpdatePlayerDiscovery(PlayerMonsterDiscovery discovery);
 
+        // Lấy điểm spawn theo mã.
+        Task<MonsterSpawn?> GetSpawnById(int spawnId);
+
+        // Cập nhật điểm spawn
+        Task<MonsterSpawn> UpdateSpawn(MonsterSpawn spawn);
+
+        // Xoá điểm spawn theo mã.
+        Task DeleteSpawn(int spawnId);
+
         // Lấy các điểm spawn của quái vật theo mã.
         Task<List<MonsterSpawn>> GetSpawnsByMonsterId(int monsterId);
 

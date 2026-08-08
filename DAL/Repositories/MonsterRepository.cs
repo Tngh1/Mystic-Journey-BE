@@ -199,6 +199,34 @@ namespace DAL.Repositories
             return spawn;
         }
 
+        /// <summary>Lấy điểm spawn theo mã.</summary>
+        public async Task<MonsterSpawn?> GetSpawnById(int spawnId)
+        {
+            return await _context.MonsterSpawns
+                .Include(s => s.Monster)
+                .Include(s => s.Dungeon)
+                .FirstOrDefaultAsync(s => s.MonsterSpawnId == spawnId);
+        }
+
+        /// <summary>Cập nhật điểm spawn.</summary>
+        public async Task<MonsterSpawn> UpdateSpawn(MonsterSpawn spawn)
+        {
+            _context.MonsterSpawns.Update(spawn);
+            await _context.SaveChangesAsync();
+            return spawn;
+        }
+
+        /// <summary>Xoá điểm spawn theo mã.</summary>
+        public async Task DeleteSpawn(int spawnId)
+        {
+            var spawn = await _context.MonsterSpawns.FindAsync(spawnId);
+            if (spawn != null)
+            {
+                _context.MonsterSpawns.Remove(spawn);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         // ── Phân trang ──
 
         /// <summary>Lấy danh sách quái vật có phân trang, lọc theo tìm kiếm (tên), loại và trạng thái hoạt động.</summary>
