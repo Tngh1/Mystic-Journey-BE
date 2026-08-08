@@ -17,13 +17,16 @@ namespace Mystic_Journey_API.Controllers
     {
         private readonly IDungeonConfigService _dungeonConfigService;
         private readonly IDungeonSessionService _dungeonSessionService;
+        private readonly IMonsterService _monsterService;
 
         public DungeonsController(
             IDungeonConfigService dungeonConfigService,
-            IDungeonSessionService dungeonSessionService)
+            IDungeonSessionService dungeonSessionService,
+            IMonsterService monsterService)
         {
             _dungeonConfigService = dungeonConfigService;
             _dungeonSessionService = dungeonSessionService;
+            _monsterService = monsterService;
         }
 
         // ═══════════════════════════════════════════════════════════════════════
@@ -299,6 +302,61 @@ namespace Mystic_Journey_API.Controllers
 
             var dungeon = await _dungeonConfigService.UpdateDungeon(id, request);
             return Ok(new ApiResponse<DungeonConfigResponseDto> { Success = true, Data = dungeon });
+        }
+
+        // ── GET /api/dungeons/{id}/spawns ───────────────────────────────────
+        // Lấy danh sách spawns của một dungeon (Admin).
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("{id}/spawns")]
+        public async Task<IActionResult> GetSpawnsByDungeon(int id)
+        {
+            var spawns = await _monsterService.GetSpawnsByDungeonId(id);
+            return Ok(new ApiResponse<List<MonsterSpawnResponseDto>> { Success = true, Data = spawns });
+        }
+
+        // ── POST /api/dungeons/{id}/chest-items ──────────────────────────────
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost("{id}/chest-items")]
+        public async Task<IActionResult> AddChestItem(int id, [FromBody] CreateChestItemRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            try
+            {
+                var item = await _dungeonConfigService.AddChestItem(id, request);
+                return Ok(new ApiResponse<ChestItemResponseDto> { Success = true, Data = item });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+            }
+        }
+
+        // ── PUT /api/dungeons/{id}/chest-items/{chestItemId} ─────────────────
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPut("{id}/chest-items/{chestItemId}")]
+        public async Task<IActionResult> UpdateChestItem(int id, int chestItemId, [FromBody] CreateChestItemRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            try
+            {
+                var item = await _dungeonConfigService.UpdateChestItem(id, chestItemId, request);
+                return Ok(new ApiResponse<ChestItemResponseDto> { Success = true, Data = item });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+            }
+        }
+
+        // ── DELETE /api/dungeons/{id}/chest-items/{chestItemId} ──────────────
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpDelete("{id}/chest-items/{chestItemId}")]
+        public async Task<IActionResult> RemoveChestItem(int id, int chestItemId)
+        {
+            await _dungeonConfigService.RemoveChestItem(id, chestItemId);
+            return Ok(new ApiResponse<object> { Success = true, Message = "Item removed from chest." });
         }
 
         // ── Helper ────────────────────────────────────────────────────────────

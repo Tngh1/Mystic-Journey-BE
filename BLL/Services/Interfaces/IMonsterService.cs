@@ -52,5 +52,14 @@ namespace BLL.Services.Interfaces
 
         // Tạo spawn mới cho monster.
         Task<MonsterSpawnResponseDto> CreateSpawn(CreateMonsterSpawnRequestDto request);
+
+        // Cập nhật spawn
+        Task<MonsterSpawnResponseDto> UpdateSpawn(int spawnId, UpdateMonsterSpawnRequestDto request);
+
+        // Xoá spawn.
+        Task DeleteSpawn(int spawnId);
+
+        // Lấy danh sách spawns của một dungeon (Admin).
+        Task<List<MonsterSpawnResponseDto>> GetSpawnsByDungeonId(int dungeonId);
     }
 }

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260805150020_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260807170716_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -650,6 +650,74 @@ namespace DAL.Migrations
                     b.HasKey("ChestId");
 
                     b.ToTable("Chests");
+
+                    b.HasData(
+                        new
+                        {
+                            ChestId = 1,
+                            Description = "Slime Swamp reward",
+                            ExperienceReward = 50,
+                            GoldMaxReward = 100,
+                            GoldMinReward = 50,
+                            IsActive = true,
+                            Name = "Slime Swamp Chest",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            ChestId = 2,
+                            Description = "Dragon Lair reward",
+                            ExperienceReward = 150,
+                            GoldMaxReward = 200,
+                            GoldMinReward = 100,
+                            IsActive = true,
+                            Name = "Dragon Lair Chest",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            ChestId = 3,
+                            Description = "Ice Palace reward",
+                            ExperienceReward = 300,
+                            GoldMaxReward = 300,
+                            GoldMinReward = 150,
+                            IsActive = true,
+                            Name = "Ice Palace Chest",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            ChestId = 4,
+                            Description = "Dark Graveyard reward",
+                            ExperienceReward = 450,
+                            GoldMaxReward = 400,
+                            GoldMinReward = 200,
+                            IsActive = true,
+                            Name = "Dark Graveyard Chest",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            ChestId = 5,
+                            Description = "Goblin Camp reward",
+                            ExperienceReward = 350,
+                            GoldMaxReward = 300,
+                            GoldMinReward = 150,
+                            IsActive = true,
+                            Name = "Goblin Camp Chest",
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            ChestId = 6,
+                            Description = "Hell Gate reward",
+                            ExperienceReward = 1000,
+                            GoldMaxReward = 1000,
+                            GoldMinReward = 500,
+                            IsActive = true,
+                            Name = "Hell Gate Chest",
+                            Type = "Epic"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.ChestItem", b =>
@@ -685,6 +753,138 @@ namespace DAL.Migrations
                     b.HasIndex("ItemId");
 
                     b.ToTable("ChestItems");
+
+                    b.HasData(
+                        new
+                        {
+                            ChestItemId = 1,
+                            ChestId = 1,
+                            DropRate = 80.0m,
+                            IsGuaranteed = false,
+                            ItemId = 19,
+                            QuantityMax = 3,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 2,
+                            ChestId = 1,
+                            DropRate = 60.0m,
+                            IsGuaranteed = false,
+                            ItemId = 21,
+                            QuantityMax = 2,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 3,
+                            ChestId = 2,
+                            DropRate = 80.0m,
+                            IsGuaranteed = false,
+                            ItemId = 19,
+                            QuantityMax = 3,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 4,
+                            ChestId = 2,
+                            DropRate = 60.0m,
+                            IsGuaranteed = false,
+                            ItemId = 21,
+                            QuantityMax = 2,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 5,
+                            ChestId = 3,
+                            DropRate = 80.0m,
+                            IsGuaranteed = false,
+                            ItemId = 19,
+                            QuantityMax = 3,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 6,
+                            ChestId = 3,
+                            DropRate = 60.0m,
+                            IsGuaranteed = false,
+                            ItemId = 21,
+                            QuantityMax = 2,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 7,
+                            ChestId = 4,
+                            DropRate = 80.0m,
+                            IsGuaranteed = false,
+                            ItemId = 19,
+                            QuantityMax = 3,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 8,
+                            ChestId = 4,
+                            DropRate = 60.0m,
+                            IsGuaranteed = false,
+                            ItemId = 21,
+                            QuantityMax = 2,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 9,
+                            ChestId = 5,
+                            DropRate = 80.0m,
+                            IsGuaranteed = false,
+                            ItemId = 19,
+                            QuantityMax = 3,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 10,
+                            ChestId = 5,
+                            DropRate = 60.0m,
+                            IsGuaranteed = false,
+                            ItemId = 21,
+                            QuantityMax = 2,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 11,
+                            ChestId = 6,
+                            DropRate = 80.0m,
+                            IsGuaranteed = false,
+                            ItemId = 19,
+                            QuantityMax = 3,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 12,
+                            ChestId = 6,
+                            DropRate = 60.0m,
+                            IsGuaranteed = false,
+                            ItemId = 21,
+                            QuantityMax = 2,
+                            QuantityMin = 1
+                        },
+                        new
+                        {
+                            ChestItemId = 13,
+                            ChestId = 6,
+                            DropRate = 30.0m,
+                            IsGuaranteed = false,
+                            ItemId = 5,
+                            QuantityMax = 1,
+                            QuantityMin = 1
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.ClassConfig", b =>
@@ -955,6 +1155,50 @@ namespace DAL.Migrations
                     b.HasKey("DungeonId");
 
                     b.ToTable("Dungeons");
+
+                    b.HasData(
+                        new
+                        {
+                            DungeonId = 1,
+                            Description = "Realm of dangerous Slimes",
+                            IsRepeatable = true,
+                            Name = "Slime Swamp"
+                        },
+                        new
+                        {
+                            DungeonId = 2,
+                            Description = "The den of ferocious dragons",
+                            IsRepeatable = true,
+                            Name = "Dragon's Lair"
+                        },
+                        new
+                        {
+                            DungeonId = 3,
+                            Description = "Ice fortress of the giant Golem",
+                            IsRepeatable = true,
+                            Name = "Frozen Palace"
+                        },
+                        new
+                        {
+                            DungeonId = 4,
+                            Description = "Underground kingdom of the Bone King",
+                            IsRepeatable = true,
+                            Name = "Shadow Graveyard"
+                        },
+                        new
+                        {
+                            DungeonId = 5,
+                            Description = "Stronghold of Goblins and Ogres",
+                            IsRepeatable = true,
+                            Name = "Goblin Camp"
+                        },
+                        new
+                        {
+                            DungeonId = 6,
+                            Description = "Portal to the realm of Demons and Orc Warriors",
+                            IsRepeatable = true,
+                            Name = "Hell's Gate"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.DungeonConfig", b =>
@@ -1004,6 +1248,92 @@ namespace DAL.Migrations
                     b.HasIndex("ChestId");
 
                     b.ToTable("DungeonConfigs");
+
+                    b.HasData(
+                        new
+                        {
+                            DungeonConfigId = 1,
+                            ChestId = 1,
+                            Description = "Realm of dangerous Slimes",
+                            Difficulty = 1,
+                            EnergyCost = 10,
+                            IsActive = true,
+                            LevelRequirement = 1,
+                            MaxMembers = 4,
+                            Name = "Slime Swamp",
+                            RecommendedPower = 100,
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            DungeonConfigId = 2,
+                            ChestId = 2,
+                            Description = "The den of ferocious dragons",
+                            Difficulty = 2,
+                            EnergyCost = 15,
+                            IsActive = true,
+                            LevelRequirement = 3,
+                            MaxMembers = 4,
+                            Name = "Dragon's Lair",
+                            RecommendedPower = 300,
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            DungeonConfigId = 3,
+                            ChestId = 3,
+                            Description = "Ice fortress of the giant Golem",
+                            Difficulty = 3,
+                            EnergyCost = 20,
+                            IsActive = true,
+                            LevelRequirement = 10,
+                            MaxMembers = 4,
+                            Name = "Frozen Palace",
+                            RecommendedPower = 600,
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            DungeonConfigId = 4,
+                            ChestId = 4,
+                            Description = "Underground kingdom of the Bone King",
+                            Difficulty = 4,
+                            EnergyCost = 25,
+                            IsActive = true,
+                            LevelRequirement = 15,
+                            MaxMembers = 4,
+                            Name = "Shadow Graveyard",
+                            RecommendedPower = 900,
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            DungeonConfigId = 5,
+                            ChestId = 5,
+                            Description = "Stronghold of Goblins and Ogres",
+                            Difficulty = 3,
+                            EnergyCost = 20,
+                            IsActive = true,
+                            LevelRequirement = 10,
+                            MaxMembers = 4,
+                            Name = "Goblin Camp",
+                            RecommendedPower = 700,
+                            Type = "Normal"
+                        },
+                        new
+                        {
+                            DungeonConfigId = 6,
+                            ChestId = 6,
+                            Description = "Portal to the realm of Demons and Orc Warriors",
+                            Difficulty = 5,
+                            EnergyCost = 30,
+                            IsActive = true,
+                            LevelRequirement = 20,
+                            MaxMembers = 4,
+                            Name = "Hell's Gate",
+                            RecommendedPower = 1500,
+                            Type = "Boss"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.DungeonProgress", b =>
@@ -2190,62 +2520,6 @@ namespace DAL.Migrations
                             Rarity = "Legendary",
                             Slot = "Helmet",
                             Type = "Armor"
-                        },
-                        new
-                        {
-                            ItemId = 909,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by SwampDemon.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Swamp Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 910,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by DragonBossIdle.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Dragon Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 911,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A magic book containing the power to seal the Origin Tree, guarded by GolemBoss.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "Golem Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
-                        },
-                        new
-                        {
-                            ItemId = 912,
-                            BaseValue = 0m,
-                            CorruptionReduction = 0f,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "The final magic book to seal the Origin Tree, guarded by UnderKing.",
-                            IsActive = true,
-                            MaxStack = 1,
-                            Name = "UnderKing Seal Book",
-                            Rarity = "Legendary",
-                            Slot = "None",
-                            Type = "QuestItem"
                         },
                         new
                         {
@@ -3579,7 +3853,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 909,
+                            ItemId = 29,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 2
@@ -3590,7 +3864,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 910,
+                            ItemId = 26,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 7
@@ -3601,7 +3875,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 911,
+                            ItemId = 27,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 10
@@ -3612,7 +3886,7 @@ namespace DAL.Migrations
                             DropRate = 100.0,
                             IsActive = true,
                             IsGuaranteed = true,
-                            ItemId = 912,
+                            ItemId = 28,
                             MaxQuantity = 1,
                             MinQuantity = 1,
                             MonsterId = 15
@@ -3826,6 +4100,218 @@ namespace DAL.Migrations
                     b.HasIndex("MonsterId");
 
                     b.ToTable("MonsterSpawns");
+
+                    b.HasData(
+                        new
+                        {
+                            MonsterSpawnId = 1,
+                            DungeonId = 1,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 1,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 2,
+                            DungeonId = 1,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 8,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 3,
+                            DungeonId = 1,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 2,
+                            RespawnSeconds = 60,
+                            SpawnCount = 1
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 4,
+                            DungeonId = 2,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 4,
+                            RespawnSeconds = 60,
+                            SpawnCount = 2
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 5,
+                            DungeonId = 2,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 5,
+                            RespawnSeconds = 60,
+                            SpawnCount = 2
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 6,
+                            DungeonId = 2,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 6,
+                            RespawnSeconds = 60,
+                            SpawnCount = 2
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 7,
+                            DungeonId = 2,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 7,
+                            RespawnSeconds = 60,
+                            SpawnCount = 1
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 8,
+                            DungeonId = 3,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 8,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 9,
+                            DungeonId = 3,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 9,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 10,
+                            DungeonId = 3,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 10,
+                            RespawnSeconds = 60,
+                            SpawnCount = 1
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 11,
+                            DungeonId = 4,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 12,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 12,
+                            DungeonId = 4,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 13,
+                            RespawnSeconds = 60,
+                            SpawnCount = 2
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 13,
+                            DungeonId = 4,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 11,
+                            RespawnSeconds = 60,
+                            SpawnCount = 2
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 14,
+                            DungeonId = 4,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 15,
+                            RespawnSeconds = 60,
+                            SpawnCount = 1
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 15,
+                            DungeonId = 5,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 17,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 16,
+                            DungeonId = 5,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 18,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 17,
+                            DungeonId = 5,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 19,
+                            RespawnSeconds = 60,
+                            SpawnCount = 1
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 18,
+                            DungeonId = 6,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 14,
+                            RespawnSeconds = 60,
+                            SpawnCount = 3
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 19,
+                            DungeonId = 6,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 16,
+                            RespawnSeconds = 60,
+                            SpawnCount = 2
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 20,
+                            DungeonId = 6,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 11,
+                            RespawnSeconds = 60,
+                            SpawnCount = 2
+                        },
+                        new
+                        {
+                            MonsterSpawnId = 21,
+                            DungeonId = 6,
+                            IsActive = true,
+                            MapName = "HollowCryptDungeon",
+                            MonsterId = 20,
+                            RespawnSeconds = 60,
+                            SpawnCount = 1
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.NPC", b =>
@@ -6722,10 +7208,10 @@ namespace DAL.Migrations
                             IsActive = true,
                             MapName = "AutumnPumpkin",
                             ObjectiveLocation = "Dungeon",
-                            ObjectiveTarget = "Dungeon_2",
+                            ObjectiveTarget = "Dungeon",
                             ObjectiveType = "Explore",
                             QuestGiverName = "Arthur",
-                            RequiredLevel = 4,
+                            RequiredLevel = 3,
                             RewardExperience = 10,
                             RewardGems = 4m,
                             RewardGold = 30m,
@@ -7459,6 +7945,122 @@ namespace DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("QuestRewardSkills");
+
+                    b.HasData(
+                        new
+                        {
+                            QuestRewardSkillId = 1,
+                            QuestId = 2,
+                            SkillId = 1
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 2,
+                            QuestId = 2,
+                            SkillId = 5
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 3,
+                            QuestId = 2,
+                            SkillId = 7
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 4,
+                            QuestId = 6,
+                            SkillId = 2
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 5,
+                            QuestId = 6,
+                            SkillId = 3
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 6,
+                            QuestId = 6,
+                            SkillId = 4
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 7,
+                            QuestId = 6,
+                            SkillId = 8
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 8,
+                            QuestId = 6,
+                            SkillId = 6
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 9,
+                            QuestId = 11,
+                            SkillId = 16
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 10,
+                            QuestId = 11,
+                            SkillId = 19
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 11,
+                            QuestId = 11,
+                            SkillId = 17
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 12,
+                            QuestId = 11,
+                            SkillId = 18
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 13,
+                            QuestId = 19,
+                            SkillId = 9
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 14,
+                            QuestId = 19,
+                            SkillId = 10
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 15,
+                            QuestId = 19,
+                            SkillId = 13
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 16,
+                            QuestId = 22,
+                            SkillId = 15
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 17,
+                            QuestId = 28,
+                            SkillId = 14
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 18,
+                            QuestId = 28,
+                            SkillId = 12
+                        },
+                        new
+                        {
+                            QuestRewardSkillId = 19,
+                            QuestId = 28,
+                            SkillId = 11
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.Role", b =>
@@ -7872,9 +8474,9 @@ namespace DAL.Migrations
                         new
                         {
                             SkillId = 3,
-                            BaseDamage = 0.0,
+                            BaseDamage = 50.0,
                             ClassRequirement = "Mage",
-                            CooldownSeconds = 4,
+                            CooldownSeconds = 5,
                             CorruptionCost = 0f,
                             DamageGrowthPercent = 0.0,
                             DamagePerLevel = 0.0,

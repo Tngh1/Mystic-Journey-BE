@@ -128,6 +128,15 @@ namespace BLL.DTOs
         public bool IsActive { get; set; } = true;
     }
 
+    public class UpdateMonsterSpawnRequestDto
+    {
+        [Range(1, 50)]
+        public int SpawnCount { get; set; } = 1;
+
+        [Range(0, 86400)]
+        public int RespawnSeconds { get; set; } = 60;
+    }
+
     // ============ Player catalog / bestiary ============
     public class PlayerMonsterCatalogItemDto
     {

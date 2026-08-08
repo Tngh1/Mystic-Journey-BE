@@ -71,6 +71,7 @@ builder.Services.AddScoped<IMonsterService, MonsterService>();
 
 // Dungeon Services
 builder.Services.AddScoped<IDungeonConfigRepository, DungeonConfigRepository>();
+builder.Services.AddScoped<IChestRepository, ChestRepository>();
 builder.Services.AddScoped<IDungeonConfigService, DungeonConfigService>();
 
 // Dungeon Session Services
