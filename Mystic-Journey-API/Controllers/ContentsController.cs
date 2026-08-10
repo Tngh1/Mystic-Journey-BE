@@ -86,7 +86,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/contents/with-blocks ─────────────────────────
         // Tạo content mới kèm blocks.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("with-blocks")]
         public async Task<IActionResult> CreateWithBlocks([FromBody] CreateContentWithBlocksRequestDto request)
         {
@@ -99,7 +99,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/contents/{id} ────────────────────────────────
         // Cập nhật content hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateContentRequestDto request)
         {
@@ -112,7 +112,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/contents/{id}/publish ───────────────────────
         // Publish content.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id}/publish")]
         public async Task<IActionResult> Publish(int id)
         {
@@ -122,7 +122,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/contents/categories ──────────────────────────
         // Tạo category mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("categories")]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryContentRequestDto request)
         {
@@ -135,7 +135,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/contents/categories/{id} ─────────────────────
         // Cập nhật category hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("categories/{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CreateCategoryContentRequestDto request)
         {
@@ -148,7 +148,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/contents/blocks ──────────────────────────────
         // Tạo block mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("blocks")]
         public async Task<IActionResult> CreateBlock([FromBody] CreateBlockContentRequestDto request)
         {
@@ -161,7 +161,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/contents/blocks/{id} ─────────────────────────
         // Cập nhật block hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("blocks/{id}")]
         public async Task<IActionResult> UpdateBlock(int id, [FromBody] UpdateBlockContentRequestDto request)
         {
@@ -174,7 +174,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── DELETE /api/contents/blocks/{id} ───────────────────────
         // Xóa block.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("blocks/{id}")]
         public async Task<IActionResult> RemoveBlock(int id)
         {

@@ -63,7 +63,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/shopitems ─────────────────────────────────────
         // Tạo shop item mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateShopItemRequestDto request)
         {
@@ -76,7 +76,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/shopitems/{id} ─────────────────────────────────
         // Cập nhật shop item hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateShopItemRequestDto request)
         {

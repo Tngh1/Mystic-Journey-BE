@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BLL.DTOs
 {
     // ============ PlayerDailyLogin ============
@@ -17,6 +19,9 @@ namespace BLL.DTOs
 
     public class RetroClaimRequestDto
     {
+        // Chan DayNumber am: khi da claim het cac ngay truoc, maxMissedDay = -1 nen
+        // request DayNumber = -1 lot qua moi guard trong RetroactiveClaimDailyLoginReward.
+        [Range(1, 31, ErrorMessage = "DayNumber must be between 1 and 31.")]
         public int DayNumber { get; set; }
     }
 

@@ -20,14 +20,17 @@ namespace BLL.Services.Interfaces
         // Lấy thông tin tài khoản hiện tại.
         Task<MeResponseDto> GetMe(int accountId);
 
-        // Đổi mật khẩu.
-        Task<AuthResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request);
+        // Đổi mật khẩu. clientType là loại client đang gọi (Web/Game) — đổi mật khẩu thu hồi
+        // CẢ HAI slot, nên phải biết client nào gọi để cấp lại token cho đúng nó.
+        Task<AuthResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request, string clientType);
 
-        // Làm mới access token bằng refresh token.
+        // Làm mới access token bằng refresh token. Slot (Web/Game) được suy ra từ chính token.
         Task<AuthResponseDto> RefreshToken(string refreshToken);
 
-        // Thu hồi refresh token.
-        Task RevokeRefreshToken(int accountId);
+        // Thu hồi refresh token. clientType = null nghĩa là thu hồi MỌI slot (đổi/đặt lại mật
+        // khẩu, ban); truyền Web/Game để chỉ thu hồi một phía (logout). Không có default:
+        // chọn sai ở đây là đá oan client kia hoặc để hở phiên của kẻ chiếm tài khoản.
+        Task RevokeRefreshToken(int accountId, string? clientType);
 
         // Thu hồi refresh token bằng token cụ thể.
         Task RevokeRefreshTokenByToken(string refreshToken);

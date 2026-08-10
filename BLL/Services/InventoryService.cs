@@ -330,109 +330,117 @@ namespace BLL.Services
                 RemainingQuantity = Math.Max(0, inv.Quantity - request.Quantity),
             };
 
+            if (inv.Quantity < request.Quantity)
+                throw new InvalidOperationException("Not enough quantity to consume.");
+
+            // ── Resolve hiệu ứng TRƯỚC transaction ───────────────────────────────────
+            // Luồng cũ trừ số lượng trước rồi mới apply hiệu ứng, nên uống bình máu lúc đã
+            // đầy HP vẫn mất bình mà không hồi được điểm nào (các nhánh apply chỉ im lặng
+            // no-op, không báo lỗi). Validate trước khi ghi để vật phẩm không bị tiêu vô ích
+            // và client nhận được 400 kèm lý do để hiện popup.
+            string itemName    = inv.Item?.Name ?? string.Empty;
+            int healAmount     = ResolveHealPerUnit(itemName) * request.Quantity;
+            int energyAmount   = itemName.Equals("Energy Elixir", StringComparison.OrdinalIgnoreCase)
+                                    ? 60 * request.Quantity
+                                    : 0;
+            float corruptionPct = inv.Item?.CorruptionReduction ?? 0f;
+
+            PlayerStat? stat    = null;
+            int effectiveMaxHp  = 0;
+            if (healAmount > 0)
+            {
+                stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
+                if (stat != null)
+                {
+                    // Trần HP thật = base + trang bị + buff achievement, KHÔNG phải stat.MaxHp.
+                    effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
+                    if (stat.CurrentHp >= effectiveMaxHp)
+                        throw new InvalidOperationException("Your HP is already full.");
+                }
+            }
+
+            PlayerProfile? profile = null;
+            if (energyAmount > 0 || corruptionPct > 0)
+            {
+                profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
+                if (profile != null)
+                {
+                    if (energyAmount > 0 && profile.CurrentEnergy >= profile.MaxEnergy)
+                        throw new InvalidOperationException("Your energy is already full.");
+
+                    if (corruptionPct > 0 && profile.CorruptionLevel <= 0)
+                        throw new InvalidOperationException("Your corruption is already fully cleansed.");
+                }
+            }
+
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
-                if (inv.Quantity < request.Quantity)
-                    throw new InvalidOperationException("Not enough quantity to consume.");
-
                 inv.Quantity -= request.Quantity;
                 if (inv.Quantity <= 0)
                     await _inventoryRepository.DeleteItem(inv.InventoryItemId);
                 else
                     await _inventoryRepository.UpdateItem(inv);
 
-                // ── Apply item effects by name ────────────────────────────────────────
-                if (inv.Item?.Name != null)
+                // ── Apply hiệu ứng đã resolve ở trên ─────────────────────────────────
+                // Heal: clamp lên trần HP thật, nên 900/1000 uống bình 200 chỉ lên 1000.
+                if (healAmount > 0 && stat != null)
                 {
-                    var itemName = inv.Item.Name;
+                    int before = stat.CurrentHp;
+                    stat.CurrentHp = Math.Min(stat.CurrentHp + healAmount, effectiveMaxHp);
+                    stat.UpdatedAt = DateTime.UtcNow;
+                    await _statRepository.Update(stat);
+                    result.EffectType  = "Heal";
+                    // Trả về lượng hồi THỰC TẾ sau clamp, không phải mệnh giá bình, để client
+                    // không hiện "+200 HP" khi thực chất chỉ hồi được 100.
+                    result.EffectValue = stat.CurrentHp - before;
+                    result.CurrentHp   = stat.CurrentHp;
+                    result.MaxHp       = effectiveMaxHp;
+                }
 
-                    // Small Health Potion: restores 80 HP
-                    if (itemName.Equals("Small Health Potion", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
-                        if (stat != null)
-                        {
-                            int heal = 80 * request.Quantity;
-                            int effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
-                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, effectiveMaxHp);
-                            stat.UpdatedAt = DateTime.UtcNow;
-                            await _statRepository.Update(stat);
-                            result.EffectType  = "Heal";
-                            result.EffectValue = heal;
-                            result.CurrentHp   = stat.CurrentHp;
-                            result.MaxHp       = effectiveMaxHp;
-                        }
-                    }
-                    // Large Health Potion: restores 200 HP
-                    else if (itemName.Equals("Large Health Potion", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
-                        if (stat != null)
-                        {
-                            int heal = 200 * request.Quantity;
-                            int effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
-                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, effectiveMaxHp);
-                            stat.UpdatedAt = DateTime.UtcNow;
-                            await _statRepository.Update(stat);
-                            result.EffectType  = "Heal";
-                            result.EffectValue = heal;
-                            result.CurrentHp   = stat.CurrentHp;
-                            result.MaxHp       = effectiveMaxHp;
-                        }
-                    }
-                    // Fallback: any item whose name contains "Health Potion" (legacy compatibility)
-                    else if (itemName.Contains("Health Potion", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
-                        if (stat != null)
-                        {
-                            int heal = 100 * request.Quantity;
-                            int effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
-                            stat.CurrentHp = Math.Min(stat.CurrentHp + heal, effectiveMaxHp);
-                            stat.UpdatedAt = DateTime.UtcNow;
-                            await _statRepository.Update(stat);
-                            result.EffectType  = "Heal";
-                            result.EffectValue = heal;
-                            result.CurrentHp   = stat.CurrentHp;
-                            result.MaxHp       = effectiveMaxHp;
-                        }
-                    }
-                    // Energy Elixir: restores 60 Energy
-                    else if (itemName.Equals("Energy Elixir", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
-                        if (profile != null)
-                        {
-                            int energyGain = 60 * request.Quantity;
-                            profile.CurrentEnergy = Math.Min(profile.CurrentEnergy + energyGain, profile.MaxEnergy);
-                            await _playerProfileRepository.UpdatePlayerProfile(profile);
-                            result.EffectType     = "Energy";
-                            result.EffectValue    = energyGain;
-                            result.CurrentEnergy  = profile.CurrentEnergy;
-                            result.MaxEnergy      = profile.MaxEnergy;
-                        }
-                    }
+                if (energyAmount > 0 && profile != null)
+                {
+                    int before = profile.CurrentEnergy;
+                    profile.CurrentEnergy = Math.Min(profile.CurrentEnergy + energyAmount, profile.MaxEnergy);
+                    await _playerProfileRepository.UpdatePlayerProfile(profile);
+                    result.EffectType    = "Energy";
+                    result.EffectValue   = profile.CurrentEnergy - before;
+                    result.CurrentEnergy = profile.CurrentEnergy;
+                    result.MaxEnergy     = profile.MaxEnergy;
+                }
 
-                    // Corruption Reduction (applied when item has CorruptionReduction > 0, treated as a percentage 0..1)
-                    if (inv.Item.CorruptionReduction > 0)
-                    {
-                        var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
-                        if (profile != null && profile.CorruptionLevel > 0)
-                        {
-                            float reductionPct   = Math.Min(1f, inv.Item.CorruptionReduction); // clamp to 100%
-                            float totalReduction = profile.CorruptionLevel * reductionPct * request.Quantity;
-                            float before         = profile.CorruptionLevel;
-                            profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - totalReduction);
-                            await _playerProfileRepository.UpdatePlayerProfile(profile);
-                            result.EffectType         = "CorruptionReduction";
-                            result.EffectValue         = (int)Math.Round(before - profile.CorruptionLevel);
-                            result.CorruptionLevel     = profile.CorruptionLevel;
-                        }
-                    }
+                // CorruptionReduction là phần trăm 0..1 của mức corruption hiện tại.
+                if (corruptionPct > 0 && profile != null)
+                {
+                    float reductionPct   = Math.Min(1f, corruptionPct); // clamp to 100%
+                    float totalReduction = profile.CorruptionLevel * reductionPct * request.Quantity;
+                    float before         = profile.CorruptionLevel;
+                    profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - totalReduction);
+                    await _playerProfileRepository.UpdatePlayerProfile(profile);
+                    result.EffectType      = "CorruptionReduction";
+                    result.EffectValue     = (int)Math.Round(before - profile.CorruptionLevel);
+                    result.CorruptionLevel = profile.CorruptionLevel;
                 }
             });
 
             return result;
+        }
+
+        /// <summary>
+        /// Lượng HP hồi trên mỗi đơn vị vật phẩm, tra theo tên. Trả 0 nếu không phải bình máu.
+        /// Gộp 3 nhánh trùng nhau trước đây để guard "đã đầy máu" và phần apply dùng chung
+        /// một nguồn số liệu, không lệch nhau khi thêm bình mới.
+        /// </summary>
+        private static int ResolveHealPerUnit(string itemName)
+        {
+            if (string.IsNullOrWhiteSpace(itemName)) return 0;
+
+            if (itemName.Equals("Small Health Potion", StringComparison.OrdinalIgnoreCase)) return 80;
+            if (itemName.Equals("Large Health Potion", StringComparison.OrdinalIgnoreCase)) return 200;
+
+            // Fallback cho bình máu cũ/thêm sau, khớp hành vi trước đây.
+            if (itemName.Contains("Health Potion", StringComparison.OrdinalIgnoreCase)) return 100;
+
+            return 0;
         }
 
 

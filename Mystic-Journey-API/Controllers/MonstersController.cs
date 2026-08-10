@@ -65,7 +65,7 @@ namespace Mystic_Journey_API.Controllers
         // Lấy danh sách tất cả monsters có phân trang và lọc (Dashboard).
         // Query: page, pageSize, search, type, isActive.
         // Codex công khai: xem WikiController (/api/wiki/monsters).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
@@ -174,7 +174,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/monsters/drops ─────────────────────────────────────────
         // Lấy danh sách monster drops có phân trang (Dashboard).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("drops")]
         public async Task<IActionResult> GetAllDrops([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -189,7 +189,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/monsters/{id} ─────────────────────────────────────────
         // Cập nhật monster hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateMonsterRequestDto request)
         {
@@ -202,7 +202,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/monsters/{id}/drops ────────────────────────────────────
         // Thêm drop cho monster.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id}/drops")]
         public async Task<IActionResult> AddDrop(int id, [FromBody] CreateMonsterDropRequestDto request)
         {
@@ -215,7 +215,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/monsters/{id}/spawns ───────────────────────────────────
         // Lấy danh sách spawns của một monster (Admin).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}/spawns")]
         public async Task<IActionResult> GetSpawnsByMonster(int id)
         {
@@ -225,7 +225,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/monsters/spawns ────────────────────────────────────────
         // Tạo spawn mới cho monster.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("spawns")]
         public async Task<IActionResult> CreateSpawn([FromBody] CreateMonsterSpawnRequestDto request)
         {
@@ -245,7 +245,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/monsters/spawns/{id} ────────────────────────────────────
         // Cập nhật spawn.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("spawns/{id}")]
         public async Task<IActionResult> UpdateSpawn(int id, [FromBody] UpdateMonsterSpawnRequestDto request)
         {
@@ -265,7 +265,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── DELETE /api/monsters/spawns/{id} ─────────────────────────────────
         // Xoá spawn.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("spawns/{id}")]
         public async Task<IActionResult> DeleteSpawn(int id)
         {

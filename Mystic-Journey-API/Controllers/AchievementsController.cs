@@ -94,7 +94,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/achievements/{id} ─────────────────────────────────────────
         // Cập nhật achievement hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateAchievementRequestDto request)
         {

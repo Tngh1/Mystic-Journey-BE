@@ -683,22 +683,6 @@ namespace Mystic_Journey_API.Controllers
         // ─────────────────────────────────────────────────────────────────────────
         private async Task SeedContent()
         {
-            var adminAcc = await _ctx.Accounts.FirstOrDefaultAsync(a => a.Email == "admin@mystic.test");
-            if (adminAcc == null)
-            {
-                adminAcc = new Account
-                {
-                    UserName = "admin_seed",
-                    Email = "admin@mystic.test",
-                    HashPassword = HashPassword("Abc@12345"),
-                    RoleId = 2,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _ctx.Accounts.Add(adminAcc);
-                await _ctx.SaveChangesAsync();
-            }
-
             var existingContents = await _ctx.Contents.Where(c => c.Title.StartsWith("[SEED]")).ToListAsync();
             if (existingContents.Any())
             {
@@ -739,7 +723,6 @@ namespace Mystic_Journey_API.Controllers
                 IsPublished = true,
                 CreatedAt = DateTime.UtcNow,
                 PublishedAt = DateTime.UtcNow,
-                CreatedByAccountId = Guid.Empty,
                 BlockContents = new List<BlockContent>
                 {
                     new BlockContent { Title = "Introduction", BlockType = "Text", ContentData = "Mystic Journey is an open-world RPG featuring 4 distinct lands...", SortOrder = 1 },
@@ -757,7 +740,6 @@ namespace Mystic_Journey_API.Controllers
                 IsPublished = true,
                 CreatedAt = DateTime.UtcNow,
                 PublishedAt = DateTime.UtcNow,
-                CreatedByAccountId = Guid.Empty,
                 BlockContents = new List<BlockContent>
                 {
                     new BlockContent { Title = "Combat Guide", BlockType = "Text", ContentData = "Use basic skills to defeat monsters.", SortOrder = 1 }

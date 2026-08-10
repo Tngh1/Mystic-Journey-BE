@@ -73,10 +73,24 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Account>()
+                .HasIndex(a => a.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Account>()
+                .HasIndex(a => a.UserName)
+                .IsUnique();
+
+            modelBuilder.Entity<PlayerDailyLogin>()
+                .HasIndex(d => d.PlayerProfileId)
+                .IsUnique();
+            modelBuilder.Entity<PlayerAchievement>()
+                .HasIndex(a => new { a.PlayerProfileId, a.AchievementId })
+                .IsUnique();
+
             modelBuilder.Entity<Role>().HasData(
             new Role { RoleId = 1, Name = "Player" },
-            new Role { RoleId = 2, Name = "Admin" },
-            new Role { RoleId = 3, Name = "SuperAdmin" });
+            new Role { RoleId = 2, Name = "Admin" });
 
             modelBuilder.Entity<ClassConfig>().HasData(
                 new ClassConfig { ClassConfigId = 1, ClassName = "Knight", MaxHp = 620, Atk = 42, Def = 45, MoveSpeed = 100, AttackSpeed = 100, CritRate = 5, CritDamage = 150, DamageBonus = 0 },
@@ -1305,8 +1319,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     CategoryContentId = 1,
                     IsPublished = true,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    CreatedByAccountId = Guid.Empty
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new Content
                 {
@@ -1318,8 +1331,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     CategoryContentId = 2,
                     IsPublished = true,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    CreatedByAccountId = Guid.Empty
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new Content
                 {
@@ -1331,8 +1343,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     CategoryContentId = 3,
                     IsPublished = true,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    CreatedByAccountId = Guid.Empty
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new Content
                 {
@@ -1344,8 +1355,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     CategoryContentId = 2,
                     IsPublished = false,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = null,
-                    CreatedByAccountId = Guid.Empty
+                    PublishedAt = null
                 },
                 new Content
                 {
@@ -1357,8 +1367,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                     CategoryContentId = 1,
                     IsPublished = true,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    CreatedByAccountId = Guid.Empty
+                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 }
             );
 

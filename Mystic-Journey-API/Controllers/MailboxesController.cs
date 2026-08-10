@@ -142,7 +142,7 @@ namespace Mystic_Journey_API.Controllers
         // ── GET /api/mailboxes ─────────────────────────────────────────────────
         // Lấy tất cả thư có lọc và phân trang (Admin).
         // Query: page, pageSize, search, isRead, isClaimed.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
@@ -159,7 +159,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/mailboxes/by-ids ─────────────────────────────────────────
         // Gửi thư đến danh sách player theo ID.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("by-ids")]
         public async Task<IActionResult> SendMailboxByListId([FromBody] SendMailboxByListIdDto request)
         {
@@ -172,7 +172,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/mailboxes/broadcast ──────────────────────────────────────
         // Broadcast thư đến tất cả player.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("broadcast")]
         public async Task<IActionResult> SendMailboxToAll([FromBody] SendMailboxToAllDto request)
         {
@@ -185,7 +185,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/mailboxes/player/{playerProfileId} ────────────────────────
         // Lấy tất cả thư của một player cụ thể (Admin).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("player/{playerProfileId:int}")]
         public async Task<IActionResult> GetByPlayerId(
             int playerProfileId,

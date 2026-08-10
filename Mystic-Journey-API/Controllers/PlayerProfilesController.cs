@@ -95,7 +95,7 @@ namespace Mystic_Journey_API.Controllers
         // ── GET /api/playerprofiles ───────────────────────────────────────────
         // Lấy danh sách tất cả player profiles có phân trang và lọc.
         // Query: page, pageSize, search, level.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,

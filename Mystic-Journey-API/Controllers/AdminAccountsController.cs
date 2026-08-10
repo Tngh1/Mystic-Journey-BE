@@ -7,13 +7,22 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý tài khoản admin.
-    // Admin APIs: Xem, tạo, cập nhật, ban/unban tài khoản.
+    // Quản lý tài khoản người chơi.
+    // Admin APIs: Xem danh sách/chi tiết, ban/unban tài khoản Player.
+    //
+    // Tài khoản Admin KHÔNG quản lý được qua API. Trước đây có Create/Update dành riêng
+    // cho SuperAdmin; role đó đã bỏ nên hai endpoint ấy cũng bỏ theo. Không hạ quyền
+    // chúng xuống Admin: như vậy Admin sẽ tự tạo/nâng quyền Admin khác được. Cấp Admin
+    // mới làm trực tiếp trong DB.
     [Route("api/[controller]")]
     [ApiController]
     public class AdminAccountsController : ControllerBase
     {
         private readonly IAccountAdminService _accountAdminService;
+
+        // Chỉ Player mới nằm trong phạm vi quản lý của Admin. Hằng này dùng cho cả filter
+        // danh sách lẫn check quyền trên từng account, để hai đường không lệch nhau.
+        private const string ManageableRole = "Player";
 
         public AdminAccountsController(IAccountAdminService accountAdminService)
         {
@@ -25,32 +34,20 @@ namespace Mystic_Journey_API.Controllers
         // ═══════════════════════════════════════════════════════════════════════
 
         // ── GET /api/adminaccounts ─────────────────────────────────
-        // Lấy danh sách tất cả accounts có phân trang và lọc.
-        // Query: page, pageSize, search, isActive, roleName.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        // Lấy danh sách accounts Player có phân trang và lọc.
+        // Query: page, pageSize, search, isActive.
+        // roleName không còn là tham số: danh sách luôn khoá ở Player.
+        [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isActive = null, [FromQuery] string? roleName = null)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isActive = null)
         {
-            if (!string.IsNullOrEmpty(roleName) && (roleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || roleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || roleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)))
-            {
-                if (!User.IsInRole("SuperAdmin"))
-                {
-                    return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can view Admin accounts.", ErrorCode = ErrorCodes.Forbidden });
-                }
-            }
-
-            if (!User.IsInRole("SuperAdmin") && string.IsNullOrEmpty(roleName))
-            {
-                roleName = "Player";
-            }
-
-            var result = await _accountAdminService.GetAccountsPaged(page, pageSize, search, isActive, roleName);
+            var result = await _accountAdminService.GetAccountsPaged(page, pageSize, search, isActive, ManageableRole);
             return Ok(new ApiResponse<PagedResultDto<AccountAdminResponseDto>> { Success = true, Data = result });
         }
 
         // ── GET /api/adminaccounts/{id} ───────────────────────────
-        // Lấy chi tiết account theo ID.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        // Lấy chi tiết account theo ID. Account Admin trả 403 chứ không trả dữ liệu.
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -58,67 +55,60 @@ namespace Mystic_Journey_API.Controllers
             if (account == null)
                 return NotFound(new ApiResponse<object> { Success = false, Message = $"Account with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
-            if ((account.RoleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || account.RoleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || account.RoleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)) && !User.IsInRole("SuperAdmin"))
-            {
-                return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can view Admin account details.", ErrorCode = ErrorCodes.Forbidden });
-            }
+            if (!IsManageable(account))
+                return AdminAccountForbidden();
 
-            return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
-        }
-
-        // ── POST /api/adminaccounts ────────────────────────────────
-        // Tạo tài khoản admin mới.
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateAccountAdminRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var account = await _accountAdminService.CreateAccount(request);
-            return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
-        }
-
-        // ── PUT /api/adminaccounts/{id} ───────────────────────────
-        // Cập nhật tài khoản hiện có.
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountAdminRequestDto request)
-        {
-            var account = await _accountAdminService.UpdateAccount(id, request);
             return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
 
         // ── POST /api/adminaccounts/{id}/ban ──────────────────────
-        // Ban tài khoản.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        // Ban tài khoản Player.
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id}/ban")]
-        public async Task<IActionResult> BanAccount(int id)
+        // Body là optional: reason có thể bỏ trống, và caller cũ không gửi body vẫn ban được.
+        public async Task<IActionResult> BanAccount(int id, [FromBody] BanAccountRequestDto? request = null)
         {
             var targetAccount = await _accountAdminService.GetAccountById(id);
-            if (targetAccount != null && (targetAccount.RoleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)) && !User.IsInRole("SuperAdmin"))
-            {
-                return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can ban Admin accounts.", ErrorCode = ErrorCodes.Forbidden });
-            }
+            if (targetAccount == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Account with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
-            var account = await _accountAdminService.BanAccount(id);
+            if (!IsManageable(targetAccount))
+                return AdminAccountForbidden();
+
+            var account = await _accountAdminService.BanAccount(id, request?.BanReason);
             return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
 
         // ── POST /api/adminaccounts/{id}/unban ────────────────────
-        // Unban tài khoản.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        // Unban tài khoản Player.
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id}/unban")]
         public async Task<IActionResult> UnbanAccount(int id)
         {
             var targetAccount = await _accountAdminService.GetAccountById(id);
-            if (targetAccount != null && (targetAccount.RoleName.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("SuperAdmin", System.StringComparison.OrdinalIgnoreCase) || targetAccount.RoleName.Equals("Super Admin", System.StringComparison.OrdinalIgnoreCase)) && !User.IsInRole("SuperAdmin"))
-            {
-                return StatusCode(403, new ApiResponse<object> { Success = false, Message = "Only SuperAdmin can unban Admin accounts.", ErrorCode = ErrorCodes.Forbidden });
-            }
+            if (targetAccount == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Account with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
+
+            if (!IsManageable(targetAccount))
+                return AdminAccountForbidden();
 
             var account = await _accountAdminService.UnbanAccount(id);
             return Ok(new ApiResponse<AccountAdminResponseDto> { Success = true, Data = account });
         }
+
+        // Chỉ Player là quản lý được. Viết dạng allow-list (phải BẰNG "Player") thay vì
+        // deny-list ("khác Admin") để role lạ trong DB mặc định bị chặn, chứ không mặc
+        // định cho qua. Bản cũ dùng deny-list và liệt kê tay "Admin"/"SuperAdmin"/"Super Admin".
+        // string.Equals static để RoleName null (Role chưa Include) trả false thay vì NRE.
+        private static bool IsManageable(AccountAdminResponseDto account) =>
+            string.Equals(account.RoleName, ManageableRole, System.StringComparison.OrdinalIgnoreCase);
+
+        private IActionResult AdminAccountForbidden() =>
+            StatusCode(403, new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Only Player accounts can be managed here.",
+                ErrorCode = ErrorCodes.Forbidden
+            });
     }
 }

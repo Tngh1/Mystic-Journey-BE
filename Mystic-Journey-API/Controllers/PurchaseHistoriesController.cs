@@ -31,7 +31,7 @@ namespace Mystic_Journey_API.Controllers
         // thì bất kỳ người chơi nào cũng đọc được lịch sử mua của người khác bằng cách đổi id.
         private bool IsSelfOrAdmin(int playerProfileId)
         {
-            if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+            if (User.IsInRole("Admin"))
                 return true;
 
             var claim = User.FindFirstValue("playerProfileId");
@@ -58,7 +58,7 @@ namespace Mystic_Journey_API.Controllers
         // ── GET /api/purchasehistories ────────────────────────────────
         // Lấy tất cả lịch sử mua có phân trang và lọc.
         // Query: page, pageSize, search, sortBy, sortOrder.
-        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,SuperAdmin")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,

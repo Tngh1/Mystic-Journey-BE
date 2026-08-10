@@ -31,7 +31,7 @@ namespace Mystic_Journey_API.Controllers
         // thì bất kỳ người chơi nào cũng đọc được lịch sử bán của người khác bằng cách đổi id.
         private bool IsSelfOrAdmin(int playerProfileId)
         {
-            if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+            if (User.IsInRole("Admin"))
                 return true;
 
             var claim = User.FindFirstValue("playerProfileId");

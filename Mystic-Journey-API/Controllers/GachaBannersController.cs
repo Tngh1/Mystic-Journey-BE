@@ -122,7 +122,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/gachabanners/{id} ────────────────────────────
         // Cập nhật gacha banner hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateGachaBannerRequestDto request)
         {
@@ -135,7 +135,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── POST /api/gachabanners/{id}/items ─────────────────────
         // Thêm item vào banner.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id}/items")]
         public async Task<IActionResult> AddBannerItem(int id, [FromBody] CreateGachaBannerItemRequestDto request)
         {
@@ -147,7 +147,7 @@ namespace Mystic_Journey_API.Controllers
         }
         // ══ POST /api/gachabanners ══════════════════════════════
         // Tạo gacha banner mới.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateGachaBannerRequestDto request)
         {
@@ -160,7 +160,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ══ DELETE /api/gachabanners/{bannerId}/items/{bannerItemId} ══
         // Xóa item khỏi banner.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{bannerId}/items/{bannerItemId}")]
         public async Task<IActionResult> RemoveBannerItem(int bannerId, int bannerItemId)
         {
@@ -172,7 +172,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ══ GET /api/gachabanners/history/admin ═══════════════
         // Admin xem toàn bộ lịch sử quay.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("history/admin")]
         public async Task<IActionResult> GetAllHistory(
             [FromQuery] int page = 1,
@@ -185,7 +185,7 @@ namespace Mystic_Journey_API.Controllers
         }
         // ══ GET /api/gachabanners/history/admin/stats/{playerProfileId} ══
         // Admin xem thống kê gacha của người chơi.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("history/admin/stats/{playerProfileId}")]
         public async Task<IActionResult> GetPlayerGachaStats(int playerProfileId)
         {

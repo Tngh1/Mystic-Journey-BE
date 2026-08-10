@@ -3,7 +3,7 @@ using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -23,11 +23,17 @@ namespace BLL.Services
         private readonly IAuthRepository _repository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
-        private readonly IMemoryCache _cache;
+        private readonly IDistributedCache _cache;
         private readonly IPlayerProfileService _playerProfileService;
+        private readonly ISessionNotifier _sessionNotifier;
 
         private const string OTP_CACHE_PREFIX = "otp:";
         private const string VERIFIED_CACHE_PREFIX = "verified:";
+
+        // IMemoryCache lưu được bool; Redis chỉ có string nên cờ "email đã xác thực" phải mã
+        // hoá tường minh. So sánh bằng hằng này thay vì bool.Parse: key trống trả null và null
+        // != "1" là chưa xác thực — không cần try/catch, và giá trị lạ cũng rơi về chưa xác thực.
+        private const string VerifiedFlag = "1";
         private const string DefaultMapName = "ElfForest";
         private const double DefaultSpawnX = 11.9;
         private const double DefaultSpawnY = 17.8;
@@ -41,20 +47,125 @@ namespace BLL.Services
             IAuthRepository repository,
             IMapper mapper,
             IConfiguration configuration,
-            IMemoryCache cache,
-            IPlayerProfileService playerProfileService)
+            IDistributedCache cache,
+            IPlayerProfileService playerProfileService,
+            ISessionNotifier sessionNotifier)
         {
             _repository = repository;
             _mapper = mapper;
             _configuration = configuration;
             _cache = cache;
             _playerProfileService = playerProfileService;
+            _sessionNotifier = sessionNotifier;
         }
 
         private static string HashRefreshToken(string token)
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
             return Convert.ToBase64String(bytes);
+        }
+
+        // Web (portal/swagger) và game là HAI phiên độc lập. "Một phiên duy nhất" vẫn giữ
+        // nguyên nhưng chỉ trong cùng một loại client: game login mới đá game login cũ,
+        // không đá web. Muốn vậy phải tách CẢ HAI cơ chế single-slot — cột refresh token
+        // trong DB và khoá active_session — vì chỉ tách một cái là bên kia vẫn chết.
+        public const string ClientWeb = "Web";
+        public const string ClientGame = "Game";
+
+        // Claim mang loại client trong access token. OnTokenValidated cần nó để biết so sid
+        // với khoá session nào; thiếu claim này thì không phân biệt được web/game.
+        public const string ClientTypeClaim = "ctyp";
+
+        private static string NormalizeClient(string? clientType)
+            => IsGameClient(clientType) ? ClientGame : ClientWeb;
+
+        // Public để Program.cs dùng đúng format khoá thay vì tự nối string ở hai nơi.
+        public static string ActiveSessionKey(int accountId, string? clientType)
+            => $"active_session:{accountId}:{NormalizeClient(clientType)}";
+
+        // IDistributedCache chỉ nhận string/byte[], không nhận TimeSpan trực tiếp như
+        // IMemoryCache. Gom vào một chỗ để 5 call site không ai viết lẫn sang
+        // AbsoluteExpiration (mốc tuyệt đối) khi ý là "kể từ bây giờ".
+        private static DistributedCacheEntryOptions Ttl(TimeSpan ttl)
+            => new() { AbsoluteExpirationRelativeToNow = ttl };
+
+        // MỌI access token phải mang một sid đang là session hiện hành, vì OnTokenValidated
+        // chỉ kick được thiết bị khi so sánh được sid. Token không sid = không bao giờ bị kick.
+        // Session nằm ở Redis (IDistributedCache) nên mọi instance API đọc chung một nguồn sự
+        // thật và phiên sống sót qua restart. Với IMemoryCache mỗi instance giữ cache riêng:
+        // login đè phiên ở instance A không kick nổi thiết bị đang gọi vào instance B.
+        private async Task<string> StartNewSession(int accountId, string clientType)
+        {
+            var key = ActiveSessionKey(accountId, clientType);
+
+            // Đọc phiên cũ TRƯỚC khi ghi đè: đây là thông tin duy nhất cho biết có ai vừa bị
+            // đá hay không. Ghi trước rồi mới đọc là mất nó.
+            var previousSessionId = await _cache.GetStringAsync(key);
+
+            var sessionId = Guid.NewGuid().ToString();
+            await _cache.SetStringAsync(
+                key,
+                sessionId,
+                Ttl(TimeSpan.FromDays(RefreshTokenExpiryDays)));
+
+            // Chỉ báo khi thật sự có phiên cũ và nó khác phiên mới. Login đầu tiên (key trống)
+            // không đá ai nên gửi thông báo là làm client hiểu sai. Đặt notify ở đây vì đây là
+            // chỗ DUY NHẤT một phiên bị đè — Login và ChangePassword đi qua cùng đường này, nên
+            // không có call site nào lỡ quên.
+            if (!string.IsNullOrEmpty(previousSessionId) && previousSessionId != sessionId)
+            {
+                await _sessionNotifier.SessionOverridden(accountId, clientType, sessionId);
+            }
+
+            return sessionId;
+        }
+
+        // Refresh không phải đăng nhập mới: giữ nguyên session đang hiện hành để không tự
+        // đá chính mình. Chỉ mint mới khi key trống (hết TTL, hoặc Redis bị flush).
+        private async Task<string> ContinueSession(int accountId, string clientType)
+        {
+            var key = ActiveSessionKey(accountId, clientType);
+            var sessionId = await _cache.GetStringAsync(key);
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                // Gia hạn TTL mỗi lần refresh để phiên đang hoạt động không tự hết hạn giữa
+                // lúc chơi; TTL bằng tuổi refresh token nên hai thứ chết cùng nhau.
+                await _cache.SetStringAsync(key, sessionId, Ttl(TimeSpan.FromDays(RefreshTokenExpiryDays)));
+                return sessionId;
+            }
+            return await StartNewSession(accountId, clientType);
+        }
+
+        // Bốn cột refresh token (2 slot × token+expiry) nên gom vào một chỗ; rải if/else
+        // ra 5 call site là kiểu bug ghi sai slot mà compiler không bắt được.
+        private static void SetRefreshSlot(Account account, string clientType, string? hashedToken, DateTime? expiresAt)
+        {
+            if (NormalizeClient(clientType) == ClientGame)
+            {
+                account.GameRefreshToken = hashedToken;
+                account.GameRefreshTokenExpiresAt = expiresAt;
+            }
+            else
+            {
+                account.RefreshToken = hashedToken;
+                account.RefreshTokenExpiresAt = expiresAt;
+            }
+        }
+
+        private static DateTime? RefreshSlotExpiry(Account account, string clientType)
+            => NormalizeClient(clientType) == ClientGame
+                ? account.GameRefreshTokenExpiresAt
+                : account.RefreshTokenExpiresAt;
+
+        // Token do client trình lên chỉ là chuỗi, không nói nó thuộc slot nào — phải dò để
+        // xoay đúng slot. Xoay sai slot là đá client kia ra, đúng cái bug đang sửa.
+        private static string? MatchRefreshSlot(Account account, string hashedToken)
+        {
+            if (!string.IsNullOrEmpty(account.GameRefreshToken) && account.GameRefreshToken == hashedToken)
+                return ClientGame;
+            if (!string.IsNullOrEmpty(account.RefreshToken) && account.RefreshToken == hashedToken)
+                return ClientWeb;
+            return null;
         }
 
         public async Task<AuthResponseDto> Login(LoginRequestDto request)
@@ -65,23 +176,25 @@ namespace BLL.Services
                 throw new AccountNotFoundException("Account is not registered. Please register before logging in.");
 
             if (!account.IsActive)
-                throw new UnauthorizedAccessException("Account has been deactivated.");
+                throw new UnauthorizedAccessException(
+                    string.IsNullOrWhiteSpace(account.BanReason)
+                        ? "Your account has been banned."
+                        : $"Your account has been banned. Reason: {account.BanReason}");
 
             if (!await VerifyPasswordWithFallback(account, request.Password))
                 throw new UnauthorizedAccessException("Invalid email/username or password.");
 
-            // Gán SessionId mới cho MỌI đăng nhập để đảm bảo phiên đăng nhập cũ trên thiết bị trước
-            // sẽ bị đè và đăng xuất ngay lập tức (Single Active Session).
-            var sessionId = Guid.NewGuid().ToString();
-            _cache.Set($"active_session:{account.AccountId}", sessionId, TimeSpan.FromDays(7));
+            // Gán SessionId mới cho MỌI đăng nhập để phiên cũ CÙNG LOẠI CLIENT bị đè và đăng
+            // xuất ngay (Single Active Session). Web và game tách khoá nên không đá lẫn nhau.
+            var clientType = NormalizeClient(request.ClientType);
+            var sessionId = await StartNewSession(account.AccountId, clientType);
 
-            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId);
+            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId, clientType);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
-            account.RefreshToken = HashRefreshToken(refreshToken);
-            account.RefreshTokenExpiresAt = refreshExpiry;
+            SetRefreshSlot(account, clientType, HashRefreshToken(refreshToken), refreshExpiry);
             account.LastLogin = DateTime.UtcNow;
-            if (IsGameClient(request.ClientType))
+            if (clientType == ClientGame)
             {
                 account.LastSeen = DateTime.UtcNow;
             }
@@ -121,7 +234,7 @@ namespace BLL.Services
             var normalizedUsername = request.UserName.Trim();
 
             var verifiedKey = $"{VERIFIED_CACHE_PREFIX}{normalizedEmail}";
-            if (!_cache.TryGetValue(verifiedKey, out bool isVerified) || !isVerified)
+            if (await _cache.GetStringAsync(verifiedKey) != VerifiedFlag)
                 throw new BadRequestException("Email not verified. Please verify your email first.");
 
             if (await _repository.IsEmailExist(normalizedEmail))
@@ -148,13 +261,14 @@ namespace BLL.Services
             };
 
             await _repository.CreateAccount(account);
-            _cache.Remove(verifiedKey);
+            await _cache.RemoveAsync(verifiedKey);
 
-            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            // Register chỉ có trên web (client game không có luồng đăng ký), nên cấp slot Web.
+            var (accessToken, accessExpiry) = GenerateAccessToken(
+                account, await StartNewSession(account.AccountId, ClientWeb), ClientWeb);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
-            account.RefreshToken = HashRefreshToken(refreshToken);
-            account.RefreshTokenExpiresAt = refreshExpiry;
+            SetRefreshSlot(account, ClientWeb, HashRefreshToken(refreshToken), refreshExpiry);
             await _repository.UpdateAccount(account);
 
             var response = new AuthResponseDto
@@ -180,7 +294,7 @@ namespace BLL.Services
             return response;
         }
 
-        public async Task<AuthResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request)
+        public async Task<AuthResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request, string clientType)
         {
             var account = await _repository.GetAccountById(accountId)
                 ?? throw new KeyNotFoundException("Account not found.");
@@ -191,17 +305,25 @@ namespace BLL.Services
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             account.UpdatedAt = DateTime.UtcNow;
 
-            // Đổi mật khẩu phải xoay phiên, không chỉ đổi hash: cả active_session và
-            // RefreshToken đều chỉ có MỘT slot, nên ghi đè ở đây là đá mọi thiết bị cũ ra
-            // (kẻ chiếm tài khoản mất token trong tức thì). Thiết bị hiện tại được cấp bộ
-            // token mới nên vẫn đăng nhập liên tục — đúng như trang Security đã hứa.
-            var sessionId = Guid.NewGuid().ToString();
-            _cache.Set($"active_session:{account.AccountId}", sessionId, TimeSpan.FromDays(7));
+            // Đổi mật khẩu phải xoay phiên, không chỉ đổi hash. Đây là chỗ DUY NHẤT cố tình
+            // đụng vào cả hai slot: nếu chỉ xoay slot của client đang gọi, kẻ chiếm tài khoản
+            // đang ngồi ở phía kia vẫn giữ phiên — đúng thứ trang Security hứa là sẽ cắt.
+            var caller = NormalizeClient(clientType);
+            var other = caller == ClientGame ? ClientWeb : ClientGame;
 
-            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId);
+            SetRefreshSlot(account, other, null, null);
+            await _cache.RemoveAsync(ActiveSessionKey(accountId, other));
+
+            // Phiên bên kia bị cắt mà KHÔNG có phiên kế nhiệm, nên newSessionId rỗng: không có
+            // sid nào để client đối chiếu, cứ nhận là bị đá. StartNewSession phía dưới chỉ phủ
+            // client đang gọi, nên chỗ này phải báo riêng.
+            await _sessionNotifier.SessionOverridden(accountId, other, string.Empty);
+
+            // Client đang gọi thì được cấp bộ token mới nên đăng nhập liên tục, không bị tự đá.
+            var sessionId = await StartNewSession(accountId, caller);
+            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId, caller);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
-            account.RefreshToken = HashRefreshToken(refreshToken);
-            account.RefreshTokenExpiresAt = refreshExpiry;
+            SetRefreshSlot(account, caller, HashRefreshToken(refreshToken), refreshExpiry);
 
             await _repository.UpdateAccount(account);
 
@@ -235,16 +357,26 @@ namespace BLL.Services
                 ?? throw new UnauthorizedAccessException("Invalid refresh token.");
 
             if (!account.IsActive)
-                throw new UnauthorizedAccessException("Account has been deactivated.");
+                throw new UnauthorizedAccessException(
+                    string.IsNullOrWhiteSpace(account.BanReason)
+                        ? "Your account has been banned."
+                        : $"Your account has been banned. Reason: {account.BanReason}");
 
-            if (account.RefreshTokenExpiresAt == null || account.RefreshTokenExpiresAt < DateTime.UtcNow)
+            // Slot suy ra từ chính token, không từ tham số: client không nói nó là web hay game
+            // khi refresh, và đoán sai là xoay token của client kia → 30 phút sau client đó
+            // refresh thất bại và tự logout, đúng cái bug đang sửa.
+            var clientType = MatchRefreshSlot(account, hashed)
+                ?? throw new UnauthorizedAccessException("Invalid refresh token.");
+
+            var slotExpiry = RefreshSlotExpiry(account, clientType);
+            if (slotExpiry == null || slotExpiry < DateTime.UtcNow)
                 throw new UnauthorizedAccessException("Refresh token expired. Please login again.");
 
-            var (accessToken, accessExpiry) = GenerateAccessToken(account);
+            var (accessToken, accessExpiry) = GenerateAccessToken(
+                account, await ContinueSession(account.AccountId, clientType), clientType);
             var (newRefreshToken, newRefreshExpiry) = GenerateRefreshToken();
 
-            account.RefreshToken = HashRefreshToken(newRefreshToken);
-            account.RefreshTokenExpiresAt = newRefreshExpiry;
+            SetRefreshSlot(account, clientType, HashRefreshToken(newRefreshToken), newRefreshExpiry);
             account.UpdatedAt = DateTime.UtcNow;
             if (account.PlayerProfile != null)
             {
@@ -275,17 +407,44 @@ namespace BLL.Services
             };
         }
 
-        public async Task RevokeRefreshToken(int accountId)
+        public async Task RevokeRefreshToken(int accountId, string? clientType)
         {
-            await _repository.RevokeRefreshToken(accountId);
-            await _repository.ClearLastSeen(accountId);
-            _cache.Remove($"active_session:{accountId}");
+            await _repository.RevokeRefreshToken(accountId, clientType);
+
+            // LastSeen là mốc presence của RIÊNG client game (web login không ghi cột này —
+            // xem OnlineTimeout.cs). Logout web mà xoá nó là báo người đang chơi thành offline,
+            // nên chỉ xoá khi thu hồi phía game hoặc thu hồi tất cả.
+            if (clientType == null || NormalizeClient(clientType) == ClientGame)
+            {
+                await _repository.ClearLastSeen(accountId);
+            }
+
+            if (clientType == null)
+            {
+                await _cache.RemoveAsync(ActiveSessionKey(accountId, ClientWeb));
+                await _cache.RemoveAsync(ActiveSessionKey(accountId, ClientGame));
+            }
+            else
+            {
+                await _cache.RemoveAsync(ActiveSessionKey(accountId, clientType));
+            }
         }
 
         public async Task RevokeRefreshTokenByToken(string refreshToken)
         {
             var hashed = HashRefreshToken(refreshToken);
-            await _repository.RevokeRefreshTokenByToken(hashed);
+            var account = await _repository.GetAccountByRefreshToken(hashed);
+            if (account == null)
+                return;
+
+            // Chỉ thu hồi slot khớp token. MatchRefreshSlot không thể null ở đây (repo lọc theo
+            // đúng hai cột đó), nhưng null xuống dưới nghĩa là "xoá MỌI slot" nên không truyền
+            // thẳng: logout một phía tuyệt đối không được đá client kia ra.
+            var clientType = MatchRefreshSlot(account, hashed);
+            if (clientType == null)
+                return;
+
+            await RevokeRefreshToken(account.AccountId, clientType);
         }
 
         public async Task<MeResponseDto> GetMe(int accountId)
@@ -326,7 +485,7 @@ namespace BLL.Services
             var otp = GenerateVerificationCode();
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
 
-            _cache.Set(cacheKey, otp, TimeSpan.FromMinutes(OtpExpiryMinutes));
+            await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes)));
 
             var htmlBody = BuildHtmlEmailTemplate(
                 "Xác thực Tài khoản Người chơi",
@@ -348,16 +507,17 @@ namespace BLL.Services
             var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
 
-            if (!_cache.TryGetValue(cacheKey, out string? cachedOtp))
+            var cachedOtp = await _cache.GetStringAsync(cacheKey);
+            if (string.IsNullOrEmpty(cachedOtp))
                 throw new BadRequestException("No verification code found. Please request a new one.");
 
             if (cachedOtp != request.VerificationCode)
                 throw new BadRequestException("Invalid verification code.");
 
-            _cache.Remove(cacheKey);
+            await _cache.RemoveAsync(cacheKey);
 
             var verifiedKey = $"{VERIFIED_CACHE_PREFIX}{normalizedEmail}";
-            _cache.Set(verifiedKey, true, TimeSpan.FromMinutes(VerifiedExpiryMinutes));
+            await _cache.SetStringAsync(verifiedKey, VerifiedFlag, Ttl(TimeSpan.FromMinutes(VerifiedExpiryMinutes)));
         }
 
         private static string GenerateVerificationCode()
@@ -371,7 +531,13 @@ namespace BLL.Services
             return Convert.ToBase64String(bytes);
         }
 
-        private (string token, DateTime expires) GenerateAccessToken(Account account, string? sessionId = null)
+        // sessionId là tham số bắt buộc, không có default: token thiếu sid thì OnTokenValidated
+        // không so được và thiết bị đó miễn kick vĩnh viễn. Bỏ default để compiler chặn
+        // call site nào quên truyền, thay vì lỗi im lặng.
+        //
+        // clientType cũng bắt buộc và cùng lý do: khoá session giờ có dạng
+        // active_session:{id}:{client}, nên thiếu client là OnTokenValidated dò sai slot.
+        private (string token, DateTime expires) GenerateAccessToken(Account account, string sessionId, string clientType)
         {
             var jwt = _configuration.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
@@ -384,13 +550,13 @@ namespace BLL.Services
                 new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.Email),
                 new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player"),
-                new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0")
+                new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0"),
+                new Claim(JwtRegisteredClaimNames.Sid, sessionId),
+                // Client nằm trong token vì các endpoint dùng access token (logout,
+                // change-password) không có cách nào khác để biết mình đang là web hay game,
+                // và đoán sai ở đó là thu hồi token của client kia.
+                new Claim(ClientTypeClaim, NormalizeClient(clientType))
             };
-
-            if (!string.IsNullOrEmpty(sessionId))
-            {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Sid, sessionId));
-            }
 
             var token = new JwtSecurityToken(
                 jwt["Issuer"], jwt["Audience"], claims,
@@ -569,7 +735,7 @@ namespace BLL.Services
             var otp = GenerateVerificationCode();
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
 
-            _cache.Set(cacheKey, otp, TimeSpan.FromMinutes(OtpExpiryMinutes));
+            await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes)));
 
             var htmlBody = BuildHtmlEmailTemplate(
                 "Đặt lại Mật khẩu Người chơi",
@@ -594,7 +760,8 @@ namespace BLL.Services
                 throw new BadRequestException("Passwords do not match.");
 
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
-            if (!_cache.TryGetValue(cacheKey, out string? cachedOtp) || cachedOtp != verificationCode)
+            var cachedOtp = await _cache.GetStringAsync(cacheKey);
+            if (string.IsNullOrEmpty(cachedOtp) || cachedOtp != verificationCode)
                 throw new BadRequestException("Invalid or expired verification code.");
 
             var account = await _repository.GetAccountByEmail(normalizedEmail)
@@ -606,9 +773,11 @@ namespace BLL.Services
 
             // Đổi mật khẩu phải đá mọi phiên cũ ra: nếu không, kẻ đã chiếm được tài khoản
             // vẫn giữ refresh token hợp lệ tới 7 ngày và việc đặt lại mật khẩu vô nghĩa.
-            await RevokeRefreshToken(account.AccountId);
+            // null = cả web lẫn game — luồng này không có client nào cần giữ đăng nhập
+            // (người dùng đang ở trang quên mật khẩu, chưa đăng nhập ở đâu cả).
+            await RevokeRefreshToken(account.AccountId, null);
 
-            _cache.Remove(cacheKey);
+            await _cache.RemoveAsync(cacheKey);
         }
     }
 

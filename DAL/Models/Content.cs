@@ -27,8 +27,7 @@ namespace DAL.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? PublishedAt { get; set; }
-
-        public Guid CreatedByAccountId { get; set; }
+        public int? CreatedByAccountId { get; set; }
         public Account? CreatedByAccount { get; set; }
 
         public ICollection<BlockContent> BlockContents { get; set; } = new List<BlockContent>();

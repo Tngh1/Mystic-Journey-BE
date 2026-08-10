@@ -66,6 +66,12 @@ namespace BLL.DTOs
         public string InteractionType { get; set; } = "Interact";
 
         public int? QuestId { get; set; }
+
+        // Nhanh QuestId == null trong TryCollectQuestItem cong thang ProgressDelta vao kho
+        // (khong clamp theo inventory nhu nhanh co quest), va InventoryItem.Quantity la int
+        // nen delta cuc lon vua nhan vat pham vua tran so thanh am. TargetAmount lon nhat
+        // trong seed la 12, nen 100 du headroom cho moi collect quest hop le.
+        [Range(1, 100, ErrorMessage = "ProgressDelta must be between 1 and 100.")]
         public int ProgressDelta { get; set; } = 1;
     }
 

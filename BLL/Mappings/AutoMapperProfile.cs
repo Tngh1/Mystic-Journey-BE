@@ -126,11 +126,10 @@ namespace BLL.Mappings
             // NỘI DUNG (Content - Bài viết, Danh mục, Block)
             // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ nội dung sang response (ánh xạ category và người tạo).
+            // Ánh xạ nội dung sang response (ánh xạ category).
             CreateMap<Content, ContentResponseDto>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryContentId))
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryContent != null ? src.CategoryContent.Name : null))
-                .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src => src.CreatedByAccount != null ? src.CreatedByAccount.UserName : ""));
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryContent != null ? src.CategoryContent.Name : null));
             // Ánh xạ nội dung sang chi tiết (kèm blocks).
             CreateMap<Content, ContentDetailResponseDto>()
                 .IncludeBase<Content, ContentResponseDto>()
@@ -186,9 +185,6 @@ namespace BLL.Mappings
             // QUẢN LÝ TÀI KHOẢN (Account Admin)
             // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ yêu cầu tạo/cập nhật tài khoản admin.
-            CreateMap<CreateAccountAdminRequestDto, Account>();
-            CreateMap<UpdateAccountAdminRequestDto, Account>();
             // Ánh xạ tài khoản sang response admin.
             CreateMap<Account, AccountAdminResponseDto>()
                 .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? (int?)src.PlayerProfile.PlayerProfileId : null))

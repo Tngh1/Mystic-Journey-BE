@@ -27,7 +27,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/quests/{id} ───────────────────────────────────────
         // Lấy chi tiết quest theo ID.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("npc-options")]
         public async Task<IActionResult> GetNpcOptions([FromQuery] string? mapName = null)
         {
@@ -69,7 +69,7 @@ namespace Mystic_Journey_API.Controllers
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
         // Tao quest moi.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] UpdateQuestRequestDto request)
         {
@@ -82,7 +82,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/quests/{id} ───────────────────────────────────────
         // Cập nhật quest hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateQuestRequestDto request)
         {
