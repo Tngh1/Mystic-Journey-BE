@@ -65,15 +65,8 @@ namespace BLL.Services
             return Convert.ToBase64String(bytes);
         }
 
-        // Web (portal/swagger) và game là HAI phiên độc lập. "Một phiên duy nhất" vẫn giữ
-        // nguyên nhưng chỉ trong cùng một loại client: game login mới đá game login cũ,
-        // không đá web. Muốn vậy phải tách CẢ HAI cơ chế single-slot — cột refresh token
-        // trong DB và khoá active_session — vì chỉ tách một cái là bên kia vẫn chết.
         public const string ClientWeb = "Web";
         public const string ClientGame = "Game";
-
-        // Claim mang loại client trong access token. OnTokenValidated cần nó để biết so sid
-        // với khoá session nào; thiếu claim này thì không phân biệt được web/game.
         public const string ClientTypeClaim = "ctyp";
 
         private static string NormalizeClient(string? clientType)
@@ -89,17 +82,10 @@ namespace BLL.Services
         private static DistributedCacheEntryOptions Ttl(TimeSpan ttl)
             => new() { AbsoluteExpirationRelativeToNow = ttl };
 
-        // MỌI access token phải mang một sid đang là session hiện hành, vì OnTokenValidated
-        // chỉ kick được thiết bị khi so sánh được sid. Token không sid = không bao giờ bị kick.
-        // Session nằm ở Redis (IDistributedCache) nên mọi instance API đọc chung một nguồn sự
-        // thật và phiên sống sót qua restart. Với IMemoryCache mỗi instance giữ cache riêng:
-        // login đè phiên ở instance A không kick nổi thiết bị đang gọi vào instance B.
         private async Task<string> StartNewSession(int accountId, string clientType)
         {
             var key = ActiveSessionKey(accountId, clientType);
 
-            // Đọc phiên cũ TRƯỚC khi ghi đè: đây là thông tin duy nhất cho biết có ai vừa bị
-            // đá hay không. Ghi trước rồi mới đọc là mất nó.
             var previousSessionId = await _cache.GetStringAsync(key);
 
             var sessionId = Guid.NewGuid().ToString();
@@ -119,25 +105,18 @@ namespace BLL.Services
 
             return sessionId;
         }
-
-        // Refresh không phải đăng nhập mới: giữ nguyên session đang hiện hành để không tự
-        // đá chính mình. Chỉ mint mới khi key trống (hết TTL, hoặc Redis bị flush).
         private async Task<string> ContinueSession(int accountId, string clientType)
         {
             var key = ActiveSessionKey(accountId, clientType);
             var sessionId = await _cache.GetStringAsync(key);
             if (!string.IsNullOrEmpty(sessionId))
             {
-                // Gia hạn TTL mỗi lần refresh để phiên đang hoạt động không tự hết hạn giữa
-                // lúc chơi; TTL bằng tuổi refresh token nên hai thứ chết cùng nhau.
                 await _cache.SetStringAsync(key, sessionId, Ttl(TimeSpan.FromDays(RefreshTokenExpiryDays)));
                 return sessionId;
             }
             return await StartNewSession(accountId, clientType);
         }
 
-        // Bốn cột refresh token (2 slot × token+expiry) nên gom vào một chỗ; rải if/else
-        // ra 5 call site là kiểu bug ghi sai slot mà compiler không bắt được.
         private static void SetRefreshSlot(Account account, string clientType, string? hashedToken, DateTime? expiresAt)
         {
             if (NormalizeClient(clientType) == ClientGame)
@@ -156,9 +135,6 @@ namespace BLL.Services
             => NormalizeClient(clientType) == ClientGame
                 ? account.GameRefreshTokenExpiresAt
                 : account.RefreshTokenExpiresAt;
-
-        // Token do client trình lên chỉ là chuỗi, không nói nó thuộc slot nào — phải dò để
-        // xoay đúng slot. Xoay sai slot là đá client kia ra, đúng cái bug đang sửa.
         private static string? MatchRefreshSlot(Account account, string hashedToken)
         {
             if (!string.IsNullOrEmpty(account.GameRefreshToken) && account.GameRefreshToken == hashedToken)
@@ -193,10 +169,9 @@ namespace BLL.Services
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
             SetRefreshSlot(account, clientType, HashRefreshToken(refreshToken), refreshExpiry);
-            account.LastLogin = DateTime.UtcNow;
-            if (clientType == ClientGame)
+            if (clientType == ClientGame && account.PlayerProfile != null)
             {
-                account.LastSeen = DateTime.UtcNow;
+                account.PlayerProfile.LastSeen = DateTime.UtcNow;
             }
             account.UpdatedAt = DateTime.UtcNow;
             if (account.PlayerProfile != null)
@@ -206,26 +181,29 @@ namespace BLL.Services
             await _repository.UpdateAccount(account);
 
             var hasCharacter = account.PlayerProfile != null;
-            return new AuthResponseDto
+            var response = _mapper.Map<AuthResponseDto>(account);
+
+           
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessExpiry;
+            response.RefreshToken = refreshToken;
+            response.RefreshTokenExpiresAt = refreshExpiry;
+
+        
+            if (!HasSavedPosition(account.PlayerProfile))
             {
-                AccountId = account.AccountId,
-                UserName = account.UserName,
-                EmailAddress = account.Email,
-                RoleId = account.RoleId,
-                Role = account.Role?.Name ?? "Player",
-                HasCharacter = hasCharacter,
-                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
-                PlayerDisplayName = account.PlayerProfile?.DisplayName,
-                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
-                Level = account.PlayerProfile?.Level ?? 1,
-                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
-                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
-                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY,
-                AccessToken = accessToken,
-                AccessTokenExpiresAt = accessExpiry,
-                RefreshToken = refreshToken,
-                RefreshTokenExpiresAt = refreshExpiry
-            };
+                response.PositionX = DefaultSpawnX;
+                response.PositionY = DefaultSpawnY;
+            }
+
+            
+            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
+
+            
+            if (string.IsNullOrWhiteSpace(response.PlayerClass))
+                response.PlayerClass = "Knight";
+
+            return response;
         }
 
         public async Task<AuthResponseDto> Register(RegisterRequestDto request)
@@ -271,26 +249,18 @@ namespace BLL.Services
             SetRefreshSlot(account, ClientWeb, HashRefreshToken(refreshToken), refreshExpiry);
             await _repository.UpdateAccount(account);
 
-            var response = new AuthResponseDto
-            {
-                AccountId = account.AccountId,
-                UserName = account.UserName,
-                EmailAddress = account.Email,
-                RoleId = account.RoleId,
-                Role = account.Role?.Name ?? "Player",
-                HasCharacter = true,
-                PlayerProfileId = account.PlayerProfile.PlayerProfileId,
-                PlayerDisplayName = account.PlayerProfile.DisplayName,
-                PlayerClass = NormalizePlayerClass(account.PlayerProfile.Class),
-                Level = account.PlayerProfile.Level,
-                LastMapName = NormalizeMapName(account.PlayerProfile.LastMapName),
-                PositionX = account.PlayerProfile.PositionX,
-                PositionY = account.PlayerProfile.PositionY,
-                AccessToken = accessToken,
-                AccessTokenExpiresAt = accessExpiry,
-                RefreshToken = refreshToken,
-                RefreshTokenExpiresAt = refreshExpiry
-            };
+            var response = _mapper.Map<AuthResponseDto>(account);
+
+            // Apply tokens
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessExpiry;
+            response.RefreshToken = refreshToken;
+            response.RefreshTokenExpiresAt = refreshExpiry;
+
+            // Override PlayerClass nếu null/empty
+            if (string.IsNullOrWhiteSpace(response.PlayerClass))
+                response.PlayerClass = "Knight";
+
             return response;
         }
 
@@ -305,21 +275,15 @@ namespace BLL.Services
             account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             account.UpdatedAt = DateTime.UtcNow;
 
-            // Đổi mật khẩu phải xoay phiên, không chỉ đổi hash. Đây là chỗ DUY NHẤT cố tình
-            // đụng vào cả hai slot: nếu chỉ xoay slot của client đang gọi, kẻ chiếm tài khoản
-            // đang ngồi ở phía kia vẫn giữ phiên — đúng thứ trang Security hứa là sẽ cắt.
+
             var caller = NormalizeClient(clientType);
             var other = caller == ClientGame ? ClientWeb : ClientGame;
 
             SetRefreshSlot(account, other, null, null);
             await _cache.RemoveAsync(ActiveSessionKey(accountId, other));
 
-            // Phiên bên kia bị cắt mà KHÔNG có phiên kế nhiệm, nên newSessionId rỗng: không có
-            // sid nào để client đối chiếu, cứ nhận là bị đá. StartNewSession phía dưới chỉ phủ
-            // client đang gọi, nên chỗ này phải báo riêng.
             await _sessionNotifier.SessionOverridden(accountId, other, string.Empty);
 
-            // Client đang gọi thì được cấp bộ token mới nên đăng nhập liên tục, không bị tự đá.
             var sessionId = await StartNewSession(accountId, caller);
             var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId, caller);
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
@@ -328,26 +292,29 @@ namespace BLL.Services
             await _repository.UpdateAccount(account);
 
             var hasCharacter = account.PlayerProfile != null;
-            return new AuthResponseDto
+            var response = _mapper.Map<AuthResponseDto>(account);
+
+            // Apply tokens
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessExpiry;
+            response.RefreshToken = refreshToken;
+            response.RefreshTokenExpiresAt = refreshExpiry;
+
+            // Override PositionX/Y với default spawn nếu chưa có saved position
+            if (!HasSavedPosition(account.PlayerProfile))
             {
-                AccountId = account.AccountId,
-                UserName = account.UserName,
-                EmailAddress = account.Email,
-                RoleId = account.RoleId,
-                Role = account.Role?.Name ?? "Player",
-                HasCharacter = hasCharacter,
-                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
-                PlayerDisplayName = account.PlayerProfile?.DisplayName,
-                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
-                Level = account.PlayerProfile?.Level ?? 1,
-                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
-                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
-                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY,
-                AccessToken = accessToken,
-                AccessTokenExpiresAt = accessExpiry,
-                RefreshToken = refreshToken,
-                RefreshTokenExpiresAt = refreshExpiry
-            };
+                response.PositionX = DefaultSpawnX;
+                response.PositionY = DefaultSpawnY;
+            }
+
+            // Override LastMapName nếu chưa có hoặc là alias
+            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
+
+            // Override PlayerClass nếu null/empty
+            if (string.IsNullOrWhiteSpace(response.PlayerClass))
+                response.PlayerClass = "Knight";
+
+            return response;
         }
 
         public async Task<AuthResponseDto> RefreshToken(string refreshToken)
@@ -385,35 +352,32 @@ namespace BLL.Services
             await _repository.UpdateAccount(account);
 
             var hasCharacter = account.PlayerProfile != null;
-            return new AuthResponseDto
+            var response = _mapper.Map<AuthResponseDto>(account);
+
+            // Apply tokens
+            response.AccessToken = accessToken;
+            response.AccessTokenExpiresAt = accessExpiry;
+            response.RefreshToken = newRefreshToken;
+            response.RefreshTokenExpiresAt = newRefreshExpiry;
+
+            if (!HasSavedPosition(account.PlayerProfile))
             {
-                AccountId = account.AccountId,
-                UserName = account.UserName,
-                EmailAddress = account.Email,
-                RoleId = account.RoleId,
-                Role = account.Role?.Name ?? "Player",
-                HasCharacter = hasCharacter,
-                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
-                PlayerDisplayName = account.PlayerProfile?.DisplayName,
-                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
-                Level = account.PlayerProfile?.Level ?? 1,
-                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
-                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
-                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY,
-                AccessToken = accessToken,
-                AccessTokenExpiresAt = accessExpiry,
-                RefreshToken = newRefreshToken,
-                RefreshTokenExpiresAt = newRefreshExpiry
-            };
+                response.PositionX = DefaultSpawnX;
+                response.PositionY = DefaultSpawnY;
+            }
+
+            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
+
+            if (string.IsNullOrWhiteSpace(response.PlayerClass))
+                response.PlayerClass = "Knight";
+
+            return response;
         }
 
         public async Task RevokeRefreshToken(int accountId, string? clientType)
         {
             await _repository.RevokeRefreshToken(accountId, clientType);
 
-            // LastSeen là mốc presence của RIÊNG client game (web login không ghi cột này —
-            // xem OnlineTimeout.cs). Logout web mà xoá nó là báo người đang chơi thành offline,
-            // nên chỉ xoá khi thu hồi phía game hoặc thu hồi tất cả.
             if (clientType == null || NormalizeClient(clientType) == ClientGame)
             {
                 await _repository.ClearLastSeen(accountId);
@@ -437,9 +401,6 @@ namespace BLL.Services
             if (account == null)
                 return;
 
-            // Chỉ thu hồi slot khớp token. MatchRefreshSlot không thể null ở đây (repo lọc theo
-            // đúng hai cột đó), nhưng null xuống dưới nghĩa là "xoá MỌI slot" nên không truyền
-            // thẳng: logout một phía tuyệt đối không được đá client kia ra.
             var clientType = MatchRefreshSlot(account, hashed);
             if (clientType == null)
                 return;
@@ -460,19 +421,23 @@ namespace BLL.Services
                 }
             }
 
-            return new MeResponseDto
+            var response = _mapper.Map<MeResponseDto>(account);
+
+            // Override PositionX/Y với default spawn nếu chưa có saved position
+            if (!HasSavedPosition(account.PlayerProfile))
             {
-                AccountId = account.AccountId,
-                UserName = account.UserName,
-                Email = account.Email,
-                Role = account.Role?.Name ?? "Player",
-                PlayerProfileId = account.PlayerProfile?.PlayerProfileId,
-                PlayerClass = NormalizePlayerClass(account.PlayerProfile?.Class),
-                Level = account.PlayerProfile?.Level ?? 1,
-                LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName),
-                PositionX = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionX : DefaultSpawnX,
-                PositionY = HasSavedPosition(account.PlayerProfile) ? account.PlayerProfile!.PositionY : DefaultSpawnY
-            };
+                response.PositionX = DefaultSpawnX;
+                response.PositionY = DefaultSpawnY;
+            }
+
+            // Override LastMapName nếu chưa có hoặc là alias
+            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
+
+            // Override PlayerClass nếu null/empty
+            if (string.IsNullOrWhiteSpace(response.PlayerClass))
+                response.PlayerClass = "Knight";
+
+            return response;
         }
 
         public async Task SendVerificationCode(string email)
@@ -530,13 +495,6 @@ namespace BLL.Services
             rng.GetBytes(bytes);
             return Convert.ToBase64String(bytes);
         }
-
-        // sessionId là tham số bắt buộc, không có default: token thiếu sid thì OnTokenValidated
-        // không so được và thiết bị đó miễn kick vĩnh viễn. Bỏ default để compiler chặn
-        // call site nào quên truyền, thay vì lỗi im lặng.
-        //
-        // clientType cũng bắt buộc và cùng lý do: khoá session giờ có dạng
-        // active_session:{id}:{client}, nên thiếu client là OnTokenValidated dò sai slot.
         private (string token, DateTime expires) GenerateAccessToken(Account account, string sessionId, string clientType)
         {
             var jwt = _configuration.GetSection("Jwt");
@@ -552,9 +510,6 @@ namespace BLL.Services
                 new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player"),
                 new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0"),
                 new Claim(JwtRegisteredClaimNames.Sid, sessionId),
-                // Client nằm trong token vì các endpoint dùng access token (logout,
-                // change-password) không có cách nào khác để biết mình đang là web hay game,
-                // và đoán sai ở đó là thu hồi token của client kia.
                 new Claim(ClientTypeClaim, NormalizeClient(clientType))
             };
 

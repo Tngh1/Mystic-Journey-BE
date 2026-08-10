@@ -77,7 +77,7 @@ public class GuildService : IGuildService
             TotalContribution = m.TotalContribution,
             JoinedAt = m.JoinedAt,
             LastDonateAt = m.LastDonateAt,
-            IsOnline = OnlineTimeout.IsWithin(m.PlayerProfile?.Account?.LastSeen, OnlineTimeout.Presence)
+            IsOnline = OnlineTimeout.IsWithin(m.PlayerProfile?.LastSeen, OnlineTimeout.Presence)
         };
     }
 
@@ -209,7 +209,7 @@ public class GuildService : IGuildService
         if (!await _guildRepo.IsGuildMemberAsync(guildId, playerProfileId))
             throw new UnauthorizedAccessException("Not a member");
 
-        var members = await _guildRepo.GetActiveMembersAsync(guildId, includeProfile: true, includeAccount: true);
+        var members = await _guildRepo.GetActiveMembersAsync(guildId, includeProfile: true);
         return members.Select(MapMemberDto).ToList();
     }
 
@@ -274,7 +274,7 @@ public class GuildService : IGuildService
         var memberIds = guild.Members.Select(m => m.PlayerProfileId).ToList();
         var profiles = await _guildRepo.GetPlayerProfilesByIdsAsync(memberIds);
         foreach (var profile in profiles)
-            profile.LastLeaveAt = DateTime.UtcNow;
+            profile.LastLeaveGuildAt = DateTime.UtcNow;
 
         await _guildRepo.RemoveMembersAsync(guild.Members);
 
@@ -309,9 +309,9 @@ public class GuildService : IGuildService
         var now = DateTime.UtcNow;
         var activeInvitation = await _guildRepo.GetActiveInvitationAsync(guildId, playerProfileId, now);
 
-        if (player.LastLeaveAt.HasValue)
+        if (player.LastLeaveGuildAt.HasValue)
         {
-            var remaining = player.LastLeaveAt.Value.AddHours(LeaveCooldownHours) - DateTime.UtcNow;
+            var remaining = player.LastLeaveGuildAt.Value.AddHours(LeaveCooldownHours) - now;
             if (remaining.TotalSeconds > 0)
             {
                 return new GuildJoinResultDto
@@ -409,7 +409,7 @@ public class GuildService : IGuildService
             };
 
         var player = await _guildRepo.GetPlayerProfileAsync(playerProfileId);
-        if (player != null) player.LastLeaveAt = DateTime.UtcNow;
+        if (player != null) player.LastLeaveGuildAt = DateTime.UtcNow;
 
         await _guildRepo.RemoveMemberAsync(member);
 
@@ -528,7 +528,7 @@ public class GuildService : IGuildService
         await _guildRepo.RemoveMemberAsync(target);
 
         var targetPlayer = await _guildRepo.GetPlayerProfileAsync(memberProfileId);
-        if (targetPlayer != null) targetPlayer.LastLeaveAt = DateTime.UtcNow;
+        if (targetPlayer != null) targetPlayer.LastLeaveGuildAt = DateTime.UtcNow;
 
         await _guildRepo.AddLogAsync(new GuildLog
         {

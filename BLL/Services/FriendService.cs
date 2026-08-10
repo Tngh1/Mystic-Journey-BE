@@ -50,7 +50,7 @@ namespace BLL.Services
                     IsInDungeon = false,
                     CanInvite = true,
                     LastOnline = friendProfile.UpdatedAt ?? friendProfile.CreatedAt,
-                    IsOnline = IsPlayerOnline(friendProfile.Account),
+                    IsOnline = IsPlayerOnline(friendProfile),
                     Status = f.Status
                 };
             }).ToList();
@@ -100,7 +100,7 @@ namespace BLL.Services
                 AvatarUrl = profile.AvatarUrl,
                 Title = "Novice",
                 LastOnline = profile.UpdatedAt ?? profile.CreatedAt,
-                IsOnline = IsPlayerOnline(profile.Account),
+                IsOnline = IsPlayerOnline(profile),
                 HasChangedName = profile.HasChangedName
             };
         }
@@ -164,7 +164,7 @@ namespace BLL.Services
                     Avatar = p.AvatarUrl,
                     Power = p.Level * 100,
                     GuildName = "No Guild",
-                    IsOnline = IsPlayerOnline(p.Account),
+                    IsOnline = IsPlayerOnline(p),
                     RelationshipStatus = status
                 });
             }
@@ -302,12 +302,12 @@ namespace BLL.Services
             }
         }
 
-        private bool IsPlayerOnline(Account? account)
+        private bool IsPlayerOnline(PlayerProfile? profile)
         {
-            if (account == null)
+            if (profile == null)
                 return false;
 
-            return _heartbeatService.IsOnline(account.LastSeen);
+            return _heartbeatService.IsOnline(profile.LastSeen);
         }
 
         private async Task DeleteFriendConversation(int firstPlayerProfileId, int secondPlayerProfileId)

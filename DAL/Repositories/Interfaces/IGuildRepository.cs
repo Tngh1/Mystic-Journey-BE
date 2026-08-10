@@ -33,8 +33,7 @@ public interface IGuildRepository
     Task<GuildMember?> GetMemberAsync(int guildId, int playerProfileId, bool includeProfile = false);
 
     Task<List<GuildMember>> GetActiveMembersAsync(int guildId,
-        bool includeProfile = false,
-        bool includeAccount = false);
+        bool includeProfile = false);
 
     Task<bool> IsGuildMemberAsync(int guildId, int playerProfileId);
 

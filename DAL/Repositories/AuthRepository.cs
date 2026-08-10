@@ -26,26 +26,21 @@ namespace DAL.Repositories
         }
 
         /// <summary>
-        /// UPDATE một cột duy nhất, không SELECT và không tracking. Đường cũ
-        /// (GetAccountById + Update(entity)) nạp Account kèm Role + PlayerProfile rồi
-        /// ghi lại toàn bộ hàng — quá đắt cho một mốc thời gian mà mọi client ping đều đặn.
+        /// UPDATE một cột duy nhất trên profile, không SELECT và không tracking.
         /// </summary>
         public Task TouchLastSeen(int accountId, DateTime lastSeenUtc)
         {
-            return _context.Accounts
-                .Where(a => a.AccountId == accountId)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeen, lastSeenUtc));
+            return _context.PlayerProfiles
+                .Where(p => p.AccountId == accountId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.LastSeen, lastSeenUtc));
         }
 
-        /// <summary>
-        /// Xoá mốc "online lần cuối" khi đăng xuất để presence không hiển thị người đã thoát
-        /// là đang online. Cùng cách ghi một cột như <see cref="TouchLastSeen"/>.
-        /// </summary>
+        /// <summary>Xoá mốc presence của nhân vật khi game client đăng xuất.</summary>
         public Task ClearLastSeen(int accountId)
         {
-            return _context.Accounts
-                .Where(a => a.AccountId == accountId)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeen, (DateTime?)null));
+            return _context.PlayerProfiles
+                .Where(p => p.AccountId == accountId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.LastSeen, DateTime.UnixEpoch));
         }
 
         public async Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername)
@@ -142,6 +137,7 @@ namespace DAL.Repositories
         public async Task<List<Account>> GetAllActiveAccountsAsync()
         {
             return await _context.Accounts
+                .Include(a => a.PlayerProfile)
                 .Where(a => a.IsActive)
                 .ToListAsync();
         }

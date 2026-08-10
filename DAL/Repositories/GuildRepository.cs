@@ -30,8 +30,7 @@ public class GuildRepository : IGuildRepository
             if (includeMemberProfiles)
                 query = query
                     .Include(g => g.Members.Where(m => m.LeftAt == null))
-                    .ThenInclude(m => m.PlayerProfile)
-                    .ThenInclude(p => p!.Account);
+                    .ThenInclude(m => m.PlayerProfile);
         }
 
         return await query.FirstOrDefaultAsync(g => g.GuildId == guildId && g.IsActive);
@@ -105,16 +104,13 @@ public class GuildRepository : IGuildRepository
     }
 
     public async Task<List<GuildMember>> GetActiveMembersAsync(int guildId,
-        bool includeProfile = false,
-        bool includeAccount = false)
+        bool includeProfile = false)
     {
         var query = _ctx.GuildMembers
             .Where(m => m.GuildId == guildId && m.LeftAt == null)
             .AsQueryable();
         if (includeProfile)
             query = query.Include(m => m.PlayerProfile);
-        if (includeAccount)
-            query = query.Include(m => m.PlayerProfile!.Account);
         return await query.ToListAsync();
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DAL.Models
 {
@@ -48,8 +49,8 @@ namespace DAL.Models
         public int MaxEnergy { get; set; } = 100;
         public DateTime LastEnergyUpdateTime { get; set; } = DateTime.UtcNow;
         public DateTime? LastFreeGachaTime { get; set; }
-        public DateTime LastActiveTime { get; set; } = DateTime.UtcNow;
-        public DateTime? LastLeaveAt { get; set; }
+        public DateTime LastSeen { get; set; } = DateTime.UnixEpoch;
+        public DateTime? LastLeaveGuildAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

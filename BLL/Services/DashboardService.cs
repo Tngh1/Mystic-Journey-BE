@@ -70,7 +70,7 @@ namespace BLL.Services
 
             foreach (var account in accounts)
             {
-                if (OnlineTimeout.IsWithin(account.LastSeen, OnlineTimeout.Dashboard))
+                if (OnlineTimeout.IsWithin(account.PlayerProfile?.LastSeen, OnlineTimeout.Dashboard))
                     online++;
                 else
                     offline++;

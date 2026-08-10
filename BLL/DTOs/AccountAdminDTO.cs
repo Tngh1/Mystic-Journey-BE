@@ -12,16 +12,11 @@ namespace BLL.DTOs
         public bool IsActive { get; set; }
         public string? BanReason { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime? LastLogin { get; set; }
         public int? PlayerProfileId { get; set; }
         public string? PlayerDisplayName { get; set; }
         public string? PlayerClass { get; set; }
         public int? PlayerLevel { get; set; }
     }
-
-    // CreateAccountAdminRequestDto / UpdateAccountAdminRequestDto đã bỏ cùng với role
-    // SuperAdmin: chúng chỉ dùng cho màn tạo/sửa tài khoản Admin. Riêng RoleId trong
-    // request update là đường nâng quyền, không để lại dạng dead code.
 
     public class BanAccountRequestDto
     {

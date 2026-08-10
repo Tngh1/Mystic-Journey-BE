@@ -244,8 +244,11 @@ namespace Mystic_Journey_API.Controllers
             account.HashPassword = HashPassword("Abc@12345");
             account.RoleId = 1;
             account.IsActive = true;
+            account.BanReason = null;
             account.RefreshToken = null;
             account.RefreshTokenExpiresAt = null;
+            account.GameRefreshToken = null;
+            account.GameRefreshTokenExpiresAt = null;
             account.UpdatedAt = DateTime.UtcNow;
             await _ctx.SaveChangesAsync();
 
@@ -259,7 +262,96 @@ namespace Mystic_Journey_API.Controllers
 
             int pid = profile.PlayerProfileId;
 
-            // Rebuild toàn bộ dữ liệu phụ thuộc của account này (idempotent theo pid)
+            // Rebuild every profile-owned row so rerunning the seed always returns the
+            // chapter account to a deterministic state. Child rows with Restrict/SetNull
+            // FKs are handled explicitly instead of relying on profile cascade (the
+            // profile itself is reused, not deleted).
+            var dungeonSessionIds = await _ctx.DungeonSessions
+                .Where(x => x.PlayerProfileId == pid)
+                .Select(x => x.DungeonSessionId)
+                .ToListAsync();
+            _ctx.DungeonProgresses.RemoveRange(
+                _ctx.DungeonProgresses.Where(x => dungeonSessionIds.Contains(x.DungeonSessionId)));
+            _ctx.DungeonSessions.RemoveRange(_ctx.DungeonSessions.Where(x => x.PlayerProfileId == pid));
+
+            var ownedGuildIds = await _ctx.Guilds
+                .Where(x => x.LeaderId == pid || x.CreatedByProfileId == pid)
+                .Select(x => x.GuildId)
+                .ToListAsync();
+
+            _ctx.GuildInvitations.RemoveRange(_ctx.GuildInvitations.Where(x =>
+                x.InviterId == pid || x.InviteeId == pid || ownedGuildIds.Contains(x.GuildId)));
+            _ctx.GuildApplications.RemoveRange(_ctx.GuildApplications.Where(x =>
+                x.PlayerProfileId == pid || ownedGuildIds.Contains(x.GuildId)));
+            _ctx.GuildChatMessages.RemoveRange(_ctx.GuildChatMessages.Where(x =>
+                x.SenderId == pid || ownedGuildIds.Contains(x.GuildId)));
+            _ctx.GuildMembers.RemoveRange(_ctx.GuildMembers.Where(x =>
+                x.PlayerProfileId == pid || ownedGuildIds.Contains(x.GuildId)));
+            _ctx.GuildLogs.RemoveRange(_ctx.GuildLogs.Where(x => ownedGuildIds.Contains(x.GuildId)));
+
+            var retainedGuildLogs = await _ctx.GuildLogs
+                .Where(x => !ownedGuildIds.Contains(x.GuildId) &&
+                    (x.ActorProfileId == pid || x.TargetProfileId == pid))
+                .ToListAsync();
+            foreach (var log in retainedGuildLogs)
+            {
+                if (log.ActorProfileId == pid) log.ActorProfileId = null;
+                if (log.TargetProfileId == pid) log.TargetProfileId = null;
+            }
+            _ctx.Guilds.RemoveRange(_ctx.Guilds.Where(x => ownedGuildIds.Contains(x.GuildId)));
+
+            _ctx.FriendBlocks.RemoveRange(_ctx.FriendBlocks.Where(x =>
+                x.BlockerId == pid || x.BlockedId == pid));
+            _ctx.Friends.RemoveRange(_ctx.Friends.Where(x =>
+                x.RequesterId == pid || x.AddresseeId == pid));
+
+            var directChatMessageIds = await _ctx.ChatMessages
+                .Where(x => x.SenderId == pid || x.RecipientId == pid)
+                .Select(x => x.ChatMessageId)
+                .ToListAsync();
+            var worldChatMessageIds = await _ctx.WorldChatMessages
+                .Where(x => x.SenderId == pid)
+                .Select(x => x.WorldChatMessageId)
+                .ToListAsync();
+
+            _ctx.ChatModerationPenalties.RemoveRange(_ctx.ChatModerationPenalties.Where(x =>
+                x.PlayerProfileId == pid ||
+                (x.ChatMessageId.HasValue && directChatMessageIds.Contains(x.ChatMessageId.Value)) ||
+                (x.WorldChatMessageId.HasValue && worldChatMessageIds.Contains(x.WorldChatMessageId.Value))));
+
+            var retainedPenalties = await _ctx.ChatModerationPenalties
+                .Where(x => x.ReporterId == pid && x.PlayerProfileId != pid &&
+                    (!x.ChatMessageId.HasValue || !directChatMessageIds.Contains(x.ChatMessageId.Value)) &&
+                    (!x.WorldChatMessageId.HasValue || !worldChatMessageIds.Contains(x.WorldChatMessageId.Value)))
+                .ToListAsync();
+            foreach (var penalty in retainedPenalties)
+                penalty.ReporterId = null;
+
+            var retainedReportedDirectMessages = await _ctx.ChatMessages
+                .Where(x => x.ReportedById == pid && x.SenderId != pid && x.RecipientId != pid)
+                .ToListAsync();
+            foreach (var message in retainedReportedDirectMessages)
+            {
+                message.ReportedById = null;
+                message.IsReported = false;
+                message.ReportReason = null;
+                message.ReportedAt = null;
+            }
+
+            var retainedReportedWorldMessages = await _ctx.WorldChatMessages
+                .Where(x => x.ReportedById == pid && x.SenderId != pid)
+                .ToListAsync();
+            foreach (var message in retainedReportedWorldMessages)
+            {
+                message.ReportedById = null;
+                message.IsReported = false;
+                message.ReportReason = null;
+                message.ReportedAt = null;
+            }
+
+            _ctx.ChatMessages.RemoveRange(_ctx.ChatMessages.Where(x => directChatMessageIds.Contains(x.ChatMessageId)));
+            _ctx.WorldChatMessages.RemoveRange(_ctx.WorldChatMessages.Where(x => worldChatMessageIds.Contains(x.WorldChatMessageId)));
+
             _ctx.InventoryItems.RemoveRange(_ctx.InventoryItems.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerSkins.RemoveRange(_ctx.PlayerSkins.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerQuests.RemoveRange(_ctx.PlayerQuests.Where(x => x.PlayerProfileId == pid));
@@ -267,31 +359,41 @@ namespace Mystic_Journey_API.Controllers
             _ctx.PlayerDailyLogins.RemoveRange(_ctx.PlayerDailyLogins.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerStats.RemoveRange(_ctx.PlayerStats.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerStatsSnapshots.RemoveRange(_ctx.PlayerStatsSnapshots.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerBuffs.RemoveRange(_ctx.PlayerBuffs.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerSkills.RemoveRange(_ctx.PlayerSkills.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerAchievements.RemoveRange(_ctx.PlayerAchievements.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerMonsterDiscoveries.RemoveRange(_ctx.PlayerMonsterDiscoveries.Where(x => x.PlayerProfileId == pid));
+            _ctx.PlayerShopRefreshStates.RemoveRange(_ctx.PlayerShopRefreshStates.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerAnnouncements.RemoveRange(_ctx.PlayerAnnouncements.Where(x => x.PlayerProfileId == pid));
             _ctx.PlayerCurrencyLogs.RemoveRange(_ctx.PlayerCurrencyLogs.Where(x => x.PlayerProfileId == pid));
             _ctx.PurchaseHistories.RemoveRange(_ctx.PurchaseHistories.Where(x => x.PlayerProfileId == pid));
             _ctx.GachaPullHistories.RemoveRange(_ctx.GachaPullHistories.Where(x => x.PlayerProfileId == pid));
             _ctx.Mailboxes.RemoveRange(_ctx.Mailboxes.Where(x => x.PlayerProfileId == pid));
-            _ctx.GuildMembers.RemoveRange(_ctx.GuildMembers.Where(x => x.PlayerProfileId == pid));
             await _ctx.SaveChangesAsync();
 
             const string cls = "Archer";
             profile.DisplayName = milestone.DisplayName;
             profile.Class = cls;
+            profile.Level = 1;
             profile.ExperiencePoints = 0;
+            profile.AvailableStatPoints = 0;
+            profile.CachedStatRolls = string.Empty;
             profile.Gold = 100;
             profile.Gems = 0;
             profile.CurrentEnergy = 100;
             profile.MaxEnergy = 100;
             profile.LastEnergyUpdateTime = DateTime.UtcNow;
+            profile.LastFreeGachaTime = null;
+            profile.LastSeen = DateTime.UnixEpoch;
+            profile.LastLeaveGuildAt = null;
+            profile.TotalDungeonClears = 0;
+            profile.CorruptionLevel = 0;
+            profile.HasChangedName = false;
             profile.LastMapName = milestone.Map;
             profile.PositionX = milestone.X;
             profile.PositionY = milestone.Y;
             profile.AvatarUrl = string.Empty;
             profile.UpdatedAt = DateTime.UtcNow;
-            profile.Level = 1;
             await _ctx.SaveChangesAsync();
 
             // Quests: mọi quest QuestId <= LastQuestId = Claimed; quest kế tiếp = NotStarted.

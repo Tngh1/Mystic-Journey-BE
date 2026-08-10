@@ -20,6 +20,40 @@ namespace BLL.Mappings
             CreateMap<RegisterRequestDto, Account>();
             CreateMap<AuthResponseDto, AuthResponseDto>();
 
+            // Ánh xạ Account sang AuthResponseDto (cơ bản, không bao gồm tokens).
+            // Sau khi map, service sẽ gán giá trị mặc định cho PositionX/Y và LastMapName nếu chưa có.
+            CreateMap<Account, AuthResponseDto>()
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
+                .ForMember(dest => dest.EmailAddress, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : "Player"))
+                .ForMember(dest => dest.HasCharacter, opt => opt.MapFrom(src => src.PlayerProfile != null))
+                .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PlayerProfileId : (int?)null))
+                .ForMember(dest => dest.PlayerDisplayName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : (string?)null))
+                .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.PlayerProfile != null && !string.IsNullOrWhiteSpace(src.PlayerProfile.Class) ? src.PlayerProfile.Class.Trim() : "Knight"))
+                .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.Level : 1))
+                .ForMember(dest => dest.LastMapName, opt => opt.MapFrom(src => src.PlayerProfile != null && !string.IsNullOrWhiteSpace(src.PlayerProfile.LastMapName) ? src.PlayerProfile.LastMapName : string.Empty))
+                .ForMember(dest => dest.PositionX, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionX : 0.0))
+                .ForMember(dest => dest.PositionY, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionY : 0.0))
+                .ForMember(dest => dest.AccessToken, opt => opt.Ignore())
+                .ForMember(dest => dest.AccessTokenExpiresAt, opt => opt.Ignore())
+                .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
+                .ForMember(dest => dest.RefreshTokenExpiresAt, opt => opt.Ignore());
+
+            // Ánh xạ Account sang MeResponseDto (không bao gồm tokens).
+            CreateMap<Account, MeResponseDto>()
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : "Player"))
+                .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PlayerProfileId : (int?)null))
+                .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.PlayerProfile != null && !string.IsNullOrWhiteSpace(src.PlayerProfile.Class) ? src.PlayerProfile.Class.Trim() : "Knight"))
+                .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.Level : 1))
+                .ForMember(dest => dest.LastMapName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.LastMapName : string.Empty))
+                .ForMember(dest => dest.PositionX, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionX : 0.0))
+                .ForMember(dest => dest.PositionY, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionY : 0.0));
+
             // ═══════════════════════════════════════════════════════════════════════
             // VẬT PHẨM (Item)
             // ═══════════════════════════════════════════════════════════════════════
