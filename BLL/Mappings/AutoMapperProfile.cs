@@ -269,7 +269,13 @@ namespace BLL.Mappings
 
             // Ánh xạ thư sang tóm tắt (kèm trạng thái nhận thưởng và thời gian hết hạn).
             CreateMap<Mailbox, MailboxSummaryDto>()
-                .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => (src.AttachedItems != null && src.AttachedItems.Any()) && !src.IsClaimed))
+                // BR-147: phải khớp với MailboxService.HasUnclaimedAttachment, vì client
+                // dựa vào cờ này để chặn xóa. Trước đây chỉ xét AttachedItems nên thư
+                // đính kèm gold/gems (không có item) bị báo là "không có quà".
+                .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => !src.IsClaimed
+                    && (src.AttachedGold > 0
+                        || src.AttachedGems > 0
+                        || (src.AttachedItems != null && src.AttachedItems.Any(i => i.Quantity > 0)))))
                 .ForMember(dest => dest.RemainingDays, opt => opt.MapFrom(src => src.ExpiredAt.HasValue ? (int?)Math.Max(0, (int)(src.ExpiredAt.Value - DateTime.UtcNow).TotalDays) : null));
 
             // ═══════════════════════════════════════════════════════════════════════

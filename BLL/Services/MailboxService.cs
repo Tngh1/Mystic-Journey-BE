@@ -133,8 +133,31 @@ namespace BLL.Services
             if (mailbox.IsDeleted)
                 throw new InvalidOperationException("Mailbox has already been deleted.");
 
+            // BR-147: thư còn phần thưởng chưa nhận thì không được xoá, nếu không
+            // người chơi xoá thư là mất luôn phần thưởng.
+            // Thư đã hết hạn vẫn cho xoá: lúc đó reward không claim được nữa
+            // (ClaimMailboxReward chặn ExpiredAt), nên giữ lại chỉ làm rác hộp thư.
+            if (HasUnclaimedAttachment(mailbox) && !IsExpired(mailbox))
+                throw new InvalidOperationException(
+                    "This mail still has unclaimed rewards. Please claim the rewards before deleting it.");
+
             await _repository.SoftDeleteMailbox(mailboxId);
         }
+
+        // Thư có đính kèm thật (gold / gems / item) mà chưa nhận.
+        // Thư thông báo thuần (không đính kèm gì) vẫn xoá được bình thường.
+        private static bool HasUnclaimedAttachment(Mailbox mailbox)
+        {
+            if (mailbox.IsClaimed)
+                return false;
+
+            return mailbox.AttachedGold > 0
+                || mailbox.AttachedGems > 0
+                || (mailbox.AttachedItems != null && mailbox.AttachedItems.Any(i => i.Quantity > 0));
+        }
+
+        private static bool IsExpired(Mailbox mailbox)
+            => mailbox.ExpiredAt != null && mailbox.ExpiredAt < DateTime.UtcNow;
 
         // ─── Admin APIs ─────────────────────────────────────────────────────────
 

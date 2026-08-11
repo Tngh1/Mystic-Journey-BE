@@ -37,14 +37,6 @@ namespace DAL.Repositories
 
         // ── Truy vấn ──
 
-        /// <summary>Lấy các giao dịch được thực hiện kể từ thời điểm cho trước (theo UTC).</summary>
-        public async Task<List<PurchaseHistory>> GetPurchasesSince(DateTime sinceUtc)
-        {
-            return await _context.PurchaseHistories
-                .Where(p => p.PurchasedAt >= sinceUtc)
-                .ToListAsync();
-        }
-
         /// <summary>Tạo bản ghi giao dịch mua hàng mới.</summary>
         public async Task<PurchaseHistory> CreatePurchaseHistory(PurchaseHistory history)
         {
