@@ -30,9 +30,10 @@ namespace BLL.Services
         // CLASSES
         // ═══════════════════════════════════════════════════════════════════════
 
-        public async Task<IEnumerable<ClassConfig>> GetClasses()
+        public async Task<IEnumerable<ClassConfigResponseDto>> GetClasses()
         {
-            return await _repository.GetClassConfigs();
+            var configs = await _repository.GetClassConfigs();
+            return _mapper.Map<IEnumerable<ClassConfigResponseDto>>(configs);
         }
 
         // ═══════════════════════════════════════════════════════════════════════

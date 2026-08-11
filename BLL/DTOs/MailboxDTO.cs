@@ -72,7 +72,10 @@ namespace BLL.DTOs
 
         public string Type { get; set; } = "System";
 
+        [Range(0, 9999, ErrorMessage = "Attached gold must be between 0 and 9999.")]
         public decimal AttachedGold { get; set; } = 0;
+
+        [Range(0, 9999, ErrorMessage = "Attached gems must be between 0 and 9999.")]
         public decimal AttachedGems { get; set; } = 0;
 
         public List<SendMailboxRewardItemDto> AttachedItems { get; set; } = new();
@@ -86,7 +89,7 @@ namespace BLL.DTOs
         public int ItemId { get; set; }
 
         [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
+        [Range(1, 99, ErrorMessage = "Quantity must be between 1 and 99.")]
         public int Quantity { get; set; }
     }
 
@@ -101,7 +104,10 @@ namespace BLL.DTOs
 
         public string Type { get; set; } = "System";
 
+        [Range(0, 9999, ErrorMessage = "Attached gold must be between 0 and 9999.")]
         public decimal AttachedGold { get; set; } = 0;
+
+        [Range(0, 9999, ErrorMessage = "Attached gems must be between 0 and 9999.")]
         public decimal AttachedGems { get; set; } = 0;
 
         public List<SendMailboxRewardItemDto> AttachedItems { get; set; } = new();

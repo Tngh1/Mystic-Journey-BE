@@ -204,6 +204,9 @@ namespace BLL.Mappings
             // Ánh xạ chỉ số người chơi.
             CreateMap<PlayerStat, PlayerStatsResponseDto>();
 
+            // Ánh xạ chỉ số cấu hình class.
+            CreateMap<ClassConfig, ClassConfigResponseDto>();
+
             // ═══════════════════════════════════════════════════════════════════════
             // MUA HÀNG (Purchase History)
             // ═══════════════════════════════════════════════════════════════════════

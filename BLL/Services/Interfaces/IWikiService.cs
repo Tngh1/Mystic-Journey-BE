@@ -14,7 +14,7 @@ namespace BLL.Services.Interfaces
     public interface IWikiService
     {
         // Lấy chỉ số khởi điểm của toàn bộ class.
-        Task<IEnumerable<ClassConfig>> GetClasses();
+        Task<IEnumerable<ClassConfigResponseDto>> GetClasses();
 
         // Lấy danh sách quái vật cho codex, có phân trang.
         Task<PagedResultDto<MonsterResponseDto>> GetMonsters(

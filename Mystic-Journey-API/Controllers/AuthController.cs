@@ -190,13 +190,13 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── POST /api/auth/forgot-password ──────────────────────────
+        // ── POST /api/auth/forget-password ──────────────────────────
         // Gửi mã đặt lại mật khẩu qua email.
         [AllowAnonymous]
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+        [HttpPost("forget-password")]
+        public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequestDto request)
         {
-            await _authService.ForgotPassword(request.Email);
+            await _authService.ForgetPassword(request.Email);
             return Ok(new ApiResponse<object> { Success = true, Message = $"Reset code sent to {request.Email}." });
         }
 
