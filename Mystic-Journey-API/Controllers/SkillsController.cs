@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 namespace Mystic_Journey_API.Controllers
 {
     // Quản lý skills (kỹ năng) — CHỈ dành cho trang dashboard.
-    // Toàn bộ controller yêu cầu Admin/SuperAdmin: xem danh sách (kèm bản nháp
+    // Toàn bộ controller yêu cầu Admin: xem danh sách (kèm bản nháp
     // isActive=false), xem chi tiết, tạo, cập nhật.
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin")]
     public class SkillsController : ControllerBase
     {
         private readonly ISkillService _skillService;
@@ -62,7 +62,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/skills/{id} ───────────────────────────────────
         // Cập nhật skill hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateSkillRequestDto request)
         {

@@ -86,7 +86,7 @@ namespace Mystic_Journey_API.Controllers
         // ADMIN APIs
         // ═══════════════════════════════════════════════════════════════════════
 
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{playerProfileId:int}")]
         public async Task<IActionResult> GetInventoryByProfileId(int playerProfileId)
         {

@@ -26,26 +26,21 @@ namespace DAL.Repositories
         }
 
         /// <summary>
-        /// UPDATE một cột duy nhất, không SELECT và không tracking. Đường cũ
-        /// (GetAccountById + Update(entity)) nạp Account kèm Role + PlayerProfile rồi
-        /// ghi lại toàn bộ hàng — quá đắt cho một mốc thời gian mà mọi client ping đều đặn.
+        /// UPDATE một cột duy nhất trên profile, không SELECT và không tracking.
         /// </summary>
         public Task TouchLastSeen(int accountId, DateTime lastSeenUtc)
         {
-            return _context.Accounts
-                .Where(a => a.AccountId == accountId)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeen, lastSeenUtc));
+            return _context.PlayerProfiles
+                .Where(p => p.AccountId == accountId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.LastSeen, lastSeenUtc));
         }
 
-        /// <summary>
-        /// Xoá mốc "online lần cuối" khi đăng xuất để presence không hiển thị người đã thoát
-        /// là đang online. Cùng cách ghi một cột như <see cref="TouchLastSeen"/>.
-        /// </summary>
+        /// <summary>Xoá mốc presence của nhân vật khi game client đăng xuất.</summary>
         public Task ClearLastSeen(int accountId)
         {
-            return _context.Accounts
-                .Where(a => a.AccountId == accountId)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeen, (DateTime?)null));
+            return _context.PlayerProfiles
+                .Where(p => p.AccountId == accountId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.LastSeen, DateTime.UnixEpoch));
         }
 
         public async Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername)
@@ -92,36 +87,45 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(a => a.Email.ToLower() == email.ToLower() && a.IsActive);
         }
 
+        // Dò CẢ HAI slot: token game nằm ở cột riêng, chỉ so RefreshToken là client game
+        // refresh mãi không ra tài khoản nào và bị đăng xuất oan.
         public async Task<Account?> GetAccountByRefreshToken(string refreshToken)
         {
             return await _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.PlayerProfile)
-                .FirstOrDefaultAsync(a => a.RefreshToken == refreshToken && a.IsActive);
+                .FirstOrDefaultAsync(a =>
+                    (a.RefreshToken == refreshToken || a.GameRefreshToken == refreshToken) && a.IsActive);
         }
 
-        public async Task RevokeRefreshToken(int accountId)
+        // clientType = null: xoá sạch cả hai slot (đổi/đặt lại mật khẩu, ban). Truyền Web/Game
+        // để chỉ xoá một phía (logout) và giữ client kia đăng nhập.
+        public async Task RevokeRefreshToken(int accountId, string? clientType)
         {
             var account = await _context.Accounts.FindAsync(accountId);
-            if (account != null)
-            {
-                account.RefreshToken = null;
-                account.RefreshTokenExpiresAt = null;
-                account.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
-        }
+            if (account == null)
+                return;
 
-        public async Task RevokeRefreshTokenByToken(string refreshToken)
-        {
-            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.RefreshToken == refreshToken);
-            if (account != null)
+            // "Game"/"Web" viết thẳng vì DAL không được tham chiếu lên BLL (nơi giữ hằng
+            // AuthService.ClientGame/ClientWeb). So không phân biệt hoa thường để lệch case
+            // giữa hai tầng không âm thầm rơi vào nhánh Web.
+            var isGame = string.Equals(clientType, "Game", StringComparison.OrdinalIgnoreCase);
+            var isWeb = string.Equals(clientType, "Web", StringComparison.OrdinalIgnoreCase);
+
+            // Điều kiện viết dạng phủ định slot kia để giá trị lạ (không phải Web/Game) xoá CẢ
+            // HAI thay vì không xoá gì — thu hồi hụt trên đường bảo mật thì tệ hơn thu hồi thừa.
+            if (clientType == null || !isWeb)
+            {
+                account.GameRefreshToken = null;
+                account.GameRefreshTokenExpiresAt = null;
+            }
+            if (clientType == null || !isGame)
             {
                 account.RefreshToken = null;
                 account.RefreshTokenExpiresAt = null;
-                account.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
             }
+            account.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
         }
 
         public async Task<int> GetTotalAccountsCount()
@@ -133,6 +137,7 @@ namespace DAL.Repositories
         public async Task<List<Account>> GetAllActiveAccountsAsync()
         {
             return await _context.Accounts
+                .Include(a => a.PlayerProfile)
                 .Where(a => a.IsActive)
                 .ToListAsync();
         }

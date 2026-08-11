@@ -57,15 +57,34 @@ namespace BLL.DTOs
 
     public class UpdatePlayerProfileRequestDto
     {
+        // Null = "khong doi field nay". Cac attribute duoi chi chay khi client gui gia tri.
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Display name must be between 3 and 100 characters.")]
         public string? DisplayName { get; set; }
+
         public string? AvatarUrl { get; set; }
+
+        [RegularExpression("^(Knight|Archer|Mage)$", ErrorMessage = "PlayerClass must be Knight, Archer, or Mage.")]
         public string? PlayerClass { get; set; }
+
+        [Range(1, 100, ErrorMessage = "Level must be between 1 and 100.")]
         public int? Level { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "ExperiencePoints cannot be negative.")]
         public int? ExperiencePoints { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Gold cannot be negative.")]
         public decimal? Gold { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Gems cannot be negative.")]
         public decimal? Gems { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "Energy cannot be negative.")]
         public int? Energy { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "MaxEnergy must be at least 1.")]
         public int? MaxEnergy { get; set; }
+
+        [Range(0, 100, ErrorMessage = "CorruptionLevel must be between 0 and 100.")]
         public float? CorruptionLevel { get; set; }
     }
 

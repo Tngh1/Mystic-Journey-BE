@@ -13,14 +13,5 @@ namespace BLL.DTOs
         public int TotalMonsters { get; set; }
         public int TotalTransactions { get; set; }
         public decimal TotalRevenue { get; set; }
-        public List<MonthlyStatDto> MonthlyStats { get; set; } = new();
     }
-
-    public class MonthlyStatDto
-    {
-        public string Month { get; set; } = string.Empty;
-        public int Count { get; set; }
-        public decimal Amount { get; set; }
-    }
-
 }

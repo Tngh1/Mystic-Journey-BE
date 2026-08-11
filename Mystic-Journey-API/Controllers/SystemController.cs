@@ -51,7 +51,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/system/version ──────────────────────────────────
         // Quản trị viên cập nhật cấu hình phiên bản game mới
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("version")]
         public IActionResult UpdateVersion([FromBody] UpdateGameVersionDto dto)
         {

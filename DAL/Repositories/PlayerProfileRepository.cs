@@ -97,10 +97,7 @@ namespace DAL.Repositories
         /// <summary>Tìm kiếm hồ sơ theo từ khóa (tên hiển thị hoặc username) và/hoặc lớp nhân vật.</summary>
         public async Task<List<PlayerProfile>> Search(string? keyword = null, string? playerClass = null)
         {
-            // Include Account: caller đọc Account.LastSeen để tính IsOnline. Thiếu Include
-            // thì Account luôn null nên mọi kết quả tìm kiếm đều hiện Offline.
             var query = _context.PlayerProfiles
-                .Include(p => p.Account)
                 .AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(keyword))

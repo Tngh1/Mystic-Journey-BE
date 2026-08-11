@@ -27,6 +27,7 @@ namespace DAL.Repositories
         {
             return await _context.Contents
                 .Include(c => c.BlockContents)
+                .Include(c => c.CategoryContent)
                 .FirstOrDefaultAsync(c => c.ContentId == id);
         }
 

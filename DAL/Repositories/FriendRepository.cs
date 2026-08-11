@@ -43,9 +43,7 @@ namespace DAL.Repositories
         {
             return await _context.Friends
                 .Include(f => f.Requester)
-                    .ThenInclude(p => p!.Account)
                 .Include(f => f.Addressee)
-                    .ThenInclude(p => p!.Account)
                 .Where(f => (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) && f.Status == "Accepted")
                 // Chỉ đọc: cả 2 caller (GetFriends, GetFriendList) đều map sang DTO.
                 .AsNoTracking()
@@ -65,7 +63,6 @@ namespace DAL.Repositories
         {
             return await _context.Friends
                 .Include(f => f.Requester)
-                    .ThenInclude(p => p!.Account)
                 .Where(f => f.AddresseeId == playerProfileId && f.Status == "Pending")
                 // Addressee chính là người đang gọi, DTO không đọc tới nên bỏ Include.
                 .AsNoTracking()

@@ -8,6 +8,7 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Mystic_Journey_API.Filters;
@@ -30,9 +31,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// MemoryCache for OTP/verification (AuthService)
-builder.Services.AddMemoryCache();
-
+// OTP, cờ xác thực email và session đều nằm ở IDistributedCache (bên dưới), không phải
+// IMemoryCache — nên ở đây không đăng ký MemoryCache nữa.
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
 if (string.IsNullOrWhiteSpace(redisConnectionString))
 {
@@ -174,6 +174,9 @@ builder.Services.AddScoped<IWikiService, WikiService>();
 // Background Jobs
 builder.Services.AddHostedService<Mystic_Journey_API.BackgroundJobs.GuildContributionResetJob>();
 
+builder.Services.AddSignalR();
+builder.Services.AddScoped<ISessionNotifier, Mystic_Journey_API.Hubs.SignalRSessionNotifier>();
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -187,26 +190,35 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 {
                     context.Token = accessToken;
                 }
+                else if (context.HttpContext.Request.Path.StartsWithSegments("/hubs/game"))
+                {
+                    var queryToken = context.Request.Query["access_token"].ToString();
+                    if (!string.IsNullOrEmpty(queryToken))
+                    {
+                        context.Token = queryToken;
+                    }
+                }
                 return Task.CompletedTask;
             },
-            OnTokenValidated = context =>
+            OnTokenValidated = async context =>
             {
-                var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>();
                 if (cache != null)
                 {
                     var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                    var sidClaim = context.Principal?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sid)?.Value 
+                    var sidClaim = context.Principal?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sid)?.Value
                                 ?? context.Principal?.FindFirst("sid")?.Value;
-
+                    var clientTypeClaim = context.Principal?.FindFirst(BLL.Services.AuthService.ClientTypeClaim)?.Value;
                     if (!string.IsNullOrEmpty(userIdClaim) && !string.IsNullOrEmpty(sidClaim) && int.TryParse(userIdClaim, out int accountId))
                     {
-                        if (cache.TryGetValue($"active_session:{accountId}", out object? activeSidObj) && activeSidObj?.ToString() != sidClaim)
+                        var sessionKey = BLL.Services.AuthService.ActiveSessionKey(accountId, clientTypeClaim);
+                        var activeSid = await cache.GetStringAsync(sessionKey);
+                        if (activeSid != null && activeSid != sidClaim)
                         {
                             context.Fail("SESSION_OVERRIDDEN");
                         }
                     }
                 }
-                return Task.CompletedTask;
             },
             OnChallenge = async context =>
             {
@@ -338,11 +350,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<Mystic_Journey_API.Hubs.GameHub>("/hubs/game");
 
 app.Run();

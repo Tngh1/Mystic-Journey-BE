@@ -20,6 +20,40 @@ namespace BLL.Mappings
             CreateMap<RegisterRequestDto, Account>();
             CreateMap<AuthResponseDto, AuthResponseDto>();
 
+            // Ánh xạ Account sang AuthResponseDto (cơ bản, không bao gồm tokens).
+            // Sau khi map, service sẽ gán giá trị mặc định cho PositionX/Y và LastMapName nếu chưa có.
+            CreateMap<Account, AuthResponseDto>()
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
+                .ForMember(dest => dest.EmailAddress, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : "Player"))
+                .ForMember(dest => dest.HasCharacter, opt => opt.MapFrom(src => src.PlayerProfile != null))
+                .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PlayerProfileId : (int?)null))
+                .ForMember(dest => dest.PlayerDisplayName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : (string?)null))
+                .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.PlayerProfile != null && !string.IsNullOrWhiteSpace(src.PlayerProfile.Class) ? src.PlayerProfile.Class.Trim() : "Knight"))
+                .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.Level : 1))
+                .ForMember(dest => dest.LastMapName, opt => opt.MapFrom(src => src.PlayerProfile != null && !string.IsNullOrWhiteSpace(src.PlayerProfile.LastMapName) ? src.PlayerProfile.LastMapName : string.Empty))
+                .ForMember(dest => dest.PositionX, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionX : 0.0))
+                .ForMember(dest => dest.PositionY, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionY : 0.0))
+                .ForMember(dest => dest.AccessToken, opt => opt.Ignore())
+                .ForMember(dest => dest.AccessTokenExpiresAt, opt => opt.Ignore())
+                .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
+                .ForMember(dest => dest.RefreshTokenExpiresAt, opt => opt.Ignore());
+
+            // Ánh xạ Account sang MeResponseDto (không bao gồm tokens).
+            CreateMap<Account, MeResponseDto>()
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : "Player"))
+                .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PlayerProfileId : (int?)null))
+                .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.PlayerProfile != null && !string.IsNullOrWhiteSpace(src.PlayerProfile.Class) ? src.PlayerProfile.Class.Trim() : "Knight"))
+                .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.Level : 1))
+                .ForMember(dest => dest.LastMapName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.LastMapName : string.Empty))
+                .ForMember(dest => dest.PositionX, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionX : 0.0))
+                .ForMember(dest => dest.PositionY, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionY : 0.0));
+
             // ═══════════════════════════════════════════════════════════════════════
             // VẬT PHẨM (Item)
             // ═══════════════════════════════════════════════════════════════════════
@@ -126,11 +160,10 @@ namespace BLL.Mappings
             // NỘI DUNG (Content - Bài viết, Danh mục, Block)
             // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ nội dung sang response (ánh xạ category và người tạo).
+            // Ánh xạ nội dung sang response (ánh xạ category).
             CreateMap<Content, ContentResponseDto>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryContentId))
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryContent != null ? src.CategoryContent.Name : null))
-                .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src => src.CreatedByAccount != null ? src.CreatedByAccount.UserName : ""));
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryContent != null ? src.CategoryContent.Name : null));
             // Ánh xạ nội dung sang chi tiết (kèm blocks).
             CreateMap<Content, ContentDetailResponseDto>()
                 .IncludeBase<Content, ContentResponseDto>()
@@ -186,9 +219,6 @@ namespace BLL.Mappings
             // QUẢN LÝ TÀI KHOẢN (Account Admin)
             // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ yêu cầu tạo/cập nhật tài khoản admin.
-            CreateMap<CreateAccountAdminRequestDto, Account>();
-            CreateMap<UpdateAccountAdminRequestDto, Account>();
             // Ánh xạ tài khoản sang response admin.
             CreateMap<Account, AccountAdminResponseDto>()
                 .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? (int?)src.PlayerProfile.PlayerProfileId : null))
@@ -239,7 +269,13 @@ namespace BLL.Mappings
 
             // Ánh xạ thư sang tóm tắt (kèm trạng thái nhận thưởng và thời gian hết hạn).
             CreateMap<Mailbox, MailboxSummaryDto>()
-                .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => (src.AttachedItems != null && src.AttachedItems.Any()) && !src.IsClaimed))
+                // BR-147: phải khớp với MailboxService.HasUnclaimedAttachment, vì client
+                // dựa vào cờ này để chặn xóa. Trước đây chỉ xét AttachedItems nên thư
+                // đính kèm gold/gems (không có item) bị báo là "không có quà".
+                .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => !src.IsClaimed
+                    && (src.AttachedGold > 0
+                        || src.AttachedGems > 0
+                        || (src.AttachedItems != null && src.AttachedItems.Any(i => i.Quantity > 0)))))
                 .ForMember(dest => dest.RemainingDays, opt => opt.MapFrom(src => src.ExpiredAt.HasValue ? (int?)Math.Max(0, (int)(src.ExpiredAt.Value - DateTime.UtcNow).TotalDays) : null));
 
             // ═══════════════════════════════════════════════════════════════════════

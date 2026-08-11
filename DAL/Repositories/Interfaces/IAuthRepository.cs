@@ -15,8 +15,8 @@ namespace DAL.Repositories.Interfaces
         // Lấy tài khoản theo mã định danh.
         Task<Account?> GetAccountById(int id);
 
-        // Ghi mốc "vừa online" cho tài khoản. Chỉ ghi cột LastSeen, không nạp entity —
-        // đây là đường nóng nhất của hệ thống (mỗi client ping định kỳ).
+        // Ghi mốc "vừa online" cho profile theo accountId. Chỉ ghi cột LastSeen,
+        // không nạp entity — đây là đường nóng nhất của hệ thống (mỗi client ping định kỳ).
         Task TouchLastSeen(int accountId, DateTime lastSeenUtc);
 
         // Xoá mốc "vừa online" khi đăng xuất để nhả khoá phiên game ngay lập tức.
@@ -34,14 +34,12 @@ namespace DAL.Repositories.Interfaces
         // Lấy tài khoản theo email.
         Task<Account?> GetAccountByEmail(string email);
 
-        // Lấy tài khoản theo refresh token.
+        // Lấy tài khoản theo refresh token. Dò cả slot web và slot game.
         Task<Account?> GetAccountByRefreshToken(string refreshToken);
 
-        // Thu hồi refresh token của tài khoản.
-        Task RevokeRefreshToken(int accountId);
-
-        // Thu hồi refresh token bằng giá trị token.
-        Task RevokeRefreshTokenByToken(string refreshToken);
+        // Thu hồi refresh token của tài khoản. clientType = null xoá cả hai slot; "Web"/"Game"
+        // chỉ xoá một phía để client kia vẫn đăng nhập.
+        Task RevokeRefreshToken(int accountId, string? clientType);
 
         // ═══════════════════════════════════════════════════════════════════════
         // ADMIN APIs

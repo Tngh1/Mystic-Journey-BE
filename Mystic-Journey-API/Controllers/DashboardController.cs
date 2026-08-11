@@ -25,7 +25,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/dashboard/stats ────────────────────────────────
         // Lấy thống kê dashboard (tổng quan hệ thống).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {

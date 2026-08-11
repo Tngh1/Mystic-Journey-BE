@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 namespace Mystic_Journey_API.Controllers
 {
     // Quản lý items (vật phẩm) — CHỈ dành cho trang dashboard.
-    // Toàn bộ controller yêu cầu Admin/SuperAdmin: xem danh sách (kèm bản nháp
+    // Toàn bộ controller yêu cầu Admin: xem danh sách (kèm bản nháp
     // isActive=false), xem chi tiết, cập nhật.
     // Codex công khai cho web wiki nằm ở WikiController (/api/wiki/items).
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin")]
     public class ItemsController : ControllerBase
     {
         private readonly IItemService _itemService;

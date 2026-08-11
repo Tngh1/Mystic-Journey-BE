@@ -11,7 +11,7 @@ namespace Mystic_Journey_API.Controllers
     // Quản lý thưởng đăng nhập hàng ngày (daily login rewards).
     //
     // GAME APIs  : Xem danh sách rewards (không cần auth).
-    // ADMIN APIs : Tạo, cập nhật, xóa reward (cần Admin/SuperAdmin).
+    // ADMIN APIs : Tạo, cập nhật, xóa reward (cần Admin).
     [Route("api/[controller]")]
     [ApiController]
     public class DailyLoginRewardsController : ControllerBase
@@ -57,7 +57,7 @@ namespace Mystic_Journey_API.Controllers
         // Lấy bộ rewards cho 1 tháng dùng cho admin FE (calendar view).
         // month=null / year=null → trả bộ Default (31 ngày).
         // month+year có giá trị → trả overrides + fallback default.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("by-month")]
         public async Task<IActionResult> GetByMonth(
             [FromQuery] int? month = null,
@@ -73,7 +73,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/dailyloginrewards/{id} ──────────────────────────────────
         // Lấy reward theo ID.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -93,7 +93,7 @@ namespace Mystic_Journey_API.Controllers
         // Tạo daily login reward mới.
         // Nếu Month=null/Year=null → tạo default.
         // Nếu Month+Year có giá trị → tạo override tháng đó.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateDailyLoginRewardRequestDto dto)
         {
@@ -123,7 +123,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/dailyloginrewards/{id} ──────────────────────────────────
         // Cập nhật reward (chỉ nội dung, không đổi DayNumber/Month/Year).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDailyLoginRewardRequestDto dto)
         {
@@ -153,7 +153,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── DELETE /api/dailyloginrewards/{id} ───────────────────────────────
         // Xóa (soft delete) daily login reward.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

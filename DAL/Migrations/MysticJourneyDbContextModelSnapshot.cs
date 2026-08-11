@@ -30,6 +30,9 @@ namespace DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AccountId"));
 
+                    b.Property<string>("BanReason")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -37,18 +40,18 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("GameRefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("GameRefreshTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("HashPassword")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("LastLogin")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("LastSeen")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("text");
@@ -68,7 +71,13 @@ namespace DAL.Migrations
 
                     b.HasKey("AccountId");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("UserName")
+                        .IsUnique();
 
                     b.ToTable("Accounts");
                 });
@@ -981,12 +990,6 @@ namespace DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("CreatedByAccountAccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("CreatedByAccountId")
-                        .HasColumnType("uuid");
-
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
 
@@ -1019,8 +1022,6 @@ namespace DAL.Migrations
 
                     b.HasIndex("CategoryContentId");
 
-                    b.HasIndex("CreatedByAccountAccountId");
-
                     b.HasIndex("SubCategoryContentId");
 
                     b.ToTable("Contents");
@@ -1031,7 +1032,6 @@ namespace DAL.Migrations
                             ContentId = 1,
                             CategoryContentId = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Slug = "secrets-of-the-origin-tree-in-elf-forest",
@@ -1043,7 +1043,6 @@ namespace DAL.Migrations
                             ContentId = 2,
                             CategoryContentId = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Slug = "legend-of-the-fire-elemental-seal-book",
@@ -1055,7 +1054,6 @@ namespace DAL.Migrations
                             ContentId = 3,
                             CategoryContentId = 3,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Slug = "chapter-1-awakening-in-the-deep-woods",
@@ -1067,7 +1065,6 @@ namespace DAL.Migrations
                             ContentId = 4,
                             CategoryContentId = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = false,
                             Slug = "guide-to-collecting-all-4-seal-books",
                             Summary = "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.",
@@ -1078,7 +1075,6 @@ namespace DAL.Migrations
                             ContentId = 5,
                             CategoryContentId = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedByAccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             IsPublished = true,
                             PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Slug = "ecosystem-and-monsters-in-elf-forest",
@@ -6262,7 +6258,8 @@ namespace DAL.Migrations
 
                     b.HasIndex("AchievementId");
 
-                    b.HasIndex("PlayerProfileId");
+                    b.HasIndex("PlayerProfileId", "AchievementId")
+                        .IsUnique();
 
                     b.ToTable("PlayerAchievements");
                 });
@@ -6438,7 +6435,8 @@ namespace DAL.Migrations
 
                     b.HasKey("PlayerDailyLoginId");
 
-                    b.HasIndex("PlayerProfileId");
+                    b.HasIndex("PlayerProfileId")
+                        .IsUnique();
 
                     b.ToTable("PlayerDailyLogins");
                 });
@@ -6529,21 +6527,21 @@ namespace DAL.Migrations
                     b.Property<bool>("HasChangedName")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("LastActiveTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime>("LastEnergyUpdateTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("LastFreeGachaTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("LastLeaveAt")
+                    b.Property<DateTime?>("LastLeaveGuildAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastMapName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Level")
                         .HasColumnType("integer");
@@ -8086,11 +8084,6 @@ namespace DAL.Migrations
                         {
                             RoleId = 2,
                             Name = "Admin"
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            Name = "SuperAdmin"
                         });
                 });
 
@@ -9010,17 +9003,11 @@ namespace DAL.Migrations
                         .WithMany("Contents")
                         .HasForeignKey("CategoryContentId");
 
-                    b.HasOne("DAL.Models.Account", "CreatedByAccount")
-                        .WithMany()
-                        .HasForeignKey("CreatedByAccountAccountId");
-
                     b.HasOne("DAL.Models.SubCategoryContent", "SubCategoryContent")
                         .WithMany("Contents")
                         .HasForeignKey("SubCategoryContentId");
 
                     b.Navigation("CategoryContent");
-
-                    b.Navigation("CreatedByAccount");
 
                     b.Navigation("SubCategoryContent");
                 });

@@ -19,9 +19,6 @@ namespace DAL.Repositories.Interfaces
         // Tính tổng doanh thu từ tất cả giao dịch.
         Task<decimal> GetTotalRevenue();
 
-        // Lấy các giao dịch được thực hiện kể từ thời điểm cho trước.
-        Task<List<PurchaseHistory>> GetPurchasesSince(DateTime sinceUtc);
-
         // Lấy toàn bộ lịch sử giao dịch, sắp xếp theo thời gian giảm dần.
         Task<List<PurchaseHistory>> GetAllPurchaseHistories();
 

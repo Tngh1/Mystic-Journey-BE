@@ -293,7 +293,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── PUT /api/dungeons/{id} ───────────────────────────────────────────
         // Cập nhật dungeon hiện có.
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDungeonConfigRequestDto request)
         {
@@ -306,7 +306,7 @@ namespace Mystic_Journey_API.Controllers
 
         // ── GET /api/dungeons/{id}/spawns ───────────────────────────────────
         // Lấy danh sách spawns của một dungeon (Admin).
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}/spawns")]
         public async Task<IActionResult> GetSpawnsByDungeon(int id)
         {
@@ -315,7 +315,7 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ── POST /api/dungeons/{id}/chest-items ──────────────────────────────
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id}/chest-items")]
         public async Task<IActionResult> AddChestItem(int id, [FromBody] CreateChestItemRequestDto request)
         {
@@ -333,7 +333,7 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ── PUT /api/dungeons/{id}/chest-items/{chestItemId} ─────────────────
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}/chest-items/{chestItemId}")]
         public async Task<IActionResult> UpdateChestItem(int id, int chestItemId, [FromBody] CreateChestItemRequestDto request)
         {
@@ -351,7 +351,7 @@ namespace Mystic_Journey_API.Controllers
         }
 
         // ── DELETE /api/dungeons/{id}/chest-items/{chestItemId} ──────────────
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}/chest-items/{chestItemId}")]
         public async Task<IActionResult> RemoveChestItem(int id, int chestItemId)
         {

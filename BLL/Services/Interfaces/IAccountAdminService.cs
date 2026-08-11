@@ -3,8 +3,12 @@ using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
-    // Quản lý tài khoản admin.
-    // Admin APIs: Xem, tạo, cập nhật, ban/unban tài khoản.
+    // Quản lý tài khoản người chơi.
+    // Admin APIs: Xem, ban/unban tài khoản.
+    //
+    // Không có CreateAccount/UpdateAccount: hai hàm đó chỉ phục vụ màn quản lý Admin của
+    // SuperAdmin, role đã bỏ. Nếu để lại thì đường tạo/nâng quyền Admin vẫn còn đó, chỉ
+    // là chưa có controller gọi — dễ bị nối lại sau này mà không ai xét quyền.
     public interface IAccountAdminService
     {
         // ═══════════════════════════════════════════════════════════════════════
@@ -14,17 +18,11 @@ namespace BLL.Services.Interfaces
         // Lấy chi tiết account theo ID.
         Task<AccountAdminResponseDto?> GetAccountById(int id);
 
-        // Lấy danh sách tất cả accounts có phân trang và lọc.
+        // Lấy danh sách accounts có phân trang và lọc.
         Task<PagedResultDto<AccountAdminResponseDto>> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName);
 
-        // Tạo tài khoản admin mới.
-        Task<AccountAdminResponseDto> CreateAccount(CreateAccountAdminRequestDto request);
-
-        // Cập nhật tài khoản hiện có.
-        Task<AccountAdminResponseDto> UpdateAccount(int id, UpdateAccountAdminRequestDto request);
-
         // Ban tài khoản.
-        Task<AccountAdminResponseDto> BanAccount(int accountId);
+        Task<AccountAdminResponseDto> BanAccount(int accountId, string? banReason);
 
         // Unban tài khoản.
         Task<AccountAdminResponseDto> UnbanAccount(int accountId);

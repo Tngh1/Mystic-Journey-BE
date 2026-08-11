@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -559,11 +559,12 @@ namespace DAL.Migrations
                     RoleId = table.Column<int>(type: "integer", nullable: false),
                     RefreshToken = table.Column<string>(type: "text", nullable: true),
                     RefreshTokenExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    GameRefreshToken = table.Column<string>(type: "text", nullable: true),
+                    GameRefreshTokenExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastSeen = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    BanReason = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -638,18 +639,11 @@ namespace DAL.Migrations
                     IsPublished = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedByAccountId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedByAccountAccountId = table.Column<int>(type: "integer", nullable: true)
+                    PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Contents", x => x.ContentId);
-                    table.ForeignKey(
-                        name: "FK_Contents_Accounts_CreatedByAccountAccountId",
-                        column: x => x.CreatedByAccountAccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "AccountId");
                     table.ForeignKey(
                         name: "FK_Contents_CategoryContents_CategoryContentId",
                         column: x => x.CategoryContentId,
@@ -683,8 +677,8 @@ namespace DAL.Migrations
                     MaxEnergy = table.Column<int>(type: "integer", nullable: false),
                     LastEnergyUpdateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastFreeGachaTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastActiveTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    LastLeaveAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastSeen = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastLeaveGuildAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     TotalDungeonClears = table.Column<int>(type: "integer", nullable: false),
@@ -2010,8 +2004,7 @@ namespace DAL.Migrations
                 values: new object[,]
                 {
                     { 1, "Player" },
-                    { 2, "Admin" },
-                    { 3, "SuperAdmin" }
+                    { 2, "Admin" }
                 });
 
             migrationBuilder.InsertData(
@@ -2062,14 +2055,14 @@ namespace DAL.Migrations
 
             migrationBuilder.InsertData(
                 table: "Contents",
-                columns: new[] { "ContentId", "CategoryContentId", "CreatedAt", "CreatedByAccountAccountId", "CreatedByAccountId", "IsPublished", "PublishedAt", "Slug", "SubCategoryContentId", "Summary", "ThumbnailUrl", "Title", "UpdatedAt" },
+                columns: new[] { "ContentId", "CategoryContentId", "CreatedAt", "IsPublished", "PublishedAt", "Slug", "SubCategoryContentId", "Summary", "ThumbnailUrl", "Title", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "secrets-of-the-origin-tree-in-elf-forest", null, "Discover the source of life power for the Elven race and the rising threat of dark forces surrounding the ancient forest.", null, "Secrets of the Origin Tree in Elf Forest", null },
-                    { 2, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "legend-of-the-fire-elemental-seal-book", null, "Details on the location and decryption of the first Seal Book to unlock Fire Magic skills.", null, "Legend of the Fire Elemental Seal Book", null },
-                    { 3, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "chapter-1-awakening-in-the-deep-woods", null, "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.", null, "Chapter 1: Awakening in the Deep Woods", null },
-                    { 4, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), false, null, "guide-to-collecting-all-4-seal-books", null, "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.", null, "Guide to Collecting All 4 Seal Books", null },
-                    { 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, new Guid("00000000-0000-0000-0000-000000000000"), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "ecosystem-and-monsters-in-elf-forest", null, "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.", null, "Ecosystem and Monsters in Elf Forest", null }
+                    { 1, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "secrets-of-the-origin-tree-in-elf-forest", null, "Discover the source of life power for the Elven race and the rising threat of dark forces surrounding the ancient forest.", null, "Secrets of the Origin Tree in Elf Forest", null },
+                    { 2, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "legend-of-the-fire-elemental-seal-book", null, "Details on the location and decryption of the first Seal Book to unlock Fire Magic skills.", null, "Legend of the Fire Elemental Seal Book", null },
+                    { 3, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "chapter-1-awakening-in-the-deep-woods", null, "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.", null, "Chapter 1: Awakening in the Deep Woods", null },
+                    { 4, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), false, null, "guide-to-collecting-all-4-seal-books", null, "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.", null, "Guide to Collecting All 4 Seal Books", null },
+                    { 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "ecosystem-and-monsters-in-elf-forest", null, "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.", null, "Ecosystem and Monsters in Elf Forest", null }
                 });
 
             migrationBuilder.InsertData(
@@ -2469,9 +2462,21 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Accounts_Email",
+                table: "Accounts",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Accounts_RoleId",
                 table: "Accounts",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Accounts_UserName",
+                table: "Accounts",
+                column: "UserName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Achievements_RewardItemId",
@@ -2537,11 +2542,6 @@ namespace DAL.Migrations
                 name: "IX_Contents_CategoryContentId",
                 table: "Contents",
                 column: "CategoryContentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Contents_CreatedByAccountAccountId",
-                table: "Contents",
-                column: "CreatedByAccountAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contents_SubCategoryContentId",
@@ -2762,9 +2762,10 @@ namespace DAL.Migrations
                 column: "AchievementId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlayerAchievements_PlayerProfileId",
+                name: "IX_PlayerAchievements_PlayerProfileId_AchievementId",
                 table: "PlayerAchievements",
-                column: "PlayerProfileId");
+                columns: new[] { "PlayerProfileId", "AchievementId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerAnnouncements_GameAnnouncementId",
@@ -2799,7 +2800,8 @@ namespace DAL.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerDailyLogins_PlayerProfileId",
                 table: "PlayerDailyLogins",
-                column: "PlayerProfileId");
+                column: "PlayerProfileId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerMonsterDiscoveries_MonsterId",

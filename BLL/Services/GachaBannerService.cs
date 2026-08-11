@@ -16,6 +16,7 @@ namespace BLL.Services
         private readonly IGachaBannerRepository _repository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IInventoryRepository _inventoryRepository;
+        private readonly IItemRepository _itemRepository;
         private readonly ITransactionManager _transactionManager;
         private readonly IMapper _mapper;
 
@@ -23,14 +24,41 @@ namespace BLL.Services
             IGachaBannerRepository repository,
             IPlayerProfileRepository playerProfileRepository,
             IInventoryRepository inventoryRepository,
+            IItemRepository itemRepository,
             ITransactionManager transactionManager,
             IMapper mapper)
         {
             _repository = repository;
             _playerProfileRepository = playerProfileRepository;
             _inventoryRepository = inventoryRepository;
+            _itemRepository = itemRepository;
             _transactionManager = transactionManager;
             _mapper = mapper;
+        }
+
+        // BR-053 / BR-136: gacha chi nhan gacha ticket item.
+        // Chan 2 kieu cau hinh sai:
+        //   1. PullCost > 0 nhung khong co CostItemId -> pull se khong the tru gi.
+        //   2. CostItemId tro vao item Type = "Currency" (Gold / Gem / Exp)
+        //      -> lach BR bang cau hinh thay vi bang code.
+        private async Task ValidateCostItem(int pullCost, int? costItemId)
+        {
+            if (pullCost <= 0)
+                return;
+
+            if (!costItemId.HasValue)
+                throw new ArgumentException(
+                    "CostItemId is required when PullCost > 0. A gacha pull must be paid with a ticket item; Coin, Gem and Energy are not accepted.");
+
+            var item = await _itemRepository.GetItemById(costItemId.Value)
+                ?? throw new KeyNotFoundException($"Cost item with id {costItemId.Value} not found.");
+
+            if (string.Equals(item.Type, "Currency", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException(
+                    $"Item '{item.Name}' is a Currency item and cannot be used as a gacha cost. Use a ticket item (e.g. Consumable) instead.");
+
+            if (!item.IsActive)
+                throw new ArgumentException($"Item '{item.Name}' is inactive and cannot be used as a gacha cost.");
         }
 
         public async Task<GachaBannerDetailResponseDto?> GetBannerById(int id)
@@ -44,11 +72,14 @@ namespace BLL.Services
 
         public async Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request)
         {
+            await ValidateCostItem(request.PullCost, request.CostItemId);
+
             var banner = new GachaBanner
             {
                 Name = request.Name,
                 Type = request.Type,
                 PullCost = request.PullCost,
+                CostItemId = request.CostItemId,
                 PityLimit = request.PityLimit,
                 IsActive = request.IsActive,
                 StartAt = request.StartAt.ToUniversalTime(),
@@ -63,9 +94,12 @@ namespace BLL.Services
             var banner = await _repository.GetGachaBannerById(id)
                 ?? throw new KeyNotFoundException($"GachaBanner with id {id} not found.");
 
+            await ValidateCostItem(request.PullCost, request.CostItemId);
+
             banner.Name = request.Name;
             banner.Type = request.Type;
             banner.PullCost = request.PullCost;
+            banner.CostItemId = request.CostItemId;
             banner.PityLimit = request.PityLimit;
             banner.IsActive = request.IsActive;
             banner.StartAt = request.StartAt.ToUniversalTime();
@@ -136,25 +170,23 @@ namespace BLL.Services
                     totalCost = request.PullCount * banner.PullCost;
                     if (totalCost > 0)
                     {
-                        if (banner.CostItemId.HasValue)
-                        {
-                            var invCostItem = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, banner.CostItemId.Value);
-                            if (invCostItem == null || invCostItem.Quantity < totalCost)
-                                throw new InvalidOperationException("Not enough gacha tickets or cost items.");
-                                
-                            invCostItem.Quantity -= (int)totalCost;
-                            if (invCostItem.Quantity <= 0)
-                                await _inventoryRepository.DeleteItem(invCostItem.InventoryItemId);
-                            else
-                                await _inventoryRepository.UpdateItem(invCostItem);
-                        }
+                        // BR-053 / BR-136: gacha CHI nhan gacha ticket item.
+                        // Coin (Gold), Gem va Energy tuyet doi khong duoc dung de pull.
+                        // Truoc day khi banner khong cau hinh CostItemId thi code fallback
+                        // sang tru profile.Gems -> vi pham BR. Nay reject thang.
+                        if (!banner.CostItemId.HasValue)
+                            throw new InvalidOperationException(
+                                "This gacha banner has no ticket item configured. A paid pull requires a gacha ticket; Coin, Gem and Energy cannot be used.");
+
+                        var invCostItem = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, banner.CostItemId.Value);
+                        if (invCostItem == null || invCostItem.Quantity < totalCost)
+                            throw new InvalidOperationException("Not enough gacha tickets or cost items.");
+
+                        invCostItem.Quantity -= (int)totalCost;
+                        if (invCostItem.Quantity <= 0)
+                            await _inventoryRepository.DeleteItem(invCostItem.InventoryItemId);
                         else
-                        {
-                            if (profile.Gems < totalCost)
-                                throw new InvalidOperationException("Not enough gems.");
-                            
-                            profile.Gems -= totalCost;
-                        }
+                            await _inventoryRepository.UpdateItem(invCostItem);
                     }
                 }
                 else

@@ -35,8 +35,14 @@ namespace BLL.DTOs
         [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]
         public decimal Price { get; set; }
 
+        // -1 = khong gioi han ton kho; moi gia tri am khac deu khong hop le.
+        [Range(-1, int.MaxValue, ErrorMessage = "Stock must be -1 (unlimited) or a non-negative number.")]
         public int Stock { get; set; } = -1;
+
+        [Range(0, int.MaxValue, ErrorMessage = "DailyPurchaseLimit cannot be negative.")]
         public int DailyPurchaseLimit { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "WeeklyPurchaseLimit cannot be negative.")]
         public int WeeklyPurchaseLimit { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime? AvailableFrom { get; set; }
@@ -54,11 +60,17 @@ namespace BLL.DTOs
         [RegularExpression("^(Gold|Gems)$", ErrorMessage = "Currency must be Gold or Gems.")]
         public string Currency { get; set; } = "Gold";
 
-        [Range(0, double.MaxValue)]
+        [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]
         public decimal Price { get; set; }
 
+        // -1 = khong gioi han ton kho; moi gia tri am khac deu khong hop le.
+        [Range(-1, int.MaxValue, ErrorMessage = "Stock must be -1 (unlimited) or a non-negative number.")]
         public int Stock { get; set; } = -1;
+
+        [Range(0, int.MaxValue, ErrorMessage = "DailyPurchaseLimit cannot be negative.")]
         public int DailyPurchaseLimit { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "WeeklyPurchaseLimit cannot be negative.")]
         public int WeeklyPurchaseLimit { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime? AvailableFrom { get; set; }

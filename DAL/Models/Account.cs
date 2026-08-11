@@ -12,11 +12,12 @@ namespace DAL.Models
         public Role? Role { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiresAt { get; set; }
+        public string? GameRefreshToken { get; set; }
+        public DateTime? GameRefreshTokenExpiresAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-        public DateTime? LastLogin { get; set; }
-        public DateTime? LastSeen { get; set; }
         public bool IsActive { get; set; } = true;
+        public string? BanReason { get; set; }
         public PlayerProfile? PlayerProfile { get; set; }
     }
 }

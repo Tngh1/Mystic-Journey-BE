@@ -43,8 +43,6 @@ namespace BLL.Services
 
             var totalRevenue = await _purchaseHistoryRepository.GetTotalRevenue();
 
-            var monthlyStats = await GetMonthlyStatsAsync();
-
             var onlineOfflineCounts = await GetOnlineOfflineCountsAsync();
 
             return new DashboardStatsDto
@@ -56,8 +54,7 @@ namespace BLL.Services
                 TotalItems = totalItems,
                 TotalMonsters = totalMonsters,
                 TotalTransactions = totalTransactions,
-                TotalRevenue = totalRevenue,
-                MonthlyStats = monthlyStats
+                TotalRevenue = totalRevenue
             };
         }
 
@@ -70,33 +67,13 @@ namespace BLL.Services
 
             foreach (var account in accounts)
             {
-                if (OnlineTimeout.IsWithin(account.LastSeen, OnlineTimeout.Dashboard))
+                if (OnlineTimeout.IsWithin(account.PlayerProfile?.LastSeen, OnlineTimeout.Dashboard))
                     online++;
                 else
                     offline++;
             }
 
             return (online, offline);
-        }
-
-        private async Task<List<MonthlyStatDto>> GetMonthlyStatsAsync()
-        {
-            var twelveMonthsAgo = DateTime.UtcNow.AddMonths(-12);
-
-            var purchases = await _purchaseHistoryRepository.GetPurchasesSince(twelveMonthsAgo);
-
-            var groupedStats = purchases
-                .GroupBy(p => new { p.PurchasedAt.Year, p.PurchasedAt.Month })
-                .Select(g => new MonthlyStatDto
-                {
-                    Month = $"{g.Key.Year}-{g.Key.Month:D2}",
-                    Count = g.Count(),
-                    Amount = g.Sum(p => p.TotalPrice)
-                })
-                .OrderBy(s => s.Month)
-                .ToList();
-
-            return groupedStats;
         }
     }
 }
