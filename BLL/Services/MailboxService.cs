@@ -176,6 +176,15 @@ namespace BLL.Services
             if (request.PlayerProfileIds == null || request.PlayerProfileIds.Count == 0)
                 throw new ArgumentException("Player profile IDs cannot be empty.");
 
+            if (request.AttachedGold < 0 || request.AttachedGold > 9999)
+                throw new ArgumentException("Attached gold must be between 0 and 9999.");
+
+            if (request.AttachedGems < 0 || request.AttachedGems > 9999)
+                throw new ArgumentException("Attached gems must be between 0 and 9999.");
+
+            if (request.AttachedItems != null && request.AttachedItems.Any(i => i != null && (i.Quantity < 1 || i.Quantity > 99)))
+                throw new ArgumentException("Item quantity must be between 1 and 99.");
+
             var mailboxes = request.PlayerProfileIds.Select(id => new Mailbox
             {
                 PlayerProfileId = id,
@@ -189,7 +198,7 @@ namespace BLL.Services
                     .Select(item => new MailboxRewardItem
                     {
                         ItemId = item.ItemId,
-                        Quantity = item.Quantity
+                        Quantity = Math.Min(item.Quantity, 99)
                     }).ToList(),
                 IsRead = false,
                 IsClaimed = false,
@@ -207,6 +216,15 @@ namespace BLL.Services
             if (!players.Any())
                 throw new ArgumentException("No players found to send mailbox.");
 
+            if (request.AttachedGold < 0 || request.AttachedGold > 9999)
+                throw new ArgumentException("Attached gold must be between 0 and 9999.");
+
+            if (request.AttachedGems < 0 || request.AttachedGems > 9999)
+                throw new ArgumentException("Attached gems must be between 0 and 9999.");
+
+            if (request.AttachedItems != null && request.AttachedItems.Any(i => i != null && (i.Quantity < 1 || i.Quantity > 99)))
+                throw new ArgumentException("Item quantity must be between 1 and 99.");
+
             var mailboxes = players.Select(player => new Mailbox
             {
                 PlayerProfileId = player.PlayerProfileId,
@@ -220,7 +238,7 @@ namespace BLL.Services
                     .Select(item => new MailboxRewardItem
                     {
                         ItemId = item.ItemId,
-                        Quantity = item.Quantity
+                        Quantity = Math.Min(item.Quantity, 99)
                     }).ToList(),
                 IsRead = false,
                 IsClaimed = false,

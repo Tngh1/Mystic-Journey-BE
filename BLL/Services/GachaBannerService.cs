@@ -244,11 +244,30 @@ namespace BLL.Services
                         if (selected == null) selected = banner.BannerItems.Last();
                     }
 
-                    // Check if it's "Gold" or normal item
+                    // Check if it's "Gold" or "Gem" / "Gems" or Currency item
                     bool isNew = false;
-                    if (selected.Item != null && selected.Item.Name.Equals("Gold", StringComparison.OrdinalIgnoreCase))
+                    string itemName = selected.Item?.Name ?? string.Empty;
+                    string itemType = selected.Item?.Type ?? string.Empty;
+
+                    bool isGold = itemName.Equals("Gold", StringComparison.OrdinalIgnoreCase) ||
+                                  itemName.StartsWith("Gold", StringComparison.OrdinalIgnoreCase) ||
+                                  (itemType.Equals("Currency", StringComparison.OrdinalIgnoreCase) && itemName.Contains("Gold", StringComparison.OrdinalIgnoreCase));
+
+                    bool isGem = itemName.Equals("Gem", StringComparison.OrdinalIgnoreCase) ||
+                                 itemName.Equals("Gems", StringComparison.OrdinalIgnoreCase) ||
+                                 itemName.StartsWith("Gem", StringComparison.OrdinalIgnoreCase) ||
+                                 (itemType.Equals("Currency", StringComparison.OrdinalIgnoreCase) && itemName.Contains("Gem", StringComparison.OrdinalIgnoreCase));
+
+                    if (isGold)
                     {
-                        profile.Gold += selected.Item.BaseValue > 0 ? selected.Item.BaseValue : 1000;
+                        decimal amount = (selected.Item != null && selected.Item.BaseValue > 0) ? selected.Item.BaseValue : 1000m;
+                        profile.Gold += amount;
+                        await _playerProfileRepository.UpdatePlayerProfile(profile);
+                    }
+                    else if (isGem)
+                    {
+                        decimal amount = (selected.Item != null && selected.Item.BaseValue > 0) ? selected.Item.BaseValue : 10m;
+                        profile.Gems += amount;
                         await _playerProfileRepository.UpdatePlayerProfile(profile);
                     }
                     else

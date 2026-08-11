@@ -39,7 +39,7 @@ namespace BLL.DTOs
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public class ForgotPasswordRequestDto
+    public class ForgetPasswordRequestDto
     {
         [Required(ErrorMessage = "Email is required.")]
         [EmailAddress(ErrorMessage = "Email format is invalid.")]

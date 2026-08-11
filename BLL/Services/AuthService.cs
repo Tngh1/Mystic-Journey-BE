@@ -680,7 +680,7 @@ namespace BLL.Services
             """;
         }
 
-        public async Task ForgotPassword(string email)
+        public async Task ForgetPassword(string email)
         {
             var normalizedEmail = email.Trim().ToLowerInvariant();
 

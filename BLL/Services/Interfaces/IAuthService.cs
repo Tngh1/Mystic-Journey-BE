@@ -42,7 +42,7 @@ namespace BLL.Services.Interfaces
         Task VerifyEmail(VerifyEmailRequestDto request);
 
         // Gửi mã đặt lại mật khẩu qua email.
-        Task ForgotPassword(string email);
+        Task ForgetPassword(string email);
 
         // Đặt lại mật khẩu bằng mã xác thực.
         Task ResetPassword(string email, string verificationCode, string newPassword, string confirmPassword);
