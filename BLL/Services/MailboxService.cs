@@ -171,7 +171,7 @@ namespace BLL.Services
         }
 
             // Admin: gửi thư đến danh sách player.
-        public async Task SendMailboxByListId(SendMailboxByListIdDto request)
+        public async Task<List<MailboxDetailDto>> SendMailboxByListId(SendMailboxByListIdDto request)
         {
             if (request.PlayerProfileIds == null || request.PlayerProfileIds.Count == 0)
                 throw new ArgumentException("Player profile IDs cannot be empty.");
@@ -206,11 +206,12 @@ namespace BLL.Services
                 ExpiredAt = request.ExpiredAt
             }).ToList();
 
-            await _repository.CreateBulkMailboxes(mailboxes);
+            var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
+            return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
         }
 
         // Admin: broadcast thư đến toàn bộ player.
-        public async Task SendMailboxToAll(SendMailboxToAllDto request)
+        public async Task<List<MailboxDetailDto>> SendMailboxToAll(SendMailboxToAllDto request)
         {
             var players = await _playerProfileRepository.GetAllPlayerProfiles();
             if (!players.Any())
@@ -246,7 +247,8 @@ namespace BLL.Services
                 ExpiredAt = request.ExpiredAt
             }).ToList();
 
-            await _repository.CreateBulkMailboxes(mailboxes);
+            var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
+            return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
         }
     }
 }
