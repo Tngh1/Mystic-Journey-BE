@@ -35,9 +35,9 @@ namespace BLL.Services.Interfaces
         Task<PagedResultDto<MailboxDetailDto>> GetMailboxesPaged(int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null);
 
         // Gửi thư đến danh sách player theo ID.
-        Task SendMailboxByListId(SendMailboxByListIdDto request);
+        Task<List<MailboxDetailDto>> SendMailboxByListId(SendMailboxByListIdDto request);
 
         // Broadcast thư đến tất cả player.
-        Task SendMailboxToAll(SendMailboxToAllDto request);
+        Task<List<MailboxDetailDto>> SendMailboxToAll(SendMailboxToAllDto request);
     }
 }

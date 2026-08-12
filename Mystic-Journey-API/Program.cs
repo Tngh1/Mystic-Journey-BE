@@ -116,6 +116,7 @@ builder.Services.AddScoped<IMailboxService, MailboxService>();
 // Inventory Services
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IRewardDeliveryService, RewardDeliveryService>();
 
 // Skill Services
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();

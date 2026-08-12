@@ -20,6 +20,7 @@ namespace BLL.Services
         private readonly ISkillRepository _skillRepo;
         private readonly ITransactionManager _transactionManager;
 
+        private readonly IRewardDeliveryService _rewardDeliveryService;
         // Anti-cheat: max progress delta per batch call.
         private const int MaxProgressDeltaPerCall = 50;
 
@@ -32,7 +33,8 @@ namespace BLL.Services
             IInventoryRepository inventoryRepo,
             ISkillRepository skillRepo,
             ITransactionManager transactionManager,
-            IMapper mapper)
+            IMapper mapper,
+            IRewardDeliveryService rewardDeliveryService)
         {
             _playerQuestRepo = playerQuestRepo;
             _playerProfileRepo = playerProfileRepo;
@@ -41,6 +43,7 @@ namespace BLL.Services
             _skillRepo = skillRepo;
             _transactionManager = transactionManager;
             _mapper = mapper;
+            _rewardDeliveryService = rewardDeliveryService;
         }
 
         public async Task<List<PlayerQuestResponseDto>> GetMyQuests(int playerProfileId)
@@ -514,27 +517,7 @@ namespace BLL.Services
         }
 
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
-        {
-            var existing = await _inventoryRepo.GetByPlayerAndItem(playerProfileId, itemId);
-
-            if (existing != null)
-            {
-                existing.Quantity += quantity;
-                await _inventoryRepo.UpdateItem(existing);
-            }
-            else
-            {
-                await _inventoryRepo.AddItem(new InventoryItem
-                {
-                    PlayerProfileId = playerProfileId,
-                    ItemId = itemId,
-                    Quantity = quantity,
-                    IsEquipped = false,
-                    IsSkin = false,
-                    EnhancementLevel = 0
-                });
-            }
-        }
+            => await _rewardDeliveryService.DeliverItemAsync(playerProfileId, itemId, quantity, "quest reward");
 
         private static PlayerQuest CreateInitialQuestRecord(int playerProfileId, Quest quest)
         {

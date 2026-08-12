@@ -111,7 +111,7 @@ namespace BLL.Services
             RecalculateEnergy(profile);
 
             if (request.Energy.HasValue && request.Energy.Value >= 0)
-                profile.CurrentEnergy = request.Energy.Value;
+                profile.CurrentEnergy = Math.Min(request.Energy.Value, profile.MaxEnergy);
 
             if (request.MaxEnergy.HasValue && request.MaxEnergy.Value > 0)
                 profile.MaxEnergy = request.MaxEnergy.Value;
@@ -144,10 +144,14 @@ namespace BLL.Services
             var profile = await _repository.GetByAccountId(accountId)
                 ?? throw new KeyNotFoundException("Player profile not found.");
 
+            var normalizedName = request.NewName?.Trim() ?? string.Empty;
+            if (normalizedName.Length < 3 || normalizedName.Length > 100)
+                throw new ArgumentException("Display name must be between 3 and 100 characters.", nameof(request));
+
             if (!profile.HasChangedName)
             {
                 // First time is free
-                profile.DisplayName = request.NewName;
+                profile.DisplayName = normalizedName;
                 profile.HasChangedName = true;
             }
             else
@@ -157,7 +161,7 @@ namespace BLL.Services
                     throw new InvalidOperationException("Not enough gems to change name. You need 500 gems.");
 
                 profile.Gems -= 500;
-                profile.DisplayName = request.NewName;
+                profile.DisplayName = normalizedName;
             }
 
             profile.UpdatedAt = DateTime.UtcNow;

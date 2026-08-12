@@ -24,6 +24,7 @@ namespace BLL.Services
         private readonly IPlayerQuestRepository _playerQuestRepository;
         private readonly IQuestRepository _questRepository;
         private readonly IMapper _mapper;
+        private readonly IRewardDeliveryService _rewardDeliveryService;
 
         public WorldService(
             IPlayerProfileRepository playerProfileRepository,
@@ -35,7 +36,8 @@ namespace BLL.Services
             ITransactionManager transactionManager,
             IPlayerQuestRepository playerQuestRepository,
             IQuestRepository questRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IRewardDeliveryService rewardDeliveryService)
         {
             _playerProfileRepository = playerProfileRepository;
             _playerQuestService = playerQuestService;
@@ -47,6 +49,7 @@ namespace BLL.Services
             _playerQuestRepository = playerQuestRepository;
             _questRepository = questRepository;
             _mapper = mapper;
+            _rewardDeliveryService = rewardDeliveryService;
         }
 
         public async Task<WorldStateResponseDto> GetWorldState(int playerProfileId)
@@ -655,27 +658,7 @@ namespace BLL.Services
         }
 
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
-        {
-            var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
-
-            if (existing != null)
-            {
-                existing.Quantity += quantity;
-                await _inventoryRepository.UpdateItem(existing);
-            }
-            else
-            {
-                await _inventoryRepository.AddItem(new InventoryItem
-                {
-                    PlayerProfileId = playerProfileId,
-                    ItemId = itemId,
-                    Quantity = quantity,
-                    IsEquipped = false,
-                    IsSkin = false,
-                    EnhancementLevel = 0
-                });
-            }
-        }
+            => await _rewardDeliveryService.DeliverItemAsync(playerProfileId, itemId, quantity, "world reward");
         private static void ValidateQuestInteraction(InteractObjectRequestDto request, Quest? quest)
         {
             if (quest == null)

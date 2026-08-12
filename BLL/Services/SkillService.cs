@@ -145,6 +145,9 @@ namespace BLL.Services
                     }
                 }
             }
+            if (ps.NextAvailableTime.HasValue && ps.NextAvailableTime.Value > DateTime.UtcNow)
+                throw new InvalidOperationException("Cannot change a skill slot while the skill is on cooldown.");
+
 
             return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
@@ -152,6 +155,10 @@ namespace BLL.Services
                 {
                     var slot = request.SlotIndex ?? 0;
                     if (slot < 0 || slot > 2) throw new ArgumentException("Invalid slot index.");
+
+                    var requiredLevel = slot switch { 0 => 1, 1 => 5, 2 => 10, _ => int.MaxValue };
+                    if (playerProfile == null || playerProfile.Level < requiredLevel)
+                        throw new InvalidOperationException($"Skill slot {slot + 1} unlocks at level {requiredLevel}.");
 
                     // Tháo kỹ năng cũ đang nằm trong ô này ra
                     var others = await _repository.GetPlayerSkillsByPlayerId(actorPlayerProfileId);
@@ -264,29 +271,6 @@ namespace BLL.Services
             return null;
         }
 
-        public async Task<PlayerSkillResponseDto> UnlockPlayerSkill(int actorPlayerProfileId, UnlockPlayerSkillRequestDto request)
-        {
-            var skill = await _repository.GetSkillById(request.SkillId)
-                ?? throw new KeyNotFoundException("Skill not found.");
-
-            var owned = await _repository.GetPlayerSkillsByPlayerId(actorPlayerProfileId);
-            if (owned.Any(ps => ps.SkillId == request.SkillId))
-                throw new InvalidOperationException("Player already owns this skill.");
-
-            var newPlayerSkill = new PlayerSkill
-            {
-                PlayerProfileId = actorPlayerProfileId,
-                SkillId = request.SkillId,
-                Level = 1,
-                Experience = 0,
-                EquippedSlot = null,
-                UnlockedAt = DateTime.UtcNow
-            };
-
-            var created = await _repository.CreatePlayerSkill(newPlayerSkill);
-            created.Skill = skill; // Attach the skill so mapping gets effective damage and base info
-            return _mapper.Map<PlayerSkillResponseDto>(created);
-        }
 
         public async Task<PlayerMeSkillsResponseDto> GetMeSkills(int playerProfileId)
         {
