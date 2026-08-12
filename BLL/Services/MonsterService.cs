@@ -18,13 +18,15 @@ namespace BLL.Services
         private readonly IDungeonConfigRepository _dungeonConfigRepository;
         private readonly IInventoryRepository _inventoryRepository;
 
+        private readonly IRewardDeliveryService _rewardDeliveryService;
         public MonsterService(
             IMonsterRepository repository,
             IPlayerProfileRepository playerProfileRepository,
             IMapper mapper,
             ITransactionManager transactionManager,
             IDungeonConfigRepository dungeonConfigRepository,
-            IInventoryRepository inventoryRepository)
+            IInventoryRepository inventoryRepository,
+            IRewardDeliveryService rewardDeliveryService)
         {
             _repository = repository;
             _playerProfileRepository = playerProfileRepository;
@@ -32,6 +34,7 @@ namespace BLL.Services
             _transactionManager = transactionManager;
             _dungeonConfigRepository = dungeonConfigRepository;
             _inventoryRepository = inventoryRepository;
+            _rewardDeliveryService = rewardDeliveryService;
         }
 
         public async Task<MonsterDetailResponseDto?> GetMonsterById(int id)
@@ -432,27 +435,7 @@ namespace BLL.Services
         }
 
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
-        {
-            var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
-
-            if (existing != null)
-            {
-                existing.Quantity += quantity;
-                await _inventoryRepository.UpdateItem(existing);
-            }
-            else
-            {
-                await _inventoryRepository.AddItem(new InventoryItem
-                {
-                    PlayerProfileId = playerProfileId,
-                    ItemId = itemId,
-                    Quantity = quantity,
-                    IsEquipped = false,
-                    IsSkin = false,
-                    EnhancementLevel = 0
-                });
-            }
-        }
+            => await _rewardDeliveryService.DeliverItemAsync(playerProfileId, itemId, quantity, "monster drop");
 
         private static string NormalizeMapName(string? mapName)
         {

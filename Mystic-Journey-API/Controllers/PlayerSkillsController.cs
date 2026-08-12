@@ -76,22 +76,6 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<PlayerSkillResponseDto> { Success = true, Data = updated });
         }
 
-        // ── POST /api/player-skills/unlock ────────────────────────────────────
-        // Mở khóa skill mới cho player.
-        [Authorize]
-        [HttpPost("unlock")]
-        public async Task<IActionResult> Unlock([FromBody] UnlockPlayerSkillRequestDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
-
-            var playerProfileId = GetCurrentPlayerProfileId();
-            if (playerProfileId == 0)
-                return Unauthorized(new ApiResponse<object> { Success = false, Message = "Player profile not found.", ErrorCode = ErrorCodes.Unauthorized });
-
-            var created = await _skillService.UnlockPlayerSkill(playerProfileId, request);
-            return Ok(new ApiResponse<PlayerSkillResponseDto> { Success = true, Data = created });
-        }
 
         // ── POST /api/player-skills/dismantle ─────────────────────────────────
         // Phá skill để lấy nguyên liệu.

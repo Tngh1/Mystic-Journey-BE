@@ -12,11 +12,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.*" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.*" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="$(MysticJourneyEfCoreVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(MysticJourneyEfCoreVersion)">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.*">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="$(MysticJourneyEfCoreVersion)">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

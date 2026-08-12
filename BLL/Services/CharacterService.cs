@@ -87,7 +87,8 @@ namespace BLL.Services
                 .FirstOrDefaultAsync(p => p.PlayerProfileId == playerProfileId)
                 ?? throw new KeyNotFoundException("Character stats not found. Please create a character first.");
 
-            var stat = profile.PlayerStats;
+            var stat = profile.PlayerStats
+                ?? throw new KeyNotFoundException("Character stats not found. Please create a character first.");
             var dto = MapToStatsDto(stat, profile.PlayerBuffs);
 
             // 1. Tích hợp chỉ số từ trang bị (nếu có)
@@ -272,7 +273,7 @@ namespace BLL.Services
                 stat.MaxHp, snapshot?.MaxHp ?? 0, totals.MaxHpPercent);
         }
 
-        private static PlayerStatsResponseDto MapToStatsDto(PlayerStat stat, ICollection<PlayerBuff> buffs = null)
+        private static PlayerStatsResponseDto MapToStatsDto(PlayerStat stat, ICollection<PlayerBuff>? buffs = null)
         {
             return new PlayerStatsResponseDto
             {

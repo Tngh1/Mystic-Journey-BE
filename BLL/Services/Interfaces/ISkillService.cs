@@ -21,8 +21,6 @@ namespace BLL.Services.Interfaces
         // Trang bị skill vào slot.
         Task<PlayerSkillResponseDto> EquipPlayerSkill(int actorPlayerProfileId, EquipSkillRequestDto request);
 
-        // Mở khóa skill mới cho player.
-        Task<PlayerSkillResponseDto> UnlockPlayerSkill(int actorPlayerProfileId, UnlockPlayerSkillRequestDto request);
 
         // Record that a skill was cast to track its cooldown
         Task<PlayerSkillResponseDto> RecordSkillCast(int actorPlayerProfileId, int playerSkillId);

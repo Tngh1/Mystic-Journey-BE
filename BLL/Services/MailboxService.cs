@@ -12,9 +12,11 @@ namespace BLL.Services
 {
     public class MailboxService : IMailboxService
     {
+        private const int MAILBOX_CAPACITY = 100;
         private readonly IMailboxRepository _repository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IInventoryService _inventoryService;
+        private readonly ITransactionManager _transactionManager;
 
         private readonly IMapper _mapper;
 
@@ -22,11 +24,13 @@ namespace BLL.Services
             IMailboxRepository repository,
             IPlayerProfileRepository playerProfileRepository,
             IInventoryService inventoryService,
-            IMapper mapper)
+            IMapper mapper,
+            ITransactionManager transactionManager)
         {
             _repository = repository;
             _playerProfileRepository = playerProfileRepository;
             _inventoryService = inventoryService;
+            _transactionManager = transactionManager;
             _mapper = mapper;
         }
 
@@ -71,8 +75,10 @@ namespace BLL.Services
         }
 
         // Nhận phần thưởng từ thư.
-        public async Task<MailboxDetailDto> ClaimMailboxReward(int mailboxId)
+        public Task<MailboxDetailDto> ClaimMailboxReward(int mailboxId)
         {
+            return _transactionManager.ExecuteInTransactionAsync(async () =>
+            {
             var mailbox = await _repository.GetMailboxById(mailboxId)
                 ?? throw new KeyNotFoundException($"Mailbox with id {mailboxId} not found.");
 
@@ -118,7 +124,8 @@ namespace BLL.Services
             mailbox.IsRead = true;
             var updated = await _repository.UpdateMailbox(mailbox);
 
-            return _mapper.Map<MailboxDetailDto>(updated);
+                return _mapper.Map<MailboxDetailDto>(updated);
+            });
         }
 
         // Xóa mềm thư (chỉ thư của chính player đó).
@@ -133,11 +140,8 @@ namespace BLL.Services
             if (mailbox.IsDeleted)
                 throw new InvalidOperationException("Mailbox has already been deleted.");
 
-            // BR-147: thư còn phần thưởng chưa nhận thì không được xoá, nếu không
-            // người chơi xoá thư là mất luôn phần thưởng.
-            // Thư đã hết hạn vẫn cho xoá: lúc đó reward không claim được nữa
-            // (ClaimMailboxReward chặn ExpiredAt), nên giữ lại chỉ làm rác hộp thư.
-            if (HasUnclaimedAttachment(mailbox) && !IsExpired(mailbox))
+            // Never silently discard a reward, including after its claim deadline.
+            if (HasUnclaimedAttachment(mailbox))
                 throw new InvalidOperationException(
                     "This mail still has unclaimed rewards. Please claim the rewards before deleting it.");
 
@@ -206,8 +210,13 @@ namespace BLL.Services
                 ExpiredAt = request.ExpiredAt
             }).ToList();
 
-            var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
-            return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
+            {
+                foreach (var playerId in request.PlayerProfileIds.Distinct())
+                    await EnsureMailboxCapacity(playerId);
+                var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
+                return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
+            }, System.Data.IsolationLevel.Serializable);
         }
 
         // Admin: broadcast thư đến toàn bộ player.
@@ -247,8 +256,32 @@ namespace BLL.Services
                 ExpiredAt = request.ExpiredAt
             }).ToList();
 
-            var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
-            return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
+            {
+                foreach (var player in players)
+                    await EnsureMailboxCapacity(player.PlayerProfileId);
+                var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
+                return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
+            }, System.Data.IsolationLevel.Serializable);
+        }
+
+        private async Task EnsureMailboxCapacity(int playerProfileId)
+        {
+            var activeMailboxes = await _repository.GetMailboxesByPlayerId(playerProfileId);
+            while (activeMailboxes.Count >= MAILBOX_CAPACITY)
+            {
+                var removable = activeMailboxes
+                    .Where(m => m.IsRead && !HasUnclaimedAttachment(m))
+                    .OrderBy(m => m.SentAt)
+                    .FirstOrDefault();
+
+                if (removable == null)
+                    throw new InvalidOperationException(
+                        $"Mailbox capacity reached for player {playerProfileId}; no read mail without rewards can be removed.");
+
+                await _repository.SoftDeleteMailbox(removable.MailboxId);
+                activeMailboxes.Remove(removable);
+            }
         }
     }
 }

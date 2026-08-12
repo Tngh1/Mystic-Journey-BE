@@ -19,6 +19,7 @@ namespace BLL.Services
         private readonly IItemRepository _itemRepository;
         private readonly ITransactionManager _transactionManager;
         private readonly IMapper _mapper;
+        private readonly IRewardDeliveryService _rewardDeliveryService;
 
         public GachaBannerService(
             IGachaBannerRepository repository,
@@ -26,7 +27,8 @@ namespace BLL.Services
             IInventoryRepository inventoryRepository,
             IItemRepository itemRepository,
             ITransactionManager transactionManager,
-            IMapper mapper)
+            IMapper mapper,
+            IRewardDeliveryService rewardDeliveryService)
         {
             _repository = repository;
             _playerProfileRepository = playerProfileRepository;
@@ -34,6 +36,7 @@ namespace BLL.Services
             _itemRepository = itemRepository;
             _transactionManager = transactionManager;
             _mapper = mapper;
+            _rewardDeliveryService = rewardDeliveryService;
         }
 
         // BR-053 / BR-136: gacha chi nhan gacha ticket item.
@@ -273,24 +276,8 @@ namespace BLL.Services
                     else
                     {
                         var existingInv = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, selected.ItemId);
-                        if (existingInv != null)
-                        {
-                            existingInv.Quantity += 1;
-                            await _inventoryRepository.UpdateItem(existingInv);
-                        }
-                        else
-                        {
-                            isNew = true;
-                            await _inventoryRepository.AddItem(new InventoryItem
-                            {
-                                PlayerProfileId = playerProfileId,
-                                ItemId = selected.ItemId,
-                                Quantity = 1,
-                                IsEquipped = false,
-                                IsSkin = false,
-                                EnhancementLevel = 0
-                            });
-                        }
+                        isNew = existingInv == null;
+                        await _rewardDeliveryService.DeliverItemAsync(playerProfileId, selected.ItemId, 1, "gacha reward");
                     }
 
                     var historyEntry = new GachaPullHistory

@@ -27,6 +27,12 @@ namespace DAL.Repositories
         public async Task ExecuteInTransactionAsync(Func<Task> action)
         {
             var strategy = _context.Database.CreateExecutionStrategy();
+            if (_context.Database.CurrentTransaction != null)
+            {
+                await action();
+                return;
+            }
+
             await strategy.ExecuteAsync(async () =>
             {
                 await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -44,6 +50,15 @@ namespace DAL.Repositories
         }
 
         /// <summary>
+        public async Task ExecuteInTransactionAsync(Func<Task> action, IsolationLevel isolationLevel)
+        {
+            await ExecuteInTransactionAsync(async () =>
+            {
+                await action();
+                return true;
+            }, isolationLevel);
+        }
+
         /// Thực thi hành động có返回值 trong transaction.
         /// Nếu có lỗi xảy ra, transaction sẽ được rollback tự động.
         /// </summary>
@@ -52,6 +67,9 @@ namespace DAL.Repositories
 
         public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, IsolationLevel isolationLevel)
         {
+            if (_context.Database.CurrentTransaction != null)
+                return await action();
+
             var strategy = _context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {

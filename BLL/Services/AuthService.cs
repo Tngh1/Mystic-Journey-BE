@@ -200,9 +200,7 @@ namespace BLL.Services
             response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
 
             
-            if (string.IsNullOrWhiteSpace(response.PlayerClass))
-                response.PlayerClass = "Knight";
-
+            response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
             return response;
         }
 
@@ -257,9 +255,7 @@ namespace BLL.Services
             response.RefreshToken = refreshToken;
             response.RefreshTokenExpiresAt = refreshExpiry;
 
-            // Override PlayerClass nếu null/empty
-            if (string.IsNullOrWhiteSpace(response.PlayerClass))
-                response.PlayerClass = "Knight";
+            response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
 
             return response;
         }
@@ -310,9 +306,7 @@ namespace BLL.Services
             // Override LastMapName nếu chưa có hoặc là alias
             response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
 
-            // Override PlayerClass nếu null/empty
-            if (string.IsNullOrWhiteSpace(response.PlayerClass))
-                response.PlayerClass = "Knight";
+            response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
 
             return response;
         }
@@ -368,8 +362,7 @@ namespace BLL.Services
 
             response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
 
-            if (string.IsNullOrWhiteSpace(response.PlayerClass))
-                response.PlayerClass = "Knight";
+            response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
 
             return response;
         }
@@ -433,9 +426,7 @@ namespace BLL.Services
             // Override LastMapName nếu chưa có hoặc là alias
             response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
 
-            // Override PlayerClass nếu null/empty
-            if (string.IsNullOrWhiteSpace(response.PlayerClass))
-                response.PlayerClass = "Knight";
+            response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
 
             return response;
         }

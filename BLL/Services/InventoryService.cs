@@ -1,11 +1,13 @@
 using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
+using BLL.Exceptions;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using System.Data;
 using BLL.Utils;
 
 namespace BLL.Services
@@ -18,6 +20,8 @@ namespace BLL.Services
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly ITransactionManager _transactionManager;
         private readonly ICharacterService _characterService;
+        private const int BAG_CAPACITY = 100;
+        private const int MAX_STACK_SIZE = 99;
 
         // enhancement scaling per level (unscaled integers for HP/Atk/Def)
         private const int HP_ENHANCEMENT_PER_LEVEL = 10;
@@ -56,7 +60,7 @@ namespace BLL.Services
                 TotalItems = dtos.Sum(d => d.Quantity),
                 BagItems = dtos.Where(d => !d.IsEquipped && !d.IsSkin).ToList(),
                 EquippedItems = dtos.Where(d => d.IsEquipped).ToList(),
-                BagCapacity = 200
+                BagCapacity = BAG_CAPACITY
             };
 
             var playerSkins = await _inventoryRepository.GetPlayerSkinsByPlayerId(playerProfileId);
@@ -522,29 +526,56 @@ namespace BLL.Services
             return false;
         }
 
-        public async Task<InventoryItemResponseDto> AddItemToInventory(int playerProfileId, int itemId, int quantity)
+        public Task<InventoryItemResponseDto> AddItemToInventory(int playerProfileId, int itemId, int quantity)
         {
-            var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
+            if (quantity <= 0)
+                throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
 
-            if (existing != null)
+            return _transactionManager.ExecuteInTransactionAsync(async () =>
             {
-                existing.Quantity += quantity;
-                var updated = await _inventoryRepository.UpdateItem(existing);
-                return _mapper.Map<InventoryItemResponseDto>(updated);
-            }
+                var inventory = await _inventoryRepository.GetByPlayerId(playerProfileId);
+                var stackable = inventory
+                    .Where(i => i.ItemId == itemId && !i.IsEquipped && !i.IsSkin && i.EnhancementLevel == 0)
+                    .OrderBy(i => i.InventoryItemId)
+                    .ToList();
 
-            var newItem = new InventoryItem
-            {
-                PlayerProfileId = playerProfileId,
-                ItemId = itemId,
-                Quantity = quantity,
-                IsEquipped = false,
-                IsSkin = false,
-                EnhancementLevel = 0
-            };
+                var freeInStacks = stackable.Sum(i => Math.Max(0, MAX_STACK_SIZE - i.Quantity));
+                var freeSlots = Math.Max(0, BAG_CAPACITY - inventory.Count);
+                var totalCapacity = freeInStacks + freeSlots * MAX_STACK_SIZE;
+                if (totalCapacity < quantity)
+                    throw new InventoryCapacityExceededException();
 
-            var created = await _inventoryRepository.AddItem(newItem);
-            return _mapper.Map<InventoryItemResponseDto>(created);
+                var remaining = quantity;
+                InventoryItem? lastChanged = null;
+                foreach (var stack in stackable.Where(i => i.Quantity < MAX_STACK_SIZE))
+                {
+                    var added = Math.Min(MAX_STACK_SIZE - stack.Quantity, remaining);
+                    stack.Quantity += added;
+                    remaining -= added;
+                    lastChanged = await _inventoryRepository.UpdateItem(stack);
+                    if (remaining == 0)
+                        break;
+                }
+
+                while (remaining > 0)
+                {
+                    var stackQuantity = Math.Min(MAX_STACK_SIZE, remaining);
+                    var newItem = new InventoryItem
+                    {
+                        PlayerProfileId = playerProfileId,
+                        ItemId = itemId,
+                        Quantity = stackQuantity,
+                        IsEquipped = false,
+                        IsSkin = false,
+                        EnhancementLevel = 0
+                    };
+
+                    lastChanged = await _inventoryRepository.AddItem(newItem);
+                    remaining -= stackQuantity;
+                }
+
+                return _mapper.Map<InventoryItemResponseDto>(lastChanged!);
+            }, IsolationLevel.Serializable);
         }
 
 

@@ -91,7 +91,7 @@ namespace BLL.DTOs
         public bool HasCharacter { get; set; }
         public int? PlayerProfileId { get; set; }
         public string? PlayerDisplayName { get; set; }
-        public string PlayerClass { get; set; } = "Knight";
+        public string? PlayerClass { get; set; }
         public int Level { get; set; } = 1;
         public string LastMapName { get; set; } = string.Empty;
         public double PositionX { get; set; }
@@ -109,7 +109,8 @@ namespace BLL.DTOs
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public int? PlayerProfileId { get; set; }
-        public string PlayerClass { get; set; } = "Knight";
+        public bool HasCharacter { get; set; }
+        public string? PlayerClass { get; set; }
         public int Level { get; set; } = 1;
         public string LastMapName { get; set; } = string.Empty;
         public double PositionX { get; set; }

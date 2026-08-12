@@ -38,7 +38,7 @@ namespace DAL.Repositories
             return await _context.Mailboxes
                 .Include(m => m.PlayerProfile)
                 .Include(m => m.AttachedItems).ThenInclude(a => a.Item)
-                .Where(m => m.PlayerProfileId == playerProfileId)
+                .Where(m => m.PlayerProfileId == playerProfileId && !m.IsDeleted)
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();
         }

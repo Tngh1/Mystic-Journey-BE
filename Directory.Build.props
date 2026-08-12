@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Keep every project and transitive graph on one EF Core patch version. -->
+    <MysticJourneyEfCoreVersion>8.0.30</MysticJourneyEfCoreVersion>
+  </PropertyGroup>
+</Project>

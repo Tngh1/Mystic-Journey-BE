@@ -16,6 +16,7 @@ namespace BLL.Services
         private readonly ITransactionManager _transactionManager;
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IMapper _mapper;
+        private readonly IRewardDeliveryService _rewardDeliveryService;
 
         public DungeonSessionService(
             IDungeonConfigRepository dungeonConfigRepository,
@@ -25,7 +26,8 @@ namespace BLL.Services
             IPlayerProfileService playerProfileService,
             ITransactionManager transactionManager,
             IInventoryRepository inventoryRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IRewardDeliveryService rewardDeliveryService)
         {
             _dungeonConfigRepository = dungeonConfigRepository;
             _sessionRepository = sessionRepository;
@@ -35,6 +37,7 @@ namespace BLL.Services
             _transactionManager = transactionManager;
             _inventoryRepository = inventoryRepository;
             _mapper = mapper;
+            _rewardDeliveryService = rewardDeliveryService;
         }
 
         // ── 1. Enter Dungeon ─────────────────────────────────────────────────────────
@@ -467,31 +470,7 @@ namespace BLL.Services
         /// Must be called within an active transaction.
         /// </summary>
         private async Task UpsertInventoryItem(int playerProfileId, int itemId, int quantity, bool isEquipment)
-        {
-            if (!isEquipment)
-            {
-                var existing = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, itemId);
-
-                if (existing != null)
-                {
-                    existing.Quantity += quantity;
-                    await _inventoryRepository.UpdateItem(existing);
-                    return;
-                }
-            }
-
-            // Either it's equipment (always new row) or it's a new stackable item
-            await _inventoryRepository.AddItem(new InventoryItem
-            {
-                PlayerProfileId = playerProfileId,
-                ItemId = itemId,
-                Quantity = quantity,
-                IsEquipped = false,
-                IsSkin = false,
-                EnhancementLevel = 0,
-                CreatedAt = DateTime.UtcNow
-            });
-        }
+            => await _rewardDeliveryService.DeliverItemAsync(playerProfileId, itemId, quantity, "dungeon reward");
 
 
     }
