@@ -166,8 +166,8 @@ namespace Mystic_Journey_API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-            await _mailboxService.SendMailboxByListId(request);
-            return Ok(new ApiResponse<object> { Success = true, Message = "Mailbox sent successfully." });
+            var mailboxes = await _mailboxService.SendMailboxByListId(request);
+            return Ok(new ApiResponse<List<MailboxDetailDto>> { Success = true, Data = mailboxes });
         }
 
         // ── POST /api/mailboxes/broadcast ──────────────────────────────────────
@@ -179,8 +179,8 @@ namespace Mystic_Journey_API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-            await _mailboxService.SendMailboxToAll(request);
-            return Ok(new ApiResponse<object> { Success = true, Message = "Mailbox sent to all players successfully." });
+            var mailboxes = await _mailboxService.SendMailboxToAll(request);
+            return Ok(new ApiResponse<List<MailboxDetailDto>> { Success = true, Data = mailboxes });
         }
 
         // ── GET /api/mailboxes/player/{playerProfileId} ────────────────────────
