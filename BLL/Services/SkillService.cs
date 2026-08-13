@@ -70,6 +70,7 @@ namespace BLL.Services
             skill.DamagePerLevel = request.DamagePerLevel;
             skill.DamageGrowthPercent = request.DamageGrowthPercent;
             skill.UnlockLevel = request.UnlockLevel;
+            skill.CorruptionCost = request.CorruptionCost;
             skill.IsActive = request.IsActive;
 
             var updated = await _repository.UpdateSkill(skill);
