@@ -8,6 +8,7 @@ namespace BLL.DTOs
         public int SkillId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string? ImageUrl { get; set; }
         public string Type { get; set; } = "Active";
         public string DamageType { get; set; } = "Physical";
         public string TargetType { get; set; } = "SingleTarget";
@@ -29,6 +30,8 @@ namespace BLL.DTOs
 
         [StringLength(500)]
         public string? Description { get; set; }
+
+        public string? ImageUrl { get; set; }
 
         public string Type { get; set; } = "Active";
         public string DamageType { get; set; } = "Physical";
@@ -60,6 +63,8 @@ namespace BLL.DTOs
 
         [StringLength(500)]
         public string? Description { get; set; }
+
+        public string? ImageUrl { get; set; }
 
         public string Type { get; set; } = "Active";
         public string DamageType { get; set; } = "Physical";

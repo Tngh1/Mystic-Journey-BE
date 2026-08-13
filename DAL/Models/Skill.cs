@@ -11,6 +11,8 @@ namespace DAL.Models
 
         public string? Description { get; set; }
 
+        public string? ImageUrl { get; set; }
+
         // Types: Active, Passive, Buff, Debuff
         public string Type { get; set; } = "Active";
         // DamageTypes: Physical, Magical, TrueDamage

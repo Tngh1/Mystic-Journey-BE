@@ -61,6 +61,7 @@ namespace BLL.Services
 
             skill.Name = request.Name;
             skill.Description = request.Description;
+            skill.ImageUrl = request.ImageUrl;
             skill.Type = request.Type;
             skill.DamageType = request.DamageType;
             skill.TargetType = request.TargetType;
