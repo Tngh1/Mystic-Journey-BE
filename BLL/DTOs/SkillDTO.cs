@@ -125,12 +125,6 @@ namespace BLL.DTOs
         public int? SlotIndex { get; set; }
     }
 
-    public class UnlockPlayerSkillRequestDto
-    {
-        [Required]
-        public int SkillId { get; set; }
-    }
-
     public class DismantlePlayerSkillRequestDto
     {
         [Required]

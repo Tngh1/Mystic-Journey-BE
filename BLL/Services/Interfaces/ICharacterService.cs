@@ -1,5 +1,4 @@
 using BLL.DTOs;
-using DAL.Models;
 using System.Collections.Generic;
 
 namespace BLL.Services.Interfaces
@@ -41,8 +40,5 @@ namespace BLL.Services.Interfaces
 
         // Xác nhận nâng cấp 1 chỉ số từ danh sách 5 lựa chọn ngẫu nhiên
         Task<PlayerStatsResponseDto> AllocateStat(int playerProfileId, string statName);
-
-        // Lấy danh sách chỉ số khởi điểm của các Class (dành cho Web Wiki)
-        Task<IEnumerable<ClassConfig>> GetAllClassConfigs();
     }
 }

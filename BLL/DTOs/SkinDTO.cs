@@ -87,9 +87,4 @@ namespace BLL.DTOs
         public bool IsEquipped { get; set; }
     }
 
-    public class PurchaseSkinRequestDto
-    {
-        [Required]
-        public int SkinId { get; set; }
-    }
 }

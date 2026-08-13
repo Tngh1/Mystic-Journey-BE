@@ -158,12 +158,6 @@ namespace BLL.DTOs
         public DateTime CreatedAt { get; set; }
     }
 
-    public class GuildApplicationRequestDto
-    {
-        public int GuildId { get; set; }
-        public string? Message { get; set; }
-    }
-
     // ============ Donate ============
     public class DonateRequest
     {
@@ -223,18 +217,4 @@ namespace BLL.DTOs
         public DateTime CreatedAt { get; set; }
     }
 
-    // ============ Legacy / List view ============
-    public class GuildListResponseDto
-    {
-        public int GuildId { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public int IconId { get; set; }
-        public int Level { get; set; }
-        public int MemberCount { get; set; }
-        public int MaxMembers { get; set; }
-        public string? LeaderName { get; set; }
-        public bool IsActive { get; set; }
-        public int RequiredLevel { get; set; }
-        public int JoinPolicy { get; set; }
-    }
 }

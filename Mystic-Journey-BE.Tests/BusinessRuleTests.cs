@@ -9,6 +9,7 @@ using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
+using System.Data;
 
 namespace Mystic_Journey_BE.Tests;
 
@@ -174,6 +175,76 @@ public sealed class BusinessRuleTests
         Assert.All(sent.AttachedItems, item => Assert.Equal(42, item.ItemId));
         Assert.Equal(250, sent.AttachedItems.Sum(x => x.Quantity));
         mailbox.Verify(x => x.SendMailboxByListId(It.IsAny<SendMailboxByListIdDto>()), Times.Once);
+    }
+
+    [Fact] public async Task UC47_2_UnlockGrantsRewardsExactlyOnce()
+    {
+        var achievement = new Achievement
+        {
+            AchievementId = 3,
+            Name = "Deadeye",
+            RequiredValue = 10,
+            RewardGold = 125,
+            RewardGem = 4,
+            RewardItemId = 42,
+            RewardQuantity = 3
+        };
+        var playerAchievement = new PlayerAchievement
+        {
+            PlayerAchievementId = 11,
+            PlayerProfileId = 7,
+            AchievementId = achievement.AchievementId,
+            Achievement = achievement,
+            Progress = 10
+        };
+        var profile = Profile(gems: 6);
+        profile.Gold = 75;
+
+        var playerAchievements = new Mock<IPlayerAchievementRepository>();
+        playerAchievements.Setup(x => x.GetByIdWithAchievement(11)).ReturnsAsync(playerAchievement);
+        playerAchievements.Setup(x => x.Update(playerAchievement)).ReturnsAsync(playerAchievement);
+
+        var profiles = new Mock<IPlayerProfileRepository>();
+        profiles.Setup(x => x.GetPlayerProfileById(7)).ReturnsAsync(profile);
+        profiles.Setup(x => x.UpdatePlayerProfile(profile)).ReturnsAsync(profile);
+
+        var rewards = new Mock<IRewardDeliveryService>();
+        var transactions = new Mock<ITransactionManager>();
+        transactions
+            .Setup(x => x.ExecuteInTransactionAsync(
+                It.IsAny<Func<Task<PlayerAchievementResponseDto>>>(),
+                IsolationLevel.Serializable))
+            .Returns((Func<Task<PlayerAchievementResponseDto>> action, IsolationLevel _) => action());
+
+        var mapper = new Mock<IMapper>();
+        mapper.Setup(x => x.Map<PlayerAchievementResponseDto>(It.IsAny<PlayerAchievement>()))
+            .Returns((PlayerAchievement source) => new PlayerAchievementResponseDto
+            {
+                PlayerAchievementId = source.PlayerAchievementId,
+                IsCompleted = source.IsCompleted,
+                CompletedAt = source.CompletedAt
+            });
+
+        var service = new AchievementService(
+            new Mock<IAchievementRepository>().Object,
+            mapper.Object,
+            playerAchievements.Object,
+            profiles.Object,
+            new Mock<IPlayerQuestRepository>().Object,
+            rewards.Object,
+            transactions.Object);
+
+        var first = await service.UnlockAchievement(7, 11);
+        var retry = await service.UnlockAchievement(7, 11);
+
+        Assert.True(first.IsCompleted);
+        Assert.True(retry.IsCompleted);
+        Assert.NotNull(playerAchievement.CompletedAt);
+        Assert.Equal(200, profile.Gold);
+        Assert.Equal(10, profile.Gems);
+        profiles.Verify(x => x.UpdatePlayerProfile(profile), Times.Once);
+        rewards.Verify(x => x.DeliverItemAsync(7, 42, 3, It.IsAny<string>()), Times.Once);
+        playerAchievements.Verify(x => x.Update(playerAchievement), Times.Once);
     }
 
     private static PlayerProfile Profile(int energy = 0, int maxEnergy = 100, DateTime? updated = null, int gems = 0, bool changed = false, int level = 1, string playerClass = "Knight") => new()

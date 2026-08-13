@@ -34,7 +34,7 @@ namespace Mystic_Journey_API.Controllers
         public async Task<IActionResult> GetClasses()
         {
             var configs = await _wikiService.GetClasses();
-            return Ok(new ApiResponse<object> { Success = true, Data = configs });
+            return Ok(new ApiResponse<IEnumerable<ClassConfigResponseDto>> { Success = true, Data = configs });
         }
 
         // ═══════════════════════════════════════════════════════════════════════

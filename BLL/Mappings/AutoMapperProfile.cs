@@ -235,7 +235,8 @@ namespace BLL.Mappings
             // ═══════════════════════════════════════════════════════════════════════
 
             // Ánh xạ phần thưởng đăng nhập.
-            CreateMap<DailyLoginReward, DailyLoginRewardResponseDto>();
+            CreateMap<DailyLoginReward, DailyLoginRewardResponseDto>()
+                .ForMember(dest => dest.RewardItemName, opt => opt.MapFrom(src => src.RewardItem != null ? src.RewardItem.Name : null));
             CreateMap<CreateDailyLoginRewardRequestDto, DailyLoginReward>();
 
             // ═══════════════════════════════════════════════════════════════════════

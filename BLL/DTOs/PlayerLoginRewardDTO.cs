@@ -25,17 +25,6 @@ namespace BLL.DTOs
         public int DayNumber { get; set; }
     }
 
-    public class DailyLoginRewardInfoDto
-    {
-        public int DayNumber { get; set; }
-        public string RewardType { get; set; } = string.Empty;
-        public decimal RewardValue { get; set; }
-        public int? RewardItemId { get; set; }
-        public string? RewardItemName { get; set; }
-        public int RewardItemQuantity { get; set; }
-        public bool IsClaimed { get; set; }
-    }
-
     public class ClaimDailyRewardResponseDto
     {
         public bool Success { get; set; }
