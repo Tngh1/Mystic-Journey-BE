@@ -22,11 +22,6 @@ namespace BLL.DTOs
         public int RewardGem { get; set; }
     }
 
-    public class ClaimAchievementRewardRequestDto
-    {
-        public int PlayerAchievementId { get; set; }
-    }
-
     // ============ Player Me Achievements (GET /api/achievements/me) ============
     public class PlayerMeAchievementsResponseDto
     {

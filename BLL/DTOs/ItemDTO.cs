@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace BLL.DTOs
 {
@@ -91,12 +90,4 @@ namespace BLL.DTOs
         public float? BonusCritDamage { get; set; }
     }
 
-    public class ItemApiResponseDto
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? Data { get; set; }
-    }
 }

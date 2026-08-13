@@ -13,17 +13,4 @@ namespace BLL.DTOs
         public DateTime CreatedAt { get; set; }
     }
 
-    public class CurrencyBalanceDto
-    {
-        public decimal Gold { get; set; }
-        public decimal Gems { get; set; }
-    }
-
-    public class CurrencyTransactionDto
-    {
-        public string Currency { get; set; } = "Gold";
-        public string Type { get; set; } = "Earn";
-        public decimal Amount { get; set; }
-        public string? Note { get; set; }
-    }
 }

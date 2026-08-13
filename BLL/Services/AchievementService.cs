@@ -4,6 +4,7 @@ using BLL.Services.Interfaces;
 using DAL.Models;
 using DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Linq;
 
 namespace BLL.Services
@@ -15,19 +16,25 @@ namespace BLL.Services
         private readonly IPlayerAchievementRepository _playerAchievementRepository;
         private readonly IPlayerProfileRepository _playerProfileRepository;
         private readonly IPlayerQuestRepository _playerQuestRepository;
+        private readonly IRewardDeliveryService _rewardDeliveryService;
+        private readonly ITransactionManager _transactionManager;
 
         public AchievementService(
             IAchievementRepository repository,
             IMapper mapper,
             IPlayerAchievementRepository playerAchievementRepository,
             IPlayerProfileRepository playerProfileRepository,
-            IPlayerQuestRepository playerQuestRepository)
+            IPlayerQuestRepository playerQuestRepository,
+            IRewardDeliveryService rewardDeliveryService,
+            ITransactionManager transactionManager)
         {
             _repository = repository;
             _mapper = mapper;
             _playerAchievementRepository = playerAchievementRepository;
             _playerProfileRepository = playerProfileRepository;
             _playerQuestRepository = playerQuestRepository;
+            _rewardDeliveryService = rewardDeliveryService;
+            _transactionManager = transactionManager;
         }
 
         public async Task<AchievementResponseDto?> GetAchievementById(int id)
@@ -170,26 +177,50 @@ namespace BLL.Services
 
         public async Task<PlayerAchievementResponseDto> UnlockAchievement(int playerProfileId, int playerAchievementId)
         {
-            var playerAchievement = await _playerAchievementRepository.GetByIdWithAchievement(playerAchievementId)
-                ?? throw new KeyNotFoundException($"Player achievement with id {playerAchievementId} not found.");
+            return await _transactionManager.ExecuteInTransactionAsync(async () =>
+            {
+                var playerAchievement = await _playerAchievementRepository.GetByIdWithAchievement(playerAchievementId)
+                    ?? throw new KeyNotFoundException($"Player achievement with id {playerAchievementId} not found.");
 
-            if (playerAchievement.PlayerProfileId != playerProfileId)
-                throw new UnauthorizedAccessException("You cannot unlock another player's achievement.");
+                if (playerAchievement.PlayerProfileId != playerProfileId)
+                    throw new UnauthorizedAccessException("You cannot unlock another player's achievement.");
 
-            if (playerAchievement.Achievement == null)
-                throw new InvalidOperationException("Achievement data is missing.");
+                var achievement = playerAchievement.Achievement
+                    ?? throw new InvalidOperationException("Achievement data is missing.");
 
-            if (playerAchievement.IsCompleted)
-                return _mapper.Map<PlayerAchievementResponseDto>(playerAchievement);
+                // IsCompleted doubles as the idempotency marker: retries return the same result
+                // without granting currency or items a second time.
+                if (playerAchievement.IsCompleted)
+                    return _mapper.Map<PlayerAchievementResponseDto>(playerAchievement);
 
-            if (playerAchievement.Progress < playerAchievement.Achievement.RequiredValue)
-                throw new InvalidOperationException("Achievement progress is not high enough to unlock.");
+                if (playerAchievement.Progress < achievement.RequiredValue)
+                    throw new InvalidOperationException("Achievement progress is not high enough to unlock.");
 
-            playerAchievement.IsCompleted = true;
-            playerAchievement.CompletedAt = DateTime.UtcNow;
+                if (achievement.RewardGold > 0 || achievement.RewardGem > 0)
+                {
+                    var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId)
+                        ?? throw new KeyNotFoundException($"Player profile with id {playerProfileId} not found.");
 
-            var updated = await _playerAchievementRepository.Update(playerAchievement);
-            return _mapper.Map<PlayerAchievementResponseDto>(updated);
+                    profile.Gold += achievement.RewardGold;
+                    profile.Gems += achievement.RewardGem;
+                    await _playerProfileRepository.UpdatePlayerProfile(profile);
+                }
+
+                if (achievement.RewardItemId.HasValue && achievement.RewardQuantity > 0)
+                {
+                    await _rewardDeliveryService.DeliverItemAsync(
+                        playerProfileId,
+                        achievement.RewardItemId.Value,
+                        achievement.RewardQuantity,
+                        $"achievement '{achievement.Name}'");
+                }
+
+                playerAchievement.IsCompleted = true;
+                playerAchievement.CompletedAt = DateTime.UtcNow;
+
+                var updated = await _playerAchievementRepository.Update(playerAchievement);
+                return _mapper.Map<PlayerAchievementResponseDto>(updated);
+            }, IsolationLevel.Serializable);
         }
     }
 }

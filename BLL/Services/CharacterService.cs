@@ -393,12 +393,5 @@ namespace BLL.Services
                 default: return 1;
             }
         }
-
-        // ── 5. Get Class Configs ───────────────────────────────────────────────────────
-
-        public async Task<IEnumerable<ClassConfig>> GetAllClassConfigs()
-        {
-            return await _classConfigRepository.GetAll();
-        }
     }
 }

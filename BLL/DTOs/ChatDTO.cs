@@ -103,38 +103,4 @@ namespace BLL.DTOs
         public DateTime? RespondedAt { get; set; }
     }
 
-    public class FriendRequestDto
-    {
-        [Required(ErrorMessage = "Addressee ID is required.")]
-        public int AddresseeId { get; set; }
-    }
-
-    public class RespondFriendRequestDto
-    {
-        [Required(ErrorMessage = "Status is required.")]
-        public string Status { get; set; } = "Pending";
-    }
-
-    // ============ Friend List View ============
-    public class FriendListResponseDto
-    {
-        public int FriendId { get; set; }
-        public int PlayerProfileId { get; set; }
-        public string PlayerDisplayName { get; set; } = string.Empty;
-        public string? PlayerAvatarUrl { get; set; }
-        public int PlayerLevel { get; set; }
-        public string PlayerClass { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-    }
-
-    public class FriendRequestListResponseDto
-    {
-        public int FriendId { get; set; }
-        public int RequesterId { get; set; }
-        public string RequesterName { get; set; } = string.Empty;
-        public string? RequesterAvatarUrl { get; set; }
-        public int? RequesterLevel { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
 }

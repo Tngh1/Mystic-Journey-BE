@@ -69,11 +69,4 @@ namespace BLL.DTOs
         public List<QuestProgressItemDto> Updates { get; set; } = new();
     }
 
-    // ============ Player Me Quests (GET /api/playerquests/me) ============
-    public class PlayerMeQuestsResponseDto
-    {
-        public int PlayerProfileId { get; set; }
-        public List<PlayerQuestResponseDto> Quests { get; set; } = new();
-        public int TotalCount { get; set; }
-    }
 }

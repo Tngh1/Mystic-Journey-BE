@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace BLL.DTOs
 {
@@ -95,16 +94,6 @@ namespace BLL.DTOs
         public string NewName { get; set; } = string.Empty;
     }
 
-    // ============ PlayerProfile API Response ============
-    public class PlayerProfileApiResponseDto
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? Data { get; set; }
-    }
-
     // ============ Character Creation ============
 
     /// <summary>
@@ -173,41 +162,6 @@ namespace BLL.DTOs
         public int AmountSpent { get; set; }
         public int RemainingSkillPoints { get; set; }
         public PlayerStatsResponseDto Stats { get; set; } = new();
-    }
-
-    // ============ Player /me Response (Lightweight) ============
-    public class PlayerMeResponseDto
-    {
-        // Basic Info
-        public int PlayerProfileId { get; set; }
-        public int AccountId { get; set; }
-        public string DisplayName { get; set; } = string.Empty;
-        public string? AvatarUrl { get; set; }
-        public string PlayerClass { get; set; } = "Knight";
-        public int Level { get; set; }
-        public int ExperiencePoints { get; set; }
-        public int AvailableStatPoints { get; set; }
-
-        // Currency
-        public decimal Gold { get; set; }
-        public decimal Gems { get; set; }
-        public int Energy { get; set; }
-        public int MaxEnergy { get; set; }
-        public DateTime LastEnergyUpdateTime { get; set; }
-
-        // Position
-        public string LastMapName { get; set; } = string.Empty;
-        public double PositionX { get; set; }
-        public double PositionY { get; set; }
-        public float CorruptionLevel { get; set; }
-
-        // Stats
-        public PlayerStatsResponseDto? Stats { get; set; }
-
-        // Timestamps
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public DateTime? LastFreeGachaTime { get; set; }
     }
 
     public class AllocateStatRequestDto

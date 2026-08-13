@@ -24,6 +24,7 @@ namespace DAL.Repositories
         {
             return await _context.PlayerAchievements
                 .Include(pa => pa.Achievement)
+                    .ThenInclude(a => a!.RewardItem)
                 .Where(pa => pa.PlayerProfileId == playerProfileId)
                 .ToListAsync();
         }
@@ -33,6 +34,7 @@ namespace DAL.Repositories
         {
             return await _context.PlayerAchievements
                 .Include(pa => pa.Achievement)
+                    .ThenInclude(a => a!.RewardItem)
                 .FirstOrDefaultAsync(pa => pa.PlayerAchievementId == playerAchievementId);
         }
 

@@ -1,3 +1,4 @@
+using AutoMapper;
 using BLL.DTOs;
 using BLL.Services.Interfaces;
 using DAL.Models;
@@ -19,13 +20,16 @@ namespace BLL.Services
     {
         private readonly IDailyLoginRewardRepository _repository;
         private readonly IItemRepository _itemRepository;
+        private readonly IMapper _mapper;
 
         public DailyLoginRewardService(
             IDailyLoginRewardRepository repository,
-            IItemRepository itemRepository)
+            IItemRepository itemRepository,
+            IMapper mapper)
         {
             _repository = repository;
             _itemRepository = itemRepository;
+            _mapper = mapper;
         }
 
         // ═══════════════════════════════════════════════════════════════════════
@@ -36,7 +40,7 @@ namespace BLL.Services
             int page, int pageSize, int? month = null, int? year = null)
         {
             var (totalCount, items) = await _repository.GetDailyLoginRewardsPaged(page, pageSize, month, year);
-            var dtos = items.Select(MapToDto).ToList();
+            var dtos = _mapper.Map<List<DailyLoginRewardResponseDto>>(items);
             return new PagedResultDto<DailyLoginRewardResponseDto>(totalCount, dtos);
         }
 
@@ -67,12 +71,12 @@ namespace BLL.Services
                 if (overrideByDay.TryGetValue(day, out var overrideReward))
                 {
                     // Override tháng/năm này
-                    result.Add(MapToDto(overrideReward));
+                    result.Add(_mapper.Map<DailyLoginRewardResponseDto>(overrideReward));
                 }
                 else if (defaultByDay.TryGetValue(day, out var defaultReward))
                 {
                     // Fallback về default
-                    result.Add(MapToDto(defaultReward));
+                    result.Add(_mapper.Map<DailyLoginRewardResponseDto>(defaultReward));
                 }
                 else
                 {
@@ -101,7 +105,7 @@ namespace BLL.Services
         public async Task<DailyLoginRewardResponseDto?> GetDailyLoginRewardById(int id)
         {
             var reward = await _repository.GetDailyLoginRewardById(id);
-            return reward == null ? null : MapToDto(reward);
+            return reward == null ? null : _mapper.Map<DailyLoginRewardResponseDto>(reward);
         }
 
         /// <summary>
@@ -120,7 +124,7 @@ namespace BLL.Services
 
                 return Enumerable.Range(1, MAX_DAYS).Select(day =>
                     defaultByDay.TryGetValue(day, out var r)
-                        ? MapToDto(r)
+                        ? _mapper.Map<DailyLoginRewardResponseDto>(r)
                         : MakePlaceholder(day, null, null)
                 ).ToList();
             }
@@ -177,7 +181,7 @@ namespace BLL.Services
                 reward.RewardItem = item;
             }
 
-            return MapToDto(reward);
+            return _mapper.Map<DailyLoginRewardResponseDto>(reward);
         }
 
         public async Task<DailyLoginRewardResponseDto> UpdateDailyLoginReward(
@@ -206,7 +210,7 @@ namespace BLL.Services
                 reward.RewardItem = null;
             }
 
-            return MapToDto(reward);
+            return _mapper.Map<DailyLoginRewardResponseDto>(reward);
         }
 
         public async Task DeleteDailyLoginReward(int id)
@@ -218,21 +222,6 @@ namespace BLL.Services
         }
 
         // ── Helpers ─────────────────────────────────────────────────────────────
-
-        private static DailyLoginRewardResponseDto MapToDto(DailyLoginReward r) => new()
-        {
-            DailyLoginRewardId = r.DailyLoginRewardId,
-            DayNumber          = r.DayNumber,
-            Month              = r.Month,
-            Year               = r.Year,
-            RewardType         = r.RewardType,
-            RewardValue        = r.RewardValue,
-            RewardItemId       = r.RewardItemId,
-            RewardItemName     = r.RewardItem?.Name,
-            RewardItemQuantity = r.RewardItemQuantity,
-            IsActive           = r.IsActive,
-            CreatedAt          = r.CreatedAt,
-        };
 
         private static DailyLoginRewardResponseDto MakePlaceholder(int day, int? month, int? year) => new()
         {

@@ -137,9 +137,4 @@ namespace BLL.DTOs
         public string VerificationCode { get; set; } = string.Empty;
     }
 
-    public class RefreshTokenRequestDto
-    {
-        [Required(ErrorMessage = "Refresh token is required.")]
-        public string RefreshToken { get; set; } = string.Empty;
-    }
 }
