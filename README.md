@@ -131,7 +131,6 @@ gạch nối** (vd `AdminAccountsController` → `/api/adminaccounts`).
 | `FriendController` | `/api/friend` | Bạn bè |
 | `ChatController` | `/api/chat` | Chat + kiểm duyệt |
 | `PresenceController` | `/api/presence` | Trạng thái online |
-| `SeedController` | `/api/seed` | Seed dữ liệu (dev) |
 
 ---
 

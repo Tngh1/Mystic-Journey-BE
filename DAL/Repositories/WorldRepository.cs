@@ -133,11 +133,15 @@ namespace DAL.Repositories
         }
 
         /// <summary>Lấy phần thưởng đăng nhập theo số ngày, kèm vật phẩm thưởng.</summary>
-        public async Task<DailyLoginReward?> GetDailyLoginReward(int dayNumber)
+        public async Task<DailyLoginReward?> GetDailyLoginReward(int dayNumber, int month, int year)
         {
             return await _context.DailyLoginRewards
                 .Include(r => r.RewardItem)
-                .FirstOrDefaultAsync(r => r.DayNumber == dayNumber && r.IsActive);
+                .Where(r => r.DayNumber == dayNumber && r.IsActive &&
+                    ((r.Month == month && r.Year == year) ||
+                     (r.Month == null && r.Year == null)))
+                .OrderByDescending(r => r.Month.HasValue)
+                .FirstOrDefaultAsync();
         }
     }
 }

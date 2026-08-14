@@ -220,6 +220,7 @@ namespace DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
                     Type = table.Column<string>(type: "text", nullable: false),
                     DamageType = table.Column<string>(type: "text", nullable: false),
                     TargetType = table.Column<string>(type: "text", nullable: false),
@@ -1803,16 +1804,6 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "CategoryContents",
-                columns: new[] { "CategoryContentId", "CreatedAt", "Description", "IconUrl", "IsActive", "Name", "Slug" },
-                values: new object[,]
-                {
-                    { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "An ancient woodland inhabited by the Elven race, once protected by the Origin Tree before the curse befell the land.", null, true, "Elf Forest", "elf-forest" },
-                    { 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A collection of four ancient elemental seal books containing mysterious powers needed to unlock the realm's secrets.", null, true, "Seal Books", "seal-books" },
-                    { 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A journal recording legends, lore, and key storyline events unfolding across the realms.", null, true, "The Chronicle", "the-chronicle" }
-                });
-
-            migrationBuilder.InsertData(
                 table: "Chests",
                 columns: new[] { "ChestId", "Description", "ExperienceReward", "GoldMaxReward", "GoldMinReward", "IsActive", "Name", "Type" },
                 values: new object[,]
@@ -1836,6 +1827,40 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "DailyLoginRewards",
+                columns: new[] { "DailyLoginRewardId", "CreatedAt", "DayNumber", "IsActive", "Month", "RewardItemId", "RewardItemQuantity", "RewardType", "RewardValue", "Year" },
+                values: new object[,]
+                {
+                    { -31, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 31, true, null, null, 0, "Gems", 75m, null },
+                    { -30, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 30, true, null, null, 0, "Gold", 2000m, null },
+                    { -29, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 29, true, null, null, 0, "Gems", 50m, null },
+                    { -27, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 27, true, null, null, 0, "Energy", 70m, null },
+                    { -26, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 26, true, null, null, 0, "Gems", 35m, null },
+                    { -25, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 25, true, null, null, 0, "Gold", 1200m, null },
+                    { -24, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 24, true, null, null, 0, "Gems", 30m, null },
+                    { -23, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 23, true, null, null, 0, "Energy", 60m, null },
+                    { -22, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 22, true, null, null, 0, "Gold", 1100m, null },
+                    { -20, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 20, true, null, null, 0, "Gold", 1000m, null },
+                    { -19, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 19, true, null, null, 0, "Gems", 25m, null },
+                    { -18, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 18, true, null, null, 0, "Gold", 900m, null },
+                    { -17, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 17, true, null, null, 0, "Energy", 50m, null },
+                    { -16, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 16, true, null, null, 0, "Gems", 20m, null },
+                    { -15, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 15, true, null, null, 0, "Gold", 800m, null },
+                    { -13, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 13, true, null, null, 0, "Gems", 15m, null },
+                    { -12, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 12, true, null, null, 0, "Gold", 600m, null },
+                    { -11, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 11, true, null, null, 0, "Energy", 40m, null },
+                    { -10, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 10, true, null, null, 0, "Gold", 500m, null },
+                    { -9, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 9, true, null, null, 0, "Gems", 10m, null },
+                    { -8, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 8, true, null, null, 0, "Gold", 400m, null },
+                    { -6, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 6, true, null, null, 0, "Energy", 30m, null },
+                    { -5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 5, true, null, null, 0, "Gold", 300m, null },
+                    { -4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 4, true, null, null, 0, "Gems", 5m, null },
+                    { -3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, true, null, null, 0, "Gold", 200m, null },
+                    { -2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, true, null, null, 0, "Energy", 20m, null },
+                    { -1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, true, null, null, 0, "Gold", 100m, null }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Dungeons",
                 columns: new[] { "DungeonId", "Description", "IsRepeatable", "Name" },
                 values: new object[,]
@@ -1847,6 +1872,11 @@ namespace DAL.Migrations
                     { 5, "Stronghold of Goblins and Ogres", true, "Goblin Camp" },
                     { 6, "Portal to the realm of Demons and Orc Warriors", true, "Hell's Gate" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "GachaBanners",
+                columns: new[] { "GachaBannerId", "CostItemId", "EndAt", "IsActive", "Name", "PityLimit", "PullCost", "StartAt", "Type" },
+                values: new object[] { 1, 4, new DateTime(2099, 12, 31, 23, 59, 59, 0, DateTimeKind.Utc), true, "Standard Adventure Banner", 90, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Standard" });
 
             migrationBuilder.InsertData(
                 table: "Items",
@@ -2009,28 +2039,41 @@ namespace DAL.Migrations
 
             migrationBuilder.InsertData(
                 table: "Skills",
-                columns: new[] { "SkillId", "BaseDamage", "ClassRequirement", "CooldownSeconds", "CorruptionCost", "DamageGrowthPercent", "DamagePerLevel", "DamageType", "Description", "IsActive", "Name", "TargetType", "Type", "UnlockLevel" },
+                columns: new[] { "SkillId", "BaseDamage", "ClassRequirement", "CooldownSeconds", "CorruptionCost", "DamageGrowthPercent", "DamagePerLevel", "DamageType", "Description", "ImageUrl", "IsActive", "Name", "TargetType", "Type", "UnlockLevel" },
                 values: new object[,]
                 {
-                    { 1, 55.0, "Archer", 2, 0f, 3.0, 8.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "Accelerationarrow", "SingleTarget", "Active", 1 },
-                    { 2, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "ArrowofLight", "SingleTarget", "Active", 1 },
-                    { 3, 50.0, "Mage", 5, 0f, 0.0, 0.0, "Magical", "Heals allies within range.", true, "Holymagic", "Ally", "Buff", 1 },
-                    { 4, 75.0, "Mage", 3, 0f, 3.0, 10.0, "Magical", "Casts a spell in the direction the character is facing.", true, "Purification", "SingleTarget", "Active", 1 },
-                    { 5, 75.0, "Mage", 3, 0f, 3.0, 10.0, "Magical", "Selects and attacks a random monster within range.", true, "Stardust", "SingleTarget", "Active", 1 },
-                    { 6, 115.0, "Knight", 5, 0f, 3.5, 14.0, "Physical", "Selects a target with the monster tag to attack.", true, "Lightsabers", "SingleTarget", "Active", 1 },
-                    { 7, 95.0, "Knight", 4, 0f, 3.5, 12.0, "Physical", "Casts a spell in the direction the character is facing.", true, "LightWaves", "Area", "Active", 1 },
-                    { 8, 0.0, "Knight", 8, 0f, 0.0, 0.0, "Magical", "Protects all allies within range.", true, "ProtectiveShield", "Ally", "Buff", 1 },
-                    { 9, 180.0, "All", 8, 15f, 4.0, 22.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", true, "DarkExplosion", "Area", "Active", 1 },
-                    { 10, 140.0, "All", 6, 10f, 4.0, 18.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", true, "DarkPoisonZone", "Area", "Active", 1 },
-                    { 11, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Automatically fires in the direction the archer is facing.", true, "DeadlyCurse", "SingleTarget", "Active", 1 },
-                    { 12, 55.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Selects an area within range to attack.", true, "NightMagic", "Area", "Active", 1 },
-                    { 13, 140.0, "All", 6, 8f, 4.0, 18.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
-                    { 14, 55.0, "Knight", 2, 0f, 3.0, 8.0, "Physical", "A short-range slash in the direction the knight is facing.", true, "BloodySlash", "SingleTarget", "Active", 1 },
-                    { 15, 75.0, "Knight", 3, 0f, 3.0, 10.0, "Physical", "Selects an area within range to unleash an icy slash.", true, "FrozenSash", "Area", "Active", 1 },
-                    { 16, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", true, "PumpkinMagic", "Area", "Active", 1 },
-                    { 17, 115.0, "Knight", 5, 0f, 3.5, 14.0, "Physical", "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", true, "PumpkinThrow", "Area", "Active", 1 },
-                    { 18, 55.0, "Knight", 2, 0f, 3.0, 8.0, "Physical", "A short-range pumpkin slash in the direction the knight is facing.", true, "PumpkinSlash", "SingleTarget", "Active", 1 },
-                    { 19, 55.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", true, "BoomBoomPumpkin", "Area", "Active", 1 }
+                    { 1, 55.0, "Archer", 2, 0f, 3.0, 8.0, "Physical", "Automatically fires in the direction the archer is facing.", null, true, "Accelerationarrow", "SingleTarget", "Active", 1 },
+                    { 2, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Automatically fires in the direction the archer is facing.", null, true, "ArrowofLight", "SingleTarget", "Active", 1 },
+                    { 3, 50.0, "Mage", 5, 0f, 0.0, 0.0, "Magical", "Heals allies within range.", null, true, "Holymagic", "Ally", "Buff", 1 },
+                    { 4, 75.0, "Mage", 3, 0f, 3.0, 10.0, "Magical", "Casts a spell in the direction the character is facing.", null, true, "Purification", "SingleTarget", "Active", 1 },
+                    { 5, 75.0, "Mage", 3, 0f, 3.0, 10.0, "Magical", "Selects and attacks a random monster within range.", null, true, "Stardust", "SingleTarget", "Active", 1 },
+                    { 6, 115.0, "Knight", 5, 0f, 3.5, 14.0, "Physical", "Selects a target with the monster tag to attack.", null, true, "Lightsabers", "SingleTarget", "Active", 1 },
+                    { 7, 95.0, "Knight", 4, 0f, 3.5, 12.0, "Physical", "Casts a spell in the direction the character is facing.", null, true, "LightWaves", "Area", "Active", 1 },
+                    { 8, 0.0, "Knight", 8, 0f, 0.0, 0.0, "Magical", "Protects all allies within range.", null, true, "ProtectiveShield", "Ally", "Buff", 1 },
+                    { 9, 180.0, "All", 8, 15f, 4.0, 22.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 15.", null, true, "DarkExplosion", "Area", "Active", 1 },
+                    { 10, 140.0, "All", 6, 10f, 4.0, 18.0, "Magical", "Shared among all classes. Deals damage equal to 2x base damage. Increases corruption points by 10.", null, true, "DarkPoisonZone", "Area", "Active", 1 },
+                    { 11, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Automatically fires in the direction the archer is facing.", null, true, "DeadlyCurse", "SingleTarget", "Active", 1 },
+                    { 12, 55.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Selects an area within range to attack.", null, true, "NightMagic", "Area", "Active", 1 },
+                    { 13, 140.0, "All", 6, 8f, 4.0, 18.0, "Magical", "Shared among all classes. Deals damage equal to 3x base damage. Increases corruption points by 8.", null, true, "DeadlyExplosion", "SingleTarget", "Active", 1 },
+                    { 14, 55.0, "Knight", 2, 0f, 3.0, 8.0, "Physical", "A short-range slash in the direction the knight is facing.", null, true, "BloodySlash", "SingleTarget", "Active", 1 },
+                    { 15, 75.0, "Knight", 3, 0f, 3.0, 10.0, "Physical", "Selects an area within range to unleash an icy slash.", null, true, "FrozenSash", "Area", "Active", 1 },
+                    { 16, 115.0, "Archer", 5, 0f, 3.5, 14.0, "Physical", "Summons a magical pumpkin trap that lasts 5 seconds. Explodes when touched by monsters or when duration expires, dealing AoE physical damage.", null, true, "PumpkinMagic", "Area", "Active", 1 },
+                    { 17, 115.0, "Knight", 5, 0f, 3.5, 14.0, "Physical", "Throws an explosive pumpkin in a parabolic arc. Explodes on impact with any object, dealing AoE physical damage to monsters.", null, true, "PumpkinThrow", "Area", "Active", 1 },
+                    { 18, 55.0, "Knight", 2, 0f, 3.0, 8.0, "Physical", "A short-range pumpkin slash in the direction the knight is facing.", null, true, "PumpkinSlash", "SingleTarget", "Active", 1 },
+                    { 19, 55.0, "Mage", 2, 0f, 3.0, 8.0, "Magical", "Summons a magic pumpkin that explodes immediately at the target location, dealing light magical AoE damage with a short cooldown.", null, true, "BoomBoomPumpkin", "Area", "Active", 1 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Skins",
+                columns: new[] { "SkinId", "CreatedAt", "Currency", "Description", "IconUrl", "IsActive", "IsForSale", "Name", "PreviewUrl", "Price", "Rarity", "Type" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Gems", "Knight default skin", null, true, false, "Knight Default", null, 0m, "Common", "FullSet" },
+                    { 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Gems", "Archer default skin", null, true, false, "Archer Default", null, 0m, "Common", "FullSet" },
+                    { 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Gems", "Mage default skin", null, true, false, "Mage Default", null, 0m, "Common", "FullSet" },
+                    { 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Gems", "Archer premium skin", null, true, true, "Archer Skin", null, 100m, "Rare", "FullSet" },
+                    { 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Gems", "Knight premium skin", null, true, true, "Knight Skin", null, 100m, "Rare", "FullSet" },
+                    { 6, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Gems", "Mage premium skin", null, true, true, "Mage Skin", null, 100m, "Rare", "FullSet" }
                 });
 
             migrationBuilder.InsertData(
@@ -2054,15 +2097,14 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Contents",
-                columns: new[] { "ContentId", "CategoryContentId", "CreatedAt", "IsPublished", "PublishedAt", "Slug", "SubCategoryContentId", "Summary", "ThumbnailUrl", "Title", "UpdatedAt" },
+                table: "DailyLoginRewards",
+                columns: new[] { "DailyLoginRewardId", "CreatedAt", "DayNumber", "IsActive", "Month", "RewardItemId", "RewardItemQuantity", "RewardType", "RewardValue", "Year" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "secrets-of-the-origin-tree-in-elf-forest", null, "Discover the source of life power for the Elven race and the rising threat of dark forces surrounding the ancient forest.", null, "Secrets of the Origin Tree in Elf Forest", null },
-                    { 2, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "legend-of-the-fire-elemental-seal-book", null, "Details on the location and decryption of the first Seal Book to unlock Fire Magic skills.", null, "Legend of the Fire Elemental Seal Book", null },
-                    { 3, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "chapter-1-awakening-in-the-deep-woods", null, "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.", null, "Chapter 1: Awakening in the Deep Woods", null },
-                    { 4, 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), false, null, "guide-to-collecting-all-4-seal-books", null, "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.", null, "Guide to Collecting All 4 Seal Books", null },
-                    { 5, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "ecosystem-and-monsters-in-elf-forest", null, "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.", null, "Ecosystem and Monsters in Elf Forest", null }
+                    { -28, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 28, true, null, 22, 10, "Item", 0m, null },
+                    { -21, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 21, true, null, 19, 5, "Item", 0m, null },
+                    { -14, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 14, true, null, 10, 1, "Item", 0m, null },
+                    { -7, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 7, true, null, 19, 3, "Item", 0m, null }
                 });
 
             migrationBuilder.InsertData(
@@ -2105,6 +2147,19 @@ namespace DAL.Migrations
                     { 906, 0, 28, 147, 0, 0, 0, 0, 0, 12, 63, 0, 906 },
                     { 907, 38, 0, 0, 17, 0, 35, 12, 0, 0, 0, 0, 907 },
                     { 908, 6, 24, 98, 2, 0, 15, 5, 0, 10, 42, 0, 908 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "GachaBannerItems",
+                columns: new[] { "GachaBannerItemId", "DropRate", "GachaBannerId", "IsFeatured", "ItemId" },
+                values: new object[,]
+                {
+                    { -6, 20m, 1, false, 21 },
+                    { -5, 24m, 1, false, 19 },
+                    { -4, 20m, 1, false, 3 },
+                    { -3, 20m, 1, false, 22 },
+                    { -2, 15m, 1, false, 13 },
+                    { -1, 1m, 1, true, 8 }
                 });
 
             migrationBuilder.InsertData(
@@ -2375,21 +2430,6 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "BlockContents",
-                columns: new[] { "Id", "BlockType", "Caption", "ContentData", "ContentId", "CreatedAt", "Description", "IsActive", "MediaUrl", "SortOrder", "Title", "UpdatedAt" },
-                values: new object[,]
-                {
-                    { 1, "Text", null, "Located at the heart of the Elf Forest, the Origin Tree once provided magical energy to all living beings. However, an ancient curse is causing its leaves to wither away...", 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
-                    { 2, "Image", "origin_tree_pixel.png", null, 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 2, "", null },
-                    { 3, "Text", null, "The four Seal Books contain remnants of ancient power. The Fire elemental book is currently sealed deep within the abandoned fortress of Autumn Pumpkin...", 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
-                    { 4, "Text", null, "You awaken in a cursed forest with no memories. Four Seal Books, four realms, and a fading Origin Tree — this is the only path forward.", 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
-                    { 5, "Image", "awakening_scene.png", null, 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 2, "", null },
-                    { 6, "Text", null, "Each Seal Book corresponds to a realm on the map: Elf Forest (Earth), Frozen Mountain (Ice), Autumn Pumpkin (Fire), and Abandoned Castle (Shadow)...", 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
-                    { 7, "Text", null, "Although a starter area, Elf Forest hides many dangers from corrupted forest spirits...", 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 1, "", null },
-                    { 8, "Image", "monster_list_pixel.png", null, 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, null, 2, "", null }
-                });
-
-            migrationBuilder.InsertData(
                 table: "NPCDialogues",
                 columns: new[] { "NPCDialogueId", "Content", "DisplayOrder", "IsActive", "LinkedQuestId", "LinkedShopItemId", "NPCId", "ResponseType" },
                 values: new object[,]
@@ -2549,6 +2589,20 @@ namespace DAL.Migrations
                 column: "SubCategoryContentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DailyLoginRewards_DayNumber",
+                table: "DailyLoginRewards",
+                column: "DayNumber",
+                unique: true,
+                filter: "\"Month\" IS NULL AND \"Year\" IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DailyLoginRewards_DayNumber_Month_Year",
+                table: "DailyLoginRewards",
+                columns: new[] { "DayNumber", "Month", "Year" },
+                unique: true,
+                filter: "\"Month\" IS NOT NULL AND \"Year\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DailyLoginRewards_RewardItemId",
                 table: "DailyLoginRewards",
                 column: "RewardItemId");
@@ -2601,9 +2655,10 @@ namespace DAL.Migrations
                 column: "RequesterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GachaBannerItems_GachaBannerId",
+                name: "IX_GachaBannerItems_GachaBannerId_ItemId",
                 table: "GachaBannerItems",
-                column: "GachaBannerId");
+                columns: new[] { "GachaBannerId", "ItemId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_GachaBannerItems_ItemId",
@@ -2838,9 +2893,10 @@ namespace DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlayerSkills_PlayerProfileId",
+                name: "IX_PlayerSkills_PlayerProfileId_SkillId",
                 table: "PlayerSkills",
-                column: "PlayerProfileId");
+                columns: new[] { "PlayerProfileId", "SkillId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerSkills_SkillId",
@@ -2848,9 +2904,10 @@ namespace DAL.Migrations
                 column: "SkillId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlayerSkins_PlayerProfileId",
+                name: "IX_PlayerSkins_PlayerProfileId_SkinId",
                 table: "PlayerSkins",
-                column: "PlayerProfileId");
+                columns: new[] { "PlayerProfileId", "SkinId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerSkins_SkinId",

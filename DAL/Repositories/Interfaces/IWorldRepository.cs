@@ -46,6 +46,6 @@ namespace DAL.Repositories.Interfaces
         Task<PlayerDailyLogin> UpdatePlayerDailyLogin(PlayerDailyLogin login);
 
         // Lấy phần thưởng đăng nhập theo số ngày.
-        Task<DailyLoginReward?> GetDailyLoginReward(int dayNumber);
+        Task<DailyLoginReward?> GetDailyLoginReward(int dayNumber, int month, int year);
     }
 }

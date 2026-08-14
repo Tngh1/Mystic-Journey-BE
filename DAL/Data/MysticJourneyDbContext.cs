@@ -84,6 +84,29 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             modelBuilder.Entity<PlayerDailyLogin>()
                 .HasIndex(d => d.PlayerProfileId)
                 .IsUnique();
+
+            modelBuilder.Entity<PlayerSkill>()
+                .HasIndex(s => new { s.PlayerProfileId, s.SkillId })
+                .IsUnique();
+
+            modelBuilder.Entity<PlayerSkin>()
+                .HasIndex(s => new { s.PlayerProfileId, s.SkinId })
+                .IsUnique();
+
+            modelBuilder.Entity<GachaBannerItem>()
+                .HasIndex(i => new { i.GachaBannerId, i.ItemId })
+                .IsUnique();
+
+            modelBuilder.Entity<DailyLoginReward>()
+                .HasIndex(r => r.DayNumber)
+                .HasFilter("\"Month\" IS NULL AND \"Year\" IS NULL")
+                .IsUnique();
+
+            modelBuilder.Entity<DailyLoginReward>()
+                .HasIndex(r => new { r.DayNumber, r.Month, r.Year })
+                .HasFilter("\"Month\" IS NOT NULL AND \"Year\" IS NOT NULL")
+                .IsUnique();
+
             modelBuilder.Entity<PlayerAchievement>()
                 .HasIndex(a => new { a.PlayerProfileId, a.AchievementId })
                 .IsUnique();
@@ -930,6 +953,75 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Item { ItemId = 36, Name = "Warden Relic",          Description = "A relic left by the wardens who sealed King Aderyn beneath the island.",                     Type = "QuestItem",  Rarity = "Common",    Slot = "None",    BaseValue = 0m,    MaxStack = 99,         IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 }
             );
 
+            // Production catalogs previously created by SeedController. Fixed IDs are
+            // contracts with the Unity SkinDatabase and GachaUIManager.
+            modelBuilder.Entity<Skin>().HasData(
+                new Skin { SkinId = 1, Name = "Knight Default", Description = "Knight default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0m, IsForSale = false, IsActive = true, CreatedAt = utc2024 },
+                new Skin { SkinId = 2, Name = "Archer Default", Description = "Archer default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0m, IsForSale = false, IsActive = true, CreatedAt = utc2024 },
+                new Skin { SkinId = 3, Name = "Mage Default", Description = "Mage default skin", Type = "FullSet", Rarity = "Common", Currency = "Gems", Price = 0m, IsForSale = false, IsActive = true, CreatedAt = utc2024 },
+                new Skin { SkinId = 4, Name = "Archer Skin", Description = "Archer premium skin", Type = "FullSet", Rarity = "Rare", Currency = "Gems", Price = 100m, IsForSale = true, IsActive = true, CreatedAt = utc2024 },
+                new Skin { SkinId = 5, Name = "Knight Skin", Description = "Knight premium skin", Type = "FullSet", Rarity = "Rare", Currency = "Gems", Price = 100m, IsForSale = true, IsActive = true, CreatedAt = utc2024 },
+                new Skin { SkinId = 6, Name = "Mage Skin", Description = "Mage premium skin", Type = "FullSet", Rarity = "Rare", Currency = "Gems", Price = 100m, IsForSale = true, IsActive = true, CreatedAt = utc2024 }
+            );
+
+            modelBuilder.Entity<GachaBanner>().HasData(
+                new GachaBanner
+                {
+                    GachaBannerId = 1,
+                    Name = "Standard Adventure Banner",
+                    Type = "Standard",
+                    PullCost = 1,
+                    CostItemId = 4,
+                    PityLimit = 90,
+                    IsActive = true,
+                    StartAt = utc2024,
+                    EndAt = new DateTime(2099, 12, 31, 23, 59, 59, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<GachaBannerItem>().HasData(
+                new GachaBannerItem { GachaBannerItemId = -1, GachaBannerId = 1, ItemId = 8,  DropRate = 1m,  IsFeatured = true },
+                new GachaBannerItem { GachaBannerItemId = -2, GachaBannerId = 1, ItemId = 13, DropRate = 15m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerItemId = -3, GachaBannerId = 1, ItemId = 22, DropRate = 20m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerItemId = -4, GachaBannerId = 1, ItemId = 3,  DropRate = 20m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerItemId = -5, GachaBannerId = 1, ItemId = 19, DropRate = 24m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerItemId = -6, GachaBannerId = 1, ItemId = 21, DropRate = 20m, IsFeatured = false }
+            );
+
+            modelBuilder.Entity<DailyLoginReward>().HasData(
+                new DailyLoginReward { DailyLoginRewardId = -1,  DayNumber = 1,  RewardType = "Gold",   RewardValue = 100m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -2,  DayNumber = 2,  RewardType = "Energy", RewardValue = 20m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -3,  DayNumber = 3,  RewardType = "Gold",   RewardValue = 200m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -4,  DayNumber = 4,  RewardType = "Gems",   RewardValue = 5m,    IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -5,  DayNumber = 5,  RewardType = "Gold",   RewardValue = 300m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -6,  DayNumber = 6,  RewardType = "Energy", RewardValue = 30m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -7,  DayNumber = 7,  RewardType = "Item",   RewardValue = 0m, RewardItemId = 19, RewardItemQuantity = 3,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -8,  DayNumber = 8,  RewardType = "Gold",   RewardValue = 400m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -9,  DayNumber = 9,  RewardType = "Gems",   RewardValue = 10m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -10, DayNumber = 10, RewardType = "Gold",   RewardValue = 500m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -11, DayNumber = 11, RewardType = "Energy", RewardValue = 40m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -12, DayNumber = 12, RewardType = "Gold",   RewardValue = 600m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -13, DayNumber = 13, RewardType = "Gems",   RewardValue = 15m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -14, DayNumber = 14, RewardType = "Item",   RewardValue = 0m, RewardItemId = 10, RewardItemQuantity = 1,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -15, DayNumber = 15, RewardType = "Gold",   RewardValue = 800m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -16, DayNumber = 16, RewardType = "Gems",   RewardValue = 20m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -17, DayNumber = 17, RewardType = "Energy", RewardValue = 50m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -18, DayNumber = 18, RewardType = "Gold",   RewardValue = 900m,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -19, DayNumber = 19, RewardType = "Gems",   RewardValue = 25m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -20, DayNumber = 20, RewardType = "Gold",   RewardValue = 1000m, IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -21, DayNumber = 21, RewardType = "Item",   RewardValue = 0m, RewardItemId = 19, RewardItemQuantity = 5,  IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -22, DayNumber = 22, RewardType = "Gold",   RewardValue = 1100m, IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -23, DayNumber = 23, RewardType = "Energy", RewardValue = 60m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -24, DayNumber = 24, RewardType = "Gems",   RewardValue = 30m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -25, DayNumber = 25, RewardType = "Gold",   RewardValue = 1200m, IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -26, DayNumber = 26, RewardType = "Gems",   RewardValue = 35m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -27, DayNumber = 27, RewardType = "Energy", RewardValue = 70m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -28, DayNumber = 28, RewardType = "Item",   RewardValue = 0m, RewardItemId = 22, RewardItemQuantity = 10, IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -29, DayNumber = 29, RewardType = "Gems",   RewardValue = 50m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -30, DayNumber = 30, RewardType = "Gold",   RewardValue = 2000m, IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -31, DayNumber = 31, RewardType = "Gems",   RewardValue = 75m,   IsActive = true, CreatedAt = utc2024 }
+            );
+
             // ─────────────────────────────────────────────────────────────────────────
             // EQUIPMENT STATS – for system weapon/armor items (IDs match their ItemId)
             // ─────────────────────────────────────────────────────────────────────────
@@ -1273,201 +1365,6 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new NPCDialogue { NPCDialogueId = 185, NPCId = 2, LinkedQuestId = 45, ResponseType = "Quest", Content = "Set the four Seal Books and the last healing draught upon the Origin Tree. If the forest accepts them, the curse will break.", DisplayOrder = 1, IsActive = true },
                 new NPCDialogue { NPCDialogueId = 186, NPCId = 2, LinkedQuestId = 46, ResponseType = "None", Content = "The forest remembers every hand that carried these seals: Rowan, the silent cities, the frozen guardians, Natalie, and Aderyn. You have given them all another dawn.", DisplayOrder = 1, IsActive = true },
                 new NPCDialogue { NPCDialogueId = 187, NPCId = 2, LinkedQuestId = 46, ResponseType = "Reward", Content = "But the codex was not masterless. Something taught it to drink from the Origin Tree, and that presence is still somewhere beyond these woods.", DisplayOrder = 2, IsActive = true }
-            );
-
-            modelBuilder.Entity<CategoryContent>().HasData(
-                new CategoryContent
-                {
-                    CategoryContentId = 1,
-                    Name = "Elf Forest",
-                    Slug = "elf-forest",
-                    Description = "An ancient woodland inhabited by the Elven race, once protected by the Origin Tree before the curse befell the land.",
-                    IconUrl = null,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new CategoryContent
-                {
-                    CategoryContentId = 2,
-                    Name = "Seal Books",
-                    Slug = "seal-books",
-                    Description = "A collection of four ancient elemental seal books containing mysterious powers needed to unlock the realm's secrets.",
-                    IconUrl = null,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new CategoryContent
-                {
-                    CategoryContentId = 3,
-                    Name = "The Chronicle",
-                    Slug = "the-chronicle",
-                    Description = "A journal recording legends, lore, and key storyline events unfolding across the realms.",
-                    IconUrl = null,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                }
-            );
-
-            modelBuilder.Entity<Content>().HasData(
-                new Content
-                {
-                    ContentId = 1,
-                    Title = "Secrets of the Origin Tree in Elf Forest",
-                    Slug = "secrets-of-the-origin-tree-in-elf-forest",
-                    Summary = "Discover the source of life power for the Elven race and the rising threat of dark forces surrounding the ancient forest.",
-                    ThumbnailUrl = null,
-                    CategoryContentId = 1,
-                    IsPublished = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Content
-                {
-                    ContentId = 2,
-                    Title = "Legend of the Fire Elemental Seal Book",
-                    Slug = "legend-of-the-fire-elemental-seal-book",
-                    Summary = "Details on the location and decryption of the first Seal Book to unlock Fire Magic skills.",
-                    ThumbnailUrl = null,
-                    CategoryContentId = 2,
-                    IsPublished = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Content
-                {
-                    ContentId = 3,
-                    Title = "Chapter 1: Awakening in the Deep Woods",
-                    Slug = "chapter-1-awakening-in-the-deep-woods",
-                    Summary = "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.",
-                    ThumbnailUrl = null,
-                    CategoryContentId = 3,
-                    IsPublished = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Content
-                {
-                    ContentId = 4,
-                    Title = "Guide to Collecting All 4 Seal Books",
-                    Slug = "guide-to-collecting-all-4-seal-books",
-                    Summary = "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.",
-                    ThumbnailUrl = null,
-                    CategoryContentId = 2,
-                    IsPublished = false,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = null
-                },
-                new Content
-                {
-                    ContentId = 5,
-                    Title = "Ecosystem and Monsters in Elf Forest",
-                    Slug = "ecosystem-and-monsters-in-elf-forest",
-                    Summary = "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.",
-                    ThumbnailUrl = null,
-                    CategoryContentId = 1,
-                    IsPublished = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                }
-            );
-
-            modelBuilder.Entity<BlockContent>().HasData(
-                new BlockContent
-                {
-                    Id = 1,
-                    ContentId = 1,
-                    BlockType = "Text",
-                    ContentData = "Located at the heart of the Elf Forest, the Origin Tree once provided magical energy to all living beings. However, an ancient curse is causing its leaves to wither away...",
-                    MediaUrl = null,
-                    Caption = null,
-                    SortOrder = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new BlockContent
-                {
-                    Id = 2,
-                    ContentId = 1,
-                    BlockType = "Image",
-                    ContentData = null,
-                    MediaUrl = null,
-                    Caption = "origin_tree_pixel.png",
-                    SortOrder = 2,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new BlockContent
-                {
-                    Id = 3,
-                    ContentId = 2,
-                    BlockType = "Text",
-                    ContentData = "The four Seal Books contain remnants of ancient power. The Fire elemental book is currently sealed deep within the abandoned fortress of Autumn Pumpkin...",
-                    MediaUrl = null,
-                    Caption = null,
-                    SortOrder = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new BlockContent
-                {
-                    Id = 4,
-                    ContentId = 3,
-                    BlockType = "Text",
-                    ContentData = "You awaken in a cursed forest with no memories. Four Seal Books, four realms, and a fading Origin Tree — this is the only path forward.",
-                    MediaUrl = null,
-                    Caption = null,
-                    SortOrder = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new BlockContent
-                {
-                    Id = 5,
-                    ContentId = 3,
-                    BlockType = "Image",
-                    ContentData = null,
-                    MediaUrl = null,
-                    Caption = "awakening_scene.png",
-                    SortOrder = 2,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new BlockContent
-                {
-                    Id = 6,
-                    ContentId = 4,
-                    BlockType = "Text",
-                    ContentData = "Each Seal Book corresponds to a realm on the map: Elf Forest (Earth), Frozen Mountain (Ice), Autumn Pumpkin (Fire), and Abandoned Castle (Shadow)...",
-                    MediaUrl = null,
-                    Caption = null,
-                    SortOrder = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new BlockContent
-                {
-                    Id = 7,
-                    ContentId = 5,
-                    BlockType = "Text",
-                    ContentData = "Although a starter area, Elf Forest hides many dangers from corrupted forest spirits...",
-                    MediaUrl = null,
-                    Caption = null,
-                    SortOrder = 1,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new BlockContent
-                {
-                    Id = 8,
-                    ContentId = 5,
-                    BlockType = "Image",
-                    ContentData = null,
-                    MediaUrl = null,
-                    Caption = "monster_list_pixel.png",
-                    SortOrder = 2,
-                    IsActive = true,
-                    CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                }
             );
 
             modelBuilder.Entity<Achievement>().HasData(
