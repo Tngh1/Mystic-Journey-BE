@@ -275,6 +275,7 @@ public class GuildRepository : IGuildRepository
 
     public async Task<List<GuildChatMessage>> GetRecentChatAsync(int guildId, int take)
         => await _ctx.GuildChatMessages
+            .Include(m => m.Sender)
             .Where(m => m.GuildId == guildId)
             .OrderByDescending(m => m.SentAt)
             .Take(take)
