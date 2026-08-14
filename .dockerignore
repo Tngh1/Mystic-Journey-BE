@@ -19,6 +19,7 @@ Thumbs.db
 **/bin
 **/obj
 **/publish
+Mystic-Journey-BE.Tests
 
 # Node (if any)
 **/node_modules
@@ -27,5 +28,11 @@ Thumbs.db
 *.md
 **/appsettings.Development.json
 **/appsettings.*.json
-.env.docker
+
+# Environment files may contain credentials
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
 

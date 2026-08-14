@@ -15,17 +15,36 @@ using Mystic_Journey_API.Filters;
 using System.IO;
 using System.Text;
 
-LoadEnvIfExists(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
-LoadEnvIfExists(Path.Combine(Directory.GetCurrentDirectory(), "Mystic-Journey-API", ".env"));
+var workingDirectory = Directory.GetCurrentDirectory();
+LoadEnvIfExists(
+    Path.Combine(workingDirectory, ".env"),
+    Path.GetFullPath(Path.Combine(workingDirectory, "..", ".env")));
 
-static void LoadEnvIfExists(string path)
+static void LoadEnvIfExists(params string[] paths)
 {
-    if (File.Exists(path))
+    foreach (var path in paths)
     {
+        if (!File.Exists(path))
+            continue;
+
         Env.Load(path);
+        return;
     }
 }
 var builder = WebApplication.CreateBuilder(args);
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new InvalidOperationException("JWT signing key is missing. Configure Jwt__Key in the environment or .env file.");
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+    throw new InvalidOperationException("JWT signing key must be at least 32 bytes. Configure a stronger Jwt__Key value.");
+if (string.IsNullOrWhiteSpace(jwtIssuer))
+    throw new InvalidOperationException("JWT issuer is missing. Configure Jwt__Issuer in the environment or .env file.");
+if (string.IsNullOrWhiteSpace(jwtAudience))
+    throw new InvalidOperationException("JWT audience is missing. Configure Jwt__Audience in the environment or .env file.");
 
 // Add services to the container.
 builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
@@ -260,10 +279,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
 
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+                Encoding.UTF8.GetBytes(jwtKey)
             ),
             ClockSkew = TimeSpan.Zero
         };
