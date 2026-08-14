@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260813142507_AddSkillImageUrl")]
-    partial class AddSkillImageUrl
+    [Migration("20260814154520_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -353,96 +353,6 @@ namespace DAL.Migrations
                     b.HasIndex("ContentId");
 
                     b.ToTable("BlockContents");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            BlockType = "Text",
-                            ContentData = "Located at the heart of the Elf Forest, the Origin Tree once provided magical energy to all living beings. However, an ancient curse is causing its leaves to wither away...",
-                            ContentId = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 1,
-                            Title = ""
-                        },
-                        new
-                        {
-                            Id = 2,
-                            BlockType = "Image",
-                            Caption = "origin_tree_pixel.png",
-                            ContentId = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 2,
-                            Title = ""
-                        },
-                        new
-                        {
-                            Id = 3,
-                            BlockType = "Text",
-                            ContentData = "The four Seal Books contain remnants of ancient power. The Fire elemental book is currently sealed deep within the abandoned fortress of Autumn Pumpkin...",
-                            ContentId = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 1,
-                            Title = ""
-                        },
-                        new
-                        {
-                            Id = 4,
-                            BlockType = "Text",
-                            ContentData = "You awaken in a cursed forest with no memories. Four Seal Books, four realms, and a fading Origin Tree — this is the only path forward.",
-                            ContentId = 3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 1,
-                            Title = ""
-                        },
-                        new
-                        {
-                            Id = 5,
-                            BlockType = "Image",
-                            Caption = "awakening_scene.png",
-                            ContentId = 3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 2,
-                            Title = ""
-                        },
-                        new
-                        {
-                            Id = 6,
-                            BlockType = "Text",
-                            ContentData = "Each Seal Book corresponds to a realm on the map: Elf Forest (Earth), Frozen Mountain (Ice), Autumn Pumpkin (Fire), and Abandoned Castle (Shadow)...",
-                            ContentId = 4,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 1,
-                            Title = ""
-                        },
-                        new
-                        {
-                            Id = 7,
-                            BlockType = "Text",
-                            ContentData = "Although a starter area, Elf Forest hides many dangers from corrupted forest spirits...",
-                            ContentId = 5,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 1,
-                            Title = ""
-                        },
-                        new
-                        {
-                            Id = 8,
-                            BlockType = "Image",
-                            Caption = "monster_list_pixel.png",
-                            ContentId = 5,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            SortOrder = 2,
-                            Title = ""
-                        });
                 });
 
             modelBuilder.Entity("DAL.Models.CategoryContent", b =>
@@ -479,35 +389,6 @@ namespace DAL.Migrations
                     b.HasKey("CategoryContentId");
 
                     b.ToTable("CategoryContents");
-
-                    b.HasData(
-                        new
-                        {
-                            CategoryContentId = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "An ancient woodland inhabited by the Elven race, once protected by the Origin Tree before the curse befell the land.",
-                            IsActive = true,
-                            Name = "Elf Forest",
-                            Slug = "elf-forest"
-                        },
-                        new
-                        {
-                            CategoryContentId = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A collection of four ancient elemental seal books containing mysterious powers needed to unlock the realm's secrets.",
-                            IsActive = true,
-                            Name = "Seal Books",
-                            Slug = "seal-books"
-                        },
-                        new
-                        {
-                            CategoryContentId = 3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "A journal recording legends, lore, and key storyline events unfolding across the realms.",
-                            IsActive = true,
-                            Name = "The Chronicle",
-                            Slug = "the-chronicle"
-                        });
                 });
 
             modelBuilder.Entity("DAL.Models.ChatMessage", b =>
@@ -1028,62 +909,6 @@ namespace DAL.Migrations
                     b.HasIndex("SubCategoryContentId");
 
                     b.ToTable("Contents");
-
-                    b.HasData(
-                        new
-                        {
-                            ContentId = 1,
-                            CategoryContentId = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPublished = true,
-                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "secrets-of-the-origin-tree-in-elf-forest",
-                            Summary = "Discover the source of life power for the Elven race and the rising threat of dark forces surrounding the ancient forest.",
-                            Title = "Secrets of the Origin Tree in Elf Forest"
-                        },
-                        new
-                        {
-                            ContentId = 2,
-                            CategoryContentId = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPublished = true,
-                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "legend-of-the-fire-elemental-seal-book",
-                            Summary = "Details on the location and decryption of the first Seal Book to unlock Fire Magic skills.",
-                            Title = "Legend of the Fire Elemental Seal Book"
-                        },
-                        new
-                        {
-                            ContentId = 3,
-                            CategoryContentId = 3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPublished = true,
-                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "chapter-1-awakening-in-the-deep-woods",
-                            Summary = "The beginning of the protagonist's journey — waking up with no memories and the 4 ancient books as the sole clue.",
-                            Title = "Chapter 1: Awakening in the Deep Woods"
-                        },
-                        new
-                        {
-                            ContentId = 4,
-                            CategoryContentId = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPublished = false,
-                            Slug = "guide-to-collecting-all-4-seal-books",
-                            Summary = "Overview of requirements, minimum levels, and boss encounters required to complete the ancient book collection.",
-                            Title = "Guide to Collecting All 4 Seal Books"
-                        },
-                        new
-                        {
-                            ContentId = 5,
-                            CategoryContentId = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPublished = true,
-                            PublishedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Slug = "ecosystem-and-monsters-in-elf-forest",
-                            Summary = "A list of mystical creatures and monster stats that players will encounter throughout the Elf Forest region.",
-                            Title = "Ecosystem and Monsters in Elf Forest"
-                        });
                 });
 
             modelBuilder.Entity("DAL.Models.DailyLoginReward", b =>
@@ -1124,9 +949,333 @@ namespace DAL.Migrations
 
                     b.HasKey("DailyLoginRewardId");
 
+                    b.HasIndex("DayNumber")
+                        .IsUnique()
+                        .HasFilter("\"Month\" IS NULL AND \"Year\" IS NULL");
+
                     b.HasIndex("RewardItemId");
 
+                    b.HasIndex("DayNumber", "Month", "Year")
+                        .IsUnique()
+                        .HasFilter("\"Month\" IS NOT NULL AND \"Year\" IS NOT NULL");
+
                     b.ToTable("DailyLoginRewards");
+
+                    b.HasData(
+                        new
+                        {
+                            DailyLoginRewardId = -1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 1,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 100m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 2,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Energy",
+                            RewardValue = 20m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -3,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 3,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 200m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -4,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 4,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 5m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -5,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 5,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 300m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -6,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 6,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Energy",
+                            RewardValue = 30m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -7,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 7,
+                            IsActive = true,
+                            RewardItemId = 19,
+                            RewardItemQuantity = 3,
+                            RewardType = "Item",
+                            RewardValue = 0m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -8,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 8,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 400m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -9,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 9,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 10m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -10,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 10,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 500m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -11,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 11,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Energy",
+                            RewardValue = 40m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -12,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 12,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 600m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -13,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 13,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 15m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -14,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 14,
+                            IsActive = true,
+                            RewardItemId = 10,
+                            RewardItemQuantity = 1,
+                            RewardType = "Item",
+                            RewardValue = 0m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -15,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 15,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 800m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -16,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 16,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 20m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -17,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 17,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Energy",
+                            RewardValue = 50m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -18,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 18,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 900m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -19,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 19,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 25m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -20,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 20,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 1000m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -21,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 21,
+                            IsActive = true,
+                            RewardItemId = 19,
+                            RewardItemQuantity = 5,
+                            RewardType = "Item",
+                            RewardValue = 0m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -22,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 22,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 1100m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -23,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 23,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Energy",
+                            RewardValue = 60m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -24,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 24,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 30m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -25,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 25,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 1200m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -26,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 26,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 35m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -27,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 27,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Energy",
+                            RewardValue = 70m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -28,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 28,
+                            IsActive = true,
+                            RewardItemId = 22,
+                            RewardItemQuantity = 10,
+                            RewardType = "Item",
+                            RewardValue = 0m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -29,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 29,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 50m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -30,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 30,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gold",
+                            RewardValue = 2000m
+                        },
+                        new
+                        {
+                            DailyLoginRewardId = -31,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayNumber = 31,
+                            IsActive = true,
+                            RewardItemQuantity = 0,
+                            RewardType = "Gems",
+                            RewardValue = 75m
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.Dungeon", b =>
@@ -1929,6 +2078,20 @@ namespace DAL.Migrations
                     b.HasKey("GachaBannerId");
 
                     b.ToTable("GachaBanners");
+
+                    b.HasData(
+                        new
+                        {
+                            GachaBannerId = 1,
+                            CostItemId = 4,
+                            EndAt = new DateTime(2099, 12, 31, 23, 59, 59, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Standard Adventure Banner",
+                            PityLimit = 90,
+                            PullCost = 1,
+                            StartAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Type = "Standard"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.GachaBannerItem", b =>
@@ -1953,11 +2116,62 @@ namespace DAL.Migrations
 
                     b.HasKey("GachaBannerItemId");
 
-                    b.HasIndex("GachaBannerId");
-
                     b.HasIndex("ItemId");
 
+                    b.HasIndex("GachaBannerId", "ItemId")
+                        .IsUnique();
+
                     b.ToTable("GachaBannerItems");
+
+                    b.HasData(
+                        new
+                        {
+                            GachaBannerItemId = -1,
+                            DropRate = 1m,
+                            GachaBannerId = 1,
+                            IsFeatured = true,
+                            ItemId = 8
+                        },
+                        new
+                        {
+                            GachaBannerItemId = -2,
+                            DropRate = 15m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 13
+                        },
+                        new
+                        {
+                            GachaBannerItemId = -3,
+                            DropRate = 20m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 22
+                        },
+                        new
+                        {
+                            GachaBannerItemId = -4,
+                            DropRate = 20m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 3
+                        },
+                        new
+                        {
+                            GachaBannerItemId = -5,
+                            DropRate = 24m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 19
+                        },
+                        new
+                        {
+                            GachaBannerItemId = -6,
+                            DropRate = 20m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 21
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.GachaPullHistory", b =>
@@ -6677,9 +6891,10 @@ namespace DAL.Migrations
 
                     b.HasKey("PlayerSkillId");
 
-                    b.HasIndex("PlayerProfileId");
-
                     b.HasIndex("SkillId");
+
+                    b.HasIndex("PlayerProfileId", "SkillId")
+                        .IsUnique();
 
                     b.ToTable("PlayerSkills");
                 });
@@ -6706,9 +6921,10 @@ namespace DAL.Migrations
 
                     b.HasKey("PlayerSkinId");
 
-                    b.HasIndex("PlayerProfileId");
-
                     b.HasIndex("SkinId");
+
+                    b.HasIndex("PlayerProfileId", "SkinId")
+                        .IsUnique();
 
                     b.ToTable("PlayerSkins");
                 });
@@ -8807,6 +9023,86 @@ namespace DAL.Migrations
                     b.HasKey("SkinId");
 
                     b.ToTable("Skins");
+
+                    b.HasData(
+                        new
+                        {
+                            SkinId = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Currency = "Gems",
+                            Description = "Knight default skin",
+                            IsActive = true,
+                            IsForSale = false,
+                            Name = "Knight Default",
+                            Price = 0m,
+                            Rarity = "Common",
+                            Type = "FullSet"
+                        },
+                        new
+                        {
+                            SkinId = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Currency = "Gems",
+                            Description = "Archer default skin",
+                            IsActive = true,
+                            IsForSale = false,
+                            Name = "Archer Default",
+                            Price = 0m,
+                            Rarity = "Common",
+                            Type = "FullSet"
+                        },
+                        new
+                        {
+                            SkinId = 3,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Currency = "Gems",
+                            Description = "Mage default skin",
+                            IsActive = true,
+                            IsForSale = false,
+                            Name = "Mage Default",
+                            Price = 0m,
+                            Rarity = "Common",
+                            Type = "FullSet"
+                        },
+                        new
+                        {
+                            SkinId = 4,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Currency = "Gems",
+                            Description = "Archer premium skin",
+                            IsActive = true,
+                            IsForSale = true,
+                            Name = "Archer Skin",
+                            Price = 100m,
+                            Rarity = "Rare",
+                            Type = "FullSet"
+                        },
+                        new
+                        {
+                            SkinId = 5,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Currency = "Gems",
+                            Description = "Knight premium skin",
+                            IsActive = true,
+                            IsForSale = true,
+                            Name = "Knight Skin",
+                            Price = 100m,
+                            Rarity = "Rare",
+                            Type = "FullSet"
+                        },
+                        new
+                        {
+                            SkinId = 6,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Currency = "Gems",
+                            Description = "Mage premium skin",
+                            IsActive = true,
+                            IsForSale = true,
+                            Name = "Mage Skin",
+                            Price = 100m,
+                            Rarity = "Rare",
+                            Type = "FullSet"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.SubCategoryContent", b =>
