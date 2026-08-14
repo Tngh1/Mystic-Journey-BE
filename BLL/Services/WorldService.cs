@@ -137,7 +137,7 @@ namespace BLL.Services
 
             return _transactionManager.ExecuteInTransactionAsync(
                 () => InteractWithObjectCore(playerProfileId, request),
-                IsolationLevel.Serializable);
+                IsolationLevel.ReadCommitted);
         }
 
         private async Task<InteractObjectResponseDto> InteractWithObjectCore(int playerProfileId, InteractObjectRequestDto request)
@@ -462,6 +462,8 @@ namespace BLL.Services
                     dailyLogin.CurrentYear = today.Year;
                     dailyLogin.CurrentMonth = today.Month;
                     dailyLogin.ClaimedDaysStr = string.Empty;
+                    dailyLogin.RetroClaimCount = 0;
+                    dailyLogin.IsClaimedToday = false;
                 }
 
                 if (dailyLogin.ClaimedDays.Contains(today.Day))
@@ -476,10 +478,18 @@ namespace BLL.Services
                 }
 
                 var rewardDay = today.Day;
-                var reward = await _worldRepository.GetDailyLoginReward(rewardDay);
+                var reward = await _worldRepository.GetDailyLoginReward(rewardDay, today.Month, today.Year);
 
-                if (reward != null)
-                    await ApplyDailyReward(profile, reward);
+                if (reward == null)
+                {
+                    return new ClaimDailyRewardResponseDto
+                    {
+                        Success = false,
+                        Message = $"No daily login reward is configured for day {rewardDay}."
+                    };
+                }
+
+                await ApplyDailyReward(profile, reward);
 
                 var claimed = dailyLogin.ClaimedDays;
                 claimed.Add(rewardDay);
@@ -502,11 +512,11 @@ namespace BLL.Services
                     Message = "Daily login reward claimed.",
                     CurrentStreak = dailyLogin.CurrentStreak,
                     TotalDaysClaimed = dailyLogin.TotalDaysClaimed,
-                    RewardType = reward?.RewardType ?? string.Empty,
-                    RewardValue = reward?.RewardValue ?? 0,
-                    RewardItemId = reward?.RewardItemId,
-                    RewardItemName = reward?.RewardItem?.Name,
-                    RewardItemQuantity = reward?.RewardItemQuantity ?? 0
+                    RewardType = reward.RewardType,
+                    RewardValue = reward.RewardValue,
+                    RewardItemId = reward.RewardItemId,
+                    RewardItemName = reward.RewardItem?.Name,
+                    RewardItemQuantity = reward.RewardItemQuantity
                 };
             });
         }
@@ -536,6 +546,8 @@ namespace BLL.Services
                     dailyLogin.CurrentYear = today.Year;
                     dailyLogin.CurrentMonth = today.Month;
                     dailyLogin.ClaimedDaysStr = string.Empty;
+                    dailyLogin.RetroClaimCount = 0;
+                    dailyLogin.IsClaimedToday = false;
                 }
 
                 if (dailyLogin.ClaimedDays.Contains(dayToClaim))
@@ -588,13 +600,20 @@ namespace BLL.Services
                     };
                 }
 
+                var reward = await _worldRepository.GetDailyLoginReward(dayToClaim, today.Month, today.Year);
+                if (reward == null)
+                {
+                    return new ClaimDailyRewardResponseDto
+                    {
+                        Success = false,
+                        Message = $"No daily login reward is configured for day {dayToClaim}."
+                    };
+                }
+
                 profile.Gems -= 20;
                 dailyLogin.RetroClaimCount += 1;
 
-                var reward = await _worldRepository.GetDailyLoginReward(dayToClaim);
-
-                if (reward != null)
-                    await ApplyDailyReward(profile, reward);
+                await ApplyDailyReward(profile, reward);
 
                 var claimed = dailyLogin.ClaimedDays;
                 claimed.Add(dayToClaim);
@@ -619,11 +638,11 @@ namespace BLL.Services
                     Message = "Daily login reward claimed.",
                     CurrentStreak = dailyLogin.CurrentStreak,
                     TotalDaysClaimed = dailyLogin.TotalDaysClaimed,
-                    RewardType = reward?.RewardType ?? string.Empty,
-                    RewardValue = reward?.RewardValue ?? 0,
-                    RewardItemId = reward?.RewardItemId,
-                    RewardItemName = reward?.RewardItem?.Name,
-                    RewardItemQuantity = reward?.RewardItemQuantity ?? 0
+                    RewardType = reward.RewardType,
+                    RewardValue = reward.RewardValue,
+                    RewardItemId = reward.RewardItemId,
+                    RewardItemName = reward.RewardItem?.Name,
+                    RewardItemQuantity = reward.RewardItemQuantity
                 };
             });
         }
@@ -884,6 +903,8 @@ namespace BLL.Services
                 dailyLogin.CurrentYear = today.Year;
                 dailyLogin.CurrentMonth = today.Month;
                 dailyLogin.ClaimedDaysStr = string.Empty;
+                dailyLogin.RetroClaimCount = 0;
+                dailyLogin.IsClaimedToday = false;
                 // We just return the cleared state (will be saved when they claim something)
             }
 

@@ -333,34 +333,19 @@ namespace BLL.Services
             // If quest grants skills, add them to player's skills (if not already owned).
             var owned = await _skillRepo.GetPlayerSkillsByPlayerId(playerProfileId);
             var rewardSkillIds = quest.RewardSkills
-                .Where(skill => skill.SkillId > 0)
+                .Where(reward => reward.SkillId > 0 &&
+                    reward.Skill != null &&
+                    (reward.Skill.ClassRequirement == profile.Class || reward.Skill.ClassRequirement == "All"))
                 .Select(skill => skill.SkillId)
                 .Distinct()
                 .ToList();
 
-            if (rewardSkillIds.Count == 0 && quest.RewardSkillId.HasValue)
+            if (rewardSkillIds.Count == 0 &&
+                quest.RewardSkillId.HasValue &&
+                quest.RewardSkill != null &&
+                (quest.RewardSkill.ClassRequirement == profile.Class || quest.RewardSkill.ClassRequirement == "All"))
             {
-                // Dynamic class skill reward for Q3: Deliver White Flowers
-                if (quest.Title != null && quest.Title.Contains("Deliver White Flowers"))
-                {
-                    string classSkillName = profile.Class switch
-                    {
-                        "Mage" => "AP_Skill",
-                        "Archer" => "Skill_Ad",
-                        "Knight" => "Skill_Knight Attack",
-                        _ => "Dark Poison Zone"
-                    };
-
-                    var classSkill = await _skillRepo.GetSkillByName(classSkillName);
-                    if (classSkill != null)
-                        rewardSkillIds.Add(classSkill.SkillId);
-                    else
-                        rewardSkillIds.Add(quest.RewardSkillId.Value);
-                }
-                else
-                {
-                    rewardSkillIds.Add(quest.RewardSkillId.Value);
-                }
+                rewardSkillIds.Add(quest.RewardSkillId.Value);
             }
 
             foreach (var rewardSkillId in rewardSkillIds)

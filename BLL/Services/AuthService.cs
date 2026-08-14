@@ -444,8 +444,8 @@ namespace BLL.Services
             await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes)));
 
             var htmlBody = BuildHtmlEmailTemplate(
-                "Xác thực Tài khoản Người chơi",
-                "Mã xác thực đăng ký tài khoản <strong>Mystic Journey</strong> của bạn là:",
+                "Player Account Verification",
+                "Use the following verification code to complete your <strong>Mystic Journey</strong> account registration:",
                 otp,
                 OtpExpiryMinutes);
 
@@ -605,7 +605,7 @@ namespace BLL.Services
         {
             return $"""
             <!DOCTYPE html>
-            <html lang="vi">
+            <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -644,12 +644,12 @@ namespace BLL.Services
                                         <!-- Expiry Notice -->
                                         <div style="display: inline-block; background-color: rgba(245, 158, 11, 0.1); border-radius: 20px; padding: 8px 18px; margin-bottom: 24px;">
                                             <p style="margin: 0; font-size: 13px; color: #f59e0b; font-weight: 600;">
-                                                ⏳ Mã xác thực này sẽ hết hạn trong <strong>{expiryMinutes} phút</strong>.
+                                                ⏳ This verification code will expire in <strong>{expiryMinutes} minutes</strong>.
                                             </p>
                                         </div>
 
                                         <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
-                                            Nếu bạn không thực hiện yêu cầu này, vui lòng an tâm bỏ qua email này.
+                                            If you did not make this request, you can safely ignore this email.
                                         </p>
                                     </td>
                                 </tr>
@@ -684,8 +684,8 @@ namespace BLL.Services
             await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes)));
 
             var htmlBody = BuildHtmlEmailTemplate(
-                "Đặt lại Mật khẩu Người chơi",
-                "Mã xác thực yêu cầu đặt lại mật khẩu <strong>Mystic Journey</strong> của bạn là:",
+                "Player Password Reset",
+                "Use the following verification code to reset your <strong>Mystic Journey</strong> account password:",
                 otp,
                 OtpExpiryMinutes);
 

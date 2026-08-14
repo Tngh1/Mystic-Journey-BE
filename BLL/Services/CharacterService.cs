@@ -15,6 +15,7 @@ namespace BLL.Services
         private readonly IPlayerStatRepository _statRepository;
         private readonly IPlayerProfileService _playerProfileService;
         private readonly IClassConfigRepository _classConfigRepository;
+        private readonly ITransactionManager _transactionManager;
         private readonly DAL.Data.MysticJourneyDbContext _context;
 
         public CharacterService(
@@ -22,18 +23,23 @@ namespace BLL.Services
             IPlayerStatRepository statRepository,
             IPlayerProfileService playerProfileService,
             IClassConfigRepository classConfigRepository,
+            ITransactionManager transactionManager,
             DAL.Data.MysticJourneyDbContext context)
         {
             _profileRepository = profileRepository;
             _statRepository = statRepository;
             _playerProfileService = playerProfileService;
             _classConfigRepository = classConfigRepository;
+            _transactionManager = transactionManager;
             _context = context;
         }
 
         // ── 1. Create Character ────────────────────────────────────────────────────────
 
-        public async Task<CharacterResponseDto> CreateCharacter(int playerProfileId, CreateCharacterRequestDto request)
+        public Task<CharacterResponseDto> CreateCharacter(int playerProfileId, CreateCharacterRequestDto request)
+            => _transactionManager.ExecuteInTransactionAsync(() => CreateCharacterCore(playerProfileId, request));
+
+        private async Task<CharacterResponseDto> CreateCharacterCore(int playerProfileId, CreateCharacterRequestDto request)
         {
             // Load the existing PlayerProfile (created automatically on account registration).
             var profile = await _profileRepository.GetPlayerProfileByIdWithStats(playerProfileId)
@@ -43,17 +49,17 @@ namespace BLL.Services
             if (profile.PlayerStats != null)
                 throw new InvalidOperationException("Character has already been created for this account. Use the upgrade endpoint to improve attributes.");
 
+            // Fetch class-appropriate base stats before writing any character data.
+            var template = await _classConfigRepository.GetByClassName(request.SelectedClass);
+            if (template == null)
+                throw new ArgumentException($"Unknown class '{request.SelectedClass}'.");
+
             // Stamp the character name and chosen class on the profile.
             profile.DisplayName = request.CharacterName.Trim();
             profile.Class = request.SelectedClass;
             profile.UpdatedAt = DateTime.UtcNow;
             _playerProfileService.RecalculateEnergy(profile);
             await _profileRepository.UpdatePlayerProfile(profile);
-
-            // Fetch class-appropriate base stats from DB.
-            var template = await _classConfigRepository.GetByClassName(request.SelectedClass);
-            if (template == null)
-                throw new ArgumentException($"Unknown class '{request.SelectedClass}'.");
 
             var stat = new PlayerStat
             {
@@ -71,6 +77,55 @@ namespace BLL.Services
             };
 
             await _statRepository.Create(stat);
+
+            int starterSkillId = request.SelectedClass switch
+            {
+                "Archer" => 1, // Accelerationarrow
+                "Mage" => 5,   // Stardust
+                "Knight" => 7, // LightWaves
+                _ => throw new ArgumentException($"Unknown class '{request.SelectedClass}'.")
+            };
+
+            var starterSkill = await _context.Skills
+                .SingleOrDefaultAsync(skill =>
+                    skill.SkillId == starterSkillId &&
+                    skill.IsActive &&
+                    skill.ClassRequirement == request.SelectedClass)
+                ?? throw new InvalidOperationException(
+                    $"Starter skill {starterSkillId} is not configured for class '{request.SelectedClass}'.");
+
+            int defaultSkinId = request.SelectedClass switch
+            {
+                "Knight" => 1,
+                "Archer" => 2,
+                "Mage" => 3,
+                _ => throw new ArgumentException($"Unknown class '{request.SelectedClass}'.")
+            };
+
+            if (!await _context.Skins.AnyAsync(skin => skin.SkinId == defaultSkinId && skin.IsActive))
+                throw new InvalidOperationException($"Default skin {defaultSkinId} is not configured for class '{request.SelectedClass}'.");
+
+            var unlockedAt = DateTime.UtcNow;
+
+            _context.PlayerSkills.Add(new PlayerSkill
+            {
+                PlayerProfileId = playerProfileId,
+                SkillId = starterSkill.SkillId,
+                Level = 1,
+                Experience = 0,
+                EquippedSlot = null,
+                UnlockedAt = unlockedAt
+            });
+
+            _context.PlayerSkins.Add(new PlayerSkin
+            {
+                PlayerProfileId = playerProfileId,
+                SkinId = defaultSkinId,
+                IsEquipped = true,
+                UnlockedAt = unlockedAt
+            });
+
+            await _context.SaveChangesAsync();
 
             return BuildCharacterResponse(profile, stat);
         }
