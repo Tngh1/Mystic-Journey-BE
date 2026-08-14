@@ -71,8 +71,7 @@ services:
       migrate:
         condition: service_completed_successfully
     healthcheck:
-      # Any HTTP response proves Kestrel is accepting requests; / may return 401/404.
-      test: ["CMD", "curl", "--silent", "--show-error", "--output", "/dev/null", "--max-time", "5", "http://127.0.0.1:8080/"]
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "--output", "/dev/null", "--max-time", "5", "http://127.0.0.1:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 12

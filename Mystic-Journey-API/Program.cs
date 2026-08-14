@@ -378,6 +378,8 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
+    .AllowAnonymous();
 app.MapControllers();
 app.MapHub<Mystic_Journey_API.Hubs.GameHub>("/hubs/game");
 
