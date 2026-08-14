@@ -61,6 +61,7 @@ namespace BLL.Services
 
             skill.Name = request.Name;
             skill.Description = request.Description;
+            skill.ImageUrl = request.ImageUrl;
             skill.Type = request.Type;
             skill.DamageType = request.DamageType;
             skill.TargetType = request.TargetType;
@@ -70,6 +71,7 @@ namespace BLL.Services
             skill.DamagePerLevel = request.DamagePerLevel;
             skill.DamageGrowthPercent = request.DamageGrowthPercent;
             skill.UnlockLevel = request.UnlockLevel;
+            skill.CorruptionCost = request.CorruptionCost;
             skill.IsActive = request.IsActive;
 
             var updated = await _repository.UpdateSkill(skill);
