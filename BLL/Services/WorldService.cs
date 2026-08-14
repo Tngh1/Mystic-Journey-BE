@@ -82,6 +82,22 @@ namespace BLL.Services
             };
         }
 
+        public async Task<PlayerWorldPositionDto> GetPosition(int playerProfileId)
+        {
+            // Không dùng GetProfile(): hàm đó còn tính/lưu Energy, không liên quan tới
+            // bootstrap vị trí và có thể biến một GET nhẹ thành UPDATE ngoài ý muốn.
+            var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId)
+                ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
+            await EnsureTutorialSpawn(profile);
+
+            return new PlayerWorldPositionDto
+            {
+                MapName = NormalizeMapName(profile.LastMapName),
+                PositionX = profile.PositionX,
+                PositionY = profile.PositionY
+            };
+        }
+
         public async Task<PlayerWorldPositionDto> UpdatePosition(int playerProfileId, UpdateWorldPositionRequestDto request)
         {
             var profile = await GetProfile(playerProfileId);
