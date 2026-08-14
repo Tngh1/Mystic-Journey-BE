@@ -137,7 +137,7 @@ namespace BLL.Services
 
             return _transactionManager.ExecuteInTransactionAsync(
                 () => InteractWithObjectCore(playerProfileId, request),
-                IsolationLevel.Serializable);
+                IsolationLevel.ReadCommitted);
         }
 
         private async Task<InteractObjectResponseDto> InteractWithObjectCore(int playerProfileId, InteractObjectRequestDto request)

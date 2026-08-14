@@ -78,14 +78,21 @@ namespace BLL.Services
 
             await _statRepository.Create(stat);
 
-            var initialSkills = await _context.Skills
-                .Where(skill => skill.IsActive &&
-                    (skill.ClassRequirement == request.SelectedClass || skill.ClassRequirement == "All"))
-                .OrderBy(skill => skill.SkillId)
-                .ToListAsync();
+            int starterSkillId = request.SelectedClass switch
+            {
+                "Archer" => 1, // Accelerationarrow
+                "Mage" => 5,   // Stardust
+                "Knight" => 7, // LightWaves
+                _ => throw new ArgumentException($"Unknown class '{request.SelectedClass}'.")
+            };
 
-            if (initialSkills.Count == 0)
-                throw new InvalidOperationException($"No active skills are configured for class '{request.SelectedClass}'.");
+            var starterSkill = await _context.Skills
+                .SingleOrDefaultAsync(skill =>
+                    skill.SkillId == starterSkillId &&
+                    skill.IsActive &&
+                    skill.ClassRequirement == request.SelectedClass)
+                ?? throw new InvalidOperationException(
+                    $"Starter skill {starterSkillId} is not configured for class '{request.SelectedClass}'.");
 
             int defaultSkinId = request.SelectedClass switch
             {
@@ -100,15 +107,15 @@ namespace BLL.Services
 
             var unlockedAt = DateTime.UtcNow;
 
-            _context.PlayerSkills.AddRange(initialSkills.Select(skill => new PlayerSkill
+            _context.PlayerSkills.Add(new PlayerSkill
             {
                 PlayerProfileId = playerProfileId,
-                SkillId = skill.SkillId,
+                SkillId = starterSkill.SkillId,
                 Level = 1,
                 Experience = 0,
                 EquippedSlot = null,
                 UnlockedAt = unlockedAt
-            }));
+            });
 
             _context.PlayerSkins.Add(new PlayerSkin
             {
