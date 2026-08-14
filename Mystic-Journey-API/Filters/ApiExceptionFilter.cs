@@ -2,7 +2,10 @@ using BLL.DTOs;
 using BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Mystic_Journey_API.Extensions;
+using Npgsql;
 
 namespace Mystic_Journey_API.Filters
 {
@@ -42,6 +45,9 @@ namespace Mystic_Journey_API.Filters
 
         private static string SanitizeErrorMessage(string? message, int statusCode)
         {
+            if (statusCode >= StatusCodes.Status500InternalServerError)
+                return GetDefaultStatusMessage(statusCode);
+
             if (string.IsNullOrWhiteSpace(message))
             {
                 return GetDefaultStatusMessage(statusCode);
@@ -78,6 +84,7 @@ namespace Mystic_Journey_API.Filters
             StatusCodes.Status422UnprocessableEntity => "Unprocessable entity. Please verify your data input.",
             StatusCodes.Status429TooManyRequests => "Too many requests. Please try again later.",
             StatusCodes.Status500InternalServerError => "An internal server error occurred. Please try again later.",
+            StatusCodes.Status503ServiceUnavailable => "The service is temporarily unavailable. Please try again later.",
             _ => "An unexpected error occurred."
         };
 
@@ -88,6 +95,9 @@ namespace Mystic_Journey_API.Filters
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, ErrorCodes.Unauthorized),
             BadRequestException => (StatusCodes.Status400BadRequest, ErrorCodes.BadRequest),
             ArgumentException => (StatusCodes.Status400BadRequest, ErrorCodes.BadRequest),
+            RetryLimitExceededException => (StatusCodes.Status503ServiceUnavailable, ErrorCodes.InternalError),
+            DbUpdateException => (StatusCodes.Status500InternalServerError, ErrorCodes.InternalError),
+            NpgsqlException => (StatusCodes.Status503ServiceUnavailable, ErrorCodes.InternalError),
             InvalidOperationException => (StatusCodes.Status400BadRequest, ErrorCodes.InvalidOperation),
             _ => (StatusCodes.Status500InternalServerError, ErrorCodes.InternalError)
         };
