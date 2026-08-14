@@ -1,14 +1,88 @@
-# Docker Compose for Mystic Journey Backend
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mystic-journey-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-MysticJourneyDB}
+      POSTGRES_USER: ${POSTGRES_USER:-mystic_journey}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      # Keep PostgreSQL private. DBeaver should connect through an SSH tunnel.
+      - "${POSTGRES_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    restart: "no"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-MysticJourneyDB};Username=${POSTGRES_USER:-mystic_journey};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - database
+      - update
+      - --project
+      - DAL/DAL.csproj
+      - --startup-project
+      - Mystic-Journey-API/Mystic-Journey-API.csproj
+      - --configuration
+      - Release
+      - --no-build
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
+      target: final
+      args:
+        BUILD_CONFIGURATION: Release
     container_name: mystic-journey-api
-    ports:
-      - "8080:8080"
-    env_file:
-      - ./Mystic-Journey-API/.env
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
+    init: true
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-MysticJourneyDB};Username=${POSTGRES_USER:-mystic_journey};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+    ports:
+      - "${API_BIND_ADDRESS:-0.0.0.0}:${API_PORT:-8080}:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "--output", "/dev/null", "--max-time", "5", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    name: mystic-journey-postgres-data

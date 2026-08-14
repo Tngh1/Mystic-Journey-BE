@@ -37,6 +37,8 @@ CodeCoverage/
 # ENV / Secrets (IMPORTANT)
 .env
 .env.*
+!.env.example
+!**/.env.example
 secrets.json
 
 # Local configs
