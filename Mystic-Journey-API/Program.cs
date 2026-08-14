@@ -47,8 +47,9 @@ if (string.IsNullOrWhiteSpace(jwtAudience))
     throw new InvalidOperationException("JWT audience is missing. Configure Jwt__Audience in the environment or .env file.");
 
 // Add services to the container.
-builder.Services.AddDbContext<MysticJourneyDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContextPool<MysticJourneyDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),
+    poolSize: 128);
 
 // OTP, cờ xác thực email và session đều nằm ở IDistributedCache (bên dưới), không phải
 // IMemoryCache — nên ở đây không đăng ký MemoryCache nữa.

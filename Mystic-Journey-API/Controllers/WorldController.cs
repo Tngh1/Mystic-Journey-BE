@@ -43,6 +43,16 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<WorldStateResponseDto> { Success = true, Data = result });
         }
 
+        // ── GET /api/world/position ─────────────────────────────────────
+        // Endpoint nhẹ dùng lúc vào game; không tải toàn bộ world state.
+        [HttpGet("position")]
+        public async Task<IActionResult> GetPosition()
+        {
+            var profileId = GetPlayerProfileId();
+            var result = await _worldService.GetPosition(profileId);
+            return Ok(new ApiResponse<PlayerWorldPositionDto> { Success = true, Data = result });
+        }
+
         // ── PUT /api/world/position ─────────────────────────────────────
         // Cập nhật vị trí của player trong world (map, tọa độ).
         [HttpPut("position")]
