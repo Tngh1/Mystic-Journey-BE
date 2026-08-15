@@ -790,64 +790,6 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new ShopItem { ShopItemId = 42, ItemId = 140, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,   Stock = -1, IsActive = true }  // Traveler Cloak (Common)
             );
 
-            // ─────────────────────────────────────────────────────────────────────────
-            // GACHA BANNERS & GACHA BANNER ITEMS
-            // ─────────────────────────────────────────────────────────────────────────
-            modelBuilder.Entity<GachaBanner>().HasData(
-                new GachaBanner
-                {
-                    GachaBannerId = 1,
-                    Name = "Mythic & Legendary Arsenal Banner",
-                    Type = "Weapon",
-                    PullCost = 1,
-                    CostItemId = 4, // Lucky Ticket
-                    PityLimit = 80,
-                    IsActive = true,
-                    StartAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    EndAt = new DateTime(2030, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                }
-            );
-
-            modelBuilder.Entity<GachaBannerItem>().HasData(
-                // Mythic weapons (101 - 112) — Gacha Banner 1
-                new GachaBannerItem { GachaBannerItemId = 1,  GachaBannerId = 1, ItemId = 101, DropRate = 0.5m, IsFeatured = true  }, // Excalibur of Light
-                new GachaBannerItem { GachaBannerItemId = 2,  GachaBannerId = 1, ItemId = 102, DropRate = 0.5m, IsFeatured = true  }, // Staff of the Cosmos
-                new GachaBannerItem { GachaBannerItemId = 3,  GachaBannerId = 1, ItemId = 103, DropRate = 0.5m, IsFeatured = true  }, // Bow of Eternity
-                new GachaBannerItem { GachaBannerItemId = 4,  GachaBannerId = 1, ItemId = 104, DropRate = 0.5m, IsFeatured = false }, // Aegis of the Sun God
-                new GachaBannerItem { GachaBannerItemId = 5,  GachaBannerId = 1, ItemId = 105, DropRate = 0.5m, IsFeatured = false }, // Crown of Divine Sovereign
-                new GachaBannerItem { GachaBannerItemId = 6,  GachaBannerId = 1, ItemId = 106, DropRate = 0.5m, IsFeatured = false }, // Celestia Sacred Armor
-                new GachaBannerItem { GachaBannerItemId = 7,  GachaBannerId = 1, ItemId = 107, DropRate = 0.5m, IsFeatured = false }, // Cloak of the Shadow Void
-                new GachaBannerItem { GachaBannerItemId = 8,  GachaBannerId = 1, ItemId = 108, DropRate = 0.5m, IsFeatured = false }, // Ring of Omnipotence
-                new GachaBannerItem { GachaBannerItemId = 9,  GachaBannerId = 1, ItemId = 109, DropRate = 0.5m, IsFeatured = false }, // Heart of the Phoenix Necklace
-                new GachaBannerItem { GachaBannerItemId = 10, GachaBannerId = 1, ItemId = 110, DropRate = 0.5m, IsFeatured = false }, // Talisman of Infinite Mana
-                new GachaBannerItem { GachaBannerItemId = 11, GachaBannerId = 1, ItemId = 111, DropRate = 0.5m, IsFeatured = false }, // Warhammer of Titan King
-                new GachaBannerItem { GachaBannerItemId = 12, GachaBannerId = 1, ItemId = 112, DropRate = 0.5m, IsFeatured = false }, // Grimoire of Celestial Ruin
-                // Legendary weapons (113 - 115) + Magic Flour (31)
-                new GachaBannerItem { GachaBannerItemId = 13, GachaBannerId = 1, ItemId = 113, DropRate = 2.0m, IsFeatured = false }, // Valiant Dragon Greatsword
-                new GachaBannerItem { GachaBannerItemId = 14, GachaBannerId = 1, ItemId = 114, DropRate = 2.0m, IsFeatured = false }, // Archmage Astral Rod
-                new GachaBannerItem { GachaBannerItemId = 15, GachaBannerId = 1, ItemId = 115, DropRate = 2.0m, IsFeatured = false }, // Windrunner Grand Bow
-                new GachaBannerItem { GachaBannerItemId = 16, GachaBannerId = 1, ItemId = 31,  DropRate = 3.0m, IsFeatured = false }, // Magic Flour (Legendary consumable)
-                // Epic gacha-only weapon (156)
-                new GachaBannerItem { GachaBannerItemId = 17, GachaBannerId = 1, ItemId = 156, DropRate = 3.0m, IsFeatured = false }, // Gauntlets of Iron Will
-                // Mythic helmets/boots/gloves/necklaces/rings (157, 160, 163, 166, 169)
-                new GachaBannerItem { GachaBannerItemId = 18, GachaBannerId = 1, ItemId = 157, DropRate = 0.5m, IsFeatured = false }, // Visor of the Sun Sovereign
-                new GachaBannerItem { GachaBannerItemId = 19, GachaBannerId = 1, ItemId = 160, DropRate = 0.5m, IsFeatured = false }, // Boots of Celestial Strider
-                new GachaBannerItem { GachaBannerItemId = 20, GachaBannerId = 1, ItemId = 163, DropRate = 0.5m, IsFeatured = false }, // Gauntlets of Titan Strength
-                new GachaBannerItem { GachaBannerItemId = 21, GachaBannerId = 1, ItemId = 166, DropRate = 0.5m, IsFeatured = false }, // Pendant of Cosmic Harmony
-                new GachaBannerItem { GachaBannerItemId = 22, GachaBannerId = 1, ItemId = 169, DropRate = 0.5m, IsFeatured = false }, // Band of Absolute Dominion
-                // Legendary helmets/boots/gloves/necklaces/rings (158, 161, 164, 167, 170)
-                new GachaBannerItem { GachaBannerItemId = 23, GachaBannerId = 1, ItemId = 158, DropRate = 1.5m, IsFeatured = false }, // Helm of the Undying Knight
-                new GachaBannerItem { GachaBannerItemId = 24, GachaBannerId = 1, ItemId = 161, DropRate = 1.5m, IsFeatured = false }, // Treads of the Frost Vanguard
-                new GachaBannerItem { GachaBannerItemId = 25, GachaBannerId = 1, ItemId = 164, DropRate = 1.5m, IsFeatured = false }, // Vanguard Dragon Claws
-                new GachaBannerItem { GachaBannerItemId = 26, GachaBannerId = 1, ItemId = 167, DropRate = 1.5m, IsFeatured = false }, // Choker of the Bloodline
-                new GachaBannerItem { GachaBannerItemId = 27, GachaBannerId = 1, ItemId = 170, DropRate = 1.5m, IsFeatured = false }, // Ring of the Berserker Heart
-                // Epic helmets/boots/gloves/necklaces/rings (159, 162, 165, 168, 171)
-                new GachaBannerItem { GachaBannerItemId = 28, GachaBannerId = 1, ItemId = 159, DropRate = 3.0m, IsFeatured = false }, // Cowl of the Phantom Assassin
-                new GachaBannerItem { GachaBannerItemId = 29, GachaBannerId = 1, ItemId = 162, DropRate = 3.0m, IsFeatured = false }, // Shadowstep Striders
-                new GachaBannerItem { GachaBannerItemId = 30, GachaBannerId = 1, ItemId = 165, DropRate = 3.0m, IsFeatured = false }, // Spellweaver Touch Gloves
-                new GachaBannerItem { GachaBannerItemId = 31, GachaBannerId = 1, ItemId = 168, DropRate = 3.0m, IsFeatured = false }, // Amulet of Arcane Shielding
-                new GachaBannerItem { GachaBannerItemId = 32, GachaBannerId = 1, ItemId = 171, DropRate = 3.0m, IsFeatured = false }  // Signet of the Wind Walker
-            );
 
             modelBuilder.Entity<QuestRewardItem>()
                 .HasOne(r => r.Quest)
@@ -1194,15 +1136,18 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Skin { SkinId = 6, Name = "Mage Skin", Description = "Mage premium skin", Type = "FullSet", Rarity = "Rare", Currency = "Gems", Price = 100m, IsForSale = true, IsActive = true, CreatedAt = utc2024 }
             );
 
+            // ─────────────────────────────────────────────────────────────────────────
+            // GACHA BANNERS & GACHA BANNER ITEMS
+            // ─────────────────────────────────────────────────────────────────────────
             modelBuilder.Entity<GachaBanner>().HasData(
                 new GachaBanner
                 {
                     GachaBannerId = 1,
-                    Name = "Standard Adventure Banner",
-                    Type = "Standard",
+                    Name = "Mythic & Legendary Arsenal Banner",
+                    Type = "Weapon",
                     PullCost = 1,
-                    CostItemId = 4,
-                    PityLimit = 90,
+                    CostItemId = 4, // Lucky Ticket
+                    PityLimit = 80,
                     IsActive = true,
                     StartAt = utc2024,
                     EndAt = new DateTime(2099, 12, 31, 23, 59, 59, DateTimeKind.Utc)
@@ -1210,12 +1155,44 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             );
 
             modelBuilder.Entity<GachaBannerItem>().HasData(
-                new GachaBannerItem { GachaBannerItemId = -1, GachaBannerId = 1, ItemId = 8,  DropRate = 1m,  IsFeatured = true },
-                new GachaBannerItem { GachaBannerItemId = -2, GachaBannerId = 1, ItemId = 13, DropRate = 15m, IsFeatured = false },
-                new GachaBannerItem { GachaBannerItemId = -3, GachaBannerId = 1, ItemId = 22, DropRate = 20m, IsFeatured = false },
-                new GachaBannerItem { GachaBannerItemId = -4, GachaBannerId = 1, ItemId = 3,  DropRate = 20m, IsFeatured = false },
-                new GachaBannerItem { GachaBannerItemId = -5, GachaBannerId = 1, ItemId = 19, DropRate = 24m, IsFeatured = false },
-                new GachaBannerItem { GachaBannerItemId = -6, GachaBannerId = 1, ItemId = 21, DropRate = 20m, IsFeatured = false }
+                // Mythic weapons (101 - 112) — Gacha Banner 1
+                new GachaBannerItem { GachaBannerItemId = 1,  GachaBannerId = 1, ItemId = 101, DropRate = 0.5m, IsFeatured = true  }, // Excalibur of Light
+                new GachaBannerItem { GachaBannerItemId = 2,  GachaBannerId = 1, ItemId = 102, DropRate = 0.5m, IsFeatured = true  }, // Staff of the Cosmos
+                new GachaBannerItem { GachaBannerItemId = 3,  GachaBannerId = 1, ItemId = 103, DropRate = 0.5m, IsFeatured = true  }, // Bow of Eternity
+                new GachaBannerItem { GachaBannerItemId = 4,  GachaBannerId = 1, ItemId = 104, DropRate = 0.5m, IsFeatured = false }, // Aegis of the Sun God
+                new GachaBannerItem { GachaBannerItemId = 5,  GachaBannerId = 1, ItemId = 105, DropRate = 0.5m, IsFeatured = false }, // Crown of Divine Sovereign
+                new GachaBannerItem { GachaBannerItemId = 6,  GachaBannerId = 1, ItemId = 106, DropRate = 0.5m, IsFeatured = false }, // Celestia Sacred Armor
+                new GachaBannerItem { GachaBannerItemId = 7,  GachaBannerId = 1, ItemId = 107, DropRate = 0.5m, IsFeatured = false }, // Cloak of the Shadow Void
+                new GachaBannerItem { GachaBannerItemId = 8,  GachaBannerId = 1, ItemId = 108, DropRate = 0.5m, IsFeatured = false }, // Ring of Omnipotence
+                new GachaBannerItem { GachaBannerItemId = 9,  GachaBannerId = 1, ItemId = 109, DropRate = 0.5m, IsFeatured = false }, // Heart of the Phoenix Necklace
+                new GachaBannerItem { GachaBannerItemId = 10, GachaBannerId = 1, ItemId = 110, DropRate = 0.5m, IsFeatured = false }, // Talisman of Infinite Mana
+                new GachaBannerItem { GachaBannerItemId = 11, GachaBannerId = 1, ItemId = 111, DropRate = 0.5m, IsFeatured = false }, // Warhammer of Titan King
+                new GachaBannerItem { GachaBannerItemId = 12, GachaBannerId = 1, ItemId = 112, DropRate = 0.5m, IsFeatured = false }, // Grimoire of Celestial Ruin
+                // Legendary weapons (113 - 115) + Magic Flour (31)
+                new GachaBannerItem { GachaBannerItemId = 13, GachaBannerId = 1, ItemId = 113, DropRate = 2.0m, IsFeatured = false }, // Valiant Dragon Greatsword
+                new GachaBannerItem { GachaBannerItemId = 14, GachaBannerId = 1, ItemId = 114, DropRate = 2.0m, IsFeatured = false }, // Archmage Astral Rod
+                new GachaBannerItem { GachaBannerItemId = 15, GachaBannerId = 1, ItemId = 115, DropRate = 2.0m, IsFeatured = false }, // Windrunner Grand Bow
+                new GachaBannerItem { GachaBannerItemId = 16, GachaBannerId = 1, ItemId = 31,  DropRate = 3.0m, IsFeatured = false }, // Magic Flour (Legendary consumable)
+                // Epic gacha-only weapon (156)
+                new GachaBannerItem { GachaBannerItemId = 17, GachaBannerId = 1, ItemId = 156, DropRate = 3.0m, IsFeatured = false }, // Gauntlets of Iron Will
+                // Mythic helmets/boots/gloves/necklaces/rings (157, 160, 163, 166, 169)
+                new GachaBannerItem { GachaBannerItemId = 18, GachaBannerId = 1, ItemId = 157, DropRate = 0.5m, IsFeatured = false }, // Visor of the Sun Sovereign
+                new GachaBannerItem { GachaBannerItemId = 19, GachaBannerId = 1, ItemId = 160, DropRate = 0.5m, IsFeatured = false }, // Boots of Celestial Strider
+                new GachaBannerItem { GachaBannerItemId = 20, GachaBannerId = 1, ItemId = 163, DropRate = 0.5m, IsFeatured = false }, // Gauntlets of Titan Strength
+                new GachaBannerItem { GachaBannerItemId = 21, GachaBannerId = 1, ItemId = 166, DropRate = 0.5m, IsFeatured = false }, // Pendant of Cosmic Harmony
+                new GachaBannerItem { GachaBannerItemId = 22, GachaBannerId = 1, ItemId = 169, DropRate = 0.5m, IsFeatured = false }, // Band of Absolute Dominion
+                // Legendary helmets/boots/gloves/necklaces/rings (158, 161, 164, 167, 170)
+                new GachaBannerItem { GachaBannerItemId = 23, GachaBannerId = 1, ItemId = 158, DropRate = 1.5m, IsFeatured = false }, // Helm of the Undying Knight
+                new GachaBannerItem { GachaBannerItemId = 24, GachaBannerId = 1, ItemId = 161, DropRate = 1.5m, IsFeatured = false }, // Treads of the Frost Vanguard
+                new GachaBannerItem { GachaBannerItemId = 25, GachaBannerId = 1, ItemId = 164, DropRate = 1.5m, IsFeatured = false }, // Vanguard Dragon Claws
+                new GachaBannerItem { GachaBannerItemId = 26, GachaBannerId = 1, ItemId = 167, DropRate = 1.5m, IsFeatured = false }, // Choker of the Bloodline
+                new GachaBannerItem { GachaBannerItemId = 27, GachaBannerId = 1, ItemId = 170, DropRate = 1.5m, IsFeatured = false }, // Ring of the Berserker Heart
+                // Epic helmets/boots/gloves/necklaces/rings (159, 162, 165, 168, 171)
+                new GachaBannerItem { GachaBannerItemId = 28, GachaBannerId = 1, ItemId = 159, DropRate = 3.0m, IsFeatured = false }, // Cowl of the Phantom Assassin
+                new GachaBannerItem { GachaBannerItemId = 29, GachaBannerId = 1, ItemId = 162, DropRate = 3.0m, IsFeatured = false }, // Shadowstep Striders
+                new GachaBannerItem { GachaBannerItemId = 30, GachaBannerId = 1, ItemId = 165, DropRate = 3.0m, IsFeatured = false }, // Spellweaver Touch Gloves
+                new GachaBannerItem { GachaBannerItemId = 31, GachaBannerId = 1, ItemId = 168, DropRate = 3.0m, IsFeatured = false }, // Amulet of Arcane Shielding
+                new GachaBannerItem { GachaBannerItemId = 32, GachaBannerId = 1, ItemId = 171, DropRate = 3.0m, IsFeatured = false }  // Signet of the Wind Walker
             );
 
             modelBuilder.Entity<DailyLoginReward>().HasData(

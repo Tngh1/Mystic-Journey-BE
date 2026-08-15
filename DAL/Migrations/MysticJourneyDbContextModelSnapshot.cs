@@ -1096,7 +1096,7 @@ namespace DAL.Migrations
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DayNumber = 14,
                             IsActive = true,
-                            RewardItemId = 10,
+                            RewardItemId = 16,
                             RewardItemQuantity = 1,
                             RewardType = "Item",
                             RewardValue = 0m
@@ -1167,8 +1167,8 @@ namespace DAL.Migrations
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DayNumber = 21,
                             IsActive = true,
-                            RewardItemId = 19,
-                            RewardItemQuantity = 5,
+                            RewardItemId = 17,
+                            RewardItemQuantity = 1,
                             RewardType = "Item",
                             RewardValue = 0m
                         },
@@ -1238,8 +1238,8 @@ namespace DAL.Migrations
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DayNumber = 28,
                             IsActive = true,
-                            RewardItemId = 22,
-                            RewardItemQuantity = 10,
+                            RewardItemId = 18,
+                            RewardItemQuantity = 1,
                             RewardType = "Item",
                             RewardValue = 0m
                         },
@@ -1975,6 +1975,854 @@ namespace DAL.Migrations
                             BonusHp = 42,
                             BonusMoveSpeed = 0,
                             ItemId = 908
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 101,
+                            BaseAtk = 110,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 45,
+                            BonusAttackSpeed = 10,
+                            BonusCritDamage = 45,
+                            BonusCritRate = 20,
+                            BonusDamageBonus = 15,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 101
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 102,
+                            BaseAtk = 115,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 50,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 50,
+                            BonusCritRate = 18,
+                            BonusDamageBonus = 18,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 102
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 103,
+                            BaseAtk = 105,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 42,
+                            BonusAttackSpeed = 15,
+                            BonusCritDamage = 40,
+                            BonusCritRate = 22,
+                            BonusDamageBonus = 12,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 8,
+                            ItemId = 103
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 104,
+                            BaseAtk = 0,
+                            BaseDef = 70,
+                            BaseHp = 300,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 30,
+                            BonusHp = 120,
+                            BonusMoveSpeed = 0,
+                            ItemId = 104
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 105,
+                            BaseAtk = 15,
+                            BaseDef = 45,
+                            BaseHp = 220,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 20,
+                            BonusCritRate = 10,
+                            BonusDamageBonus = 0,
+                            BonusDef = 20,
+                            BonusHp = 80,
+                            BonusMoveSpeed = 0,
+                            ItemId = 105
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 106,
+                            BaseAtk = 0,
+                            BaseDef = 85,
+                            BaseHp = 450,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 35,
+                            BonusHp = 180,
+                            BonusMoveSpeed = 0,
+                            ItemId = 106
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 107,
+                            BaseAtk = 20,
+                            BaseDef = 40,
+                            BaseHp = 200,
+                            BonusAtk = 10,
+                            BonusAttackSpeed = 8,
+                            BonusCritDamage = 25,
+                            BonusCritRate = 12,
+                            BonusDamageBonus = 5,
+                            BonusDef = 15,
+                            BonusHp = 80,
+                            BonusMoveSpeed = 12,
+                            ItemId = 107
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 108,
+                            BaseAtk = 25,
+                            BaseDef = 20,
+                            BaseHp = 120,
+                            BonusAtk = 10,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 30,
+                            BonusCritRate = 15,
+                            BonusDamageBonus = 8,
+                            BonusDef = 8,
+                            BonusHp = 50,
+                            BonusMoveSpeed = 0,
+                            ItemId = 108
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 109,
+                            BaseAtk = 15,
+                            BaseDef = 25,
+                            BaseHp = 250,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 20,
+                            BonusCritRate = 10,
+                            BonusDamageBonus = 5,
+                            BonusDef = 10,
+                            BonusHp = 100,
+                            BonusMoveSpeed = 0,
+                            ItemId = 109
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 110,
+                            BaseAtk = 30,
+                            BaseDef = 15,
+                            BaseHp = 150,
+                            BonusAtk = 12,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 25,
+                            BonusCritRate = 12,
+                            BonusDamageBonus = 10,
+                            BonusDef = 5,
+                            BonusHp = 60,
+                            BonusMoveSpeed = 5,
+                            ItemId = 110
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 111,
+                            BaseAtk = 130,
+                            BaseDef = 15,
+                            BaseHp = 100,
+                            BonusAtk = 55,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 50,
+                            BonusCritRate = 15,
+                            BonusDamageBonus = 20,
+                            BonusDef = 5,
+                            BonusHp = 40,
+                            BonusMoveSpeed = -3,
+                            ItemId = 111
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 112,
+                            BaseAtk = 125,
+                            BaseDef = 10,
+                            BaseHp = 50,
+                            BonusAtk = 50,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 55,
+                            BonusCritRate = 20,
+                            BonusDamageBonus = 22,
+                            BonusDef = 5,
+                            BonusHp = 20,
+                            BonusMoveSpeed = 0,
+                            ItemId = 112
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 113,
+                            BaseAtk = 65,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 25,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 30,
+                            BonusCritRate = 12,
+                            BonusDamageBonus = 8,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 113
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 114,
+                            BaseAtk = 68,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 28,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 35,
+                            BonusCritRate = 10,
+                            BonusDamageBonus = 10,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 114
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 115,
+                            BaseAtk = 62,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 22,
+                            BonusAttackSpeed = 10,
+                            BonusCritDamage = 25,
+                            BonusCritRate = 14,
+                            BonusDamageBonus = 6,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 6,
+                            ItemId = 115
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 116,
+                            BaseAtk = 0,
+                            BaseDef = 45,
+                            BaseHp = 180,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 18,
+                            BonusHp = 70,
+                            BonusMoveSpeed = 0,
+                            ItemId = 116
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 117,
+                            BaseAtk = 10,
+                            BaseDef = 25,
+                            BaseHp = 120,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 4,
+                            BonusCritDamage = 15,
+                            BonusCritRate = 6,
+                            BonusDamageBonus = 3,
+                            BonusDef = 10,
+                            BonusHp = 40,
+                            BonusMoveSpeed = 8,
+                            ItemId = 117
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 118,
+                            BaseAtk = 12,
+                            BaseDef = 15,
+                            BaseHp = 140,
+                            BonusAtk = 6,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 18,
+                            BonusCritRate = 8,
+                            BonusDamageBonus = 4,
+                            BonusDef = 5,
+                            BonusHp = 50,
+                            BonusMoveSpeed = 0,
+                            ItemId = 118
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 119,
+                            BaseAtk = 38,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 15,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 20,
+                            BonusCritRate = 8,
+                            BonusDamageBonus = 4,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 119
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 120,
+                            BaseAtk = 40,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 16,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 22,
+                            BonusCritRate = 6,
+                            BonusDamageBonus = 5,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 120
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 121,
+                            BaseAtk = 36,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 14,
+                            BonusAttackSpeed = 6,
+                            BonusCritDamage = 18,
+                            BonusCritRate = 9,
+                            BonusDamageBonus = 3,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 4,
+                            ItemId = 121
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 122,
+                            BaseAtk = 0,
+                            BaseDef = 28,
+                            BaseHp = 110,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 11,
+                            BonusHp = 40,
+                            BonusMoveSpeed = 0,
+                            ItemId = 122
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 123,
+                            BaseAtk = 8,
+                            BaseDef = 16,
+                            BaseHp = 70,
+                            BonusAtk = 4,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 15,
+                            BonusCritRate = 7,
+                            BonusDamageBonus = 0,
+                            BonusDef = 6,
+                            BonusHp = 25,
+                            BonusMoveSpeed = 0,
+                            ItemId = 123
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 124,
+                            BaseAtk = 10,
+                            BaseDef = 10,
+                            BaseHp = 60,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 3,
+                            BonusCritDamage = 12,
+                            BonusCritRate = 5,
+                            BonusDamageBonus = 3,
+                            BonusDef = 4,
+                            BonusHp = 20,
+                            BonusMoveSpeed = 3,
+                            ItemId = 124
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 125,
+                            BaseAtk = 22,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 8,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 12,
+                            BonusCritRate = 4,
+                            BonusDamageBonus = 2,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 125
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 126,
+                            BaseAtk = 24,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 9,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 14,
+                            BonusCritRate = 4,
+                            BonusDamageBonus = 2,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 126
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 127,
+                            BaseAtk = 20,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 7,
+                            BonusAttackSpeed = 4,
+                            BonusCritDamage = 10,
+                            BonusCritRate = 5,
+                            BonusDamageBonus = 1,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 3,
+                            ItemId = 127
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 128,
+                            BaseAtk = 0,
+                            BaseDef = 16,
+                            BaseHp = 65,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 6,
+                            BonusHp = 25,
+                            BonusMoveSpeed = 0,
+                            ItemId = 128
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 129,
+                            BaseAtk = 4,
+                            BaseDef = 12,
+                            BaseHp = 45,
+                            BonusAtk = 2,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 8,
+                            BonusCritRate = 3,
+                            BonusDamageBonus = 0,
+                            BonusDef = 4,
+                            BonusHp = 15,
+                            BonusMoveSpeed = 4,
+                            ItemId = 129
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 130,
+                            BaseAtk = 5,
+                            BaseDef = 6,
+                            BaseHp = 40,
+                            BonusAtk = 2,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 6,
+                            BonusCritRate = 3,
+                            BonusDamageBonus = 1,
+                            BonusDef = 2,
+                            BonusHp = 15,
+                            BonusMoveSpeed = 0,
+                            ItemId = 130
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 131,
+                            BaseAtk = 13,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 8,
+                            BonusCritRate = 3,
+                            BonusDamageBonus = 0,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 131
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 132,
+                            BaseAtk = 14,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 10,
+                            BonusCritRate = 2,
+                            BonusDamageBonus = 0,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 0,
+                            ItemId = 132
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 133,
+                            BaseAtk = 12,
+                            BaseDef = 0,
+                            BaseHp = 0,
+                            BonusAtk = 4,
+                            BonusAttackSpeed = 3,
+                            BonusCritDamage = 6,
+                            BonusCritRate = 3,
+                            BonusDamageBonus = 0,
+                            BonusDef = 0,
+                            BonusHp = 0,
+                            BonusMoveSpeed = 2,
+                            ItemId = 133
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 134,
+                            BaseAtk = 0,
+                            BaseDef = 9,
+                            BaseHp = 35,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 3,
+                            BonusHp = 12,
+                            BonusMoveSpeed = 0,
+                            ItemId = 134
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 135,
+                            BaseAtk = 2,
+                            BaseDef = 4,
+                            BaseHp = 20,
+                            BonusAtk = 1,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 4,
+                            BonusCritRate = 2,
+                            BonusDamageBonus = 0,
+                            BonusDef = 2,
+                            BonusHp = 8,
+                            BonusMoveSpeed = 0,
+                            ItemId = 135
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 139,
+                            BaseAtk = 0,
+                            BaseDef = 3,
+                            BaseHp = 15,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 1,
+                            BonusHp = 5,
+                            BonusMoveSpeed = 0,
+                            ItemId = 139
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 140,
+                            BaseAtk = 0,
+                            BaseDef = 4,
+                            BaseHp = 20,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 1,
+                            BonusHp = 8,
+                            BonusMoveSpeed = 2,
+                            ItemId = 140
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 156,
+                            BaseAtk = 12,
+                            BaseDef = 12,
+                            BaseHp = 50,
+                            BonusAtk = 6,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 10,
+                            BonusCritRate = 5,
+                            BonusDamageBonus = 3,
+                            BonusDef = 5,
+                            BonusHp = 20,
+                            BonusMoveSpeed = 0,
+                            ItemId = 156
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 157,
+                            BaseAtk = 0,
+                            BaseDef = 52,
+                            BaseHp = 260,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 24,
+                            BonusCritRate = 14,
+                            BonusDamageBonus = 0,
+                            BonusDef = 24,
+                            BonusHp = 100,
+                            BonusMoveSpeed = 0,
+                            ItemId = 157
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 160,
+                            BaseAtk = 0,
+                            BaseDef = 40,
+                            BaseHp = 200,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 10,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 10,
+                            BonusDamageBonus = 0,
+                            BonusDef = 18,
+                            BonusHp = 80,
+                            BonusMoveSpeed = 15,
+                            ItemId = 160
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 163,
+                            BaseAtk = 40,
+                            BaseDef = 35,
+                            BaseHp = 150,
+                            BonusAtk = 18,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 12,
+                            BonusDef = 15,
+                            BonusHp = 60,
+                            BonusMoveSpeed = 0,
+                            ItemId = 163
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 166,
+                            BaseAtk = 25,
+                            BaseDef = 30,
+                            BaseHp = 280,
+                            BonusAtk = 10,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 25,
+                            BonusCritRate = 12,
+                            BonusDamageBonus = 0,
+                            BonusDef = 12,
+                            BonusHp = 120,
+                            BonusMoveSpeed = 0,
+                            ItemId = 166
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 169,
+                            BaseAtk = 35,
+                            BaseDef = 25,
+                            BaseHp = 180,
+                            BonusAtk = 15,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 30,
+                            BonusCritRate = 15,
+                            BonusDamageBonus = 10,
+                            BonusDef = 10,
+                            BonusHp = 70,
+                            BonusMoveSpeed = 0,
+                            ItemId = 169
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 158,
+                            BaseAtk = 0,
+                            BaseDef = 35,
+                            BaseHp = 160,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 15,
+                            BonusCritRate = 8,
+                            BonusDamageBonus = 0,
+                            BonusDef = 15,
+                            BonusHp = 60,
+                            BonusMoveSpeed = 0,
+                            ItemId = 158
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 161,
+                            BaseAtk = 0,
+                            BaseDef = 28,
+                            BaseHp = 140,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 5,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 12,
+                            BonusHp = 50,
+                            BonusMoveSpeed = 10,
+                            ItemId = 161
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 164,
+                            BaseAtk = 25,
+                            BaseDef = 22,
+                            BaseHp = 90,
+                            BonusAtk = 12,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 18,
+                            BonusCritRate = 8,
+                            BonusDamageBonus = 0,
+                            BonusDef = 8,
+                            BonusHp = 35,
+                            BonusMoveSpeed = 0,
+                            ItemId = 164
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 167,
+                            BaseAtk = 16,
+                            BaseDef = 18,
+                            BaseHp = 170,
+                            BonusAtk = 8,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 16,
+                            BonusCritRate = 8,
+                            BonusDamageBonus = 0,
+                            BonusDef = 6,
+                            BonusHp = 60,
+                            BonusMoveSpeed = 0,
+                            ItemId = 167
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 170,
+                            BaseAtk = 22,
+                            BaseDef = 14,
+                            BaseHp = 100,
+                            BonusAtk = 10,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 22,
+                            BonusCritRate = 10,
+                            BonusDamageBonus = 6,
+                            BonusDef = 5,
+                            BonusHp = 40,
+                            BonusMoveSpeed = 0,
+                            ItemId = 170
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 159,
+                            BaseAtk = 0,
+                            BaseDef = 20,
+                            BaseHp = 85,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 14,
+                            BonusCritRate = 7,
+                            BonusDamageBonus = 0,
+                            BonusDef = 8,
+                            BonusHp = 30,
+                            BonusMoveSpeed = 0,
+                            ItemId = 159
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 162,
+                            BaseAtk = 0,
+                            BaseDef = 16,
+                            BaseHp = 75,
+                            BonusAtk = 0,
+                            BonusAttackSpeed = 4,
+                            BonusCritDamage = 0,
+                            BonusCritRate = 5,
+                            BonusDamageBonus = 0,
+                            BonusDef = 6,
+                            BonusHp = 25,
+                            BonusMoveSpeed = 8,
+                            ItemId = 162
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 165,
+                            BaseAtk = 15,
+                            BaseDef = 12,
+                            BaseHp = 50,
+                            BonusAtk = 8,
+                            BonusAttackSpeed = 8,
+                            BonusCritDamage = 12,
+                            BonusCritRate = 0,
+                            BonusDamageBonus = 0,
+                            BonusDef = 5,
+                            BonusHp = 20,
+                            BonusMoveSpeed = 0,
+                            ItemId = 165
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 168,
+                            BaseAtk = 8,
+                            BaseDef = 12,
+                            BaseHp = 90,
+                            BonusAtk = 4,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 10,
+                            BonusCritRate = 5,
+                            BonusDamageBonus = 0,
+                            BonusDef = 5,
+                            BonusHp = 35,
+                            BonusMoveSpeed = 0,
+                            ItemId = 168
+                        },
+                        new
+                        {
+                            EquipmentStatsId = 171,
+                            BaseAtk = 12,
+                            BaseDef = 8,
+                            BaseHp = 60,
+                            BonusAtk = 5,
+                            BonusAttackSpeed = 0,
+                            BonusCritDamage = 12,
+                            BonusCritRate = 6,
+                            BonusDamageBonus = 0,
+                            BonusDef = 3,
+                            BonusHp = 20,
+                            BonusMoveSpeed = 5,
+                            ItemId = 171
                         });
                 });
 
@@ -2083,11 +2931,11 @@ namespace DAL.Migrations
                             CostItemId = 4,
                             EndAt = new DateTime(2099, 12, 31, 23, 59, 59, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Standard Adventure Banner",
-                            PityLimit = 90,
+                            Name = "Mythic & Legendary Arsenal Banner",
+                            PityLimit = 80,
                             PullCost = 1,
                             StartAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Type = "Standard"
+                            Type = "Weapon"
                         });
                 });
 
@@ -2123,51 +2971,259 @@ namespace DAL.Migrations
                     b.HasData(
                         new
                         {
-                            GachaBannerItemId = -1,
-                            DropRate = 1m,
+                            GachaBannerItemId = 1,
+                            DropRate = 0.5m,
                             GachaBannerId = 1,
                             IsFeatured = true,
-                            ItemId = 8
+                            ItemId = 101
                         },
                         new
                         {
-                            GachaBannerItemId = -2,
-                            DropRate = 15m,
+                            GachaBannerItemId = 2,
+                            DropRate = 0.5m,
                             GachaBannerId = 1,
-                            IsFeatured = false,
-                            ItemId = 13
+                            IsFeatured = true,
+                            ItemId = 102
                         },
                         new
                         {
-                            GachaBannerItemId = -3,
-                            DropRate = 20m,
+                            GachaBannerItemId = 3,
+                            DropRate = 0.5m,
                             GachaBannerId = 1,
-                            IsFeatured = false,
-                            ItemId = 22
+                            IsFeatured = true,
+                            ItemId = 103
                         },
                         new
                         {
-                            GachaBannerItemId = -4,
-                            DropRate = 20m,
+                            GachaBannerItemId = 4,
+                            DropRate = 0.5m,
                             GachaBannerId = 1,
                             IsFeatured = false,
-                            ItemId = 3
+                            ItemId = 104
                         },
                         new
                         {
-                            GachaBannerItemId = -5,
-                            DropRate = 24m,
+                            GachaBannerItemId = 5,
+                            DropRate = 0.5m,
                             GachaBannerId = 1,
                             IsFeatured = false,
-                            ItemId = 19
+                            ItemId = 105
                         },
                         new
                         {
-                            GachaBannerItemId = -6,
-                            DropRate = 20m,
+                            GachaBannerItemId = 6,
+                            DropRate = 0.5m,
                             GachaBannerId = 1,
                             IsFeatured = false,
-                            ItemId = 21
+                            ItemId = 106
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 7,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 107
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 8,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 108
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 9,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 109
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 10,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 110
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 11,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 111
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 12,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 112
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 13,
+                            DropRate = 2.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 113
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 14,
+                            DropRate = 2.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 114
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 15,
+                            DropRate = 2.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 115
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 16,
+                            DropRate = 3.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 31
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 17,
+                            DropRate = 3.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 156
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 18,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 157
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 19,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 160
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 20,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 163
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 21,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 166
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 22,
+                            DropRate = 0.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 169
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 23,
+                            DropRate = 1.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 158
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 24,
+                            DropRate = 1.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 161
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 25,
+                            DropRate = 1.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 164
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 26,
+                            DropRate = 1.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 167
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 27,
+                            DropRate = 1.5m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 170
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 28,
+                            DropRate = 3.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 159
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 29,
+                            DropRate = 3.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 162
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 30,
+                            DropRate = 3.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 165
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 31,
+                            DropRate = 3.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 168
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 32,
+                            DropRate = 3.0m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 171
                         });
                 });
 
@@ -3158,7 +4214,7 @@ namespace DAL.Migrations
                             IsActive = true,
                             MaxStack = 99,
                             Name = "Magic Flour",
-                            Rarity = "Uncommon",
+                            Rarity = "Legendary",
                             Slot = "None",
                             Type = "Consumable"
                         },
@@ -3231,6 +4287,748 @@ namespace DAL.Migrations
                             Rarity = "Common",
                             Slot = "None",
                             Type = "QuestItem"
+                        },
+                        new
+                        {
+                            ItemId = 101,
+                            BaseValue = 5000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Legendary holy blade of the High Knight.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Excalibur of Light",
+                            Rarity = "Mythic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 102,
+                            BaseValue = 5000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Supreme Astral Staff imbued with cosmic magic.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Staff of the Cosmos",
+                            Rarity = "Mythic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 103,
+                            BaseValue = 5000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Mythical bow crafted from the World Tree's core.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Bow of Eternity",
+                            Rarity = "Mythic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 104,
+                            BaseValue = 4500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Divine shield forged in solar fire.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Aegis of the Sun God",
+                            Rarity = "Mythic",
+                            Slot = "Shield",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 105,
+                            BaseValue = 4500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Crown worn by ancient mythical emperors.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Crown of Divine Sovereign",
+                            Rarity = "Mythic",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 106,
+                            BaseValue = 4800m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Armor woven with celestial light.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Celestia Sacred Armor",
+                            Rarity = "Mythic",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 107,
+                            BaseValue = 4200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Cloak rendering the wearer untouchable.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Cloak of the Shadow Void",
+                            Rarity = "Mythic",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 108,
+                            BaseValue = 4000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Ring harboring supreme elemental power.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Ring of Omnipotence",
+                            Rarity = "Mythic",
+                            Slot = "Ring",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 109,
+                            BaseValue = 4000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Necklace pulsing with immortal flame.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Heart of the Phoenix Necklace",
+                            Rarity = "Mythic",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 110,
+                            BaseValue = 4000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Ancient talisman granting endless mana stream.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Talisman of Infinite Mana",
+                            Rarity = "Mythic",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 111,
+                            BaseValue = 5000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heavy hammer capable of shattering mountains.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Warhammer of Titan King",
+                            Rarity = "Mythic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 112,
+                            BaseValue = 5000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Tome containing forbidden destruction spells.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Grimoire of Celestial Ruin",
+                            Rarity = "Mythic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 113,
+                            BaseValue = 2500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heavy greatsword forged from dragon horns.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Valiant Dragon Greatsword",
+                            Rarity = "Legendary",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 114,
+                            BaseValue = 2500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Stave used by supreme archmages.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Archmage Astral Rod",
+                            Rarity = "Legendary",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 115,
+                            BaseValue = 2500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Greatbow infused with gale spirits.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Windrunner Grand Bow",
+                            Rarity = "Legendary",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 116,
+                            BaseValue = 2200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heavy tower shield radiating holy aura.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Radiant Guardian Shield",
+                            Rarity = "Legendary",
+                            Slot = "Shield",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 117,
+                            BaseValue = 2000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Enchanted cloak shimmering with starlight.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Cloak of Stars",
+                            Rarity = "Legendary",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 118,
+                            BaseValue = 2000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Amulet burning with unwavering courage.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Amulet of Eternal Flame",
+                            Rarity = "Legendary",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 119,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Broadsword wielded by holy paladins.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Paladin Broadsword",
+                            Rarity = "Epic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 120,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Grimoire mastering core elements.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Elemental Grimoire",
+                            Rarity = "Epic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 121,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Crossbow firing silent deadly bolts.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Shadow Crossbow",
+                            Rarity = "Epic",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 122,
+                            BaseValue = 900m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Sturdy steel shield protecting fortress walls.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Fortress Tower Shield",
+                            Rarity = "Epic",
+                            Slot = "Shield",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 123,
+                            BaseValue = 850m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Hood favored by master assassins.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Hood of Silent Night",
+                            Rarity = "Epic",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 124,
+                            BaseValue = 800m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Ring imbued with storm powers.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Ring of Tempest",
+                            Rarity = "Epic",
+                            Slot = "Ring",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 125,
+                            BaseValue = 450m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Long steel polearm for foot soldiers.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Steel Halberd",
+                            Rarity = "Rare",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 126,
+                            BaseValue = 450m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Wand focusing magic crystal energy.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Crystal Wand",
+                            Rarity = "Rare",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 127,
+                            BaseValue = 450m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Bow designed for swift distance attacks.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Recurve Composite Bow",
+                            Rarity = "Rare",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 128,
+                            BaseValue = 400m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Standard shield carried by elite knights.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Knight Iron Shield",
+                            Rarity = "Rare",
+                            Slot = "Shield",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 129,
+                            BaseValue = 380m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Cloak woven from ranger silk.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Mantle of the Forest",
+                            Rarity = "Rare",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 130,
+                            BaseValue = 350m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Necklace enhancing stamina.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Necklace of Vitality",
+                            Rarity = "Rare",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 131,
+                            BaseValue = 220m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heavy axe used in close combat.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Battle Axe",
+                            Rarity = "Uncommon",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 132,
+                            BaseValue = 220m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Simple wand for mage students.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Apprentice Rod",
+                            Rarity = "Uncommon",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 133,
+                            BaseValue = 220m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Light crossbow easy to reload.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Light Crossbow",
+                            Rarity = "Uncommon",
+                            Slot = "Weapon",
+                            Type = "Weapon"
+                        },
+                        new
+                        {
+                            ItemId = 134,
+                            BaseValue = 180m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Small wooden shield for parrying.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Wooden Buckler",
+                            Rarity = "Uncommon",
+                            Slot = "Shield",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 135,
+                            BaseValue = 150m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Simple ring granting minor defense.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Band of Minor Protection",
+                            Rarity = "Uncommon",
+                            Slot = "Ring",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 139,
+                            BaseValue = 60m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Simple cloth headwear.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Cloth Cap",
+                            Rarity = "Common",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 140,
+                            BaseValue = 60m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Worn cloak for long journeys.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Traveler Cloak",
+                            Rarity = "Common",
+                            Slot = "Armor",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 156,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heavy gauntlets increasing unwavering strike.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Gauntlets of Iron Will",
+                            Rarity = "Epic",
+                            Slot = "Gloves",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 157,
+                            BaseValue = 4800m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Solar-infused visor worn by high sun emperors.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Visor of the Sun Sovereign",
+                            Rarity = "Mythic",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 160,
+                            BaseValue = 4500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Mythical boots granting lightning swiftness and levitation.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Boots of Celestial Strider",
+                            Rarity = "Mythic",
+                            Slot = "Boots",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 163,
+                            BaseValue = 4500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Titanium gauntlets crushing boulders with raw strike.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Gauntlets of Titan Strength",
+                            Rarity = "Mythic",
+                            Slot = "Gloves",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 166,
+                            BaseValue = 4500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Astral necklace channeling the energy of distant galaxies.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Pendant of Cosmic Harmony",
+                            Rarity = "Mythic",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 169,
+                            BaseValue = 4500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Ring granting supreme authority over all elemental magic.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Band of Absolute Dominion",
+                            Rarity = "Mythic",
+                            Slot = "Ring",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 158,
+                            BaseValue = 2400m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Impenetrable steel helmet forged in dragon breath.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Helm of the Undying Knight",
+                            Rarity = "Legendary",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 161,
+                            BaseValue = 2200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heavy greaves carved from unbreakable glacier ice.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Treads of the Frost Vanguard",
+                            Rarity = "Legendary",
+                            Slot = "Boots",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 164,
+                            BaseValue = 2200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Razor-sharp gauntlets tipped with ancient dragon talons.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Vanguard Dragon Claws",
+                            Rarity = "Legendary",
+                            Slot = "Gloves",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 167,
+                            BaseValue = 2200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Ancient vampire necklace granting lifesteal aura.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Choker of the Bloodline",
+                            Rarity = "Legendary",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 170,
+                            BaseValue = 2200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Blood-red ring boosting critical strikes under fury.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Ring of the Berserker Heart",
+                            Rarity = "Legendary",
+                            Slot = "Ring",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 159,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Silken hood concealing the assassin in pitch darkness.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Cowl of the Phantom Assassin",
+                            Rarity = "Epic",
+                            Slot = "Helmet",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 162,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Light leather boots silencing every footstep in combat.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Shadowstep Striders",
+                            Rarity = "Epic",
+                            Slot = "Boots",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 165,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Enchanted gloves amplifying magical casting velocity.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Spellweaver Touch Gloves",
+                            Rarity = "Epic",
+                            Slot = "Gloves",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 168,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Amulet absorbing hostile magical explosions.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Amulet of Arcane Shielding",
+                            Rarity = "Epic",
+                            Slot = "Necklace",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 171,
+                            BaseValue = 1000m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Graceful silver ring enhancing agility and dodge rate.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Signet of the Wind Walker",
+                            Rarity = "Epic",
+                            Slot = "Ring",
+                            Type = "Armor"
                         });
                 });
 
@@ -8579,6 +10377,282 @@ namespace DAL.Migrations
                             IsActive = true,
                             ItemId = 4,
                             Price = 100m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 20,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 3,
+                            IsActive = true,
+                            ItemId = 31,
+                            Price = 500m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 21,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 1,
+                            IsActive = true,
+                            ItemId = 116,
+                            Price = 2500m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 22,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 1,
+                            IsActive = true,
+                            ItemId = 117,
+                            Price = 2200m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 23,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 1,
+                            IsActive = true,
+                            ItemId = 118,
+                            Price = 2200m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 24,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 2,
+                            IsActive = true,
+                            ItemId = 119,
+                            Price = 1100m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 25,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 2,
+                            IsActive = true,
+                            ItemId = 120,
+                            Price = 1100m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 26,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 2,
+                            IsActive = true,
+                            ItemId = 121,
+                            Price = 1100m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 27,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 2,
+                            IsActive = true,
+                            ItemId = 124,
+                            Price = 900m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 28,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 5,
+                            IsActive = true,
+                            ItemId = 129,
+                            Price = 420m,
+                            ShopSection = "DailyDeal",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 29,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 122,
+                            Price = 950m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 30,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 123,
+                            Price = 900m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 31,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 125,
+                            Price = 450m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 32,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 126,
+                            Price = 450m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 33,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 127,
+                            Price = 450m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 34,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 128,
+                            Price = 400m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 35,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 130,
+                            Price = 380m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 36,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 131,
+                            Price = 220m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 37,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 132,
+                            Price = 220m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 38,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 133,
+                            Price = 220m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 39,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 134,
+                            Price = 180m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 40,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 135,
+                            Price = 150m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 41,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 139,
+                            Price = 60m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 42,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 140,
+                            Price = 60m,
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
