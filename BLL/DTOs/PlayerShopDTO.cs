@@ -50,6 +50,16 @@ namespace BLL.DTOs
         public DateTime? AvailableTo { get; set; }
         public bool CanPurchase { get; set; }
         public string? UnavailableReason { get; set; }
+
+        // Equipment Stats
+        public int BaseHp { get; set; }
+        public int BaseAtk { get; set; }
+        public int BaseDef { get; set; }
+        public int BonusHp { get; set; }
+        public int BonusAtk { get; set; }
+        public int BonusDef { get; set; }
+        public float BonusCritRate { get; set; }
+        public float BonusCritDamage { get; set; }
     }
 
     public class ShopRefreshStatusDto

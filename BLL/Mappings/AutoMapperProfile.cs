@@ -104,7 +104,21 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.PurchasedToday, opt => opt.Ignore())
                 .ForMember(dest => dest.RemainingDailyPurchases, opt => opt.Ignore())
                 .ForMember(dest => dest.CanPurchase, opt => opt.Ignore())
-                .ForMember(dest => dest.UnavailableReason, opt => opt.Ignore());
+                .ForMember(dest => dest.UnavailableReason, opt => opt.Ignore())
+                .ForMember(dest => dest.BaseHp, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BaseHp : 0))
+                .ForMember(dest => dest.BaseAtk, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BaseAtk : 0))
+                .ForMember(dest => dest.BaseDef, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BaseDef : 0))
+                .ForMember(dest => dest.BonusHp, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusHp : 0))
+                .ForMember(dest => dest.BonusAtk, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusAtk : 0))
+                .ForMember(dest => dest.BonusDef, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusDef : 0))
+                .ForMember(dest => dest.BonusCritRate, opt => opt.MapFrom(src =>
+                    src.Item != null && src.Item.EquipmentStats != null
+                        ? BLL.Utils.StatHelper.FromScaled(src.Item.EquipmentStats.BonusCritRate, BLL.Utils.StatScale.CritRate)
+                        : 0f))
+                .ForMember(dest => dest.BonusCritDamage, opt => opt.MapFrom(src =>
+                    src.Item != null && src.Item.EquipmentStats != null
+                        ? BLL.Utils.StatHelper.FromScaled(src.Item.EquipmentStats.BonusCritDamage, BLL.Utils.StatScale.CritRate)
+                        : 0f));
             // Ánh xạ yêu cầu tạo/cập nhật vật phẩm shop.
             CreateMap<CreateShopItemRequestDto, ShopItem>();
             CreateMap<UpdateShopItemRequestDto, ShopItem>();
