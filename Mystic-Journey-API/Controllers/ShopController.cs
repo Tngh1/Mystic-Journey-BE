@@ -122,6 +122,36 @@ namespace Mystic_Journey_API.Controllers
             });
         }
 
+        [Authorize]
+        [HttpGet("skins")]
+        public async Task<IActionResult> GetSkins()
+        {
+            var playerProfileId = GetCurrentPlayerProfileId();
+            var result = await _shopService.GetSkinShop(playerProfileId);
+            return Ok(new ApiResponse<IReadOnlyList<SkinShopItemResponseDto>>
+            {
+                Success = true,
+                Data = result
+            });
+        }
+
+        [Authorize]
+        [HttpPost("skins/purchase")]
+        public async Task<IActionResult> PurchaseSkin([FromBody] PurchaseShopSkinRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return ValidationError();
+
+            var playerProfileId = GetCurrentPlayerProfileId();
+            var result = await _shopService.PurchaseSkin(playerProfileId, request);
+            return Ok(new ApiResponse<PurchaseShopSkinResponseDto>
+            {
+                Success = true,
+                Message = result.Message,
+                Data = result
+            });
+        }
+
         private IActionResult ValidationError()
         {
             return BadRequest(new ApiResponse<object>

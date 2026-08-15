@@ -41,5 +41,12 @@ namespace DAL.Repositories.Interfaces
             int shopItemId,
             int quantity,
             DateTime utcNow);
+
+        Task<PlayerSkinShopResult> GetSkinShop(int playerProfileId);
+
+        Task<PlayerShopSkinPurchaseResult> PurchaseSkin(
+            int playerProfileId,
+            int skinId,
+            DateTime utcNow);
     }
 }

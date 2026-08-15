@@ -10,5 +10,7 @@ namespace BLL.Services.Interfaces
         Task<ShopRefreshResponseDto> RefreshShop(int playerProfileId, ViewShopQueryDto query);
         Task<ShopRefreshResponseDto> RefreshDailyDeals(int playerProfileId, ViewShopQueryDto query);
         Task<PurchaseShopItemResponseDto> PurchaseItem(int playerProfileId, PurchaseShopItemRequestDto request);
+        Task<IReadOnlyList<SkinShopItemResponseDto>> GetSkinShop(int playerProfileId);
+        Task<PurchaseShopSkinResponseDto> PurchaseSkin(int playerProfileId, PurchaseShopSkinRequestDto request);
     }
 }

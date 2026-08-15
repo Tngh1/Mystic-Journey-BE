@@ -423,6 +423,139 @@ namespace DAL.Repositories
             };
         }
 
+        public async Task<PlayerSkinShopResult> GetSkinShop(int playerProfileId)
+        {
+            var profile = await _context.PlayerProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == playerProfileId);
+
+            if (profile == null)
+                return new PlayerSkinShopResult();
+
+            var skinId = GetPremiumSkinId(profile.Class);
+            var skins = skinId.HasValue
+                ? await _context.Skins
+                    .AsNoTracking()
+                    .Where(s => s.SkinId == skinId.Value && s.IsActive && s.IsForSale)
+                    .ToListAsync()
+                : new List<Skin>();
+
+            var ownedSkinIds = (await _context.PlayerSkins
+                .AsNoTracking()
+                .Where(ps => ps.PlayerProfileId == playerProfileId)
+                .Select(ps => ps.SkinId)
+                .ToListAsync()).ToHashSet();
+
+            return new PlayerSkinShopResult
+            {
+                PlayerProfile = profile,
+                Skins = skins,
+                OwnedSkinIds = ownedSkinIds
+            };
+        }
+
+        public async Task<PlayerShopSkinPurchaseResult> PurchaseSkin(
+            int playerProfileId,
+            int skinId,
+            DateTime utcNow)
+        {
+            await using var dbTransaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+            var profile = await _context.PlayerProfiles
+                .FirstOrDefaultAsync(p => p.PlayerProfileId == playerProfileId);
+            if (profile == null)
+                return new PlayerShopSkinPurchaseResult { Status = PurchaseShopSkinStatus.PlayerNotFound };
+
+            var skin = await _context.Skins.FirstOrDefaultAsync(s => s.SkinId == skinId);
+            if (skin == null)
+                return new PlayerShopSkinPurchaseResult
+                {
+                    Status = PurchaseShopSkinStatus.SkinNotFound,
+                    PlayerProfile = profile
+                };
+
+            if (GetPremiumSkinId(profile.Class) != skinId)
+                return new PlayerShopSkinPurchaseResult
+                {
+                    Status = PurchaseShopSkinStatus.WrongClass,
+                    PlayerProfile = profile,
+                    Skin = skin
+                };
+
+            if (!skin.IsActive || !skin.IsForSale)
+                return new PlayerShopSkinPurchaseResult
+                {
+                    Status = PurchaseShopSkinStatus.NotForSale,
+                    PlayerProfile = profile,
+                    Skin = skin
+                };
+
+            if (await _context.PlayerSkins.AnyAsync(ps => ps.PlayerProfileId == playerProfileId && ps.SkinId == skinId))
+                return new PlayerShopSkinPurchaseResult
+                {
+                    Status = PurchaseShopSkinStatus.AlreadyOwned,
+                    PlayerProfile = profile,
+                    Skin = skin
+                };
+
+            var currency = NormalizeCurrency(skin.Currency);
+            if (currency == null)
+                return new PlayerShopSkinPurchaseResult
+                {
+                    Status = PurchaseShopSkinStatus.UnsupportedCurrency,
+                    PlayerProfile = profile,
+                    Skin = skin
+                };
+
+            var balanceBefore = GetBalance(profile, currency);
+            if (balanceBefore < skin.Price)
+                return new PlayerShopSkinPurchaseResult
+                {
+                    Status = PurchaseShopSkinStatus.InsufficientCurrency,
+                    PlayerProfile = profile,
+                    Skin = skin,
+                    BalanceBefore = balanceBefore,
+                    BalanceAfter = balanceBefore
+                };
+
+            var balanceAfter = balanceBefore - skin.Price;
+            SetBalance(profile, currency, balanceAfter);
+
+            var playerSkin = new PlayerSkin
+            {
+                PlayerProfileId = playerProfileId,
+                SkinId = skinId,
+                IsEquipped = false,
+                UnlockedAt = utcNow
+            };
+            var currencyLog = new PlayerCurrencyLog
+            {
+                PlayerProfileId = playerProfileId,
+                Currency = currency,
+                Type = "Spend",
+                Amount = -skin.Price,
+                BalanceAfter = balanceAfter,
+                Note = $"Purchase skin #{skinId}",
+                CreatedAt = utcNow
+            };
+
+            await _context.PlayerSkins.AddAsync(playerSkin);
+            await _context.PlayerCurrencyLogs.AddAsync(currencyLog);
+            await _context.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
+
+            return new PlayerShopSkinPurchaseResult
+            {
+                Status = PurchaseShopSkinStatus.Success,
+                PlayerProfile = profile,
+                Skin = skin,
+                PlayerSkin = playerSkin,
+                CurrencyLog = currencyLog,
+                BalanceBefore = balanceBefore,
+                BalanceAfter = balanceAfter
+            };
+        }
+
         private IQueryable<ShopItem> BuildAvailableShopItemsQuery(
             string shopSection,
             string? currency,
@@ -617,6 +750,15 @@ namespace DAL.Repositories
 
             return null;
         }
+
+        private static int? GetPremiumSkinId(string? playerClass)
+            => playerClass?.Trim().ToLowerInvariant() switch
+            {
+                "archer" => 4,
+                "knight" => 5,
+                "mage" => 6,
+                _ => null
+            };
 
         private static decimal GetBalance(PlayerProfile profile, string currency)
             => currency == "Gold" ? profile.Gold : profile.Gems;

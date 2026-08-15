@@ -158,6 +158,63 @@ namespace BLL.Services
             };
         }
 
+        public async Task<IReadOnlyList<SkinShopItemResponseDto>> GetSkinShop(int playerProfileId)
+        {
+            EnsureAuthenticated(playerProfileId);
+            var result = await _repository.GetSkinShop(playerProfileId);
+            if (result.PlayerProfile == null)
+                throw new KeyNotFoundException("Player profile not found.");
+
+            return result.Skins.Select(skin =>
+            {
+                var isOwned = result.OwnedSkinIds.Contains(skin.SkinId);
+                return new SkinShopItemResponseDto
+                {
+                    SkinId = skin.SkinId,
+                    SkinName = skin.Name,
+                    Description = skin.Description,
+                    SkinType = skin.Type,
+                    Rarity = skin.Rarity,
+                    IconUrl = skin.IconUrl,
+                    PreviewUrl = skin.PreviewUrl,
+                    Currency = skin.Currency,
+                    Price = skin.Price,
+                    IsOwned = isOwned,
+                    CanPurchase = !isOwned,
+                    UnavailableReason = isOwned ? "Skin already owned." : null
+                };
+            }).ToList();
+        }
+
+        public async Task<PurchaseShopSkinResponseDto> PurchaseSkin(
+            int playerProfileId,
+            PurchaseShopSkinRequestDto request)
+        {
+            EnsureAuthenticated(playerProfileId);
+            if (request.SkinId <= 0)
+                throw new BadRequestException("Skin ID must be greater than 0.");
+
+            var result = await _repository.PurchaseSkin(playerProfileId, request.SkinId, DateTime.UtcNow);
+            ThrowIfSkinPurchaseFailed(result);
+
+            var profile = result.PlayerProfile!;
+            var skin = result.Skin!;
+            return new PurchaseShopSkinResponseDto
+            {
+                Success = true,
+                Message = "Skin purchased and unlocked.",
+                PlayerSkinId = result.PlayerSkin!.PlayerSkinId,
+                SkinId = skin.SkinId,
+                SkinName = skin.Name,
+                Currency = skin.Currency,
+                Price = skin.Price,
+                BalanceBefore = result.BalanceBefore,
+                BalanceAfter = result.BalanceAfter,
+                Balance = MapBalance(profile),
+                Transaction = _mapper.Map<PlayerCurrencyLogResponseDto>(result.CurrencyLog)
+            };
+        }
+
         private async Task<PagedResultDto<ShopItemPublicResponseDto>> MapShopResult(
             int playerProfileId,
             int totalCount,
@@ -352,6 +409,31 @@ namespace BLL.Services
                     throw new BadRequestException("Daily deal is not available in your current daily shop.");
                 default:
                     throw new InvalidOperationException("Purchase failed.");
+            }
+        }
+
+        private static void ThrowIfSkinPurchaseFailed(PlayerShopSkinPurchaseResult result)
+        {
+            switch (result.Status)
+            {
+                case PurchaseShopSkinStatus.Success:
+                    return;
+                case PurchaseShopSkinStatus.PlayerNotFound:
+                    throw new KeyNotFoundException("Player profile not found.");
+                case PurchaseShopSkinStatus.SkinNotFound:
+                    throw new KeyNotFoundException("Skin not found.");
+                case PurchaseShopSkinStatus.WrongClass:
+                    throw new BadRequestException("This skin is not available for your class.");
+                case PurchaseShopSkinStatus.NotForSale:
+                    throw new BadRequestException("This skin is not for sale.");
+                case PurchaseShopSkinStatus.AlreadyOwned:
+                    throw new BadRequestException("Skin already owned.");
+                case PurchaseShopSkinStatus.UnsupportedCurrency:
+                    throw new BadRequestException("Currency must be Gold or Gems.");
+                case PurchaseShopSkinStatus.InsufficientCurrency:
+                    throw new BadRequestException($"Not enough {result.Skin?.Currency ?? "currency"}.");
+                default:
+                    throw new InvalidOperationException("Skin purchase failed.");
             }
         }
 
