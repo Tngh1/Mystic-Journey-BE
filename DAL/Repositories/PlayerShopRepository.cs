@@ -565,7 +565,8 @@ namespace DAL.Repositories
             DateTime utcNow)
         {
             var query = _context.ShopItems
-                .Include(s => s.Item)
+                .Include(s => s.Item!)
+                    .ThenInclude(i => i!.EquipmentStats)
                 .Where(s =>
                     s.ShopSection == shopSection &&
                     s.IsActive &&
