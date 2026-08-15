@@ -97,4 +97,41 @@ namespace BLL.DTOs
         public CurrencyBalanceResponseDto Balance { get; set; } = new();
         public PlayerCurrencyLogResponseDto? Transaction { get; set; }
     }
+
+    public class SkinShopItemResponseDto
+    {
+        public int SkinId { get; set; }
+        public string SkinName { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string SkinType { get; set; } = string.Empty;
+        public string Rarity { get; set; } = string.Empty;
+        public string? IconUrl { get; set; }
+        public string? PreviewUrl { get; set; }
+        public string Currency { get; set; } = "Gems";
+        public decimal Price { get; set; }
+        public bool IsOwned { get; set; }
+        public bool CanPurchase { get; set; }
+        public string? UnavailableReason { get; set; }
+    }
+
+    public class PurchaseShopSkinRequestDto
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Skin ID must be greater than 0.")]
+        public int SkinId { get; set; }
+    }
+
+    public class PurchaseShopSkinResponseDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public int PlayerSkinId { get; set; }
+        public int SkinId { get; set; }
+        public string SkinName { get; set; } = string.Empty;
+        public string Currency { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public decimal BalanceBefore { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public CurrencyBalanceResponseDto Balance { get; set; } = new();
+        public PlayerCurrencyLogResponseDto? Transaction { get; set; }
+    }
 }
