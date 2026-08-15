@@ -13,6 +13,9 @@ namespace BLL.Services.Interfaces
         // Lấy trạng thái world của player (vị trí, quest đang thực hiện, NPCs...).
         Task<WorldStateResponseDto> GetWorldState(int playerProfileId);
 
+        // Lấy riêng vị trí để bootstrap nhân vật mà không tải quest/NPC/map/daily login.
+        Task<PlayerWorldPositionDto> GetPosition(int playerProfileId);
+
         // Cập nhật vị trí của player trong world (map, tọa độ).
         Task<PlayerWorldPositionDto> UpdatePosition(int playerProfileId, UpdateWorldPositionRequestDto request);
 

@@ -331,7 +331,82 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new EquipmentStats { EquipmentStatsId = 905, ItemId = 905, BaseHp = 49, BaseAtk = 8, BaseDef = 11, BonusHp = 21, BonusAtk = 4, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 4, BonusCritDamage = 10, BonusDamageBonus = 0 },
                 new EquipmentStats { EquipmentStatsId = 906, ItemId = 906, BaseHp = 147, BaseAtk = 0, BaseDef = 28, BonusHp = 63, BonusAtk = 0, BonusDef = 12, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
                 new EquipmentStats { EquipmentStatsId = 907, ItemId = 907, BaseHp = 0, BaseAtk = 38, BaseDef = 0, BonusHp = 0, BonusAtk = 17, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 12, BonusCritDamage = 35, BonusDamageBonus = 0 },
-                new EquipmentStats { EquipmentStatsId = 908, ItemId = 908, BaseHp = 98, BaseAtk = 6, BaseDef = 24, BonusHp = 42, BonusAtk = 2, BonusDef = 10, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 5, BonusCritDamage = 15, BonusDamageBonus = 0 }
+                new EquipmentStats { EquipmentStatsId = 908, ItemId = 908, BaseHp = 98, BaseAtk = 6, BaseDef = 24, BonusHp = 42, BonusAtk = 2, BonusDef = 10, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 5, BonusCritDamage = 15, BonusDamageBonus = 0 },
+
+                // Mythic Equipment Stats (101 - 112)
+                new EquipmentStats { EquipmentStatsId = 101, ItemId = 101, BaseHp = 0, BaseAtk = 110, BaseDef = 0, BonusHp = 0, BonusAtk = 45, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 10, BonusCritRate = 20, BonusCritDamage = 45, BonusDamageBonus = 15 },
+                new EquipmentStats { EquipmentStatsId = 102, ItemId = 102, BaseHp = 0, BaseAtk = 115, BaseDef = 0, BonusHp = 0, BonusAtk = 50, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 5, BonusCritRate = 18, BonusCritDamage = 50, BonusDamageBonus = 18 },
+                new EquipmentStats { EquipmentStatsId = 103, ItemId = 103, BaseHp = 0, BaseAtk = 105, BaseDef = 0, BonusHp = 0, BonusAtk = 42, BonusDef = 0, BonusMoveSpeed = 8, BonusAttackSpeed = 15, BonusCritRate = 22, BonusCritDamage = 40, BonusDamageBonus = 12 },
+                new EquipmentStats { EquipmentStatsId = 104, ItemId = 104, BaseHp = 300, BaseAtk = 0, BaseDef = 70, BonusHp = 120, BonusAtk = 0, BonusDef = 30, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 105, ItemId = 105, BaseHp = 220, BaseAtk = 15, BaseDef = 45, BonusHp = 80, BonusAtk = 5, BonusDef = 20, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 10, BonusCritDamage = 20, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 106, ItemId = 106, BaseHp = 450, BaseAtk = 0, BaseDef = 85, BonusHp = 180, BonusAtk = 0, BonusDef = 35, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 107, ItemId = 107, BaseHp = 200, BaseAtk = 20, BaseDef = 40, BonusHp = 80, BonusAtk = 10, BonusDef = 15, BonusMoveSpeed = 12, BonusAttackSpeed = 8, BonusCritRate = 12, BonusCritDamage = 25, BonusDamageBonus = 5 },
+                new EquipmentStats { EquipmentStatsId = 108, ItemId = 108, BaseHp = 120, BaseAtk = 25, BaseDef = 20, BonusHp = 50, BonusAtk = 10, BonusDef = 8, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 15, BonusCritDamage = 30, BonusDamageBonus = 8 },
+                new EquipmentStats { EquipmentStatsId = 109, ItemId = 109, BaseHp = 250, BaseAtk = 15, BaseDef = 25, BonusHp = 100, BonusAtk = 5, BonusDef = 10, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 10, BonusCritDamage = 20, BonusDamageBonus = 5 },
+                new EquipmentStats { EquipmentStatsId = 110, ItemId = 110, BaseHp = 150, BaseAtk = 30, BaseDef = 15, BonusHp = 60, BonusAtk = 12, BonusDef = 5, BonusMoveSpeed = 5, BonusAttackSpeed = 5, BonusCritRate = 12, BonusCritDamage = 25, BonusDamageBonus = 10 },
+                new EquipmentStats { EquipmentStatsId = 111, ItemId = 111, BaseHp = 100, BaseAtk = 130, BaseDef = 15, BonusHp = 40, BonusAtk = 55, BonusDef = 5, BonusMoveSpeed = -3, BonusAttackSpeed = 0, BonusCritRate = 15, BonusCritDamage = 50, BonusDamageBonus = 20 },
+                new EquipmentStats { EquipmentStatsId = 112, ItemId = 112, BaseHp = 50, BaseAtk = 125, BaseDef = 10, BonusHp = 20, BonusAtk = 50, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 5, BonusCritRate = 20, BonusCritDamage = 55, BonusDamageBonus = 22 },
+
+                // Legendary Equipment Stats (113 - 118)
+                new EquipmentStats { EquipmentStatsId = 113, ItemId = 113, BaseHp = 0, BaseAtk = 65, BaseDef = 0, BonusHp = 0, BonusAtk = 25, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 5, BonusCritRate = 12, BonusCritDamage = 30, BonusDamageBonus = 8 },
+                new EquipmentStats { EquipmentStatsId = 114, ItemId = 114, BaseHp = 0, BaseAtk = 68, BaseDef = 0, BonusHp = 0, BonusAtk = 28, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 10, BonusCritDamage = 35, BonusDamageBonus = 10 },
+                new EquipmentStats { EquipmentStatsId = 115, ItemId = 115, BaseHp = 0, BaseAtk = 62, BaseDef = 0, BonusHp = 0, BonusAtk = 22, BonusDef = 0, BonusMoveSpeed = 6, BonusAttackSpeed = 10, BonusCritRate = 14, BonusCritDamage = 25, BonusDamageBonus = 6 },
+                new EquipmentStats { EquipmentStatsId = 116, ItemId = 116, BaseHp = 180, BaseAtk = 0, BaseDef = 45, BonusHp = 70, BonusAtk = 0, BonusDef = 18, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 117, ItemId = 117, BaseHp = 120, BaseAtk = 10, BaseDef = 25, BonusHp = 40, BonusAtk = 5, BonusDef = 10, BonusMoveSpeed = 8, BonusAttackSpeed = 4, BonusCritRate = 6, BonusCritDamage = 15, BonusDamageBonus = 3 },
+                new EquipmentStats { EquipmentStatsId = 118, ItemId = 118, BaseHp = 140, BaseAtk = 12, BaseDef = 15, BonusHp = 50, BonusAtk = 6, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 8, BonusCritDamage = 18, BonusDamageBonus = 4 },
+
+                // Epic Equipment Stats (119 - 124)
+                new EquipmentStats { EquipmentStatsId = 119, ItemId = 119, BaseHp = 0, BaseAtk = 38, BaseDef = 0, BonusHp = 0, BonusAtk = 15, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 8, BonusCritDamage = 20, BonusDamageBonus = 4 },
+                new EquipmentStats { EquipmentStatsId = 120, ItemId = 120, BaseHp = 0, BaseAtk = 40, BaseDef = 0, BonusHp = 0, BonusAtk = 16, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 6, BonusCritDamage = 22, BonusDamageBonus = 5 },
+                new EquipmentStats { EquipmentStatsId = 121, ItemId = 121, BaseHp = 0, BaseAtk = 36, BaseDef = 0, BonusHp = 0, BonusAtk = 14, BonusDef = 0, BonusMoveSpeed = 4, BonusAttackSpeed = 6, BonusCritRate = 9, BonusCritDamage = 18, BonusDamageBonus = 3 },
+                new EquipmentStats { EquipmentStatsId = 122, ItemId = 122, BaseHp = 110, BaseAtk = 0, BaseDef = 28, BonusHp = 40, BonusAtk = 0, BonusDef = 11, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 123, ItemId = 123, BaseHp = 70, BaseAtk = 8, BaseDef = 16, BonusHp = 25, BonusAtk = 4, BonusDef = 6, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 7, BonusCritDamage = 15, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 124, ItemId = 124, BaseHp = 60, BaseAtk = 10, BaseDef = 10, BonusHp = 20, BonusAtk = 5, BonusDef = 4, BonusMoveSpeed = 3, BonusAttackSpeed = 3, BonusCritRate = 5, BonusCritDamage = 12, BonusDamageBonus = 3 },
+
+                // Rare Equipment Stats (125 - 130)
+                new EquipmentStats { EquipmentStatsId = 125, ItemId = 125, BaseHp = 0, BaseAtk = 22, BaseDef = 0, BonusHp = 0, BonusAtk = 8, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 4, BonusCritDamage = 12, BonusDamageBonus = 2 },
+                new EquipmentStats { EquipmentStatsId = 126, ItemId = 126, BaseHp = 0, BaseAtk = 24, BaseDef = 0, BonusHp = 0, BonusAtk = 9, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 4, BonusCritDamage = 14, BonusDamageBonus = 2 },
+                new EquipmentStats { EquipmentStatsId = 127, ItemId = 127, BaseHp = 0, BaseAtk = 20, BaseDef = 0, BonusHp = 0, BonusAtk = 7, BonusDef = 0, BonusMoveSpeed = 3, BonusAttackSpeed = 4, BonusCritRate = 5, BonusCritDamage = 10, BonusDamageBonus = 1 },
+                new EquipmentStats { EquipmentStatsId = 128, ItemId = 128, BaseHp = 65, BaseAtk = 0, BaseDef = 16, BonusHp = 25, BonusAtk = 0, BonusDef = 6, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 129, ItemId = 129, BaseHp = 45, BaseAtk = 4, BaseDef = 12, BonusHp = 15, BonusAtk = 2, BonusDef = 4, BonusMoveSpeed = 4, BonusAttackSpeed = 0, BonusCritRate = 3, BonusCritDamage = 8, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 130, ItemId = 130, BaseHp = 40, BaseAtk = 5, BaseDef = 6, BonusHp = 15, BonusAtk = 2, BonusDef = 2, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 3, BonusCritDamage = 6, BonusDamageBonus = 1 },
+
+                // Uncommon Equipment Stats (131 - 135)
+                new EquipmentStats { EquipmentStatsId = 131, ItemId = 131, BaseHp = 0, BaseAtk = 13, BaseDef = 0, BonusHp = 0, BonusAtk = 5, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 3, BonusCritDamage = 8, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 132, ItemId = 132, BaseHp = 0, BaseAtk = 14, BaseDef = 0, BonusHp = 0, BonusAtk = 5, BonusDef = 0, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 2, BonusCritDamage = 10, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 133, ItemId = 133, BaseHp = 0, BaseAtk = 12, BaseDef = 0, BonusHp = 0, BonusAtk = 4, BonusDef = 0, BonusMoveSpeed = 2, BonusAttackSpeed = 3, BonusCritRate = 3, BonusCritDamage = 6, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 134, ItemId = 134, BaseHp = 35, BaseAtk = 0, BaseDef = 9, BonusHp = 12, BonusAtk = 0, BonusDef = 3, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 135, ItemId = 135, BaseHp = 20, BaseAtk = 2, BaseDef = 4, BonusHp = 8, BonusAtk = 1, BonusDef = 2, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 2, BonusCritDamage = 4, BonusDamageBonus = 0 },
+
+                // Common Equipment Stats (139 - 140)
+                new EquipmentStats { EquipmentStatsId = 139, ItemId = 139, BaseHp = 15, BaseAtk = 0, BaseDef = 3, BonusHp = 5, BonusAtk = 0, BonusDef = 1, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 140, ItemId = 140, BaseHp = 20, BaseAtk = 0, BaseDef = 4, BonusHp = 8, BonusAtk = 0, BonusDef = 1, BonusMoveSpeed = 2, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+
+                // ── Gacha-only Equipment Stats (156 - 171) ─────────────────────────────
+                // Gacha Epic (156)
+                new EquipmentStats { EquipmentStatsId = 156, ItemId = 156, BaseHp = 50, BaseAtk = 12, BaseDef = 12, BonusHp = 20, BonusAtk = 6, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 5, BonusCritRate = 5, BonusCritDamage = 10, BonusDamageBonus = 3 },
+
+                // ── Helmets, Boots, Gloves, Necklaces & Rings for Gacha (157 - 171) ────
+                // Mythic (157, 160, 163, 166, 169)
+                new EquipmentStats { EquipmentStatsId = 157, ItemId = 157, BaseHp = 260, BaseAtk = 0, BaseDef = 52, BonusHp = 100, BonusAtk = 0, BonusDef = 24, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 14, BonusCritDamage = 24, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 160, ItemId = 160, BaseHp = 200, BaseAtk = 0, BaseDef = 40, BonusHp = 80, BonusAtk = 0, BonusDef = 18, BonusMoveSpeed = 15, BonusAttackSpeed = 10, BonusCritRate = 10, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 163, ItemId = 163, BaseHp = 150, BaseAtk = 40, BaseDef = 35, BonusHp = 60, BonusAtk = 18, BonusDef = 15, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 12 },
+                new EquipmentStats { EquipmentStatsId = 166, ItemId = 166, BaseHp = 280, BaseAtk = 25, BaseDef = 30, BonusHp = 120, BonusAtk = 10, BonusDef = 12, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 12, BonusCritDamage = 25, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 169, ItemId = 169, BaseHp = 180, BaseAtk = 35, BaseDef = 25, BonusHp = 70, BonusAtk = 15, BonusDef = 10, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 15, BonusCritDamage = 30, BonusDamageBonus = 10 },
+
+                // Legendary (158, 161, 164, 167, 170)
+                new EquipmentStats { EquipmentStatsId = 158, ItemId = 158, BaseHp = 160, BaseAtk = 0, BaseDef = 35, BonusHp = 60, BonusAtk = 0, BonusDef = 15, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 8, BonusCritDamage = 15, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 161, ItemId = 161, BaseHp = 140, BaseAtk = 0, BaseDef = 28, BonusHp = 50, BonusAtk = 0, BonusDef = 12, BonusMoveSpeed = 10, BonusAttackSpeed = 5, BonusCritRate = 0, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 164, ItemId = 164, BaseHp = 90, BaseAtk = 25, BaseDef = 22, BonusHp = 35, BonusAtk = 12, BonusDef = 8, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 8, BonusCritDamage = 18, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 167, ItemId = 167, BaseHp = 170, BaseAtk = 16, BaseDef = 18, BonusHp = 60, BonusAtk = 8, BonusDef = 6, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 8, BonusCritDamage = 16, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 170, ItemId = 170, BaseHp = 100, BaseAtk = 22, BaseDef = 14, BonusHp = 40, BonusAtk = 10, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 10, BonusCritDamage = 22, BonusDamageBonus = 6 },
+
+                // Epic (159, 162, 165, 168, 171)
+                new EquipmentStats { EquipmentStatsId = 159, ItemId = 159, BaseHp = 85, BaseAtk = 0, BaseDef = 20, BonusHp = 30, BonusAtk = 0, BonusDef = 8, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 7, BonusCritDamage = 14, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 162, ItemId = 162, BaseHp = 75, BaseAtk = 0, BaseDef = 16, BonusHp = 25, BonusAtk = 0, BonusDef = 6, BonusMoveSpeed = 8, BonusAttackSpeed = 4, BonusCritRate = 5, BonusCritDamage = 0, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 165, ItemId = 165, BaseHp = 50, BaseAtk = 15, BaseDef = 12, BonusHp = 20, BonusAtk = 8, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 8, BonusCritRate = 0, BonusCritDamage = 12, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 168, ItemId = 168, BaseHp = 90, BaseAtk = 8, BaseDef = 12, BonusHp = 35, BonusAtk = 4, BonusDef = 5, BonusMoveSpeed = 0, BonusAttackSpeed = 0, BonusCritRate = 5, BonusCritDamage = 10, BonusDamageBonus = 0 },
+                new EquipmentStats { EquipmentStatsId = 171, ItemId = 171, BaseHp = 60, BaseAtk = 12, BaseDef = 8, BonusHp = 20, BonusAtk = 5, BonusDef = 3, BonusMoveSpeed = 5, BonusAttackSpeed = 0, BonusCritRate = 6, BonusCritDamage = 12, BonusDamageBonus = 0 }
             );
 
             modelBuilder.Entity<MonsterDrop>().HasData(
@@ -685,7 +760,93 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new ShopItem { ShopItemId = 16, ItemId = 13, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 800m, Stock = -1, IsActive = true },
                 new ShopItem { ShopItemId = 17, ItemId = 8, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 700m, Stock = -1, IsActive = true },
                 new ShopItem { ShopItemId = 18, ItemId = 12, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 1800m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 19, ItemId = 4, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 100m, Stock = -1, IsActive = true }
+                new ShopItem { ShopItemId = 19, ItemId = 4, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 100m, Stock = -1, IsActive = true },
+
+                // Daily Deal Shop items (non-Gacha Legendary/Epic/Rare equipment + Magic Flour)
+                new ShopItem { ShopItemId = 20, ItemId = 31,  ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 500m,  Stock = -1, DailyPurchaseLimit = 3, IsActive = true }, // Magic Flour (Legendary consumable)
+                new ShopItem { ShopItemId = 21, ItemId = 116, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 2500m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Radiant Guardian Shield (Legendary)
+                new ShopItem { ShopItemId = 22, ItemId = 117, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 2200m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Cloak of Stars (Legendary)
+                new ShopItem { ShopItemId = 23, ItemId = 118, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 2200m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Amulet of Eternal Flame (Legendary)
+                new ShopItem { ShopItemId = 24, ItemId = 119, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 1100m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Paladin Broadsword (Epic)
+                new ShopItem { ShopItemId = 25, ItemId = 120, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 1100m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Elemental Grimoire (Epic)
+                new ShopItem { ShopItemId = 26, ItemId = 121, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 1100m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Shadow Crossbow (Epic)
+                new ShopItem { ShopItemId = 27, ItemId = 124, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 900m,  Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Ring of Tempest (Epic)
+                new ShopItem { ShopItemId = 28, ItemId = 129, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 420m,  Stock = -1, DailyPurchaseLimit = 5, IsActive = true }, // Mantle of the Forest (Rare)
+
+                // Fixed Shop items (non-Gacha Epic/Rare/Uncommon/Common equipment)
+                new ShopItem { ShopItemId = 29, ItemId = 122, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 950m,  Stock = -1, IsActive = true }, // Fortress Tower Shield (Epic)
+                new ShopItem { ShopItemId = 30, ItemId = 123, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 900m,  Stock = -1, IsActive = true }, // Hood of Silent Night (Epic)
+                new ShopItem { ShopItemId = 31, ItemId = 125, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m,  Stock = -1, IsActive = true }, // Steel Halberd (Rare)
+                new ShopItem { ShopItemId = 32, ItemId = 126, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m,  Stock = -1, IsActive = true }, // Crystal Wand (Rare)
+                new ShopItem { ShopItemId = 33, ItemId = 127, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m,  Stock = -1, IsActive = true }, // Recurve Composite Bow (Rare)
+                new ShopItem { ShopItemId = 34, ItemId = 128, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 400m,  Stock = -1, IsActive = true }, // Knight Iron Shield (Rare)
+                new ShopItem { ShopItemId = 35, ItemId = 130, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 380m,  Stock = -1, IsActive = true }, // Necklace of Vitality (Rare)
+                new ShopItem { ShopItemId = 36, ItemId = 131, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m,  Stock = -1, IsActive = true }, // Battle Axe (Uncommon)
+                new ShopItem { ShopItemId = 37, ItemId = 132, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m,  Stock = -1, IsActive = true }, // Apprentice Rod (Uncommon)
+                new ShopItem { ShopItemId = 38, ItemId = 133, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m,  Stock = -1, IsActive = true }, // Light Crossbow (Uncommon)
+                new ShopItem { ShopItemId = 39, ItemId = 134, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 180m,  Stock = -1, IsActive = true }, // Wooden Buckler (Uncommon)
+                new ShopItem { ShopItemId = 40, ItemId = 135, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 150m,  Stock = -1, IsActive = true }, // Band of Minor Protection (Uncommon)
+                new ShopItem { ShopItemId = 41, ItemId = 139, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,   Stock = -1, IsActive = true }, // Cloth Cap (Common)
+                new ShopItem { ShopItemId = 42, ItemId = 140, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,   Stock = -1, IsActive = true }  // Traveler Cloak (Common)
+            );
+
+            // ─────────────────────────────────────────────────────────────────────────
+            // GACHA BANNERS & GACHA BANNER ITEMS
+            // ─────────────────────────────────────────────────────────────────────────
+            modelBuilder.Entity<GachaBanner>().HasData(
+                new GachaBanner
+                {
+                    GachaBannerId = 1,
+                    Name = "Mythic & Legendary Arsenal Banner",
+                    Type = "Weapon",
+                    PullCost = 1,
+                    CostItemId = 4, // Lucky Ticket
+                    PityLimit = 80,
+                    IsActive = true,
+                    StartAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    EndAt = new DateTime(2030, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<GachaBannerItem>().HasData(
+                // Mythic weapons (101 - 112) — Gacha Banner 1
+                new GachaBannerItem { GachaBannerItemId = 1,  GachaBannerId = 1, ItemId = 101, DropRate = 0.5m, IsFeatured = true  }, // Excalibur of Light
+                new GachaBannerItem { GachaBannerItemId = 2,  GachaBannerId = 1, ItemId = 102, DropRate = 0.5m, IsFeatured = true  }, // Staff of the Cosmos
+                new GachaBannerItem { GachaBannerItemId = 3,  GachaBannerId = 1, ItemId = 103, DropRate = 0.5m, IsFeatured = true  }, // Bow of Eternity
+                new GachaBannerItem { GachaBannerItemId = 4,  GachaBannerId = 1, ItemId = 104, DropRate = 0.5m, IsFeatured = false }, // Aegis of the Sun God
+                new GachaBannerItem { GachaBannerItemId = 5,  GachaBannerId = 1, ItemId = 105, DropRate = 0.5m, IsFeatured = false }, // Crown of Divine Sovereign
+                new GachaBannerItem { GachaBannerItemId = 6,  GachaBannerId = 1, ItemId = 106, DropRate = 0.5m, IsFeatured = false }, // Celestia Sacred Armor
+                new GachaBannerItem { GachaBannerItemId = 7,  GachaBannerId = 1, ItemId = 107, DropRate = 0.5m, IsFeatured = false }, // Cloak of the Shadow Void
+                new GachaBannerItem { GachaBannerItemId = 8,  GachaBannerId = 1, ItemId = 108, DropRate = 0.5m, IsFeatured = false }, // Ring of Omnipotence
+                new GachaBannerItem { GachaBannerItemId = 9,  GachaBannerId = 1, ItemId = 109, DropRate = 0.5m, IsFeatured = false }, // Heart of the Phoenix Necklace
+                new GachaBannerItem { GachaBannerItemId = 10, GachaBannerId = 1, ItemId = 110, DropRate = 0.5m, IsFeatured = false }, // Talisman of Infinite Mana
+                new GachaBannerItem { GachaBannerItemId = 11, GachaBannerId = 1, ItemId = 111, DropRate = 0.5m, IsFeatured = false }, // Warhammer of Titan King
+                new GachaBannerItem { GachaBannerItemId = 12, GachaBannerId = 1, ItemId = 112, DropRate = 0.5m, IsFeatured = false }, // Grimoire of Celestial Ruin
+                // Legendary weapons (113 - 115) + Magic Flour (31)
+                new GachaBannerItem { GachaBannerItemId = 13, GachaBannerId = 1, ItemId = 113, DropRate = 2.0m, IsFeatured = false }, // Valiant Dragon Greatsword
+                new GachaBannerItem { GachaBannerItemId = 14, GachaBannerId = 1, ItemId = 114, DropRate = 2.0m, IsFeatured = false }, // Archmage Astral Rod
+                new GachaBannerItem { GachaBannerItemId = 15, GachaBannerId = 1, ItemId = 115, DropRate = 2.0m, IsFeatured = false }, // Windrunner Grand Bow
+                new GachaBannerItem { GachaBannerItemId = 16, GachaBannerId = 1, ItemId = 31,  DropRate = 3.0m, IsFeatured = false }, // Magic Flour (Legendary consumable)
+                // Epic gacha-only weapon (156)
+                new GachaBannerItem { GachaBannerItemId = 17, GachaBannerId = 1, ItemId = 156, DropRate = 3.0m, IsFeatured = false }, // Gauntlets of Iron Will
+                // Mythic helmets/boots/gloves/necklaces/rings (157, 160, 163, 166, 169)
+                new GachaBannerItem { GachaBannerItemId = 18, GachaBannerId = 1, ItemId = 157, DropRate = 0.5m, IsFeatured = false }, // Visor of the Sun Sovereign
+                new GachaBannerItem { GachaBannerItemId = 19, GachaBannerId = 1, ItemId = 160, DropRate = 0.5m, IsFeatured = false }, // Boots of Celestial Strider
+                new GachaBannerItem { GachaBannerItemId = 20, GachaBannerId = 1, ItemId = 163, DropRate = 0.5m, IsFeatured = false }, // Gauntlets of Titan Strength
+                new GachaBannerItem { GachaBannerItemId = 21, GachaBannerId = 1, ItemId = 166, DropRate = 0.5m, IsFeatured = false }, // Pendant of Cosmic Harmony
+                new GachaBannerItem { GachaBannerItemId = 22, GachaBannerId = 1, ItemId = 169, DropRate = 0.5m, IsFeatured = false }, // Band of Absolute Dominion
+                // Legendary helmets/boots/gloves/necklaces/rings (158, 161, 164, 167, 170)
+                new GachaBannerItem { GachaBannerItemId = 23, GachaBannerId = 1, ItemId = 158, DropRate = 1.5m, IsFeatured = false }, // Helm of the Undying Knight
+                new GachaBannerItem { GachaBannerItemId = 24, GachaBannerId = 1, ItemId = 161, DropRate = 1.5m, IsFeatured = false }, // Treads of the Frost Vanguard
+                new GachaBannerItem { GachaBannerItemId = 25, GachaBannerId = 1, ItemId = 164, DropRate = 1.5m, IsFeatured = false }, // Vanguard Dragon Claws
+                new GachaBannerItem { GachaBannerItemId = 26, GachaBannerId = 1, ItemId = 167, DropRate = 1.5m, IsFeatured = false }, // Choker of the Bloodline
+                new GachaBannerItem { GachaBannerItemId = 27, GachaBannerId = 1, ItemId = 170, DropRate = 1.5m, IsFeatured = false }, // Ring of the Berserker Heart
+                // Epic helmets/boots/gloves/necklaces/rings (159, 162, 165, 168, 171)
+                new GachaBannerItem { GachaBannerItemId = 28, GachaBannerId = 1, ItemId = 159, DropRate = 3.0m, IsFeatured = false }, // Cowl of the Phantom Assassin
+                new GachaBannerItem { GachaBannerItemId = 29, GachaBannerId = 1, ItemId = 162, DropRate = 3.0m, IsFeatured = false }, // Shadowstep Striders
+                new GachaBannerItem { GachaBannerItemId = 30, GachaBannerId = 1, ItemId = 165, DropRate = 3.0m, IsFeatured = false }, // Spellweaver Touch Gloves
+                new GachaBannerItem { GachaBannerItemId = 31, GachaBannerId = 1, ItemId = 168, DropRate = 3.0m, IsFeatured = false }, // Amulet of Arcane Shielding
+                new GachaBannerItem { GachaBannerItemId = 32, GachaBannerId = 1, ItemId = 171, DropRate = 3.0m, IsFeatured = false }  // Signet of the Wind Walker
             );
 
             modelBuilder.Entity<QuestRewardItem>()
@@ -945,12 +1106,81 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Item { ItemId = 29, Name = "Swamp Seal Book",      Description = "Swamp Demon Seal Book. Dropped by SwampDemon boss.",                                       Type = "QuestItem",  Rarity = "Epic",      Slot = "None",    BaseValue = 0m,    MaxStack = 1,          IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
                 // ── Quest Items from Chapter 2-4 ──────────────────────────────────────
                 new Item { ItemId = 30, Name = "Enchanted Pumpkin",    Description = "A magical pumpkin glowing with autumn energy.",                                             Type = "QuestItem",  Rarity = "Common",    Slot = "None",    BaseValue = 0m,    MaxStack = 99,         IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
-                new Item { ItemId = 31, Name = "Magic Flour",          Description = "Mystical flour imbued with purifying magic. Reduces your corruption by 50% when consumed.",  Type = "Consumable", Rarity = "Uncommon", Slot = "None",    BaseValue = 50m,   MaxStack = 99,         IsActive = true, CorruptionReduction = 0.5f, CreatedAt = utc2024 },
+                new Item { ItemId = 31, Name = "Magic Flour",          Description = "Mystical flour imbued with purifying magic. Reduces your corruption by 50% when consumed.",  Type = "Consumable", Rarity = "Legendary", Slot = "None",   BaseValue = 50m,   MaxStack = 99,         IsActive = true, CorruptionReduction = 0.5f, CreatedAt = utc2024 },
                 new Item { ItemId = 32, Name = "Spirit Skull",         Description = "A skull radiating with ghostly presence.",                                                 Type = "QuestItem",  Rarity = "Common",    Slot = "None",    BaseValue = 0m,    MaxStack = 99,         IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
                 new Item { ItemId = 33, Name = "Mystic Key",           Description = "A key that opens the castle on the deserted island.",                                       Type = "QuestItem",  Rarity = "Epic",      Slot = "None",    BaseValue = 0m,    MaxStack = 1,          IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
                 new Item { ItemId = 34, Name = "Tide-Knell Remembrance", Description = "A remembrance token recovered from the dead of Tide-Knell.",                              Type = "QuestItem",  Rarity = "Common",    Slot = "None",    BaseValue = 0m,    MaxStack = 99,         IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
                 new Item { ItemId = 35, Name = "Natalie's Memory",      Description = "A keepsake carrying a fragment of Natalie's family memories.",                               Type = "QuestItem",  Rarity = "Common",    Slot = "None",    BaseValue = 0m,    MaxStack = 99,         IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
-                new Item { ItemId = 36, Name = "Warden Relic",          Description = "A relic left by the wardens who sealed King Aderyn beneath the island.",                     Type = "QuestItem",  Rarity = "Common",    Slot = "None",    BaseValue = 0m,    MaxStack = 99,         IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 }
+                new Item { ItemId = 36, Name = "Warden Relic",          Description = "A relic left by the wardens who sealed King Aderyn beneath the island.",                     Type = "QuestItem",  Rarity = "Common",    Slot = "None",    BaseValue = 0m,    MaxStack = 99,         IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+
+                // ── New Equipment Items (Ids 101 - 140) ──────────────────────────────────
+                // Mythic (12 items - Gacha Only)
+                new Item { ItemId = 101, Name = "Excalibur of Light",            Description = "Legendary holy blade of the High Knight.",                                   Type = "Weapon", Rarity = "Mythic",    Slot = "Weapon",   BaseValue = 5000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 102, Name = "Staff of the Cosmos",           Description = "Supreme Astral Staff imbued with cosmic magic.",                            Type = "Weapon", Rarity = "Mythic",    Slot = "Weapon",   BaseValue = 5000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 103, Name = "Bow of Eternity",               Description = "Mythical bow crafted from the World Tree's core.",                          Type = "Weapon", Rarity = "Mythic",    Slot = "Weapon",   BaseValue = 5000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 104, Name = "Aegis of the Sun God",          Description = "Divine shield forged in solar fire.",                                        Type = "Armor",  Rarity = "Mythic",    Slot = "Shield",   BaseValue = 4500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 105, Name = "Crown of Divine Sovereign",     Description = "Crown worn by ancient mythical emperors.",                                  Type = "Armor",  Rarity = "Mythic",    Slot = "Helmet",   BaseValue = 4500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 106, Name = "Celestia Sacred Armor",         Description = "Armor woven with celestial light.",                                          Type = "Armor",  Rarity = "Mythic",    Slot = "Armor",    BaseValue = 4800m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 107, Name = "Cloak of the Shadow Void",      Description = "Cloak rendering the wearer untouchable.",                                   Type = "Armor",  Rarity = "Mythic",    Slot = "Armor",    BaseValue = 4200m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 108, Name = "Ring of Omnipotence",           Description = "Ring harboring supreme elemental power.",                                   Type = "Armor",  Rarity = "Mythic",    Slot = "Ring",     BaseValue = 4000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 109, Name = "Heart of the Phoenix Necklace",Description = "Necklace pulsing with immortal flame.",                                      Type = "Armor",  Rarity = "Mythic",    Slot = "Necklace", BaseValue = 4000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 110, Name = "Talisman of Infinite Mana",     Description = "Ancient talisman granting endless mana stream.",                             Type = "Armor",  Rarity = "Mythic",    Slot = "Necklace", BaseValue = 4000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 111, Name = "Warhammer of Titan King",       Description = "Heavy hammer capable of shattering mountains.",                             Type = "Weapon", Rarity = "Mythic",    Slot = "Weapon",   BaseValue = 5000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 112, Name = "Grimoire of Celestial Ruin",   Description = "Tome containing forbidden destruction spells.",                             Type = "Weapon", Rarity = "Mythic",    Slot = "Weapon",   BaseValue = 5000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                // Legendary (6 items - 3 Gacha, 3 Shop DailyDeal)
+                new Item { ItemId = 113, Name = "Valiant Dragon Greatsword",    Description = "Heavy greatsword forged from dragon horns.",                                Type = "Weapon", Rarity = "Legendary", Slot = "Weapon",   BaseValue = 2500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 114, Name = "Archmage Astral Rod",          Description = "Stave used by supreme archmages.",                                          Type = "Weapon", Rarity = "Legendary", Slot = "Weapon",   BaseValue = 2500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 115, Name = "Windrunner Grand Bow",         Description = "Greatbow infused with gale spirits.",                                       Type = "Weapon", Rarity = "Legendary", Slot = "Weapon",   BaseValue = 2500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 116, Name = "Radiant Guardian Shield",     Description = "Heavy tower shield radiating holy aura.",                                   Type = "Armor",  Rarity = "Legendary", Slot = "Shield",   BaseValue = 2200m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 117, Name = "Cloak of Stars",               Description = "Enchanted cloak shimmering with starlight.",                                Type = "Armor",  Rarity = "Legendary", Slot = "Armor",    BaseValue = 2000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 118, Name = "Amulet of Eternal Flame",       Description = "Amulet burning with unwavering courage.",                                   Type = "Armor",  Rarity = "Legendary", Slot = "Necklace", BaseValue = 2000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                // Epic (6 items - Shop DailyDeal & Fixed)
+                new Item { ItemId = 119, Name = "Paladin Broadsword",           Description = "Broadsword wielded by holy paladins.",                                      Type = "Weapon", Rarity = "Epic",      Slot = "Weapon",   BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 120, Name = "Elemental Grimoire",           Description = "Grimoire mastering core elements.",                                         Type = "Weapon", Rarity = "Epic",      Slot = "Weapon",   BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 121, Name = "Shadow Crossbow",               Description = "Crossbow firing silent deadly bolts.",                                      Type = "Weapon", Rarity = "Epic",      Slot = "Weapon",   BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 122, Name = "Fortress Tower Shield",         Description = "Sturdy steel shield protecting fortress walls.",                            Type = "Armor",  Rarity = "Epic",      Slot = "Shield",   BaseValue = 900m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 123, Name = "Hood of Silent Night",          Description = "Hood favored by master assassins.",                                         Type = "Armor",  Rarity = "Epic",      Slot = "Helmet",   BaseValue = 850m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 124, Name = "Ring of Tempest",          Description = "Ring imbued with storm powers.",                                            Type = "Armor",  Rarity = "Epic",   Slot = "Ring",    BaseValue = 800m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                // Rare (6 items - Shop Fixed & DailyDeal)
+                new Item { ItemId = 125, Name = "Steel Halberd",             Description = "Long steel polearm for foot soldiers.",                                     Type = "Weapon", Rarity = "Rare",   Slot = "Weapon",  BaseValue = 450m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 126, Name = "Crystal Wand",              Description = "Wand focusing magic crystal energy.",                                       Type = "Weapon", Rarity = "Rare",   Slot = "Weapon",  BaseValue = 450m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 127, Name = "Recurve Composite Bow",     Description = "Bow designed for swift distance attacks.",                                  Type = "Weapon", Rarity = "Rare",   Slot = "Weapon",  BaseValue = 450m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 128, Name = "Knight Iron Shield",        Description = "Standard shield carried by elite knights.",                                Type = "Armor",  Rarity = "Rare",   Slot = "Shield",  BaseValue = 400m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 129, Name = "Mantle of the Forest",      Description = "Cloak woven from ranger silk.",                                            Type = "Armor",  Rarity = "Rare",   Slot = "Armor",   BaseValue = 380m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 130, Name = "Necklace of Vitality",      Description = "Necklace enhancing stamina.",                                              Type = "Armor",  Rarity = "Rare",   Slot = "Necklace",BaseValue = 350m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                // Uncommon (5 items - Shop Fixed)
+                new Item { ItemId = 131, Name = "Battle Axe",                Description = "Heavy axe used in close combat.",                                           Type = "Weapon", Rarity = "Uncommon",Slot = "Weapon",  BaseValue = 220m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 132, Name = "Apprentice Rod",            Description = "Simple wand for mage students.",                                            Type = "Weapon", Rarity = "Uncommon",Slot = "Weapon",  BaseValue = 220m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 133, Name = "Light Crossbow",            Description = "Light crossbow easy to reload.",                                            Type = "Weapon", Rarity = "Uncommon",Slot = "Weapon",  BaseValue = 220m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 134, Name = "Wooden Buckler",            Description = "Small wooden shield for parrying.",                                         Type = "Armor",  Rarity = "Uncommon",Slot = "Shield",  BaseValue = 180m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 135, Name = "Band of Minor Protection",  Description = "Simple ring granting minor defense.",                                       Type = "Armor",  Rarity = "Uncommon",Slot = "Ring",    BaseValue = 150m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                // Common (2 items - Shop Fixed)
+                new Item { ItemId = 139, Name = "Cloth Cap",                 Description = "Simple cloth headwear.",                                                   Type = "Armor",  Rarity = "Common", Slot = "Helmet",  BaseValue = 60m,   MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 140, Name = "Traveler Cloak",            Description = "Worn cloak for long journeys.",                                            Type = "Armor",  Rarity = "Common", Slot = "Armor",   BaseValue = 60m,   MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+
+                // ── Gacha-only Equipment Items (156 - 171) ─────────────────────────────────
+                // Epic gacha-only (156)
+                new Item { ItemId = 156, Name = "Gauntlets of Iron Will",    Description = "Heavy gauntlets increasing unwavering strike.",                             Type = "Armor",  Rarity = "Epic",   Slot = "Gloves",  BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+
+                // ── Helmets, Boots, Gloves, Necklaces & Rings Gacha Items (157 - 171) ───
+                // Mythic (157, 160, 163, 166, 169)
+                new Item { ItemId = 157, Name = "Visor of the Sun Sovereign",    Description = "Solar-infused visor worn by high sun emperors.",                            Type = "Armor",  Rarity = "Mythic",    Slot = "Helmet",   BaseValue = 4800m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 160, Name = "Boots of Celestial Strider",    Description = "Mythical boots granting lightning swiftness and levitation.",               Type = "Armor",  Rarity = "Mythic",    Slot = "Boots",    BaseValue = 4500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 163, Name = "Gauntlets of Titan Strength",   Description = "Titanium gauntlets crushing boulders with raw strike.",                    Type = "Armor",  Rarity = "Mythic",    Slot = "Gloves",   BaseValue = 4500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 166, Name = "Pendant of Cosmic Harmony",     Description = "Astral necklace channeling the energy of distant galaxies.",               Type = "Armor",  Rarity = "Mythic",    Slot = "Necklace", BaseValue = 4500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 169, Name = "Band of Absolute Dominion",     Description = "Ring granting supreme authority over all elemental magic.",                  Type = "Armor",  Rarity = "Mythic",    Slot = "Ring",     BaseValue = 4500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                // Legendary (158, 161, 164, 167, 170)
+                new Item { ItemId = 158, Name = "Helm of the Undying Knight",    Description = "Impenetrable steel helmet forged in dragon breath.",                        Type = "Armor",  Rarity = "Legendary", Slot = "Helmet",   BaseValue = 2400m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 161, Name = "Treads of the Frost Vanguard",  Description = "Heavy greaves carved from unbreakable glacier ice.",                        Type = "Armor",  Rarity = "Legendary", Slot = "Boots",    BaseValue = 2200m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 164, Name = "Vanguard Dragon Claws",         Description = "Razor-sharp gauntlets tipped with ancient dragon talons.",                  Type = "Armor",  Rarity = "Legendary", Slot = "Gloves",   BaseValue = 2200m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 167, Name = "Choker of the Bloodline",       Description = "Ancient vampire necklace granting lifesteal aura.",                         Type = "Armor",  Rarity = "Legendary", Slot = "Necklace", BaseValue = 2200m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 170, Name = "Ring of the Berserker Heart",   Description = "Blood-red ring boosting critical strikes under fury.",                      Type = "Armor",  Rarity = "Legendary", Slot = "Ring",     BaseValue = 2200m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                // Epic (159, 162, 165, 168, 171)
+                new Item { ItemId = 159, Name = "Cowl of the Phantom Assassin",  Description = "Silken hood concealing the assassin in pitch darkness.",                   Type = "Armor",  Rarity = "Epic",      Slot = "Helmet",   BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 162, Name = "Shadowstep Striders",           Description = "Light leather boots silencing every footstep in combat.",                   Type = "Armor",  Rarity = "Epic",      Slot = "Boots",    BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 165, Name = "Spellweaver Touch Gloves",     Description = "Enchanted gloves amplifying magical casting velocity.",                     Type = "Armor",  Rarity = "Epic",      Slot = "Gloves",   BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 168, Name = "Amulet of Arcane Shielding",    Description = "Amulet absorbing hostile magical explosions.",                             Type = "Armor",  Rarity = "Epic",      Slot = "Necklace", BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 171, Name = "Signet of the Wind Walker",     Description = "Graceful silver ring enhancing agility and dodge rate.",                    Type = "Armor",  Rarity = "Epic",      Slot = "Ring",     BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 }
             );
 
             // Production catalogs previously created by SeedController. Fixed IDs are
@@ -1002,21 +1232,24 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new DailyLoginReward { DailyLoginRewardId = -11, DayNumber = 11, RewardType = "Energy", RewardValue = 40m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -12, DayNumber = 12, RewardType = "Gold",   RewardValue = 600m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -13, DayNumber = 13, RewardType = "Gems",   RewardValue = 15m,   IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -14, DayNumber = 14, RewardType = "Item",   RewardValue = 0m, RewardItemId = 10, RewardItemQuantity = 1,  IsActive = true, CreatedAt = utc2024 },
+                // Day 14: Leather Armor (ItemId=16) — Uncommon equipment reward
+                new DailyLoginReward { DailyLoginRewardId = -14, DayNumber = 14, RewardType = "Item",   RewardValue = 0m, RewardItemId = 16, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -15, DayNumber = 15, RewardType = "Gold",   RewardValue = 800m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -16, DayNumber = 16, RewardType = "Gems",   RewardValue = 20m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -17, DayNumber = 17, RewardType = "Energy", RewardValue = 50m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -18, DayNumber = 18, RewardType = "Gold",   RewardValue = 900m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -19, DayNumber = 19, RewardType = "Gems",   RewardValue = 25m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -20, DayNumber = 20, RewardType = "Gold",   RewardValue = 1000m, IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -21, DayNumber = 21, RewardType = "Item",   RewardValue = 0m, RewardItemId = 19, RewardItemQuantity = 5,  IsActive = true, CreatedAt = utc2024 },
+                // Day 21: Iron Helmet (ItemId=17) — Rare equipment reward
+                new DailyLoginReward { DailyLoginRewardId = -21, DayNumber = 21, RewardType = "Item",   RewardValue = 0m, RewardItemId = 17, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -22, DayNumber = 22, RewardType = "Gold",   RewardValue = 1100m, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -23, DayNumber = 23, RewardType = "Energy", RewardValue = 60m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -24, DayNumber = 24, RewardType = "Gems",   RewardValue = 30m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -25, DayNumber = 25, RewardType = "Gold",   RewardValue = 1200m, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -26, DayNumber = 26, RewardType = "Gems",   RewardValue = 35m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -27, DayNumber = 27, RewardType = "Energy", RewardValue = 70m,   IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -28, DayNumber = 28, RewardType = "Item",   RewardValue = 0m, RewardItemId = 22, RewardItemQuantity = 10, IsActive = true, CreatedAt = utc2024 },
+                // Day 28: Wind Boots (ItemId=18) — Rare equipment reward
+                new DailyLoginReward { DailyLoginRewardId = -28, DayNumber = 28, RewardType = "Item",   RewardValue = 0m, RewardItemId = 18, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -29, DayNumber = 29, RewardType = "Gems",   RewardValue = 50m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -30, DayNumber = 30, RewardType = "Gold",   RewardValue = 2000m, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -31, DayNumber = 31, RewardType = "Gems",   RewardValue = 75m,   IsActive = true, CreatedAt = utc2024 }
