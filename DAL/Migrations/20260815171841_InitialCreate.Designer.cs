@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260815142940_InitialCreate")]
+    [Migration("20260815171841_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -154,8 +154,8 @@ namespace DAL.Migrations
                             Name = "Pioneer",
                             Point = 0,
                             RequiredValue = 1,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 5,
+                            RewardGold = 100m,
                             RewardQuantity = 1,
                             Type = "Progression"
                         },
@@ -170,8 +170,8 @@ namespace DAL.Migrations
                             Name = "Monster Hunter",
                             Point = 0,
                             RequiredValue = 1000,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 25,
+                            RewardGold = 500m,
                             RewardQuantity = 1,
                             Type = "Combat"
                         },
@@ -186,8 +186,8 @@ namespace DAL.Migrations
                             Name = "Deadeye",
                             Point = 0,
                             RequiredValue = 100,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 15,
+                            RewardGold = 250m,
                             RewardQuantity = 1,
                             Type = "Progression"
                         },
@@ -202,8 +202,8 @@ namespace DAL.Migrations
                             Name = "The Unyielding",
                             Point = 0,
                             RequiredValue = 1,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 40,
+                            RewardGold = 750m,
                             RewardQuantity = 1,
                             Type = "Progression"
                         },
@@ -218,8 +218,8 @@ namespace DAL.Migrations
                             Name = "Swift Wanderer",
                             Point = 0,
                             RequiredValue = 1,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 25,
+                            RewardGold = 500m,
                             RewardQuantity = 1,
                             Type = "Exploration"
                         },
@@ -234,8 +234,8 @@ namespace DAL.Migrations
                             Name = "Treasure Seeker",
                             Point = 0,
                             RequiredValue = 500,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 40,
+                            RewardGold = 750m,
                             RewardQuantity = 1,
                             Type = "Collection"
                         },
@@ -250,8 +250,8 @@ namespace DAL.Migrations
                             Name = "Adventurer",
                             Point = 0,
                             RequiredValue = 100,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 50,
+                            RewardGold = 1000m,
                             RewardQuantity = 1,
                             Type = "Progression"
                         },
@@ -266,8 +266,8 @@ namespace DAL.Migrations
                             Name = "Faithful Companion",
                             Point = 0,
                             RequiredValue = 100,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 50,
+                            RewardGold = 1000m,
                             RewardQuantity = 1,
                             Type = "Social"
                         },
@@ -282,8 +282,8 @@ namespace DAL.Migrations
                             Name = "Conqueror",
                             Point = 0,
                             RequiredValue = 1,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 75,
+                            RewardGold = 1500m,
                             RewardQuantity = 1,
                             Type = "Combat"
                         },
@@ -298,8 +298,8 @@ namespace DAL.Migrations
                             Name = "Legend of Elarion",
                             Point = 0,
                             RequiredValue = 1,
-                            RewardGem = 0,
-                            RewardGold = 0m,
+                            RewardGem = 125,
+                            RewardGold = 2500m,
                             RewardQuantity = 1,
                             Type = "Progression"
                         });
@@ -979,8 +979,8 @@ namespace DAL.Migrations
                             DayNumber = 2,
                             IsActive = true,
                             RewardItemQuantity = 0,
-                            RewardType = "Energy",
-                            RewardValue = 20m
+                            RewardType = "EXP",
+                            RewardValue = 50m
                         },
                         new
                         {
@@ -1019,8 +1019,8 @@ namespace DAL.Migrations
                             DayNumber = 6,
                             IsActive = true,
                             RewardItemQuantity = 0,
-                            RewardType = "Energy",
-                            RewardValue = 30m
+                            RewardType = "EXP",
+                            RewardValue = 100m
                         },
                         new
                         {
@@ -1070,8 +1070,8 @@ namespace DAL.Migrations
                             DayNumber = 11,
                             IsActive = true,
                             RewardItemQuantity = 0,
-                            RewardType = "Energy",
-                            RewardValue = 40m
+                            RewardType = "EXP",
+                            RewardValue = 150m
                         },
                         new
                         {
@@ -1131,8 +1131,8 @@ namespace DAL.Migrations
                             DayNumber = 17,
                             IsActive = true,
                             RewardItemQuantity = 0,
-                            RewardType = "Energy",
-                            RewardValue = 50m
+                            RewardType = "EXP",
+                            RewardValue = 200m
                         },
                         new
                         {
@@ -1192,8 +1192,8 @@ namespace DAL.Migrations
                             DayNumber = 23,
                             IsActive = true,
                             RewardItemQuantity = 0,
-                            RewardType = "Energy",
-                            RewardValue = 60m
+                            RewardType = "EXP",
+                            RewardValue = 250m
                         },
                         new
                         {
@@ -1232,8 +1232,8 @@ namespace DAL.Migrations
                             DayNumber = 27,
                             IsActive = true,
                             RewardItemQuantity = 0,
-                            RewardType = "Energy",
-                            RewardValue = 70m
+                            RewardType = "EXP",
+                            RewardValue = 300m
                         },
                         new
                         {
@@ -2975,7 +2975,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 1,
-                            DropRate = 0.5m,
+                            DropRate = 0.05m,
                             GachaBannerId = 1,
                             IsFeatured = true,
                             ItemId = 101
@@ -2983,7 +2983,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 2,
-                            DropRate = 0.5m,
+                            DropRate = 0.05m,
                             GachaBannerId = 1,
                             IsFeatured = true,
                             ItemId = 102
@@ -2991,7 +2991,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 3,
-                            DropRate = 0.5m,
+                            DropRate = 0.05m,
                             GachaBannerId = 1,
                             IsFeatured = true,
                             ItemId = 103
@@ -2999,7 +2999,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 4,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 104
@@ -3007,7 +3007,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 5,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 105
@@ -3015,7 +3015,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 6,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 106
@@ -3023,7 +3023,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 7,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 107
@@ -3031,7 +3031,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 8,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 108
@@ -3039,7 +3039,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 9,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 109
@@ -3047,7 +3047,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 10,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 110
@@ -3055,7 +3055,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 11,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 111
@@ -3063,7 +3063,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 12,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 112
@@ -3071,127 +3071,127 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 13,
-                            DropRate = 2.0m,
-                            GachaBannerId = 1,
-                            IsFeatured = false,
-                            ItemId = 113
-                        },
-                        new
-                        {
-                            GachaBannerItemId = 14,
-                            DropRate = 2.0m,
-                            GachaBannerId = 1,
-                            IsFeatured = false,
-                            ItemId = 114
-                        },
-                        new
-                        {
-                            GachaBannerItemId = 15,
-                            DropRate = 2.0m,
-                            GachaBannerId = 1,
-                            IsFeatured = false,
-                            ItemId = 115
-                        },
-                        new
-                        {
-                            GachaBannerItemId = 16,
-                            DropRate = 3.0m,
-                            GachaBannerId = 1,
-                            IsFeatured = false,
-                            ItemId = 31
-                        },
-                        new
-                        {
-                            GachaBannerItemId = 17,
-                            DropRate = 3.0m,
-                            GachaBannerId = 1,
-                            IsFeatured = false,
-                            ItemId = 156
-                        },
-                        new
-                        {
-                            GachaBannerItemId = 18,
-                            DropRate = 0.5m,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 157
                         },
                         new
                         {
-                            GachaBannerItemId = 19,
-                            DropRate = 0.5m,
+                            GachaBannerItemId = 14,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 160
                         },
                         new
                         {
-                            GachaBannerItemId = 20,
-                            DropRate = 0.5m,
+                            GachaBannerItemId = 15,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 163
                         },
                         new
                         {
-                            GachaBannerItemId = 21,
-                            DropRate = 0.5m,
+                            GachaBannerItemId = 16,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 166
                         },
                         new
                         {
-                            GachaBannerItemId = 22,
-                            DropRate = 0.5m,
+                            GachaBannerItemId = 17,
+                            DropRate = 0.025m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 169
                         },
                         new
                         {
-                            GachaBannerItemId = 23,
-                            DropRate = 1.5m,
+                            GachaBannerItemId = 18,
+                            DropRate = 0.22m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 113
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 19,
+                            DropRate = 0.22m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 114
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 20,
+                            DropRate = 0.22m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 115
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 21,
+                            DropRate = 0.24m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 31
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 22,
+                            DropRate = 0.22m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 158
                         },
                         new
                         {
-                            GachaBannerItemId = 24,
-                            DropRate = 1.5m,
+                            GachaBannerItemId = 23,
+                            DropRate = 0.22m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 161
                         },
                         new
                         {
-                            GachaBannerItemId = 25,
-                            DropRate = 1.5m,
+                            GachaBannerItemId = 24,
+                            DropRate = 0.22m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 164
                         },
                         new
                         {
-                            GachaBannerItemId = 26,
-                            DropRate = 1.5m,
+                            GachaBannerItemId = 25,
+                            DropRate = 0.22m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 167
                         },
                         new
                         {
-                            GachaBannerItemId = 27,
-                            DropRate = 1.5m,
+                            GachaBannerItemId = 26,
+                            DropRate = 0.22m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 170
                         },
                         new
                         {
+                            GachaBannerItemId = 27,
+                            DropRate = 0.70m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 156
+                        },
+                        new
+                        {
                             GachaBannerItemId = 28,
-                            DropRate = 3.0m,
+                            DropRate = 0.70m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 159
@@ -3199,7 +3199,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 29,
-                            DropRate = 3.0m,
+                            DropRate = 0.70m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 162
@@ -3207,7 +3207,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 30,
-                            DropRate = 3.0m,
+                            DropRate = 0.70m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 165
@@ -3215,7 +3215,7 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 31,
-                            DropRate = 3.0m,
+                            DropRate = 0.70m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 168
@@ -3223,10 +3223,274 @@ namespace DAL.Migrations
                         new
                         {
                             GachaBannerItemId = 32,
-                            DropRate = 3.0m,
+                            DropRate = 0.70m,
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 171
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 33,
+                            DropRate = 0.80m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 13
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 34,
+                            DropRate = 1.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 125
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 35,
+                            DropRate = 1.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 126
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 36,
+                            DropRate = 1.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 127
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 37,
+                            DropRate = 1.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 128
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 38,
+                            DropRate = 1.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 129
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 39,
+                            DropRate = 1.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 130
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 40,
+                            DropRate = 1.95m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 8
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 41,
+                            DropRate = 1.95m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 14
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 42,
+                            DropRate = 2.75m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 131
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 43,
+                            DropRate = 2.75m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 132
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 44,
+                            DropRate = 2.75m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 133
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 45,
+                            DropRate = 2.75m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 134
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 46,
+                            DropRate = 2.75m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 135
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 47,
+                            DropRate = 2.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 11
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 48,
+                            DropRate = 2.85m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 18
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 49,
+                            DropRate = 2.775m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 20
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 50,
+                            DropRate = 2.775m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 21
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 51,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 139
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 52,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 140
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 53,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 5
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 54,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 6
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 55,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 7
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 56,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 9
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 57,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 10
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 58,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 15
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 59,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 16
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 60,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 17
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 61,
+                            DropRate = 2.50m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 19
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 62,
+                            DropRate = 12.00m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 1
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 63,
+                            DropRate = 5.00m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 3
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 64,
+                            DropRate = 4.00m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 4
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 65,
+                            DropRate = 4.00m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 22
                         });
                 });
 
@@ -10339,11 +10603,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 16,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 0,
                             IsActive = true,
                             ItemId = 13,
-                            Price = 800m,
+                            Price = 130m,
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10351,11 +10615,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 17,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 0,
                             IsActive = true,
                             ItemId = 8,
-                            Price = 700m,
+                            Price = 120m,
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10363,11 +10627,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 18,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 0,
                             IsActive = true,
                             ItemId = 12,
-                            Price = 1800m,
+                            Price = 400m,
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10379,7 +10643,7 @@ namespace DAL.Migrations
                             DailyPurchaseLimit = 0,
                             IsActive = true,
                             ItemId = 4,
-                            Price = 100m,
+                            Price = 25m,
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10387,7 +10651,7 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 20,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 3,
                             IsActive = true,
                             ItemId = 31,
@@ -10399,11 +10663,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 21,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 1,
                             IsActive = true,
                             ItemId = 116,
-                            Price = 2500m,
+                            Price = 350m,
                             ShopSection = "DailyDeal",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10411,11 +10675,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 22,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 1,
                             IsActive = true,
                             ItemId = 117,
-                            Price = 2200m,
+                            Price = 300m,
                             ShopSection = "DailyDeal",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10423,11 +10687,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 23,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 1,
                             IsActive = true,
                             ItemId = 118,
-                            Price = 2200m,
+                            Price = 300m,
                             ShopSection = "DailyDeal",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10435,11 +10699,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 24,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 2,
                             IsActive = true,
                             ItemId = 119,
-                            Price = 1100m,
+                            Price = 150m,
                             ShopSection = "DailyDeal",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10447,11 +10711,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 25,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 2,
                             IsActive = true,
                             ItemId = 120,
-                            Price = 1100m,
+                            Price = 150m,
                             ShopSection = "DailyDeal",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10459,11 +10723,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 26,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 2,
                             IsActive = true,
                             ItemId = 121,
-                            Price = 1100m,
+                            Price = 150m,
                             ShopSection = "DailyDeal",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10471,11 +10735,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 27,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 2,
                             IsActive = true,
                             ItemId = 124,
-                            Price = 900m,
+                            Price = 120m,
                             ShopSection = "DailyDeal",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10495,11 +10759,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 29,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 0,
                             IsActive = true,
                             ItemId = 122,
-                            Price = 950m,
+                            Price = 135m,
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
@@ -10507,11 +10771,11 @@ namespace DAL.Migrations
                         new
                         {
                             ShopItemId = 30,
-                            Currency = "Gold",
+                            Currency = "Gems",
                             DailyPurchaseLimit = 0,
                             IsActive = true,
                             ItemId = 123,
-                            Price = 900m,
+                            Price = 125m,
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
