@@ -413,9 +413,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 901,
-                    MonsterId = 2, // Gắn với SwampDemon
-                    ItemId = 901,  // Rớt ra Swamp Sword
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 2, // SwampDemon
+                    ItemId = 901,  // Drops Swamp Sword
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -424,9 +424,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 902,
-                    MonsterId = 2, // Gắn với SwampDemon
-                    ItemId = 902,  // Rớt ra Swamp Armor
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 2, // SwampDemon
+                    ItemId = 902,  // Drops Swamp Armor
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -435,9 +435,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 903,
-                    MonsterId = 7, // Gắn với DragonBossIdle
-                    ItemId = 903,  // Rớt ra Dragon Boss Sword
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 7, // DragonBossIdle
+                    ItemId = 903,  // Drops Dragon Boss Sword
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -446,9 +446,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 904,
-                    MonsterId = 7, // Gắn với DragonBossIdle
-                    ItemId = 904,  // Rớt ra Dragon Boss Armor
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 7, // DragonBossIdle
+                    ItemId = 904,  // Drops Dragon Boss Armor
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -457,9 +457,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 905,
-                    MonsterId = 10, // Gắn với GolemBoss
-                    ItemId = 905,  // Rớt ra Golem Boss Gloves
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 10, // GolemBoss
+                    ItemId = 905,  // Drops Golem Boss Gloves
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -468,9 +468,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 906,
-                    MonsterId = 10, // Gắn với GolemBoss
-                    ItemId = 906,  // Rớt ra Golem Boss Armor
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 10, // GolemBoss
+                    ItemId = 906,  // Drops Golem Boss Armor
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -479,9 +479,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 907,
-                    MonsterId = 15, // Gắn với UnderKing
-                    ItemId = 907,  // Rớt ra UnderKing Sword
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 15, // UnderKing
+                    ItemId = 907,  // Drops UnderKing Sword
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -490,9 +490,9 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new MonsterDrop
                 {
                     MonsterDropId = 908,
-                    MonsterId = 15, // Gắn với UnderKing
-                    ItemId = 908,  // Rớt ra UnderKing Crown
-                    DropRate = 100, // Tỉ lệ 100%
+                    MonsterId = 15, // UnderKing
+                    ItemId = 908,  // Drops UnderKing Crown
+                    DropRate = 100, // 100% drop rate
                     MinQuantity = 1,
                     MaxQuantity = 1,
                     IsGuaranteed = true,
@@ -567,18 +567,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 .HasForeignKey(s => s.DungeonId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // ─────────────────────────────────────────────────────────────────────────
-            // DUNGEONS – 6 dungeon, Chest thưởng, DungeonConfig và MonsterSpawn.
-            // Trước đây SeedController tạo mấy bảng này lúc runtime, nên mỗi lần gọi
-            // /seed là xoá sạch rồi tạo lại: ID nhảy theo identity sequence, còn
-            // DungeonEntrance bên Unity thì hardcode dungeonConfigId 1-6 → sau vài lần
-            // seed là cửa dungeon trỏ vào ID không còn tồn tại. Đưa về HasData để ID
-            // cố định theo migration.
-            //
-            // LƯU Ý: DungeonSpawner.cs truyền dungeonConfigId vào filter 'dungeonId'
-            // của API, tức MonsterSpawn.DungeonId được so với DungeonConfigId. Vì vậy
-            // DungeonId và DungeonConfigId phải khớp 1:1 (cùng số, cùng tên) – đừng
-            // thêm dungeon vào một bảng mà quên bảng kia.
+            // DUNGEONS – 6 dungeons, Chest rewards, DungeonConfig, and MonsterSpawn.
             modelBuilder.Entity<Dungeon>().HasData(
                 new Dungeon { DungeonId = 1, Name = "Slime Swamp",      Description = "Realm of dangerous Slimes",                       IsRepeatable = true },
                 new Dungeon { DungeonId = 2, Name = "Dragon's Lair",    Description = "The den of ferocious dragons",                    IsRepeatable = true },
@@ -597,11 +586,8 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new Chest { ChestId = 6, Name = "Hell Gate Chest",       Description = "Hell Gate reward",       Type = "Epic",   GoldMinReward = 500, GoldMaxReward = 1000, ExperienceReward = 1000, IsActive = true }
             );
 
-            // Vật phẩm trong chest. ItemId khớp Entity<Item>().HasData bên dưới:
+            // Chest items. ItemId matches Entity<Item>().HasData below:
             // 19 = Small Health Potion, 21 = Energy Elixir, 5 = Iron Sword.
-            // Bản cũ tra "Small Mana Potion" – tên đó KHÔNG có trong Item HasData
-            // (game này không có mana, chỉ có Energy), nên lookup luôn trả null và
-            // chest chỉ rớt đúng 1 loại potion. Dùng Energy Elixir cho đúng ý định.
             modelBuilder.Entity<ChestItem>().HasData(
                 new ChestItem { ChestItemId = 1,  ChestId = 1, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
                 new ChestItem { ChestItemId = 2,  ChestId = 1, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
@@ -615,7 +601,7 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new ChestItem { ChestItemId = 10, ChestId = 5, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
                 new ChestItem { ChestItemId = 11, ChestId = 6, ItemId = 19, DropRate = 80.0m, QuantityMin = 1, QuantityMax = 3 },
                 new ChestItem { ChestItemId = 12, ChestId = 6, ItemId = 21, DropRate = 60.0m, QuantityMin = 1, QuantityMax = 2 },
-                // Chỉ chest Epic (Hell's Gate) mới rớt trang bị
+                // Epic chest (Hell's Gate) equipment drop
                 new ChestItem { ChestItemId = 13, ChestId = 6, ItemId = 5,  DropRate = 30.0m, QuantityMin = 1, QuantityMax = 1 }
             );
 
@@ -628,33 +614,31 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
                 new DungeonConfig { DungeonConfigId = 6, Name = "Hell's Gate",      Description = "Portal to the realm of Demons and Orc Warriors", Type = "Boss",   LevelRequirement = 20, MaxMembers = 4, Difficulty = 5, EnergyCost = 30, RecommendedPower = 1500, ChestId = 6, IsActive = true }
             );
 
-            // MonsterSpawn của dungeon. MonsterId khớp Entity<Monster>().HasData
-            // (1-27) và MonsterDatabaseSO bên Unity; MapName phải khớp tên scene
-            // "HollowCryptDungeon". Spawn của map thế giới không nằm ở đây.
+            // Dungeon MonsterSpawns. MonsterId matches Entity<Monster>().HasData (1-27); MapName matches scene name "HollowCryptDungeon".
             modelBuilder.Entity<MonsterSpawn>().HasData(
-                // ── Dungeon 1: Đầm lầy Slime ─────────────────────────────────────
+                // ── Dungeon 1: Slime Swamp ───────────────────────────────────────
                 new MonsterSpawn { MonsterSpawnId = 1,  DungeonId = 1, MonsterId = 1,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 2,  DungeonId = 1, MonsterId = 8,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 3,  DungeonId = 1, MonsterId = 2,  SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
-                // ── Dungeon 2: Sào huyệt Rồng ────────────────────────────────────
+                // ── Dungeon 2: Dragon's Lair ──────────────────────────────────────
                 new MonsterSpawn { MonsterSpawnId = 4,  DungeonId = 2, MonsterId = 4,  SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 5,  DungeonId = 2, MonsterId = 5,  SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 6,  DungeonId = 2, MonsterId = 6,  SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 7,  DungeonId = 2, MonsterId = 7,  SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
-                // ── Dungeon 3: Cung điện Băng giá ────────────────────────────────
+                // ── Dungeon 3: Frozen Palace ──────────────────────────────────────
                 new MonsterSpawn { MonsterSpawnId = 8,  DungeonId = 3, MonsterId = 8,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 9,  DungeonId = 3, MonsterId = 9,  SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 10, DungeonId = 3, MonsterId = 10, SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
-                // ── Dungeon 4: Nghĩa địa Bóng tối ────────────────────────────────
+                // ── Dungeon 4: Shadow Graveyard ───────────────────────────────────
                 new MonsterSpawn { MonsterSpawnId = 11, DungeonId = 4, MonsterId = 12, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 12, DungeonId = 4, MonsterId = 13, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 13, DungeonId = 4, MonsterId = 11, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 14, DungeonId = 4, MonsterId = 15, SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
-                // ── Dungeon 5: Doanh trại Goblin ─────────────────────────────────
+                // ── Dungeon 5: Goblin Camp ────────────────────────────────────────
                 new MonsterSpawn { MonsterSpawnId = 15, DungeonId = 5, MonsterId = 17, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 16, DungeonId = 5, MonsterId = 18, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 17, DungeonId = 5, MonsterId = 19, SpawnCount = 1, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
-                // ── Dungeon 6: Cổng địa ngục ─────────────────────────────────────
+                // ── Dungeon 6: Hell's Gate ────────────────────────────────────────
                 new MonsterSpawn { MonsterSpawnId = 18, DungeonId = 6, MonsterId = 14, SpawnCount = 3, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 19, DungeonId = 6, MonsterId = 16, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
                 new MonsterSpawn { MonsterSpawnId = 20, DungeonId = 6, MonsterId = 11, SpawnCount = 2, MapName = "HollowCryptDungeon", RespawnSeconds = 60, IsActive = true },
@@ -742,52 +726,55 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             // catalogue (DailyDeal rows are rolled per player, not seeded).
             // ─────────────────────────────────────────────────────────────────────────
             modelBuilder.Entity<ShopItem>().HasData(
-                new ShopItem { ShopItemId = 1, ItemId = 19, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 25m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 2, ItemId = 20, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 70m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 3, ItemId = 21, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 50m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 4, ItemId = 22, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 40m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 5, ItemId = 5, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 6, ItemId = 6, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 7, ItemId = 7, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 8, ItemId = 9, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 100m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 9, ItemId = 10, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 85m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 10, ItemId = 16, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 80m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 11, ItemId = 15, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 110m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 12, ItemId = 17, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 70m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 13, ItemId = 11, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 160m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 14, ItemId = 18, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 170m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 15, ItemId = 14, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 16, ItemId = 13, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 800m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 17, ItemId = 8, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 700m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 18, ItemId = 12, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 1800m, Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 19, ItemId = 4, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 100m, Stock = -1, IsActive = true },
+                // ── Baseline Consumables & Equipment (Fixed Shop – Gold) ─────────────────────
+                new ShopItem { ShopItemId = 1,  ItemId = 19, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 25m,  Stock = -1, IsActive = true }, // Small Health Potion
+                new ShopItem { ShopItemId = 2,  ItemId = 20, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 70m,  Stock = -1, IsActive = true }, // Large Health Potion
+                new ShopItem { ShopItemId = 3,  ItemId = 21, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 50m,  Stock = -1, IsActive = true }, // Energy Elixir
+                new ShopItem { ShopItemId = 4,  ItemId = 22, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 40m,  Stock = -1, IsActive = true }, // Skill Upgrade Stone
+                new ShopItem { ShopItemId = 5,  ItemId = 5,  ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true }, // Iron Sword
+                new ShopItem { ShopItemId = 6,  ItemId = 6,  ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true }, // Hunter Bow
+                new ShopItem { ShopItemId = 7,  ItemId = 7,  ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 120m, Stock = -1, IsActive = true }, // Apprentice Staff
+                new ShopItem { ShopItemId = 8,  ItemId = 9,  ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 100m, Stock = -1, IsActive = true }, // Leather Armor
+                new ShopItem { ShopItemId = 9,  ItemId = 10, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 85m,  Stock = -1, IsActive = true }, // Iron Helmet
+                new ShopItem { ShopItemId = 10, ItemId = 16, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 80m,  Stock = -1, IsActive = true }, // Leather Gauntlets
+                new ShopItem { ShopItemId = 11, ItemId = 15, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 110m, Stock = -1, IsActive = true }, // Iron Gauntlets
+                new ShopItem { ShopItemId = 12, ItemId = 17, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 70m,  Stock = -1, IsActive = true }, // Copper Ring
+                new ShopItem { ShopItemId = 13, ItemId = 11, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 160m, Stock = -1, IsActive = true }, // Wind Boots
+                new ShopItem { ShopItemId = 14, ItemId = 18, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 170m, Stock = -1, IsActive = true }, // Silver Necklace
+                new ShopItem { ShopItemId = 15, ItemId = 14, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m, Stock = -1, IsActive = true }, // Shadow Hood (Rare)
 
-                // Daily Deal Shop items (non-Gacha Legendary/Epic/Rare equipment + Magic Flour)
-                new ShopItem { ShopItemId = 20, ItemId = 31,  ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 500m,  Stock = -1, DailyPurchaseLimit = 3, IsActive = true }, // Magic Flour (Legendary consumable)
-                new ShopItem { ShopItemId = 21, ItemId = 116, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 2500m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Radiant Guardian Shield (Legendary)
-                new ShopItem { ShopItemId = 22, ItemId = 117, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 2200m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Cloak of Stars (Legendary)
-                new ShopItem { ShopItemId = 23, ItemId = 118, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 2200m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Amulet of Eternal Flame (Legendary)
-                new ShopItem { ShopItemId = 24, ItemId = 119, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 1100m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Paladin Broadsword (Epic)
-                new ShopItem { ShopItemId = 25, ItemId = 120, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 1100m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Elemental Grimoire (Epic)
-                new ShopItem { ShopItemId = 26, ItemId = 121, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 1100m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Shadow Crossbow (Epic)
-                new ShopItem { ShopItemId = 27, ItemId = 124, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 900m,  Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Ring of Tempest (Epic)
-                new ShopItem { ShopItemId = 28, ItemId = 129, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 420m,  Stock = -1, DailyPurchaseLimit = 5, IsActive = true }, // Mantle of the Forest (Rare)
+                // ── High Rarity Fixed Shop (Gems) ─────────────────────────────────────────────
+                new ShopItem { ShopItemId = 16, ItemId = 13, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 130m, Stock = -1, IsActive = true }, // Phantom Cloak (Epic)
+                new ShopItem { ShopItemId = 17, ItemId = 8,  ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 120m, Stock = -1, IsActive = true }, // Elven Blade (Epic)
+                new ShopItem { ShopItemId = 18, ItemId = 12, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 400m, Stock = -1, IsActive = true }, // Dragon Scale Armor (Legendary)
+                new ShopItem { ShopItemId = 19, ItemId = 4,  ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 25m,  Stock = -1, IsActive = true }, // Lucky Ticket (Gacha Ticket)
 
-                // Fixed Shop items (non-Gacha Epic/Rare/Uncommon/Common equipment)
-                new ShopItem { ShopItemId = 29, ItemId = 122, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 950m,  Stock = -1, IsActive = true }, // Fortress Tower Shield (Epic)
-                new ShopItem { ShopItemId = 30, ItemId = 123, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 900m,  Stock = -1, IsActive = true }, // Hood of Silent Night (Epic)
-                new ShopItem { ShopItemId = 31, ItemId = 125, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m,  Stock = -1, IsActive = true }, // Steel Halberd (Rare)
-                new ShopItem { ShopItemId = 32, ItemId = 126, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m,  Stock = -1, IsActive = true }, // Crystal Wand (Rare)
-                new ShopItem { ShopItemId = 33, ItemId = 127, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m,  Stock = -1, IsActive = true }, // Recurve Composite Bow (Rare)
-                new ShopItem { ShopItemId = 34, ItemId = 128, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 400m,  Stock = -1, IsActive = true }, // Knight Iron Shield (Rare)
-                new ShopItem { ShopItemId = 35, ItemId = 130, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 380m,  Stock = -1, IsActive = true }, // Necklace of Vitality (Rare)
-                new ShopItem { ShopItemId = 36, ItemId = 131, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m,  Stock = -1, IsActive = true }, // Battle Axe (Uncommon)
-                new ShopItem { ShopItemId = 37, ItemId = 132, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m,  Stock = -1, IsActive = true }, // Apprentice Rod (Uncommon)
-                new ShopItem { ShopItemId = 38, ItemId = 133, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m,  Stock = -1, IsActive = true }, // Light Crossbow (Uncommon)
-                new ShopItem { ShopItemId = 39, ItemId = 134, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 180m,  Stock = -1, IsActive = true }, // Wooden Buckler (Uncommon)
-                new ShopItem { ShopItemId = 40, ItemId = 135, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 150m,  Stock = -1, IsActive = true }, // Band of Minor Protection (Uncommon)
-                new ShopItem { ShopItemId = 41, ItemId = 139, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,   Stock = -1, IsActive = true }, // Cloth Cap (Common)
-                new ShopItem { ShopItemId = 42, ItemId = 140, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,   Stock = -1, IsActive = true }  // Traveler Cloak (Common)
+                // ── Daily Deal Shop (Gems for High-Tier & Magic Flour) ────────────────────────
+                new ShopItem { ShopItemId = 20, ItemId = 31,  ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 500m, Stock = -1, DailyPurchaseLimit = 3, IsActive = true }, // Magic Flour (Legendary consumable - Gems)
+                new ShopItem { ShopItemId = 21, ItemId = 116, ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 350m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Radiant Guardian Shield (Legendary)
+                new ShopItem { ShopItemId = 22, ItemId = 117, ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 300m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Cloak of Stars (Legendary)
+                new ShopItem { ShopItemId = 23, ItemId = 118, ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 300m, Stock = -1, DailyPurchaseLimit = 1, IsActive = true }, // Amulet of Eternal Flame (Legendary)
+                new ShopItem { ShopItemId = 24, ItemId = 119, ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 150m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Paladin Broadsword (Epic)
+                new ShopItem { ShopItemId = 25, ItemId = 120, ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 150m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Elemental Grimoire (Epic)
+                new ShopItem { ShopItemId = 26, ItemId = 121, ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 150m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Shadow Crossbow (Epic)
+                new ShopItem { ShopItemId = 27, ItemId = 124, ShopSection = ShopSections.DailyDeal, Currency = "Gems", Price = 120m, Stock = -1, DailyPurchaseLimit = 2, IsActive = true }, // Ring of Tempest (Epic)
+                new ShopItem { ShopItemId = 28, ItemId = 129, ShopSection = ShopSections.DailyDeal, Currency = "Gold", Price = 420m, Stock = -1, DailyPurchaseLimit = 5, IsActive = true }, // Mantle of the Forest (Rare)
+
+                // ── Additional Fixed Equipment ────────────────────────────────────────────────
+                new ShopItem { ShopItemId = 29, ItemId = 122, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 135m, Stock = -1, IsActive = true }, // Fortress Tower Shield (Epic - Gems)
+                new ShopItem { ShopItemId = 30, ItemId = 123, ShopSection = ShopSections.Fixed, Currency = "Gems", Price = 125m, Stock = -1, IsActive = true }, // Hood of Silent Night (Epic - Gems)
+                new ShopItem { ShopItemId = 31, ItemId = 125, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m, Stock = -1, IsActive = true }, // Steel Halberd (Rare)
+                new ShopItem { ShopItemId = 32, ItemId = 126, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m, Stock = -1, IsActive = true }, // Crystal Wand (Rare)
+                new ShopItem { ShopItemId = 33, ItemId = 127, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 450m, Stock = -1, IsActive = true }, // Recurve Composite Bow (Rare)
+                new ShopItem { ShopItemId = 34, ItemId = 128, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 400m, Stock = -1, IsActive = true }, // Knight Iron Shield (Rare)
+                new ShopItem { ShopItemId = 35, ItemId = 130, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 380m, Stock = -1, IsActive = true }, // Necklace of Vitality (Rare)
+                new ShopItem { ShopItemId = 36, ItemId = 131, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m, Stock = -1, IsActive = true }, // Battle Axe (Uncommon)
+                new ShopItem { ShopItemId = 37, ItemId = 132, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m, Stock = -1, IsActive = true }, // Apprentice Rod (Uncommon)
+                new ShopItem { ShopItemId = 38, ItemId = 133, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 220m, Stock = -1, IsActive = true }, // Light Crossbow (Uncommon)
+                new ShopItem { ShopItemId = 39, ItemId = 134, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 180m, Stock = -1, IsActive = true }, // Wooden Buckler (Uncommon)
+                new ShopItem { ShopItemId = 40, ItemId = 135, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 150m, Stock = -1, IsActive = true }, // Band of Minor Protection (Uncommon)
+                new ShopItem { ShopItemId = 41, ItemId = 139, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,  Stock = -1, IsActive = true }, // Cloth Cap (Common)
+                new ShopItem { ShopItemId = 42, ItemId = 140, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,  Stock = -1, IsActive = true }  // Traveler Cloak (Common)
             );
 
 
@@ -1155,76 +1142,116 @@ public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
             );
 
             modelBuilder.Entity<GachaBannerItem>().HasData(
-                // Mythic weapons (101 - 112) — Gacha Banner 1
-                new GachaBannerItem { GachaBannerItemId = 1,  GachaBannerId = 1, ItemId = 101, DropRate = 0.5m, IsFeatured = true  }, // Excalibur of Light
-                new GachaBannerItem { GachaBannerItemId = 2,  GachaBannerId = 1, ItemId = 102, DropRate = 0.5m, IsFeatured = true  }, // Staff of the Cosmos
-                new GachaBannerItem { GachaBannerItemId = 3,  GachaBannerId = 1, ItemId = 103, DropRate = 0.5m, IsFeatured = true  }, // Bow of Eternity
-                new GachaBannerItem { GachaBannerItemId = 4,  GachaBannerId = 1, ItemId = 104, DropRate = 0.5m, IsFeatured = false }, // Aegis of the Sun God
-                new GachaBannerItem { GachaBannerItemId = 5,  GachaBannerId = 1, ItemId = 105, DropRate = 0.5m, IsFeatured = false }, // Crown of Divine Sovereign
-                new GachaBannerItem { GachaBannerItemId = 6,  GachaBannerId = 1, ItemId = 106, DropRate = 0.5m, IsFeatured = false }, // Celestia Sacred Armor
-                new GachaBannerItem { GachaBannerItemId = 7,  GachaBannerId = 1, ItemId = 107, DropRate = 0.5m, IsFeatured = false }, // Cloak of the Shadow Void
-                new GachaBannerItem { GachaBannerItemId = 8,  GachaBannerId = 1, ItemId = 108, DropRate = 0.5m, IsFeatured = false }, // Ring of Omnipotence
-                new GachaBannerItem { GachaBannerItemId = 9,  GachaBannerId = 1, ItemId = 109, DropRate = 0.5m, IsFeatured = false }, // Heart of the Phoenix Necklace
-                new GachaBannerItem { GachaBannerItemId = 10, GachaBannerId = 1, ItemId = 110, DropRate = 0.5m, IsFeatured = false }, // Talisman of Infinite Mana
-                new GachaBannerItem { GachaBannerItemId = 11, GachaBannerId = 1, ItemId = 111, DropRate = 0.5m, IsFeatured = false }, // Warhammer of Titan King
-                new GachaBannerItem { GachaBannerItemId = 12, GachaBannerId = 1, ItemId = 112, DropRate = 0.5m, IsFeatured = false }, // Grimoire of Celestial Ruin
-                // Legendary weapons (113 - 115) + Magic Flour (31)
-                new GachaBannerItem { GachaBannerItemId = 13, GachaBannerId = 1, ItemId = 113, DropRate = 2.0m, IsFeatured = false }, // Valiant Dragon Greatsword
-                new GachaBannerItem { GachaBannerItemId = 14, GachaBannerId = 1, ItemId = 114, DropRate = 2.0m, IsFeatured = false }, // Archmage Astral Rod
-                new GachaBannerItem { GachaBannerItemId = 15, GachaBannerId = 1, ItemId = 115, DropRate = 2.0m, IsFeatured = false }, // Windrunner Grand Bow
-                new GachaBannerItem { GachaBannerItemId = 16, GachaBannerId = 1, ItemId = 31,  DropRate = 3.0m, IsFeatured = false }, // Magic Flour (Legendary consumable)
-                // Epic gacha-only weapon (156)
-                new GachaBannerItem { GachaBannerItemId = 17, GachaBannerId = 1, ItemId = 156, DropRate = 3.0m, IsFeatured = false }, // Gauntlets of Iron Will
-                // Mythic helmets/boots/gloves/necklaces/rings (157, 160, 163, 166, 169)
-                new GachaBannerItem { GachaBannerItemId = 18, GachaBannerId = 1, ItemId = 157, DropRate = 0.5m, IsFeatured = false }, // Visor of the Sun Sovereign
-                new GachaBannerItem { GachaBannerItemId = 19, GachaBannerId = 1, ItemId = 160, DropRate = 0.5m, IsFeatured = false }, // Boots of Celestial Strider
-                new GachaBannerItem { GachaBannerItemId = 20, GachaBannerId = 1, ItemId = 163, DropRate = 0.5m, IsFeatured = false }, // Gauntlets of Titan Strength
-                new GachaBannerItem { GachaBannerItemId = 21, GachaBannerId = 1, ItemId = 166, DropRate = 0.5m, IsFeatured = false }, // Pendant of Cosmic Harmony
-                new GachaBannerItem { GachaBannerItemId = 22, GachaBannerId = 1, ItemId = 169, DropRate = 0.5m, IsFeatured = false }, // Band of Absolute Dominion
-                // Legendary helmets/boots/gloves/necklaces/rings (158, 161, 164, 167, 170)
-                new GachaBannerItem { GachaBannerItemId = 23, GachaBannerId = 1, ItemId = 158, DropRate = 1.5m, IsFeatured = false }, // Helm of the Undying Knight
-                new GachaBannerItem { GachaBannerItemId = 24, GachaBannerId = 1, ItemId = 161, DropRate = 1.5m, IsFeatured = false }, // Treads of the Frost Vanguard
-                new GachaBannerItem { GachaBannerItemId = 25, GachaBannerId = 1, ItemId = 164, DropRate = 1.5m, IsFeatured = false }, // Vanguard Dragon Claws
-                new GachaBannerItem { GachaBannerItemId = 26, GachaBannerId = 1, ItemId = 167, DropRate = 1.5m, IsFeatured = false }, // Choker of the Bloodline
-                new GachaBannerItem { GachaBannerItemId = 27, GachaBannerId = 1, ItemId = 170, DropRate = 1.5m, IsFeatured = false }, // Ring of the Berserker Heart
-                // Epic helmets/boots/gloves/necklaces/rings (159, 162, 165, 168, 171)
-                new GachaBannerItem { GachaBannerItemId = 28, GachaBannerId = 1, ItemId = 159, DropRate = 3.0m, IsFeatured = false }, // Cowl of the Phantom Assassin
-                new GachaBannerItem { GachaBannerItemId = 29, GachaBannerId = 1, ItemId = 162, DropRate = 3.0m, IsFeatured = false }, // Shadowstep Striders
-                new GachaBannerItem { GachaBannerItemId = 30, GachaBannerId = 1, ItemId = 165, DropRate = 3.0m, IsFeatured = false }, // Spellweaver Touch Gloves
-                new GachaBannerItem { GachaBannerItemId = 31, GachaBannerId = 1, ItemId = 168, DropRate = 3.0m, IsFeatured = false }, // Amulet of Arcane Shielding
-                new GachaBannerItem { GachaBannerItemId = 32, GachaBannerId = 1, ItemId = 171, DropRate = 3.0m, IsFeatured = false }  // Signet of the Wind Walker
+                // ── Mythic Tier (Total: 0.50%) — Ultra Rare ─────────────────────────────
+                new GachaBannerItem { GachaBannerItemId = 1,  GachaBannerId = 1, ItemId = 101, DropRate = 0.05m,  IsFeatured = true  }, // Excalibur of Light
+                new GachaBannerItem { GachaBannerItemId = 2,  GachaBannerId = 1, ItemId = 102, DropRate = 0.05m,  IsFeatured = true  }, // Staff of the Cosmos
+                new GachaBannerItem { GachaBannerItemId = 3,  GachaBannerId = 1, ItemId = 103, DropRate = 0.05m,  IsFeatured = true  }, // Bow of Eternity
+                new GachaBannerItem { GachaBannerItemId = 4,  GachaBannerId = 1, ItemId = 104, DropRate = 0.025m, IsFeatured = false }, // Aegis of the Sun God
+                new GachaBannerItem { GachaBannerItemId = 5,  GachaBannerId = 1, ItemId = 105, DropRate = 0.025m, IsFeatured = false }, // Crown of Divine Sovereign
+                new GachaBannerItem { GachaBannerItemId = 6,  GachaBannerId = 1, ItemId = 106, DropRate = 0.025m, IsFeatured = false }, // Celestia Sacred Armor
+                new GachaBannerItem { GachaBannerItemId = 7,  GachaBannerId = 1, ItemId = 107, DropRate = 0.025m, IsFeatured = false }, // Cloak of the Shadow Void
+                new GachaBannerItem { GachaBannerItemId = 8,  GachaBannerId = 1, ItemId = 108, DropRate = 0.025m, IsFeatured = false }, // Ring of Omnipotence
+                new GachaBannerItem { GachaBannerItemId = 9,  GachaBannerId = 1, ItemId = 109, DropRate = 0.025m, IsFeatured = false }, // Heart of the Phoenix Necklace
+                new GachaBannerItem { GachaBannerItemId = 10, GachaBannerId = 1, ItemId = 110, DropRate = 0.025m, IsFeatured = false }, // Talisman of Infinite Mana
+                new GachaBannerItem { GachaBannerItemId = 11, GachaBannerId = 1, ItemId = 111, DropRate = 0.025m, IsFeatured = false }, // Warhammer of Titan King
+                new GachaBannerItem { GachaBannerItemId = 12, GachaBannerId = 1, ItemId = 112, DropRate = 0.025m, IsFeatured = false }, // Grimoire of Celestial Ruin
+                new GachaBannerItem { GachaBannerItemId = 13, GachaBannerId = 1, ItemId = 157, DropRate = 0.025m, IsFeatured = false }, // Visor of the Sun Sovereign
+                new GachaBannerItem { GachaBannerItemId = 14, GachaBannerId = 1, ItemId = 160, DropRate = 0.025m, IsFeatured = false }, // Boots of Celestial Strider
+                new GachaBannerItem { GachaBannerItemId = 15, GachaBannerId = 1, ItemId = 163, DropRate = 0.025m, IsFeatured = false }, // Gauntlets of Titan Strength
+                new GachaBannerItem { GachaBannerItemId = 16, GachaBannerId = 1, ItemId = 166, DropRate = 0.025m, IsFeatured = false }, // Pendant of Cosmic Harmony
+                new GachaBannerItem { GachaBannerItemId = 17, GachaBannerId = 1, ItemId = 169, DropRate = 0.025m, IsFeatured = false }, // Band of Absolute Dominion
+
+                // ── Legendary Tier (Total: 2.00%) — Very Rare ───────────────────────────
+                new GachaBannerItem { GachaBannerItemId = 18, GachaBannerId = 1, ItemId = 113, DropRate = 0.22m, IsFeatured = false }, // Valiant Dragon Greatsword
+                new GachaBannerItem { GachaBannerItemId = 19, GachaBannerId = 1, ItemId = 114, DropRate = 0.22m, IsFeatured = false }, // Archmage Astral Rod
+                new GachaBannerItem { GachaBannerItemId = 20, GachaBannerId = 1, ItemId = 115, DropRate = 0.22m, IsFeatured = false }, // Windrunner Grand Bow
+                new GachaBannerItem { GachaBannerItemId = 21, GachaBannerId = 1, ItemId = 31,  DropRate = 0.24m, IsFeatured = false }, // Magic Flour
+                new GachaBannerItem { GachaBannerItemId = 22, GachaBannerId = 1, ItemId = 158, DropRate = 0.22m, IsFeatured = false }, // Helm of the Undying Knight
+                new GachaBannerItem { GachaBannerItemId = 23, GachaBannerId = 1, ItemId = 161, DropRate = 0.22m, IsFeatured = false }, // Treads of the Frost Vanguard
+                new GachaBannerItem { GachaBannerItemId = 24, GachaBannerId = 1, ItemId = 164, DropRate = 0.22m, IsFeatured = false }, // Vanguard Dragon Claws
+                new GachaBannerItem { GachaBannerItemId = 25, GachaBannerId = 1, ItemId = 167, DropRate = 0.22m, IsFeatured = false }, // Choker of the Bloodline
+                new GachaBannerItem { GachaBannerItemId = 26, GachaBannerId = 1, ItemId = 170, DropRate = 0.22m, IsFeatured = false }, // Ring of the Berserker Heart
+
+                // ── Epic Tier (Total: 5.00%) ────────────────────────────────────────────
+                new GachaBannerItem { GachaBannerItemId = 27, GachaBannerId = 1, ItemId = 156, DropRate = 0.70m, IsFeatured = false }, // Gauntlets of Iron Will
+                new GachaBannerItem { GachaBannerItemId = 28, GachaBannerId = 1, ItemId = 159, DropRate = 0.70m, IsFeatured = false }, // Cowl of the Phantom Assassin
+                new GachaBannerItem { GachaBannerItemId = 29, GachaBannerId = 1, ItemId = 162, DropRate = 0.70m, IsFeatured = false }, // Shadowstep Striders
+                new GachaBannerItem { GachaBannerItemId = 30, GachaBannerId = 1, ItemId = 165, DropRate = 0.70m, IsFeatured = false }, // Spellweaver Touch Gloves
+                new GachaBannerItem { GachaBannerItemId = 31, GachaBannerId = 1, ItemId = 168, DropRate = 0.70m, IsFeatured = false }, // Amulet of Arcane Shielding
+                new GachaBannerItem { GachaBannerItemId = 32, GachaBannerId = 1, ItemId = 171, DropRate = 0.70m, IsFeatured = false }, // Signet of the Wind Walker
+                new GachaBannerItem { GachaBannerItemId = 33, GachaBannerId = 1, ItemId = 13,  DropRate = 0.80m, IsFeatured = false }, // Phantom Cloak
+
+                // ── Rare Tier (Total: 15.00%) ───────────────────────────────────────────
+                new GachaBannerItem { GachaBannerItemId = 34, GachaBannerId = 1, ItemId = 125, DropRate = 1.85m, IsFeatured = false }, // Steel Halberd
+                new GachaBannerItem { GachaBannerItemId = 35, GachaBannerId = 1, ItemId = 126, DropRate = 1.85m, IsFeatured = false }, // Crystal Wand
+                new GachaBannerItem { GachaBannerItemId = 36, GachaBannerId = 1, ItemId = 127, DropRate = 1.85m, IsFeatured = false }, // Recurve Composite Bow
+                new GachaBannerItem { GachaBannerItemId = 37, GachaBannerId = 1, ItemId = 128, DropRate = 1.85m, IsFeatured = false }, // Knight Iron Shield
+                new GachaBannerItem { GachaBannerItemId = 38, GachaBannerId = 1, ItemId = 129, DropRate = 1.85m, IsFeatured = false }, // Mantle of the Forest
+                new GachaBannerItem { GachaBannerItemId = 39, GachaBannerId = 1, ItemId = 130, DropRate = 1.85m, IsFeatured = false }, // Necklace of Vitality
+                new GachaBannerItem { GachaBannerItemId = 40, GachaBannerId = 1, ItemId = 8,   DropRate = 1.95m, IsFeatured = false }, // Elven Blade
+                new GachaBannerItem { GachaBannerItemId = 41, GachaBannerId = 1, ItemId = 14,  DropRate = 1.95m, IsFeatured = false }, // Shadow Hood
+
+                // ── Uncommon Tier (Total: 25.00%) ───────────────────────────────────────
+                new GachaBannerItem { GachaBannerItemId = 42, GachaBannerId = 1, ItemId = 131, DropRate = 2.75m,  IsFeatured = false }, // Battle Axe
+                new GachaBannerItem { GachaBannerItemId = 43, GachaBannerId = 1, ItemId = 132, DropRate = 2.75m,  IsFeatured = false }, // Apprentice Rod
+                new GachaBannerItem { GachaBannerItemId = 44, GachaBannerId = 1, ItemId = 133, DropRate = 2.75m,  IsFeatured = false }, // Light Crossbow
+                new GachaBannerItem { GachaBannerItemId = 45, GachaBannerId = 1, ItemId = 134, DropRate = 2.75m,  IsFeatured = false }, // Wooden Buckler
+                new GachaBannerItem { GachaBannerItemId = 46, GachaBannerId = 1, ItemId = 135, DropRate = 2.75m,  IsFeatured = false }, // Band of Minor Protection
+                new GachaBannerItem { GachaBannerItemId = 47, GachaBannerId = 1, ItemId = 11,  DropRate = 2.85m,  IsFeatured = false }, // Wind Boots
+                new GachaBannerItem { GachaBannerItemId = 48, GachaBannerId = 1, ItemId = 18,  DropRate = 2.85m,  IsFeatured = false }, // Silver Necklace
+                new GachaBannerItem { GachaBannerItemId = 49, GachaBannerId = 1, ItemId = 20,  DropRate = 2.775m, IsFeatured = false }, // Large Health Potion
+                new GachaBannerItem { GachaBannerItemId = 50, GachaBannerId = 1, ItemId = 21,  DropRate = 2.775m, IsFeatured = false }, // Energy Elixir
+
+                // ── Common Tier (Total: 27.50%) ─────────────────────────────────────────
+                new GachaBannerItem { GachaBannerItemId = 51, GachaBannerId = 1, ItemId = 139, DropRate = 2.50m, IsFeatured = false }, // Cloth Cap
+                new GachaBannerItem { GachaBannerItemId = 52, GachaBannerId = 1, ItemId = 140, DropRate = 2.50m, IsFeatured = false }, // Traveler Cloak
+                new GachaBannerItem { GachaBannerItemId = 53, GachaBannerId = 1, ItemId = 5,   DropRate = 2.50m, IsFeatured = false }, // Iron Sword
+                new GachaBannerItem { GachaBannerItemId = 54, GachaBannerId = 1, ItemId = 6,   DropRate = 2.50m, IsFeatured = false }, // Hunter Bow
+                new GachaBannerItem { GachaBannerItemId = 55, GachaBannerId = 1, ItemId = 7,   DropRate = 2.50m, IsFeatured = false }, // Apprentice Staff
+                new GachaBannerItem { GachaBannerItemId = 56, GachaBannerId = 1, ItemId = 9,   DropRate = 2.50m, IsFeatured = false }, // Leather Armor
+                new GachaBannerItem { GachaBannerItemId = 57, GachaBannerId = 1, ItemId = 10,  DropRate = 2.50m, IsFeatured = false }, // Iron Helmet
+                new GachaBannerItem { GachaBannerItemId = 58, GachaBannerId = 1, ItemId = 15,  DropRate = 2.50m, IsFeatured = false }, // Iron Gauntlets
+                new GachaBannerItem { GachaBannerItemId = 59, GachaBannerId = 1, ItemId = 16,  DropRate = 2.50m, IsFeatured = false }, // Leather Gauntlets
+                new GachaBannerItem { GachaBannerItemId = 60, GachaBannerId = 1, ItemId = 17,  DropRate = 2.50m, IsFeatured = false }, // Copper Ring
+                new GachaBannerItem { GachaBannerItemId = 61, GachaBannerId = 1, ItemId = 19,  DropRate = 2.50m, IsFeatured = false }, // Small Health Potion
+
+                // ── Currencies & Materials (Total: 25.00%) ──────────────────────────────
+                new GachaBannerItem { GachaBannerItemId = 62, GachaBannerId = 1, ItemId = 1,   DropRate = 12.00m, IsFeatured = false }, // Gold
+                new GachaBannerItem { GachaBannerItemId = 63, GachaBannerId = 1, ItemId = 3,   DropRate = 5.00m,  IsFeatured = false }, // Gem
+                new GachaBannerItem { GachaBannerItemId = 64, GachaBannerId = 1, ItemId = 4,   DropRate = 4.00m,  IsFeatured = false }, // Lucky Ticket
+                new GachaBannerItem { GachaBannerItemId = 65, GachaBannerId = 1, ItemId = 22,  DropRate = 4.00m,  IsFeatured = false }  // Skill Upgrade Stone
             );
 
             modelBuilder.Entity<DailyLoginReward>().HasData(
                 new DailyLoginReward { DailyLoginRewardId = -1,  DayNumber = 1,  RewardType = "Gold",   RewardValue = 100m,  IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -2,  DayNumber = 2,  RewardType = "Energy", RewardValue = 20m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -2,  DayNumber = 2,  RewardType = "EXP",    RewardValue = 50m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -3,  DayNumber = 3,  RewardType = "Gold",   RewardValue = 200m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -4,  DayNumber = 4,  RewardType = "Gems",   RewardValue = 5m,    IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -5,  DayNumber = 5,  RewardType = "Gold",   RewardValue = 300m,  IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -6,  DayNumber = 6,  RewardType = "Energy", RewardValue = 30m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -6,  DayNumber = 6,  RewardType = "EXP",    RewardValue = 100m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -7,  DayNumber = 7,  RewardType = "Item",   RewardValue = 0m, RewardItemId = 19, RewardItemQuantity = 3,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -8,  DayNumber = 8,  RewardType = "Gold",   RewardValue = 400m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -9,  DayNumber = 9,  RewardType = "Gems",   RewardValue = 10m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -10, DayNumber = 10, RewardType = "Gold",   RewardValue = 500m,  IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -11, DayNumber = 11, RewardType = "Energy", RewardValue = 40m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -11, DayNumber = 11, RewardType = "EXP",    RewardValue = 150m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -12, DayNumber = 12, RewardType = "Gold",   RewardValue = 600m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -13, DayNumber = 13, RewardType = "Gems",   RewardValue = 15m,   IsActive = true, CreatedAt = utc2024 },
-                // Day 14: Leather Armor (ItemId=16) — Uncommon equipment reward
-                new DailyLoginReward { DailyLoginRewardId = -14, DayNumber = 14, RewardType = "Item",   RewardValue = 0m, RewardItemId = 16, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
+                // Day 14: Leather Gauntlets (ItemId=16) — Common equipment reward
+                new DailyLoginReward { DailyLoginRewardId = -14, DayNumber = 14, RewardType = "Item", RewardValue = 0m, RewardItemId = 16, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -15, DayNumber = 15, RewardType = "Gold",   RewardValue = 800m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -16, DayNumber = 16, RewardType = "Gems",   RewardValue = 20m,   IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -17, DayNumber = 17, RewardType = "Energy", RewardValue = 50m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -17, DayNumber = 17, RewardType = "EXP",    RewardValue = 200m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -18, DayNumber = 18, RewardType = "Gold",   RewardValue = 900m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -19, DayNumber = 19, RewardType = "Gems",   RewardValue = 25m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -20, DayNumber = 20, RewardType = "Gold",   RewardValue = 1000m, IsActive = true, CreatedAt = utc2024 },
-                // Day 21: Iron Helmet (ItemId=17) — Rare equipment reward
-                new DailyLoginReward { DailyLoginRewardId = -21, DayNumber = 21, RewardType = "Item",   RewardValue = 0m, RewardItemId = 17, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
+                // Day 21: Copper Ring (ItemId=17) — Common equipment reward
+                new DailyLoginReward { DailyLoginRewardId = -21, DayNumber = 21, RewardType = "Item", RewardValue = 0m, RewardItemId = 17, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -22, DayNumber = 22, RewardType = "Gold",   RewardValue = 1100m, IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -23, DayNumber = 23, RewardType = "Energy", RewardValue = 60m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -23, DayNumber = 23, RewardType = "EXP",    RewardValue = 250m,  IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -24, DayNumber = 24, RewardType = "Gems",   RewardValue = 30m,   IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -25, DayNumber = 25, RewardType = "Gold",   RewardValue = 1200m, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -26, DayNumber = 26, RewardType = "Gems",   RewardValue = 35m,   IsActive = true, CreatedAt = utc2024 },
-                new DailyLoginReward { DailyLoginRewardId = -27, DayNumber = 27, RewardType = "Energy", RewardValue = 70m,   IsActive = true, CreatedAt = utc2024 },
+                new DailyLoginReward { DailyLoginRewardId = -27, DayNumber = 27, RewardType = "EXP",    RewardValue = 300m,  IsActive = true, CreatedAt = utc2024 },
                 // Day 28: Wind Boots (ItemId=18) — Rare equipment reward
                 new DailyLoginReward { DailyLoginRewardId = -28, DayNumber = 28, RewardType = "Item",   RewardValue = 0m, RewardItemId = 18, RewardItemQuantity = 1, IsActive = true, CreatedAt = utc2024 },
                 new DailyLoginReward { DailyLoginRewardId = -29, DayNumber = 29, RewardType = "Gems",   RewardValue = 50m,   IsActive = true, CreatedAt = utc2024 },
