@@ -491,17 +491,6 @@ namespace BLL.Mappings
             CreateMap<GachaPullHistory, GachaPullHistoryResponseDto>();
 
             // ═══════════════════════════════════════════════════════════════════════
-            // THÔNG BÁO (Announcement)
-            // ═══════════════════════════════════════════════════════════════════════
-
-            // Ánh xạ thông báo game.
-            CreateMap<GameAnnouncement, GameAnnouncementResponseDto>();
-            CreateMap<CreateGameAnnouncementRequestDto, GameAnnouncement>();
-            CreateMap<UpdateGameAnnouncementRequestDto, GameAnnouncement>();
-            // Ánh xạ thông báo của người chơi.
-            CreateMap<PlayerAnnouncement, PlayerAnnouncementResponseDto>();
-
-            // ═══════════════════════════════════════════════════════════════════════
             // TÚI ĐỒ (Inventory)
             // ═══════════════════════════════════════════════════════════════════════
 

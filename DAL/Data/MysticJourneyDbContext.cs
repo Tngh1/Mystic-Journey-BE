@@ -61,12 +61,9 @@ namespace DAL.Data
         public DbSet<Chest> Chests => Set<Chest>();
         public DbSet<ChestItem> ChestItems => Set<ChestItem>();
         public DbSet<PlayerChest> PlayerChests => Set<PlayerChest>();
-public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
+        public DbSet<DailyLoginReward> DailyLoginRewards => Set<DailyLoginReward>();
         public DbSet<PlayerDailyLogin> PlayerDailyLogins => Set<PlayerDailyLogin>();
-        public DbSet<GameAnnouncement> GameAnnouncements => Set<GameAnnouncement>();
-        public DbSet<PlayerAnnouncement> PlayerAnnouncements => Set<PlayerAnnouncement>();
         public DbSet<CategoryContent> CategoryContents => Set<CategoryContent>();
-        public DbSet<SubCategoryContent> SubCategoryContents => Set<SubCategoryContent>();
         public DbSet<Content> Contents => Set<Content>();
         public DbSet<BlockContent> BlockContents => Set<BlockContent>();
         public DbSet<ClassConfig> ClassConfigs => Set<ClassConfig>();   
