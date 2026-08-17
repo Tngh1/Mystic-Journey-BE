@@ -7,8 +7,7 @@ using System.Security.Claims;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý quests của người chơi (nhiệm vụ đang thực hiện).
-    // Cho phép xem, nhận, cập nhật tiến độ, hoàn thành và nhận thưởng quest.
+    // Executes controller base operation.
     [Route("api/playerquests")]
     [ApiController]
     [Authorize]
@@ -16,96 +15,92 @@ namespace Mystic_Journey_API.Controllers
     {
         private readonly IPlayerQuestService _service;
 
+        // Initializes a new instance of PlayerQuestsController with dependencies: service.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public PlayerQuestsController(IPlayerQuestService service)
         {
             _service = service;
         }
 
+        // Executes get player profile id operation.
+        // Throws an exception if precondition validations fail.
         private int GetPlayerProfileId()
         {
             var claim = User.FindFirstValue("playerProfileId");
-            if (!int.TryParse(claim, out var id))
-                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
+            if (!int.TryParse(claim, out var id))  // Claim value missing or non-integer — reject as unauthorized
+                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");  // Authentication token is invalid or expired
             return id;
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // ── GET /api/playerquests/me ───────────────────────────────────
-        // Lấy danh sách quests của player đang đăng nhập.
+        // ─── Player APIs ───────────────────────────────────────────────────────
         [HttpGet("me")]
+        // Retrieves list of active, available, and completed quests for the authenticated player.
         public async Task<IActionResult> GetMyQuests()
         {
-            var profileId = GetPlayerProfileId();
-            var result = await _service.GetMyQuests(profileId);
-            return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _service.GetMyQuests(profileId); // Fetch all quest records assigned to or available for this player
+            return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── GET /api/playerquests/{questId} ─────────────────────────────
-        // Lấy chi tiết quest cụ thể của player.
         [HttpGet("{questId:int}")]
+        // Retrieves specific quest details, objectives, NPC locations, and reward preview.
         public async Task<IActionResult> GetMyQuestDetail(int questId)
         {
-            var profileId = GetPlayerProfileId();
-            var result = await _service.GetMyQuestDetail(profileId, questId);
-            if (result == null)
-                return NotFound(new ApiResponse<object> { Success = false, Message = $"Quest {questId} not found on current map.", ErrorCode = ErrorCodes.NotFound });
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _service.GetMyQuestDetail(profileId, questId); // Load quest objectives, prerequisite checks, and completion status
+            if (result == null)  // Entity not found — short-circuit with appropriate error result
+                return NotFound(new ApiResponse<object> { Success = false, Message = $"Quest {questId} not found on current map.", ErrorCode = ErrorCodes.NotFound });  // Return HTTP 404 when the requested resource does not exist
 
-            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── POST /api/playerquests/accept ────────────────────────────────
-        // Nhận quest mới.
         [HttpPost("accept")]
+        // Accepts a quest from an NPC or world trigger, adding it to the player's quest journal.
         public async Task<IActionResult> AcceptQuest([FromBody] AcceptQuestRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });  // Return HTTP 400 with validation error details
 
-            var profileId = GetPlayerProfileId();
-            var result = await _service.AcceptQuest(profileId, request);
-            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _service.AcceptQuest(profileId, request); // Verify prerequisites/level requirement and create InProgress quest tracking record
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── PUT /api/playerquests/batch-progress ─────────────────────────
-        // Cập nhật tiến độ nhiều quests cùng lúc.
         [HttpPut("batch-progress")]
+        // Updates objective progress counts (kills, collections, exploration) in batches from the client.
         public async Task<IActionResult> BatchUpdateProgress([FromBody] BatchProgressRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });  // Return HTTP 400 with validation error details
 
-            var profileId = GetPlayerProfileId();
-            var result = await _service.BatchUpdateProgress(profileId, request);
-            return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _service.BatchUpdateProgress(profileId, request); // Increment objective counters and check if quest objectives are met
+            return Ok(new ApiResponse<List<PlayerQuestResponseDto>> { Success = true, Data = result });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── POST /api/playerquests/complete ──────────────────────────────
-        // Hoàn thành quest (sau khi đã đạt đủ điều kiện).
         [HttpPost("complete")]
+        // Completes all objectives for a quest and marks it ready to claim rewards.
         public async Task<IActionResult> CompleteQuest([FromBody] CompleteQuestRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });  // Return HTTP 400 with validation error details
 
-            var profileId = GetPlayerProfileId();
-            var result = await _service.CompleteQuest(profileId, request);
-            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _service.CompleteQuest(profileId, request); // Validate all objectives satisfied and transition status to Completed
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── POST /api/playerquests/claim ─────────────────────────────────
-        // Nhận thưởng quest.
         [HttpPost("claim")]
+        // Claims the rewards (EXP, Gold, items) for a completed quest and moves it to Claimed status.
         public async Task<IActionResult> ClaimReward([FromBody] ClaimQuestRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });  // Return HTTP 400 with validation error details
 
-            var profileId = GetPlayerProfileId();
-            var result = await _service.ClaimReward(profileId, request);
-            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _service.ClaimReward(profileId, request); // Deliver EXP, currencies, and item rewards to inventory and set Claimed
+            return Ok(new ApiResponse<PlayerQuestResponseDto> { Success = true, Data = result });  // Return HTTP 200 with standard ApiResponse envelope
         }
     }
 }

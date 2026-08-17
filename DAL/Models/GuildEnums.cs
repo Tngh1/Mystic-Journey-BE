@@ -1,5 +1,6 @@
 namespace DAL.Models
 {
+    // Executes guild role operation.
     public enum GuildRole
     {
         Member = 0,
@@ -7,13 +8,15 @@ namespace DAL.Models
         Leader = 2
     }
 
+    // Executes guild join policy operation.
     public enum GuildJoinPolicy
     {
-        Open = 0,       // Anyone can join directly
-        Approval = 1,   // Must apply and wait for approval
-        InviteOnly = 2  // Must be invited by Leader/Officer
+        Open = 0,
+        Approval = 1,
+        InviteOnly = 2
     }
 
+    // Executes guild message type operation.
     public enum GuildMessageType
     {
         Text = 0,
@@ -23,6 +26,7 @@ namespace DAL.Models
         Promotion = 4
     }
 
+    // Executes guild log action operation.
     public enum GuildLogAction
     {
         Join,

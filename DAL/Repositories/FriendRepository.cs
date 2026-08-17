@@ -8,25 +8,20 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
-    /// <summary>
-    /// Triển khai các thao tác truy cập dữ liệu cho mối quan hệ kết bạn sử dụng Entity Framework.
-    /// </summary>
+    // Queries the database to retrieve i friend repository records.
     public class FriendRepository : IFriendRepository
     {
         private readonly MysticJourneyDbContext _context;
 
+        // Initializes a new instance of FriendRepository with dependencies: context.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public FriendRepository(MysticJourneyDbContext context)
         {
             _context = context;
         }
 
-        /// <summary>
-        /// Lấy danh sách bạn bè của người chơi.
-        /// Trả về profile của người bạn (không phải người gửi/yêu cầu).
-        /// Chỉ lấy các mối quan hệ có trạng thái "Accepted".
-        /// Tách thành 2 truy vấn để EF Core có thể dịch sang SQL: lấy Friend rows
-        /// (đã Include cả 2 navigation), rồi chọn profile phía bên kia trong bộ nhớ.
-        /// </summary>
+        // Queries the database to retrieve get friends records.
+        // Returns the matching List<PlayerProfile entity result or default if not found.
         public async Task<List<PlayerProfile>> GetFriends(int playerProfileId)
         {
             var rawFriends = await GetFriendListRaw(playerProfileId);
@@ -35,22 +30,27 @@ namespace DAL.Repositories
             foreach (var f in rawFriends)
             {
                 var profile = f.RequesterId == playerProfileId ? f.Addressee : f.Requester;
-                if (profile != null) profiles.Add(profile);
+                if (profile != null) profiles.Add(profile);  // Entity exists — proceed with conditional branch
             }
             return profiles;
         }
+        // Queries the database to retrieve get friend list raw records.
+        // Query details: uses AsNoTracking() for read-only query optimization; eagerly loads related entity navigation properties.
+        // Returns the matching List<Friend entity result or default if not found.
         public async Task<List<Friend>> GetFriendListRaw(int playerProfileId)
         {
             return await _context.Friends
-                .Include(f => f.Requester)
-                .Include(f => f.Addressee)
-                .Where(f => (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) && f.Status == "Accepted")
-                // Chỉ đọc: cả 2 caller (GetFriends, GetFriendList) đều map sang DTO.
-                .AsNoTracking()
-                .ToListAsync();
+                .Include(f => f.Requester)  // Eagerly load related navigation entities to avoid N+1 queries
+                .Include(f => f.Addressee)  // Eagerly load related navigation entities to avoid N+1 queries
+                .Where(f => (f.RequesterId == playerProfileId || f.AddresseeId == playerProfileId) && f.Status == "Accepted")  // Filter records matching the predicate
+                // Execute this query without change tracking because the returned entities are read-only.
+                .AsNoTracking()  // Disable EF Core change tracking for this read-only query
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
-        /// <summary>Đếm số bạn đã kết bạn (dùng cho giới hạn 100).</summary>
+        // Queries the database to retrieve count friends records.
+        // Query details: uses AsNoTracking() for read-only query optimization; eagerly loads related entity navigation properties.
+        // Returns the computed numeric count or database ID result.
         public async Task<int> CountFriends(int playerProfileId)
         {
             return await _context.Friends
@@ -59,87 +59,115 @@ namespace DAL.Repositories
                     f.Status == "Accepted");
         }
 
+        // Queries the database to retrieve get friend requests records.
+        // Query details: uses AsNoTracking() for read-only query optimization; eagerly loads related entity navigation properties.
+        // Returns the matching List<Friend entity result or default if not found.
         public async Task<List<Friend>> GetFriendRequests(int playerProfileId)
         {
             return await _context.Friends
-                .Include(f => f.Requester)
-                .Where(f => f.AddresseeId == playerProfileId && f.Status == "Pending")
-                // Addressee chính là người đang gọi, DTO không đọc tới nên bỏ Include.
-                .AsNoTracking()
-                .ToListAsync();
+                .Include(f => f.Requester)  // Eagerly load related navigation entities to avoid N+1 queries
+                .Where(f => f.AddresseeId == playerProfileId && f.Status == "Pending")  // Filter records matching the predicate
+                // Execute this query without change tracking because the returned entities are read-only.
+                .AsNoTracking()  // Disable EF Core change tracking for this read-only query
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
+        // Queries the database to retrieve get friendship records.
+        // Query details: uses AsNoTracking() for read-only query optimization.
+        // Returns the matching Friend? entity result or default if not found.
         public async Task<Friend?> GetFriendship(int id1, int id2)
         {
             return await _context.Friends
-                .FirstOrDefaultAsync(f => 
-                    (f.RequesterId == id1 && f.AddresseeId == id2) || 
+                .FirstOrDefaultAsync(f =>  // Fetch single matching record or null if not found
+                    (f.RequesterId == id1 && f.AddresseeId == id2) ||
                     (f.RequesterId == id2 && f.AddresseeId == id1));
         }
 
-        /// <summary>Lấy mọi quan hệ giữa playerProfileId và danh sách người khác trong 1 truy vấn.</summary>
+        // Queries the database to retrieve get friendships with records.
+        // Query details: uses AsNoTracking() for read-only query optimization.
+        // Returns the matching List<Friend entity result or default if not found.
         public async Task<List<Friend>> GetFriendshipsWith(int playerProfileId, List<int> otherIds)
         {
             return await _context.Friends
-                .Where(f =>
+                .Where(f =>  // Filter records matching the predicate
                     (f.RequesterId == playerProfileId && otherIds.Contains(f.AddresseeId)) ||
                     (f.AddresseeId == playerProfileId && otherIds.Contains(f.RequesterId)))
-                .AsNoTracking()
-                .ToListAsync();
+                // Execute this query without change tracking because the returned entities are read-only.
+                .AsNoTracking()  // Disable EF Core change tracking for this read-only query
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
-        /// <summary>Lấy mọi bản ghi chặn của blockerId với danh sách người khác trong 1 truy vấn.</summary>
+        // Performs database query and transactional persistence workflow for get friend blocks with.
+        // Query details: uses AsNoTracking() for read-only query optimization; commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching List<FriendBlock entity result or default if not found.
         public async Task<List<FriendBlock>> GetFriendBlocksWith(int blockerId, List<int> blockedIds)
         {
             return await _context.FriendBlocks
-                .Where(fb => fb.BlockerId == blockerId && blockedIds.Contains(fb.BlockedId))
-                .AsNoTracking()
-                .ToListAsync();
+                .Where(fb => fb.BlockerId == blockerId && blockedIds.Contains(fb.BlockedId))  // Filter records matching the predicate
+                // Execute this query without change tracking because the returned entities are read-only.
+                .AsNoTracking()  // Disable EF Core change tracking for this read-only query
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
+        // Persists state modifications to the database for add friend.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching Friend entity result or default if not found.
         public async Task<Friend> AddFriend(Friend friend)
         {
             _context.Friends.Add(friend);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return friend;
         }
 
+        // Persists state modifications to the database for update friend.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
         public async Task UpdateFriend(Friend friend)
         {
             _context.Friends.Update(friend);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
         }
 
+        // Performs database query and transactional persistence workflow for remove friend.
+        // Query details: eagerly loads related entity navigation properties; commits entity state changes via EF Core SaveChangesAsync.
         public async Task RemoveFriend(Friend friend)
         {
-            _context.Friends.Remove(friend);
-            await _context.SaveChangesAsync();
+            _context.Friends.Remove(friend);  // Mark entity for deletion in the next SaveChanges call
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
         }
 
+        // Queries the database to retrieve get friend blocks records.
+        // Query details: eagerly loads related entity navigation properties.
+        // Returns the matching List<FriendBlock entity result or default if not found.
         public async Task<List<FriendBlock>> GetFriendBlocks(int playerProfileId)
         {
             return await _context.FriendBlocks
-                .Include(fb => fb.Blocked)
-                .Where(fb => fb.BlockerId == playerProfileId)
-                .ToListAsync();
+                .Include(fb => fb.Blocked)  // Eagerly load related navigation entities to avoid N+1 queries
+                .Where(fb => fb.BlockerId == playerProfileId)  // Filter records matching the predicate
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
+        // Performs database query and transactional persistence workflow for get friend block.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching FriendBlock? entity result or default if not found.
         public async Task<FriendBlock?> GetFriendBlock(int blockerId, int blockedId)
         {
             return await _context.FriendBlocks
-                .FirstOrDefaultAsync(fb => fb.BlockerId == blockerId && fb.BlockedId == blockedId);
+                .FirstOrDefaultAsync(fb => fb.BlockerId == blockerId && fb.BlockedId == blockedId);  // Fetch single matching record or null if not found
         }
 
+        // Persists state modifications to the database for add friend block.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
         public async Task AddFriendBlock(FriendBlock block)
         {
             _context.FriendBlocks.Add(block);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
         }
 
+        // Persists state modifications to the database for remove friend block.
         public async Task RemoveFriendBlock(FriendBlock block)
         {
-            _context.FriendBlocks.Remove(block);
-            await _context.SaveChangesAsync();
+            _context.FriendBlocks.Remove(block);  // Mark entity for deletion in the next SaveChanges call
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
         }
     }
 }

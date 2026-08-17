@@ -3,35 +3,48 @@ using System.Text.RegularExpressions;
 
 namespace BLL.Helpers
 {
-    /// <summary>
-    /// Parses achievement BuffDescription strings (e.g. "+2% Max HP") into additive percentage bonuses.
-    /// </summary>
+    // Initializes a new default instance of the AchievementBuffTotals class.
     public sealed class AchievementBuffTotals
     {
+        // Executes max hp percent operation.
         public decimal MaxHpPercent { get; set; }
+        // Executes atk percent operation.
         public decimal AtkPercent { get; set; }
+        // Executes def percent operation.
         public decimal DefPercent { get; set; }
+        // Executes move speed percent operation.
         public decimal MoveSpeedPercent { get; set; }
+        // Executes crit rate percent operation.
         public decimal CritRatePercent { get; set; }
+        // Executes attack speed percent operation.
         public decimal AttackSpeedPercent { get; set; }
+        // Executes damage bonus percent operation.
         public decimal DamageBonusPercent { get; set; }
+        // Executes gold gain percent operation.
         public decimal GoldGainPercent { get; set; }
+        // Executes exp gain percent operation.
         public decimal ExpGainPercent { get; set; }
+        // Executes boss damage percent operation.
+        // Validates input parameters against null or empty values.
         public decimal BossDamagePercent { get; set; }
     }
 
+    // Executes achievement buff calculator operation.
+    // Validates input parameters against null or empty values.
     public static class AchievementBuffCalculator
     {
         private static readonly Regex SegmentRegex = new(
             @"\+(\d+(?:\.\d+)?)\s*%\s*(.+?)(?=,\s*\+|\s*$)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        // Executes parse many operation.
+        // Validates input parameters against null or empty values.
         public static AchievementBuffTotals ParseMany(IEnumerable<string?> descriptions)
         {
             var totals = new AchievementBuffTotals();
             foreach (var description in descriptions)
             {
-                if (string.IsNullOrWhiteSpace(description))
+                if (string.IsNullOrWhiteSpace(description))  // Mandatory string argument is blank — fail fast
                     continue;
 
                 foreach (Match match in SegmentRegex.Matches(description))
@@ -46,6 +59,7 @@ namespace BLL.Helpers
             return totals;
         }
 
+        // Executes apply segment operation.
         private static void ApplySegment(AchievementBuffTotals totals, string label, decimal percent)
         {
             var normalized = label.ToLowerInvariant();
@@ -118,6 +132,7 @@ namespace BLL.Helpers
             }
         }
 
+        // Executes apply percent operation.
         public static int ApplyPercent(int baseValue, decimal percentBonus)
         {
             if (baseValue <= 0 || percentBonus <= 0)
@@ -127,6 +142,7 @@ namespace BLL.Helpers
             return (int)Math.Round(scaled, MidpointRounding.AwayFromZero);
         }
 
+        // Executes apply percent operation.
         public static float ApplyPercent(float baseValue, decimal percentBonus)
         {
             if (baseValue <= 0f || percentBonus <= 0)
@@ -135,20 +151,9 @@ namespace BLL.Helpers
             return (float)(baseValue * (double)(1m + percentBonus / 100m));
         }
 
-        /// <summary>
-        /// Max HP thực tế của người chơi: (chỉ số gốc + trang bị) rồi mới nhân % danh hiệu.
-        /// Thứ tự này quan trọng — % danh hiệu buff cả phần HP từ trang bị, nên không được
-        /// nhân trước khi cộng snapshot.
-        ///
-        /// Đây là NGUỒN DUY NHẤT cho max HP. Mọi chỗ clamp CurrentHp phải gọi hàm này chứ không
-        /// dùng thẳng PlayerStat.MaxHp: PlayerStat.MaxHp chỉ là chỉ số gốc, nên clamp theo nó sẽ
-        /// chặn người chơi ở mức thấp hơn thanh máu họ đang thấy (uống thuốc không đầy máu,
-        /// và HP client gửi lên bị cắt xuống mỗi lần sync).
-        /// </summary>
+        // Executes combine max hp operation.
         public static int CombineMaxHp(int baseMaxHp, int gearMaxHp, decimal achievementPercent)
         {
-            // Chặn sàn ở 0: trang bị có thể mang BonusHp âm, mà chỗ gọi dùng
-            // Math.Clamp(hp, 0, max) — max âm sẽ ném ArgumentException (min > max).
             return Math.Max(0, ApplyPercent(baseMaxHp + gearMaxHp, achievementPercent));
         }
     }

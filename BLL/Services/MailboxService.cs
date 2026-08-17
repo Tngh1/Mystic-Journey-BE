@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i mailbox service.
     public class MailboxService : IMailboxService
     {
         private const int MAILBOX_CAPACITY = 100;
@@ -20,6 +21,7 @@ namespace BLL.Services
 
         private readonly IMapper _mapper;
 
+        // Initialize this instance from repository, player profile repository, inventory service, and mapper and store repository, player profile repository, inventory service, transaction manager, and mapper for later operations.
         public MailboxService(
             IMailboxRepository repository,
             IPlayerProfileRepository playerProfileRepository,
@@ -34,13 +36,14 @@ namespace BLL.Services
             _mapper = mapper;
         }
 
-        // ─── Player APIs ────────────────────────────────────────────────────────
-        // Lấy danh sách thư của player có phân trang.
+        // Executes core business logic for get my mailboxes.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed MailboxListPagedDto result asynchronously.
         public async Task<MailboxListPagedDto> GetMyMailboxes(int playerProfileId, int page, int pageSize)
         {
             var (totalCount, items) = await _repository.GetMailboxesByPlayerIdPaged(playerProfileId, page, pageSize);
 
-            var summaries = _mapper.Map<List<MailboxSummaryDto>>(items);
+            var summaries = _mapper.Map<List<MailboxSummaryDto>>(items);  // Transform domain entity into DTO for the API response layer
 
             return new MailboxListPagedDto
             {
@@ -52,14 +55,18 @@ namespace BLL.Services
             };
         }
 
-        // Lấy chi tiết 1 thư.
+        // Executes core business logic for get mailbox by id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MailboxDetailDto? result asynchronously.
         public async Task<MailboxDetailDto?> GetMailboxById(int mailboxId)
         {
             var mailbox = await _repository.GetMailboxById(mailboxId);
-            return mailbox == null ? null : _mapper.Map<MailboxDetailDto>(mailbox);
+            return mailbox == null ? null : _mapper.Map<MailboxDetailDto>(mailbox);  // Transform domain entity into DTO for the API response layer
         }
 
-        // Đánh dấu thư đã đọc.
+        // Executes core business logic for mark mailbox as read.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MailboxDetailDto result asynchronously.
         public async Task<MailboxDetailDto> MarkMailboxAsRead(int mailboxId)
         {
             var mailbox = await _repository.GetMailboxById(mailboxId)
@@ -71,10 +78,12 @@ namespace BLL.Services
                 await _repository.UpdateMailbox(mailbox);
             }
 
-            return _mapper.Map<MailboxDetailDto>(mailbox);
+            return _mapper.Map<MailboxDetailDto>(mailbox);  // Transform domain entity into DTO for the API response layer
         }
 
-        // Nhận phần thưởng từ thư.
+        // Executes core business logic for claim mailbox reward.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws InvalidOperationException, KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MailboxDetailDto result asynchronously.
         public Task<MailboxDetailDto> ClaimMailboxReward(int mailboxId)
         {
             return _transactionManager.ExecuteInTransactionAsync(async () =>
@@ -83,10 +92,10 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"Mailbox with id {mailboxId} not found.");
 
             if (mailbox.IsClaimed)
-                throw new InvalidOperationException("Reward has already been claimed.");
+                throw new InvalidOperationException("Reward has already been claimed.");  // Unexpected runtime state — propagate to global error handler
 
             if (mailbox.ExpiredAt != null && mailbox.ExpiredAt < DateTime.UtcNow)
-                throw new InvalidOperationException("Mailbox has expired.");
+                throw new InvalidOperationException("Mailbox has expired.");  // Unexpected runtime state — propagate to global error handler
 
             var playerProfile = await _playerProfileRepository.GetByIdFull(mailbox.PlayerProfileId)
                 ?? throw new KeyNotFoundException("Player profile not found.");
@@ -97,13 +106,10 @@ namespace BLL.Services
             if (mailbox.AttachedGems > 0)
                 playerProfile.Gems += mailbox.AttachedGems;
 
-            // Xử lý items
             if (mailbox.AttachedItems != null && mailbox.AttachedItems.Any())
             {
                 foreach (var rewardItem in mailbox.AttachedItems)
                 {
-                    // "Exp" là item Currency đại diện cho điểm kinh nghiệm -> cộng thẳng vào
-                    // level thay vì bỏ vào inventory (khớp cách quest/dungeon áp EXP).
                     if (string.Equals(rewardItem.Item?.Name, "Exp", StringComparison.OrdinalIgnoreCase))
                     {
                         playerProfile.AddExperience(rewardItem.Quantity);
@@ -124,32 +130,34 @@ namespace BLL.Services
             mailbox.IsRead = true;
             var updated = await _repository.UpdateMailbox(mailbox);
 
-                return _mapper.Map<MailboxDetailDto>(updated);
+                return _mapper.Map<MailboxDetailDto>(updated);  // Transform domain entity into DTO for the API response layer
             });
         }
 
-        // Xóa mềm thư (chỉ thư của chính player đó).
+        // Executes core business logic for delete mailbox.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         public async Task DeleteMailbox(int mailboxId, int playerProfileId)
         {
             var mailbox = await _repository.GetMailboxById(mailboxId)
                 ?? throw new KeyNotFoundException($"Mailbox with id {mailboxId} not found.");
 
             if (mailbox.PlayerProfileId != playerProfileId)
-                throw new UnauthorizedAccessException("You can only delete your own mailbox.");
+                throw new UnauthorizedAccessException("You can only delete your own mailbox.");  // Authentication token is invalid or expired
 
             if (mailbox.IsDeleted)
-                throw new InvalidOperationException("Mailbox has already been deleted.");
+                throw new InvalidOperationException("Mailbox has already been deleted.");  // Unexpected runtime state — propagate to global error handler
 
-            // Never silently discard a reward, including after its claim deadline.
             if (HasUnclaimedAttachment(mailbox))
-                throw new InvalidOperationException(
+                throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                     "This mail still has unclaimed rewards. Please claim the rewards before deleting it.");
 
             await _repository.SoftDeleteMailbox(mailboxId);
         }
 
-        // Thư có đính kèm thật (gold / gems / item) mà chưa nhận.
-        // Thư thông báo thuần (không đính kèm gì) vẫn xoá được bình thường.
+        // Executes core business logic for has unclaimed attachment.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns a boolean indicating operation success.
         private static bool HasUnclaimedAttachment(Mailbox mailbox)
         {
             if (mailbox.IsClaimed)
@@ -160,21 +168,25 @@ namespace BLL.Services
                 || (mailbox.AttachedItems != null && mailbox.AttachedItems.Any(i => i.Quantity > 0));
         }
 
+        // Executes core business logic for is expired.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns a boolean indicating operation success.
         private static bool IsExpired(Mailbox mailbox)
             => mailbox.ExpiredAt != null && mailbox.ExpiredAt < DateTime.UtcNow;
 
-        // ─── Admin APIs ─────────────────────────────────────────────────────────
 
-        // Admin: lấy tất cả thư có lọc và phân trang.
+        // Load mailboxes paged using page, page size, search, and is read; it builds map.
         public async Task<PagedResultDto<MailboxDetailDto>> GetMailboxesPaged(
             int page, int pageSize, string? search, bool? isRead, bool? isClaimed, string? sortBy = null, string? sortOrder = null)
         {
             var (totalCount, items) = await _repository.GetMailboxesPaged(page, pageSize, search, isRead, isClaimed, sortBy, sortOrder);
-            var dtos = _mapper.Map<List<MailboxDetailDto>>(items);
+            var dtos = _mapper.Map<List<MailboxDetailDto>>(items);  // Transform domain entity into DTO for the API response layer
             return new PagedResultDto<MailboxDetailDto>(totalCount, dtos);
         }
 
-            // Admin: gửi thư đến danh sách player.
+        // Executes core business logic for send mailbox by list id.
+        // Logic details: validates numeric boundary constraints; throws ArgumentException on invalid state or rule violations.
+        // Returns the computed List<MailboxDetailDto result asynchronously.
         public async Task<List<MailboxDetailDto>> SendMailboxByListId(SendMailboxByListIdDto request)
         {
             if (request.PlayerProfileIds == null || request.PlayerProfileIds.Count == 0)
@@ -198,7 +210,7 @@ namespace BLL.Services
                 AttachedGold = request.AttachedGold,
                 AttachedGems = request.AttachedGems,
                 AttachedItems = (request.AttachedItems ?? new List<SendMailboxRewardItemDto>())
-                    .Where(i => i != null && i.ItemId > 0 && i.Quantity > 0)
+                    .Where(i => i != null && i.ItemId > 0 && i.Quantity > 0)  // Filter records matching the predicate
                     .Select(item => new MailboxRewardItem
                     {
                         ItemId = item.ItemId,
@@ -215,11 +227,13 @@ namespace BLL.Services
                 foreach (var playerId in request.PlayerProfileIds.Distinct())
                     await EnsureMailboxCapacity(playerId);
                 var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
-                return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
+                return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);  // Transform domain entity into DTO for the API response layer
             }, System.Data.IsolationLevel.Serializable);
         }
 
-        // Admin: broadcast thư đến toàn bộ player.
+        // Executes core business logic for send mailbox to all.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer; throws ArgumentException on invalid state or rule violations.
+        // Returns the computed List<MailboxDetailDto result asynchronously.
         public async Task<List<MailboxDetailDto>> SendMailboxToAll(SendMailboxToAllDto request)
         {
             var players = await _playerProfileRepository.GetAllPlayerProfiles();
@@ -244,7 +258,7 @@ namespace BLL.Services
                 AttachedGold = request.AttachedGold,
                 AttachedGems = request.AttachedGems,
                 AttachedItems = (request.AttachedItems ?? new List<SendMailboxRewardItemDto>())
-                    .Where(i => i != null && i.ItemId > 0 && i.Quantity > 0)
+                    .Where(i => i != null && i.ItemId > 0 && i.Quantity > 0)  // Filter records matching the predicate
                     .Select(item => new MailboxRewardItem
                     {
                         ItemId = item.ItemId,
@@ -261,26 +275,29 @@ namespace BLL.Services
                 foreach (var player in players)
                     await EnsureMailboxCapacity(player.PlayerProfileId);
                 var createdMailboxes = await _repository.CreateBulkMailboxes(mailboxes);
-                return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);
+                return _mapper.Map<List<MailboxDetailDto>>(createdMailboxes);  // Transform domain entity into DTO for the API response layer
             }, System.Data.IsolationLevel.Serializable);
         }
 
+        // Executes core business logic for ensure mailbox capacity.
+        // Logic details: delegates data queries and updates to repository layer; throws InvalidOperationException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         private async Task EnsureMailboxCapacity(int playerProfileId)
         {
             var activeMailboxes = await _repository.GetMailboxesByPlayerId(playerProfileId);
             while (activeMailboxes.Count >= MAILBOX_CAPACITY)
             {
                 var removable = activeMailboxes
-                    .Where(m => m.IsRead && !HasUnclaimedAttachment(m))
-                    .OrderBy(m => m.SentAt)
+                    .Where(m => m.IsRead && !HasUnclaimedAttachment(m))  // Filter records matching the predicate
+                    .OrderBy(m => m.SentAt)  // Sort results oldest/lowest first
                     .FirstOrDefault();
 
-                if (removable == null)
-                    throw new InvalidOperationException(
+                if (removable == null)  // Entity not found — short-circuit with appropriate error result
+                    throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                         $"Mailbox capacity reached for player {playerProfileId}; no read mail without rewards can be removed.");
 
                 await _repository.SoftDeleteMailbox(removable.MailboxId);
-                activeMailboxes.Remove(removable);
+                activeMailboxes.Remove(removable);  // Mark entity for deletion in the next SaveChanges call
             }
         }
     }

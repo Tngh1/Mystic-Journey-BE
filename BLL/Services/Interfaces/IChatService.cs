@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
+    // Initializes a new default instance of the IChatService class.
     public interface IChatService
     {
         Task<PagedResultDto<WorldChatMessageResponseDto>> GetWorldMessages(

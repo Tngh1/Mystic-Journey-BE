@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i auth service.
     public class AuthService : IAuthService
     {
         private readonly IAuthRepository _repository;
@@ -30,19 +31,21 @@ namespace BLL.Services
         private const string OTP_CACHE_PREFIX = "otp:";
         private const string VERIFIED_CACHE_PREFIX = "verified:";
 
-        // IMemoryCache lưu được bool; Redis chỉ có string nên cờ "email đã xác thực" phải mã
-        // hoá tường minh. So sánh bằng hằng này thay vì bool.Parse: key trống trả null và null
-        // != "1" là chưa xác thực — không cần try/catch, và giá trị lạ cũng rơi về chưa xác thực.
         private const string VerifiedFlag = "1";
         private const string DefaultMapName = "ElfForest";
         private const double DefaultSpawnX = 11.9;
         private const double DefaultSpawnY = 17.8;
 
+        // Executes core business logic for otp expiry minutes.
         private int OtpExpiryMinutes => int.Parse(_configuration["TokenSettings:OtpExpiryMinutes"] ?? "5");
+        // Executes core business logic for verified expiry minutes.
         private int VerifiedExpiryMinutes => int.Parse(_configuration["TokenSettings:VerifiedExpiryMinutes"] ?? "30");
+        // Executes core business logic for access token expiry minutes.
         private int AccessTokenExpiryMinutes => int.Parse(_configuration["TokenSettings:AccessTokenExpiryMinutes"] ?? _configuration["Jwt:AccessTokenExpiryMinutes"] ?? "30");
+        // Executes core business logic for refresh token expiry days.
         private int RefreshTokenExpiryDays => int.Parse(_configuration["TokenSettings:RefreshTokenExpiryDays"] ?? _configuration["Jwt:RefreshTokenExpireDays"] ?? "7");
 
+        // Initialize this instance from repository, mapper, configuration, and cache and store repository, mapper, configuration, cache, and player profile service for later operations.
         public AuthService(
             IAuthRepository repository,
             IMapper mapper,
@@ -59,6 +62,7 @@ namespace BLL.Services
             _sessionNotifier = sessionNotifier;
         }
 
+        // Executes core business logic for hash refresh token.
         private static string HashRefreshToken(string token)
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
@@ -69,54 +73,59 @@ namespace BLL.Services
         public const string ClientGame = "Game";
         public const string ClientTypeClaim = "ctyp";
 
+        // Executes core business logic for normalize client.
         private static string NormalizeClient(string? clientType)
             => IsGameClient(clientType) ? ClientGame : ClientWeb;
 
-        // Public để Program.cs dùng đúng format khoá thay vì tự nối string ở hai nơi.
+        // Executes core business logic for active session key.
         public static string ActiveSessionKey(int accountId, string? clientType)
             => $"active_session:{accountId}:{NormalizeClient(clientType)}";
 
-        // IDistributedCache chỉ nhận string/byte[], không nhận TimeSpan trực tiếp như
-        // IMemoryCache. Gom vào một chỗ để 5 call site không ai viết lẫn sang
-        // AbsoluteExpiration (mốc tuyệt đối) khi ý là "kể từ bây giờ".
+        // Executes core business logic for ttl.
         private static DistributedCacheEntryOptions Ttl(TimeSpan ttl)
             => new() { AbsoluteExpirationRelativeToNow = ttl };
 
+        // Executes core business logic for start new session.
+        // Logic details: validates required non-empty string arguments; checks Redis/memory cache to minimize database load; stores computed result in cache with an expiration TTL.
+        // Returns the computed string result asynchronously.
         private async Task<string> StartNewSession(int accountId, string clientType)
         {
-            var key = ActiveSessionKey(accountId, clientType);
+            var key = ActiveSessionKey(accountId, clientType); // Build Redis cache key scoped to account + client type slot
 
-            var previousSessionId = await _cache.GetStringAsync(key);
+            var previousSessionId = await _cache.GetStringAsync(key); // Check if a prior session exists for this account/client pair
 
-            var sessionId = Guid.NewGuid().ToString();
-            await _cache.SetStringAsync(
+            var sessionId = Guid.NewGuid().ToString(); // Generate a new unique session ID for this login
+            await _cache.SetStringAsync( // Persist new session ID with refresh-token-matching TTL
                 key,
                 sessionId,
                 Ttl(TimeSpan.FromDays(RefreshTokenExpiryDays)));
 
-            // Chỉ báo khi thật sự có phiên cũ và nó khác phiên mới. Login đầu tiên (key trống)
-            // không đá ai nên gửi thông báo là làm client hiểu sai. Đặt notify ở đây vì đây là
-            // chỗ DUY NHẤT một phiên bị đè — Login và ChangePassword đi qua cùng đường này, nên
-            // không có call site nào lỡ quên.
             if (!string.IsNullOrEmpty(previousSessionId) && previousSessionId != sessionId)
             {
+                // Notify all subscribers that the previous session has been superseded (e.g., kick old device via SignalR)
                 await _sessionNotifier.SessionOverridden(accountId, clientType, sessionId);
             }
 
             return sessionId;
         }
+        // Executes core business logic for continue session.
+        // Logic details: validates required non-empty string arguments; checks Redis/memory cache to minimize database load; stores computed result in cache with an expiration TTL.
+        // Returns the computed string result asynchronously.
         private async Task<string> ContinueSession(int accountId, string clientType)
         {
-            var key = ActiveSessionKey(accountId, clientType);
-            var sessionId = await _cache.GetStringAsync(key);
+            var key = ActiveSessionKey(accountId, clientType); // Build Redis key for account + client pair
+            var sessionId = await _cache.GetStringAsync(key); // Try to retrieve existing session from Redis cache
             if (!string.IsNullOrEmpty(sessionId))
             {
+                // Session still alive — slide expiry window to match refresh token lifetime
                 await _cache.SetStringAsync(key, sessionId, Ttl(TimeSpan.FromDays(RefreshTokenExpiryDays)));
                 return sessionId;
             }
+            // Session missing from cache (e.g., after server restart) — create a fresh session slot
             return await StartNewSession(accountId, clientType);
         }
 
+        // Executes core business logic for set refresh slot.
         private static void SetRefreshSlot(Account account, string clientType, string? hashedToken, DateTime? expiresAt)
         {
             if (NormalizeClient(clientType) == ClientGame)
@@ -131,10 +140,14 @@ namespace BLL.Services
             }
         }
 
+        // Executes core business logic for refresh slot expiry.
+        // Logic details: validates required non-empty string arguments.
         private static DateTime? RefreshSlotExpiry(Account account, string clientType)
             => NormalizeClient(clientType) == ClientGame
                 ? account.GameRefreshTokenExpiresAt
                 : account.RefreshTokenExpiresAt;
+        // Executes core business logic for match refresh slot.
+        // Logic details: validates required non-empty string arguments; delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws AccountNotFoundException, UnauthorizedAccessException on invalid state or rule violations.
         private static string? MatchRefreshSlot(Account account, string hashedToken)
         {
             if (!string.IsNullOrEmpty(account.GameRefreshToken) && account.GameRefreshToken == hashedToken)
@@ -144,90 +157,95 @@ namespace BLL.Services
             return null;
         }
 
+        // Validate the login payload and client version, authenticate the account, issue access and refresh tokens, persist the correct session slot, and return the authenticated account data.
         public async Task<AuthResponseDto> Login(LoginRequestDto request)
         {
+            // Look up account by either email or username (case-insensitive normalized trim)
             var account = await _repository.GetAccountByUsernameOrEmail(request.EmailOrUsername.Trim());
 
-            if (account == null)
+            if (account == null) // Account not found — reject with registration prompt
                 throw new AccountNotFoundException("Account is not registered. Please register before logging in.");
 
-            if (!account.IsActive)
+            if (!account.IsActive) // Account is banned — reject login with ban reason if available
                 throw new UnauthorizedAccessException(
                     string.IsNullOrWhiteSpace(account.BanReason)
                         ? "Your account has been banned."
                         : $"Your account has been banned. Reason: {account.BanReason}");
 
-            if (!await VerifyPasswordWithFallback(account, request.Password))
+            if (!await VerifyPasswordWithFallback(account, request.Password)) // Wrong password — reject immediately
                 throw new UnauthorizedAccessException("Invalid email/username or password.");
 
-            // Gán SessionId mới cho MỌI đăng nhập để phiên cũ CÙNG LOẠI CLIENT bị đè và đăng
-            // xuất ngay (Single Active Session). Web và game tách khoá nên không đá lẫn nhau.
+            // Normalize client type to 'Web' or 'Game' — determines which refresh-token slot to use
             var clientType = NormalizeClient(request.ClientType);
+            // Create a new session in Redis, overriding any existing session for this account+client pair
             var sessionId = await StartNewSession(account.AccountId, clientType);
 
+            // Sign a new JWT access token embedding session ID, role, and client type claims
             var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId, clientType);
+            // Generate a cryptographically secure refresh token string and its expiry date
             var (refreshToken, refreshExpiry) = GenerateRefreshToken();
 
+            // Store the hashed refresh token in the correct account slot (Web or Game)
             SetRefreshSlot(account, clientType, HashRefreshToken(refreshToken), refreshExpiry);
             if (clientType == ClientGame && account.PlayerProfile != null)
             {
-                account.PlayerProfile.LastSeen = DateTime.UtcNow;
+                account.PlayerProfile.LastSeen = DateTime.UtcNow; // Record last seen timestamp for Game client activity tracking
             }
-            account.UpdatedAt = DateTime.UtcNow;
+            account.UpdatedAt = DateTime.UtcNow; // Stamp account modification time before saving
             if (account.PlayerProfile != null)
             {
-                _playerProfileService.RecalculateEnergy(account.PlayerProfile);
+                _playerProfileService.RecalculateEnergy(account.PlayerProfile); // Recalculate energy based on time elapsed since last activity
             }
-            await _repository.UpdateAccount(account);
+            await _repository.UpdateAccount(account); // Persist refresh token hash, last seen, and updated timestamp to DB
 
             var hasCharacter = account.PlayerProfile != null;
-            var response = _mapper.Map<AuthResponseDto>(account);
+            var response = _mapper.Map<AuthResponseDto>(account); // Map account domain entity to auth response DTO
 
-           
             response.AccessToken = accessToken;
             response.AccessTokenExpiresAt = accessExpiry;
             response.RefreshToken = refreshToken;
             response.RefreshTokenExpiresAt = refreshExpiry;
 
-        
             if (!HasSavedPosition(account.PlayerProfile))
             {
+                // No saved position found — inject default spawn coordinates
                 response.PositionX = DefaultSpawnX;
                 response.PositionY = DefaultSpawnY;
             }
 
-            
+            // Normalize legacy map name aliases to canonical map identifier
             response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
 
-            
+            // Flag whether the player has selected a character class yet
             response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
             return response;
         }
 
+        // Validate the registration payload, create the account and initial profile, issue session tokens, and return the authenticated registration result.
         public async Task<AuthResponseDto> Register(RegisterRequestDto request)
         {
-            var normalizedEmail = request.EmailAddress.Trim().ToLowerInvariant();
-            var normalizedUsername = request.UserName.Trim();
+            var normalizedEmail = request.EmailAddress.Trim().ToLowerInvariant(); // Normalize email to lowercase for case-insensitive uniqueness check
+            var normalizedUsername = request.UserName.Trim(); // Strip leading/trailing whitespace from username
 
             var verifiedKey = $"{VERIFIED_CACHE_PREFIX}{normalizedEmail}";
-            if (await _cache.GetStringAsync(verifiedKey) != VerifiedFlag)
+            if (await _cache.GetStringAsync(verifiedKey) != VerifiedFlag) // Email OTP verification must be completed before account creation
                 throw new BadRequestException("Email not verified. Please verify your email first.");
 
-            if (await _repository.IsEmailExist(normalizedEmail))
+            if (await _repository.IsEmailExist(normalizedEmail)) // Prevent duplicate accounts with the same email address
                 throw new BadRequestException("Email already registered.");
 
-            if (await _repository.IsUsernameExist(normalizedUsername))
+            if (await _repository.IsUsernameExist(normalizedUsername)) // Prevent duplicate accounts with the same username
                 throw new BadRequestException("Username already taken.");
 
-            var account = _mapper.Map<Account>(request);
+            var account = _mapper.Map<Account>(request); // Map registration DTO fields to Account domain entity
             account.UserName = normalizedUsername;
             account.Email = normalizedEmail;
-            account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            account.RoleId = 1;
+            account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.Password); // Hash password with BCrypt before storing — never store plaintext
+            account.RoleId = 1; // Assign default 'Player' role (RoleId = 1)
             account.CreatedAt = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
             account.IsActive = true;
-            account.PlayerProfile = new PlayerProfile
+            account.PlayerProfile = new PlayerProfile // Initialize an empty player profile with default spawn position
             {
                 DisplayName = normalizedUsername,
                 CreatedAt = DateTime.UtcNow,
@@ -236,119 +254,116 @@ namespace BLL.Services
                 PositionY = DefaultSpawnY
             };
 
-            await _repository.CreateAccount(account);
-            await _cache.RemoveAsync(verifiedKey);
+            await _repository.CreateAccount(account); // Persist new account and player profile to database
+            await _cache.RemoveAsync(verifiedKey); // Remove email-verified flag from Redis — one-time use only
 
-            // Register chỉ có trên web (client game không có luồng đăng ký), nên cấp slot Web.
+            // Issue access token and start a new Web client session in Redis
             var (accessToken, accessExpiry) = GenerateAccessToken(
                 account, await StartNewSession(account.AccountId, ClientWeb), ClientWeb);
-            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
+            var (refreshToken, refreshExpiry) = GenerateRefreshToken(); // Generate secure refresh token for persistent sessions
 
-            SetRefreshSlot(account, ClientWeb, HashRefreshToken(refreshToken), refreshExpiry);
-            await _repository.UpdateAccount(account);
+            SetRefreshSlot(account, ClientWeb, HashRefreshToken(refreshToken), refreshExpiry); // Store hashed refresh token in the Web slot
+            await _repository.UpdateAccount(account); // Save hashed refresh token to database
 
-            var response = _mapper.Map<AuthResponseDto>(account);
+            var response = _mapper.Map<AuthResponseDto>(account); // Map persisted account entity to auth response DTO
 
-            // Apply tokens
             response.AccessToken = accessToken;
             response.AccessTokenExpiresAt = accessExpiry;
             response.RefreshToken = refreshToken;
             response.RefreshTokenExpiresAt = refreshExpiry;
 
-            response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
+            response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass); // New registrations have no character yet
 
             return response;
         }
 
+        // Validates current password and updates the account with the new hashed password.
+        // Rotates session tokens, revokes old refresh tokens, and refreshes authentication cookies.
         public async Task<AuthResponseDto> ChangePassword(int accountId, ChangePasswordRequestDto request, string clientType)
         {
             var account = await _repository.GetAccountById(accountId)
                 ?? throw new KeyNotFoundException("Account not found.");
 
-            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, account.HashPassword))
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, account.HashPassword)) // Verify current password against stored BCrypt hash
                 throw new UnauthorizedAccessException("Current password is incorrect.");
 
-            account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            account.HashPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword); // Replace old hash with newly hashed password
             account.UpdatedAt = DateTime.UtcNow;
 
+            var caller = NormalizeClient(clientType); // 'Web' or 'Game' — the client changing the password keeps its session
+            var other = caller == ClientGame ? ClientWeb : ClientGame; // Identify the opposite client type to kick it out
 
-            var caller = NormalizeClient(clientType);
-            var other = caller == ClientGame ? ClientWeb : ClientGame;
+            SetRefreshSlot(account, other, null, null); // Revoke refresh token for the other client type (kick device)
+            await _cache.RemoveAsync(ActiveSessionKey(accountId, other)); // Invalidate the other client's Redis session key
 
-            SetRefreshSlot(account, other, null, null);
-            await _cache.RemoveAsync(ActiveSessionKey(accountId, other));
-
+            // Push SignalR logout event to any connected socket of the other client type
             await _sessionNotifier.SessionOverridden(accountId, other, string.Empty);
 
-            var sessionId = await StartNewSession(accountId, caller);
-            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId, caller);
-            var (refreshToken, refreshExpiry) = GenerateRefreshToken();
-            SetRefreshSlot(account, caller, HashRefreshToken(refreshToken), refreshExpiry);
+            var sessionId = await StartNewSession(accountId, caller); // Start a fresh session for the calling client
+            var (accessToken, accessExpiry) = GenerateAccessToken(account, sessionId, caller); // Issue a new JWT with updated claims
+            var (refreshToken, refreshExpiry) = GenerateRefreshToken(); // Generate new refresh token for the caller
+            SetRefreshSlot(account, caller, HashRefreshToken(refreshToken), refreshExpiry); // Store hashed refresh token for calling client
 
-            await _repository.UpdateAccount(account);
+            await _repository.UpdateAccount(account); // Persist new password hash and refresh token slots to DB
 
             var hasCharacter = account.PlayerProfile != null;
-            var response = _mapper.Map<AuthResponseDto>(account);
+            var response = _mapper.Map<AuthResponseDto>(account); // Map updated account to auth response DTO
 
-            // Apply tokens
             response.AccessToken = accessToken;
             response.AccessTokenExpiresAt = accessExpiry;
             response.RefreshToken = refreshToken;
             response.RefreshTokenExpiresAt = refreshExpiry;
 
-            // Override PositionX/Y với default spawn nếu chưa có saved position
             if (!HasSavedPosition(account.PlayerProfile))
             {
-                response.PositionX = DefaultSpawnX;
+                response.PositionX = DefaultSpawnX; // Inject default spawn X when no saved position exists
                 response.PositionY = DefaultSpawnY;
             }
 
-            // Override LastMapName nếu chưa có hoặc là alias
-            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
+            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName); // Resolve canonical map name from saved or aliased value
 
             response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
 
             return response;
         }
 
+        // Read and validate the refresh token, rotate both tokens on success, and revoke the stored token plus local cookies when rotation fails.
         public async Task<AuthResponseDto> RefreshToken(string refreshToken)
         {
-            var hashed = HashRefreshToken(refreshToken);
-            var account = await _repository.GetAccountByRefreshToken(hashed)
+            var hashed = HashRefreshToken(refreshToken); // Hash the incoming token to compare against the stored hash
+            var account = await _repository.GetAccountByRefreshToken(hashed) // Locate account that owns this refresh token
                 ?? throw new UnauthorizedAccessException("Invalid refresh token.");
 
-            if (!account.IsActive)
+            if (!account.IsActive) // Account was banned since the token was issued — reject silently
                 throw new UnauthorizedAccessException(
                     string.IsNullOrWhiteSpace(account.BanReason)
                         ? "Your account has been banned."
                         : $"Your account has been banned. Reason: {account.BanReason}");
 
-            // Slot suy ra từ chính token, không từ tham số: client không nói nó là web hay game
-            // khi refresh, và đoán sai là xoay token của client kia → 30 phút sau client đó
-            // refresh thất bại và tự logout, đúng cái bug đang sửa.
+            // Determine whether this token belongs to the Web or Game client slot
             var clientType = MatchRefreshSlot(account, hashed)
-                ?? throw new UnauthorizedAccessException("Invalid refresh token.");
+                ?? throw new UnauthorizedAccessException("Invalid refresh token."); // Token not found in either slot — reject
 
             var slotExpiry = RefreshSlotExpiry(account, clientType);
-            if (slotExpiry == null || slotExpiry < DateTime.UtcNow)
+            if (slotExpiry == null || slotExpiry < DateTime.UtcNow) // Token has passed its expiration date — force re-login
                 throw new UnauthorizedAccessException("Refresh token expired. Please login again.");
 
+            // Reuse existing Redis session ID (sliding expiry) and sign new JWT access token
             var (accessToken, accessExpiry) = GenerateAccessToken(
                 account, await ContinueSession(account.AccountId, clientType), clientType);
-            var (newRefreshToken, newRefreshExpiry) = GenerateRefreshToken();
+            var (newRefreshToken, newRefreshExpiry) = GenerateRefreshToken(); // Rotate refresh token — invalidates previous token
 
-            SetRefreshSlot(account, clientType, HashRefreshToken(newRefreshToken), newRefreshExpiry);
+            SetRefreshSlot(account, clientType, HashRefreshToken(newRefreshToken), newRefreshExpiry); // Store new hashed token, overwriting old
             account.UpdatedAt = DateTime.UtcNow;
             if (account.PlayerProfile != null)
             {
-                _playerProfileService.RecalculateEnergy(account.PlayerProfile);
+                _playerProfileService.RecalculateEnergy(account.PlayerProfile); // Sync energy regeneration before responding
             }
-            await _repository.UpdateAccount(account);
+            await _repository.UpdateAccount(account); // Persist rotated refresh token hash to DB
 
             var hasCharacter = account.PlayerProfile != null;
-            var response = _mapper.Map<AuthResponseDto>(account);
+            var response = _mapper.Map<AuthResponseDto>(account); // Map account entity to response DTO
 
-            // Apply tokens
             response.AccessToken = accessToken;
             response.AccessTokenExpiresAt = accessExpiry;
             response.RefreshToken = newRefreshToken;
@@ -356,51 +371,61 @@ namespace BLL.Services
 
             if (!HasSavedPosition(account.PlayerProfile))
             {
-                response.PositionX = DefaultSpawnX;
+                response.PositionX = DefaultSpawnX; // Use default spawn point if no saved position exists
                 response.PositionY = DefaultSpawnY;
             }
 
-            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
+            response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName); // Normalize map alias to canonical name
 
             response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
 
             return response;
         }
 
+        // Executes core business logic for revoke refresh token.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         public async Task RevokeRefreshToken(int accountId, string? clientType)
         {
-            await _repository.RevokeRefreshToken(accountId, clientType);
+            await _repository.RevokeRefreshToken(accountId, clientType); // Clear refresh token hash from the correct DB slot (Web, Game, or both)
 
             if (clientType == null || NormalizeClient(clientType) == ClientGame)
             {
-                await _repository.ClearLastSeen(accountId);
+                await _repository.ClearLastSeen(accountId); // Remove last-seen timestamp when Game client disconnects
             }
 
-            if (clientType == null)
+            if (clientType == null) // Logout from all clients (e.g., password reset) — clear both session keys
             {
-                await _cache.RemoveAsync(ActiveSessionKey(accountId, ClientWeb));
-                await _cache.RemoveAsync(ActiveSessionKey(accountId, ClientGame));
+                await _cache.RemoveAsync(ActiveSessionKey(accountId, ClientWeb)); // Invalidate Web session in Redis
+                await _cache.RemoveAsync(ActiveSessionKey(accountId, ClientGame)); // Invalidate Game session in Redis
             }
             else
             {
-                await _cache.RemoveAsync(ActiveSessionKey(accountId, clientType));
+                await _cache.RemoveAsync(ActiveSessionKey(accountId, clientType)); // Invalidate only the calling client's Redis session
             }
         }
 
+        // Executes core business logic for revoke refresh token by token.
+        // Logic details: validates required non-empty string arguments; delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws KeyNotFoundException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         public async Task RevokeRefreshTokenByToken(string refreshToken)
         {
             var hashed = HashRefreshToken(refreshToken);
             var account = await _repository.GetAccountByRefreshToken(hashed);
-            if (account == null)
+            if (account == null)  // Entity not found — short-circuit with appropriate error result
                 return;
 
+            // Supported client types: Web or Game; this value selects the independent refresh-token slot and session behavior.
             var clientType = MatchRefreshSlot(account, hashed);
-            if (clientType == null)
+            if (clientType == null)  // Entity not found — short-circuit with appropriate error result
                 return;
 
             await RevokeRefreshToken(account.AccountId, clientType);
         }
 
+        // Executes core business logic for get me.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MeResponseDto result asynchronously.
         public async Task<MeResponseDto> GetMe(int accountId)
         {
             var account = await _repository.GetAccountById(accountId)
@@ -414,16 +439,14 @@ namespace BLL.Services
                 }
             }
 
-            var response = _mapper.Map<MeResponseDto>(account);
+            var response = _mapper.Map<MeResponseDto>(account);  // Transform domain entity into DTO for the API response layer
 
-            // Override PositionX/Y với default spawn nếu chưa có saved position
             if (!HasSavedPosition(account.PlayerProfile))
             {
                 response.PositionX = DefaultSpawnX;
                 response.PositionY = DefaultSpawnY;
             }
 
-            // Override LastMapName nếu chưa có hoặc là alias
             response.LastMapName = NormalizeMapName(account.PlayerProfile?.LastMapName);
 
             response.HasCharacter = !string.IsNullOrWhiteSpace(response.PlayerClass);
@@ -431,17 +454,18 @@ namespace BLL.Services
             return response;
         }
 
+        // Sends a 6-digit email verification code for new user registration and stores it in Redis cache.
         public async Task SendVerificationCode(string email)
         {
-            var normalizedEmail = email.Trim().ToLowerInvariant();
+            var normalizedEmail = email.Trim().ToLowerInvariant(); // Normalize to lowercase before lookup and cache key
 
-            if (await _repository.IsEmailExist(normalizedEmail))
+            if (await _repository.IsEmailExist(normalizedEmail)) // Prevent sending OTP to an email already registered
                 throw new BadRequestException("Email already registered.");
 
-            var otp = GenerateVerificationCode();
+            var otp = GenerateVerificationCode(); // Generate cryptographically secure 6-digit OTP
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
 
-            await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes)));
+            await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes))); // Cache OTP in Redis with short TTL — auto-expires for security
 
             var htmlBody = BuildHtmlEmailTemplate(
                 "Player Account Verification",
@@ -449,36 +473,39 @@ namespace BLL.Services
                 otp,
                 OtpExpiryMinutes);
 
-            var sent = await SendEmailAsync(
+            var sent = await SendEmailAsync( // Dispatch OTP email via SMTP — returns false if delivery fails
                 normalizedEmail,
                 "Mystic Journey - Email Verification (OTP)",
                 htmlBody);
 
-            if (!sent)
+            if (!sent) // Email delivery failed — client must retry
                 throw new InvalidOperationException("Failed to send verification email.");
         }
 
+        // Validates the registration OTP verification code against Redis cache and marks email as verified.
         public async Task VerifyEmail(VerifyEmailRequestDto request)
         {
-            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant(); // Normalize email for consistent cache key lookup
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
 
-            var cachedOtp = await _cache.GetStringAsync(cacheKey);
-            if (string.IsNullOrEmpty(cachedOtp))
+            var cachedOtp = await _cache.GetStringAsync(cacheKey); // Retrieve stored OTP from Redis for comparison
+            if (string.IsNullOrEmpty(cachedOtp)) // OTP expired or was never sent — prompt user to request again
                 throw new BadRequestException("No verification code found. Please request a new one.");
 
-            if (cachedOtp != request.VerificationCode)
+            if (cachedOtp != request.VerificationCode) // Submitted code does not match stored OTP
                 throw new BadRequestException("Invalid verification code.");
 
-            await _cache.RemoveAsync(cacheKey);
+            await _cache.RemoveAsync(cacheKey); // Consume OTP — single-use token, invalidate after verification
 
             var verifiedKey = $"{VERIFIED_CACHE_PREFIX}{normalizedEmail}";
-            await _cache.SetStringAsync(verifiedKey, VerifiedFlag, Ttl(TimeSpan.FromMinutes(VerifiedExpiryMinutes)));
+            await _cache.SetStringAsync(verifiedKey, VerifiedFlag, Ttl(TimeSpan.FromMinutes(VerifiedExpiryMinutes))); // Mark email as verified in Redis so Register() can proceed
         }
 
+        // Generates a cryptographically secure random 6-digit numeric OTP verification code.
         private static string GenerateVerificationCode()
             => RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
 
+        // Generates a cryptographically secure random URL-safe base64 or hex token string.
         private static string GenerateRandomToken(int byteLength = 64)
         {
             var bytes = new byte[byteLength];
@@ -486,40 +513,43 @@ namespace BLL.Services
             rng.GetBytes(bytes);
             return Convert.ToBase64String(bytes);
         }
+        // Builds and signs a JWT access token embedding account ID, role, profile ID, session ID, and client type claims.
         private (string token, DateTime expires) GenerateAccessToken(Account account, string sessionId, string clientType)
         {
-            var jwt = _configuration.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.UtcNow.AddMinutes(AccessTokenExpiryMinutes);
+            var jwt = _configuration.GetSection("Jwt"); // Load JWT config (Key, Issuer, Audience) from appsettings
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!)); // Convert secret key string to cryptographic key
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); // Use HMAC-SHA256 signature algorithm
+            var expires = DateTime.UtcNow.AddMinutes(AccessTokenExpiryMinutes); // Access token is short-lived for security
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()), // Account ID for server-side authorization
                 new Claim(ClaimTypes.Name, account.UserName),
                 new Claim(ClaimTypes.Email, account.Email),
-                new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player"),
-                new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0"),
-                new Claim(JwtRegisteredClaimNames.Sid, sessionId),
-                new Claim(ClientTypeClaim, NormalizeClient(clientType))
+                new Claim(ClaimTypes.Role, account.Role?.Name ?? "Player"), // Role determines API access permissions
+                new Claim("playerProfileId", account.PlayerProfile?.PlayerProfileId.ToString() ?? "0"), // Player profile ID used by game endpoints
+                new Claim(JwtRegisteredClaimNames.Sid, sessionId), // Session ID for concurrent session detection
+                new Claim(ClientTypeClaim, NormalizeClient(clientType)) // Client type (Web/Game) for client-specific routing
             };
 
             var token = new JwtSecurityToken(
                 jwt["Issuer"], jwt["Audience"], claims,
                 expires: expires, signingCredentials: creds);
 
-            return (new JwtSecurityTokenHandler().WriteToken(token), expires);
+            return (new JwtSecurityTokenHandler().WriteToken(token), expires); // Serialize token to compact JWT string
         }
 
+        // Normalizes world map names and maps aliases (such as ElfForest) to canonical map identifiers.
         private static string NormalizeMapName(string? mapName)
         {
-            if (string.IsNullOrWhiteSpace(mapName))
+            if (string.IsNullOrWhiteSpace(mapName))  // Mandatory string argument is blank — fail fast
                 return DefaultMapName;
 
             var normalized = mapName.Trim();
             return IsDefaultMapAlias(normalized) ? DefaultMapName : normalized;
         }
 
+        // Checks if the provided map name matches known aliases for the default starting map.
         private static bool IsDefaultMapAlias(string mapName)
         {
             return string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
@@ -530,12 +560,15 @@ namespace BLL.Services
                 || string.Equals(mapName, DefaultMapName, StringComparison.OrdinalIgnoreCase);
         }
 
+        // Executes core business logic for normalize player class.
+        // Logic details: validates required non-empty string arguments.
         private static string? NormalizePlayerClass(string? playerClass)
             => string.IsNullOrWhiteSpace(playerClass) ? null : playerClass.Trim();
 
+        // Determines whether the player profile has a previously saved non-zero world coordinate.
         private static bool HasSavedPosition(PlayerProfile? profile)
         {
-            if (profile == null)
+            if (profile == null)  // Entity not found — short-circuit with appropriate error result
                 return false;
 
             var hasMap = !string.IsNullOrWhiteSpace(profile.LastMapName);
@@ -548,9 +581,11 @@ namespace BLL.Services
             return hasPosition || profile.Level > 1;
         }
 
+        // Checks if the client type string corresponds to the Game client.
         private static bool IsGameClient(string? clientType)
             => string.Equals(clientType?.Trim(), "Game", StringComparison.OrdinalIgnoreCase);
 
+        // Verifies a plaintext password against the stored BCrypt password hash.
         private async Task<bool> VerifyPasswordWithFallback(Account account, string password)
         {
             try
@@ -578,9 +613,11 @@ namespace BLL.Services
             return false;
         }
 
+        // Executes core business logic for private.
         private (string token, DateTime expires) GenerateRefreshToken()
             => (GenerateRandomToken(64), DateTime.UtcNow.AddDays(RefreshTokenExpiryDays));
 
+        // Dispatches an HTML email to the specified recipient address via configured SMTP settings.
         private async Task<bool> SendEmailAsync(string to, string subject, string body)
         {
             try
@@ -601,6 +638,7 @@ namespace BLL.Services
             catch { return false; }
         }
 
+        // Constructs a styled HTML email template containing OTP verification code and expiration notice.
         private static string BuildHtmlEmailTemplate(string subtitle, string messageText, string otpCode, int expiryMinutes)
         {
             return $"""
@@ -671,17 +709,18 @@ namespace BLL.Services
             """;
         }
 
+        // Generates a 6-digit OTP verification code, caches it in Redis with a TTL, and emails it to the user.
         public async Task ForgetPassword(string email)
         {
             var normalizedEmail = email.Trim().ToLowerInvariant();
 
             if (!await _repository.IsEmailExist(normalizedEmail))
-                throw new BadRequestException("Email not registered.");
+                throw new BadRequestException("Email not registered.");  // Business rule violation — surface as 400 Bad Request
 
             var otp = GenerateVerificationCode();
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
 
-            await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes)));
+            await _cache.SetStringAsync(cacheKey, otp, Ttl(TimeSpan.FromMinutes(OtpExpiryMinutes)));  // Cache result with TTL to reduce repeated DB lookups
 
             var htmlBody = BuildHtmlEmailTemplate(
                 "Player Password Reset",
@@ -695,20 +734,21 @@ namespace BLL.Services
                 htmlBody);
 
             if (!sent)
-                throw new InvalidOperationException("Failed to send reset email.");
+                throw new InvalidOperationException("Failed to send reset email.");  // Unexpected runtime state — propagate to global error handler
         }
 
+        // Verifies the submitted OTP code, updates the account password hash, and revokes all active sessions.
         public async Task ResetPassword(string email, string verificationCode, string newPassword, string confirmPassword)
         {
             var normalizedEmail = email.Trim().ToLowerInvariant();
 
             if (!string.Equals(newPassword, confirmPassword, StringComparison.Ordinal))
-                throw new BadRequestException("Passwords do not match.");
+                throw new BadRequestException("Passwords do not match.");  // Business rule violation — surface as 400 Bad Request
 
             var cacheKey = $"{OTP_CACHE_PREFIX}{normalizedEmail}";
-            var cachedOtp = await _cache.GetStringAsync(cacheKey);
-            if (string.IsNullOrEmpty(cachedOtp) || cachedOtp != verificationCode)
-                throw new BadRequestException("Invalid or expired verification code.");
+            var cachedOtp = await _cache.GetStringAsync(cacheKey);  // Look up precomputed value in distributed Redis cache
+            if (string.IsNullOrEmpty(cachedOtp) || cachedOtp != verificationCode)  // Mandatory string argument is null or empty — fail fast
+                throw new BadRequestException("Invalid or expired verification code.");  // Business rule violation — surface as 400 Bad Request
 
             var account = await _repository.GetAccountByEmail(normalizedEmail)
                 ?? throw new KeyNotFoundException("Account not found.");
@@ -717,23 +757,23 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAccount(account);
 
-            // Đổi mật khẩu phải đá mọi phiên cũ ra: nếu không, kẻ đã chiếm được tài khoản
-            // vẫn giữ refresh token hợp lệ tới 7 ngày và việc đặt lại mật khẩu vô nghĩa.
-            // null = cả web lẫn game — luồng này không có client nào cần giữ đăng nhập
-            // (người dùng đang ở trang quên mật khẩu, chưa đăng nhập ở đâu cả).
             await RevokeRefreshToken(account.AccountId, null);
 
-            await _cache.RemoveAsync(cacheKey);
+            await _cache.RemoveAsync(cacheKey);  // Invalidate stale cache entry to force fresh recalculation
         }
     }
 
+    // Executes core business logic for exception.
     public class BadRequestException : Exception
     {
+        // Executes core business logic for bad request exception.
         public BadRequestException(string message) : base(message) { }
     }
 
+    // Executes core business logic for exception.
     public class AccountNotFoundException : Exception
     {
+        // Executes core business logic for account not found exception.
         public AccountNotFoundException(string message) : base(message) { }
     }
 }

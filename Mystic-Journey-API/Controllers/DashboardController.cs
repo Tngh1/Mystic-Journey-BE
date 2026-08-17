@@ -6,30 +6,28 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý dashboard (bảng điều khiển) cho admin.
-    // Admin APIs: Xem thống kê dashboard.
     [Route("api/[controller]")]
+    // Executes controller base operation.
     [ApiController]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _dashboardService;
 
+        // Initializes a new instance of DashboardController with dependencies: dashboardService.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public DashboardController(IDashboardService dashboardService)
         {
             _dashboardService = dashboardService;
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // ── GET /api/dashboard/stats ────────────────────────────────
-        // Lấy thống kê dashboard (tổng quan hệ thống).
+        // ─── Admin APIs ───────────────────────────────────────────────────────
         [Authorize(Roles = "Admin")]
         [HttpGet("stats")]
+        // Aggregates dashboard analytics: total registered players, active concurrent users, monthly revenue, and guild counts.
         public async Task<IActionResult> GetStats()
         {
-            var result = await _dashboardService.GetDashboardStats();
+            var result = await _dashboardService.GetDashboardStats(); // Query dashboard metrics aggregation
             return Ok(new ApiResponse<DashboardStatsDto> { Success = true, Data = result });
         }
     }

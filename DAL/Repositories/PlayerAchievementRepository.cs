@@ -7,57 +7,63 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
-    /// <summary>
-    /// Triển khai các thao tác truy cập dữ liệu cho thành tích người chơi sử dụng Entity Framework.
-    /// </summary>
+    // Queries the database to retrieve i player achievement repository records.
     public class PlayerAchievementRepository : IPlayerAchievementRepository
     {
         private readonly MysticJourneyDbContext _context;
 
+        // Initializes a new instance of PlayerAchievementRepository with dependencies: context.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public PlayerAchievementRepository(MysticJourneyDbContext context)
         {
             _context = context;
         }
 
-        /// <summary>Lấy danh sách thành tích đã đạt được của người chơi, kèm thông tin thành tích.</summary>
+        // Queries the database to retrieve get by player profile id records.
+        // Query details: eagerly loads related entity navigation properties.
+        // Returns the matching List<PlayerAchievement entity result or default if not found.
         public async Task<List<PlayerAchievement>> GetByPlayerProfileId(int playerProfileId)
         {
             return await _context.PlayerAchievements
-                .Include(pa => pa.Achievement)
+                .Include(pa => pa.Achievement)  // Eagerly load related navigation entities to avoid N+1 queries
                     .ThenInclude(a => a!.RewardItem)
-                .Where(pa => pa.PlayerProfileId == playerProfileId)
-                .ToListAsync();
+                .Where(pa => pa.PlayerProfileId == playerProfileId)  // Filter records matching the predicate
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
-        /// <summary>Lấy một thành tích người chơi theo ID, kèm thông tin thành tích.</summary>
+        // Performs database query and transactional persistence workflow for get by id with achievement.
+        // Query details: eagerly loads related entity navigation properties; commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching PlayerAchievement? entity result or default if not found.
         public async Task<PlayerAchievement?> GetByIdWithAchievement(int playerAchievementId)
         {
             return await _context.PlayerAchievements
-                .Include(pa => pa.Achievement)
+                .Include(pa => pa.Achievement)  // Eagerly load related navigation entities to avoid N+1 queries
                     .ThenInclude(a => a!.RewardItem)
-                .FirstOrDefaultAsync(pa => pa.PlayerAchievementId == playerAchievementId);
+                .FirstOrDefaultAsync(pa => pa.PlayerAchievementId == playerAchievementId);  // Fetch single matching record or null if not found
         }
 
-        /// <summary>Cập nhật trạng thái thành tích người chơi.</summary>
+        // Per-frame update loop for PlayerAchievementRepository.
+        // Handles real-time input polling, smooth interpolations, cooldown timers, and UI updates.
         public async Task<PlayerAchievement> Update(PlayerAchievement playerAchievement)
         {
             _context.PlayerAchievements.Update(playerAchievement);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return playerAchievement;
         }
 
-        /// <summary>Cập nhật nhiều thành tích trong một lần SaveChanges (tính lại Progress cho cả bảng).</summary>
+        // Persists state modifications to the database for update range.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
         public async Task UpdateRange(IEnumerable<PlayerAchievement> achievements)
         {
             _context.PlayerAchievements.UpdateRange(achievements);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
         }
 
-        /// <summary>Thêm nhiều thành tích người chơi cùng lúc.</summary>
+        // Queries the database to retrieve add range records.
         public async Task AddRange(IEnumerable<PlayerAchievement> achievements)
         {
             await _context.PlayerAchievements.AddRangeAsync(achievements);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
         }
     }
 }

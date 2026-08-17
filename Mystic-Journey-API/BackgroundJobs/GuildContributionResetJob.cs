@@ -10,16 +10,13 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.BackgroundJobs
 {
-    /// <summary>
-    /// Resets GuildMember contribution counters:
-    ///   - DailyContribution: reset every day at 00:00 UTC
-    ///   - WeeklyContribution: reset every Monday at 00:00 UTC
-    /// </summary>
+    // Executes background service operation.
     public class GuildContributionResetJob : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<GuildContributionResetJob> _logger;
 
+        // Initialize this instance from scope factory and logger and store scope factory and logger for later operations.
         public GuildContributionResetJob(
             IServiceScopeFactory scopeFactory,
             ILogger<GuildContributionResetJob> logger)
@@ -28,6 +25,7 @@ namespace Mystic_Journey_API.BackgroundJobs
             _logger = logger;
         }
 
+        // Executes execute async operation.
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("[GuildContributionResetJob] Started.");
@@ -35,7 +33,6 @@ namespace Mystic_Journey_API.BackgroundJobs
             while (!stoppingToken.IsCancellationRequested)
             {
                 var now = DateTime.UtcNow;
-                // Calculate next midnight UTC
                 var nextMidnight = now.Date.AddDays(1);
                 var delay = nextMidnight - now;
 
@@ -46,12 +43,12 @@ namespace Mystic_Journey_API.BackgroundJobs
 
                 await ResetDailyContributionAsync();
 
-                // If Monday, also reset weekly
                 if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Monday)
                     await ResetWeeklyContributionAsync();
             }
         }
 
+        // Executes reset daily contribution async operation.
         private async Task ResetDailyContributionAsync()
         {
             try
@@ -60,7 +57,8 @@ namespace Mystic_Journey_API.BackgroundJobs
                 var context = scope.ServiceProvider.GetRequiredService<MysticJourneyDbContext>();
 
                 var count = await context.GuildMembers
-                    .Where(m => m.DailyContribution > 0)
+                    .Where(m => m.DailyContribution > 0)  // Filter records matching the predicate
+                    // Apply this bulk change directly in the database without loading every affected entity.
                     .ExecuteUpdateAsync(s => s.SetProperty(m => m.DailyContribution, 0));
 
                 _logger.LogInformation("[GuildContributionResetJob] Daily reset: {Count} members", count);
@@ -71,6 +69,7 @@ namespace Mystic_Journey_API.BackgroundJobs
             }
         }
 
+        // Executes reset weekly contribution async operation.
         private async Task ResetWeeklyContributionAsync()
         {
             try
@@ -79,7 +78,8 @@ namespace Mystic_Journey_API.BackgroundJobs
                 var context = scope.ServiceProvider.GetRequiredService<MysticJourneyDbContext>();
 
                 var count = await context.GuildMembers
-                    .Where(m => m.WeeklyContribution > 0)
+                    .Where(m => m.WeeklyContribution > 0)  // Filter records matching the predicate
+                    // Apply this bulk change directly in the database without loading every affected entity.
                     .ExecuteUpdateAsync(s => s.SetProperty(m => m.WeeklyContribution, 0));
 
                 _logger.LogInformation("[GuildContributionResetJob] Weekly reset: {Count} members", count);

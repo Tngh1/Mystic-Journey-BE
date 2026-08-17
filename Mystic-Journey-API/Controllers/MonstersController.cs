@@ -8,48 +8,43 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý monsters (quái vật) và monster spawns (vị trí spawn).
-    // Game APIs: Khám phá, đánh bại, xem catalog, xem spawns.
-    // Admin APIs: Tạo, cập nhật monster và spawns.
     [Route("api/[controller]")]
+    // Executes controller base operation.
     [ApiController]
     public class MonstersController : ControllerBase
     {
         private readonly IMonsterService _monsterService;
 
+        // Initializes a new instance of MonstersController with dependencies: monsterService.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public MonstersController(IMonsterService monsterService)
         {
             _monsterService = monsterService;
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // ── GET /api/monsters/{id} ─────────────────────────────────────────
-        // Lấy thông tin monster theo ID. Yêu cầu đăng nhập: bản công khai cho
-        // web wiki là /api/wiki/monsters/{id}, endpoint này thuộc luồng game.
+        // ─── Player APIs ───────────────────────────────────────────────────────
         [Authorize]
         [HttpGet("{id}")]
+        // Retrieves base monster stats, elemental affinity, and lore description.
         public async Task<IActionResult> GetById(int id)
         {
-            var monster = await _monsterService.GetMonsterById(id);
+            var monster = await _monsterService.GetMonsterById(id); // Look up monster definition
             if (monster == null)
                 return NotFound(new ApiResponse<object> { Success = false, Message = $"Monster with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
             return Ok(new ApiResponse<MonsterDetailResponseDto> { Success = true, Data = monster });
         }
 
-        // ── GET /api/monsters/{id}/me ───────────────────────────────────────
-        // Lấy thông tin monster cho player cụ thể (có trạng thái khám phá).
         [Authorize]
         [HttpGet("{id}/me")]
+        // Retrieves player-specific bestiary entry for this monster (kill count, discovery status, unlocked drop info).
         public async Task<IActionResult> GetByIdForPlayer(int id)
         {
             try
             {
-                var profileId = GetPlayerProfileId();
-                var monster = await _monsterService.GetMonsterForPlayer(id, profileId);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var monster = await _monsterService.GetMonsterForPlayer(id, profileId); // Query player bestiary record combined with monster data
                 if (monster == null)
                     return NotFound(new ApiResponse<object> { Success = false, Message = $"Monster with id {id} not found.", ErrorCode = ErrorCodes.NotFound });
 
@@ -61,12 +56,10 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── GET /api/monsters ───────────────────────────────────────────────
-        // Lấy danh sách tất cả monsters có phân trang và lọc (Dashboard).
-        // Query: page, pageSize, search, type, isActive.
-        // Codex công khai: xem WikiController (/api/wiki/monsters).
+        // ─── Admin APIs ───────────────────────────────────────────────────────
         [Authorize(Roles = "Admin")]
         [HttpGet]
+        // Retrieves paginated list of all monster entities for game masters/admin portal.
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -76,14 +69,14 @@ namespace Mystic_Journey_API.Controllers
             [FromQuery] string? sortBy = null,
             [FromQuery] string? sortOrder = null)
         {
-            var result = await _monsterService.GetMonstersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
+            var result = await _monsterService.GetMonstersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder); // Query monsters database
             return Ok(new ApiResponse<PagedResultDto<MonsterResponseDto>> { Success = true, Data = result });
         }
 
-        // ── GET /api/monsters/me/catalog ───────────────────────────────────
-        // Lấy catalog monsters đã khám phá của player.
+        // ─── Player APIs ───────────────────────────────────────────────────────
         [Authorize]
         [HttpGet("me/catalog")]
+        // Retrieves player's complete bestiary catalog with discovered and defeated progress badges.
         public async Task<IActionResult> GetCatalogForPlayer(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
@@ -92,8 +85,8 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var profileId = GetPlayerProfileId();
-                var result = await _monsterService.GetMonsterCatalogForPlayer(profileId, page, pageSize, search, type);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var result = await _monsterService.GetMonsterCatalogForPlayer(profileId, page, pageSize, search, type); // Query bestiary progress items
                 return Ok(new ApiResponse<PagedResultDto<PlayerMonsterCatalogItemDto>> { Success = true, Data = result });
             }
             catch (UnauthorizedAccessException ex)
@@ -102,11 +95,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── GET /api/monsters/spawns ────────────────────────────────────────
-        // Lấy danh sách vị trí spawn monsters theo map.
-        // Query: mapName, regionName, dungeonId.
         [Authorize]
         [HttpGet("spawns")]
+        // Retrieves configured monster spawn locations for a specific map or dungeon instance.
         public async Task<IActionResult> GetSpawnsForPlayer(
             [FromQuery] string mapName,
             [FromQuery] string? regionName = null,
@@ -114,8 +105,8 @@ namespace Mystic_Journey_API.Controllers
         {
             try
             {
-                var profileId = GetPlayerProfileId();
-                var spawns = await _monsterService.GetSpawnsForPlayer(profileId, mapName, regionName, dungeonId);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var spawns = await _monsterService.GetSpawnsForPlayer(profileId, mapName, regionName, dungeonId); // Query spawn points and respawn timers
                 return Ok(new ApiResponse<List<MonsterSpawnResponseDto>> { Success = true, Data = spawns });
             }
             catch (UnauthorizedAccessException ex)
@@ -124,16 +115,15 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── POST /api/monsters/{id}/discover ────────────────────────────────
-        // Khám phá monster (thêm vào catalog của player).
         [Authorize]
         [HttpPost("{id}/discover")]
+        // Unlocks monster bestiary entry when player encounters the monster in the game world.
         public async Task<IActionResult> Discover(int id)
         {
             try
             {
-                var profileId = GetPlayerProfileId();
-                var result = await _monsterService.DiscoverMonster(profileId, id);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var result = await _monsterService.DiscoverMonster(profileId, id); // Mark monster as discovered in player bestiary
                 return Ok(new ApiResponse<PlayerMonsterCatalogItemDto> { Success = true, Data = result, Message = "Monster discovered." });
             }
             catch (KeyNotFoundException ex)
@@ -146,16 +136,15 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── POST /api/monsters/{id}/defeat ─────────────────────────────────
-        // Đánh bại monster, nhận XP và gold.
         [Authorize]
         [HttpPost("{id}/defeat")]
+        // Records a monster kill, updates bestiary defeat counters, and rolls for drop rewards.
         public async Task<IActionResult> Defeat(int id, [FromBody] MonsterDefeatRequestDto? request)
         {
             try
             {
-                var profileId = GetPlayerProfileId();
-                var result = await _monsterService.DefeatMonster(profileId, id, request);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var result = await _monsterService.DefeatMonster(profileId, id, request); // Increment defeat count and evaluate drop tables for inventory loot
                 return Ok(new ApiResponse<MonsterDefeatResponseDto> { Success = true, Data = result, Message = "Monster defeated." });
             }
             catch (KeyNotFoundException ex)
@@ -172,121 +161,111 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── GET /api/monsters/drops ─────────────────────────────────────────
-        // Lấy danh sách monster drops có phân trang (Dashboard).
+        // ─── Admin APIs ───────────────────────────────────────────────────────
         [Authorize(Roles = "Admin")]
         [HttpGet("drops")]
+        // Executes get all drops operation.
         public async Task<IActionResult> GetAllDrops([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _monsterService.GetMonsterDropsPaged(page, pageSize);
-            return Ok(new ApiResponse<PagedResultDto<MonsterDropResponseDto>> { Success = true, Data = result });
+            return Ok(new ApiResponse<PagedResultDto<MonsterDropResponseDto>> { Success = true, Data = result });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
-        // NOTE: Create endpoint removed - managed via seeding.
 
-        // ── PUT /api/monsters/{id} ─────────────────────────────────────────
-        // Cập nhật monster hiện có.
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
+        // Per-frame update loop for MonstersController.
+        // Handles real-time input polling, smooth interpolations, cooldown timers, and UI updates.
         public async Task<IActionResult> Update(int id, [FromBody] UpdateMonsterRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });  // Return HTTP 400 with validation error details
 
             var monster = await _monsterService.UpdateMonster(id, request);
-            return Ok(new ApiResponse<MonsterResponseDto> { Success = true, Data = monster });
+            return Ok(new ApiResponse<MonsterResponseDto> { Success = true, Data = monster });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── POST /api/monsters/{id}/drops ────────────────────────────────────
-        // Thêm drop cho monster.
         [Authorize(Roles = "Admin")]
         [HttpPost("{id}/drops")]
+        // Executes add drop operation.
         public async Task<IActionResult> AddDrop(int id, [FromBody] CreateMonsterDropRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });  // Return HTTP 400 with validation error details
 
             var drop = await _monsterService.AddMonsterDrop(id, request);
-            return Ok(new ApiResponse<MonsterDropResponseDto> { Success = true, Data = drop });
+            return Ok(new ApiResponse<MonsterDropResponseDto> { Success = true, Data = drop });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── GET /api/monsters/{id}/spawns ───────────────────────────────────
-        // Lấy danh sách spawns của một monster (Admin).
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}/spawns")]
+        // Executes get spawns by monster operation.
         public async Task<IActionResult> GetSpawnsByMonster(int id)
         {
             var spawns = await _monsterService.GetSpawnsByMonsterId(id);
-            return Ok(new ApiResponse<List<MonsterSpawnResponseDto>> { Success = true, Data = spawns });
+            return Ok(new ApiResponse<List<MonsterSpawnResponseDto>> { Success = true, Data = spawns });  // Return HTTP 200 with standard ApiResponse envelope
         }
 
-        // ── POST /api/monsters/spawns ────────────────────────────────────────
-        // Tạo spawn mới cho monster.
         [Authorize(Roles = "Admin")]
         [HttpPost("spawns")]
+        // Executes create spawn operation.
         public async Task<IActionResult> CreateSpawn([FromBody] CreateMonsterSpawnRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });  // Return HTTP 400 with validation error details
 
             try
             {
                 var spawn = await _monsterService.CreateSpawn(request);
-                return Ok(new ApiResponse<MonsterSpawnResponseDto> { Success = true, Data = spawn });
+                return Ok(new ApiResponse<MonsterSpawnResponseDto> { Success = true, Data = spawn });  // Return HTTP 200 with standard ApiResponse envelope
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });  // Return HTTP 404 when the requested resource does not exist
             }
         }
 
-        // ── PUT /api/monsters/spawns/{id} ────────────────────────────────────
-        // Cập nhật spawn.
         [Authorize(Roles = "Admin")]
         [HttpPut("spawns/{id}")]
+        // Executes update spawn operation.
         public async Task<IActionResult> UpdateSpawn(int id, [FromBody] UpdateMonsterSpawnRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiResponse<object> { Success = false, Message = "Invalid request.", Data = ModelState });
+            if (!ModelState.IsValid)  // Reject request immediately if any DTO validation annotation fails
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Invalid request.", Data = ModelState });  // Return HTTP 400 with validation error details
 
             try
             {
                 var updated = await _monsterService.UpdateSpawn(id, request);
-                return Ok(new ApiResponse<MonsterSpawnResponseDto> { Success = true, Data = updated, Message = "Spawn updated successfully." });
+                return Ok(new ApiResponse<MonsterSpawnResponseDto> { Success = true, Data = updated, Message = "Spawn updated successfully." });  // Return HTTP 200 with standard ApiResponse envelope
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });  // Return HTTP 404 when the requested resource does not exist
             }
         }
 
-        // ── DELETE /api/monsters/spawns/{id} ─────────────────────────────────
-        // Xoá spawn.
         [Authorize(Roles = "Admin")]
         [HttpDelete("spawns/{id}")]
+        // Executes delete spawn operation.
         public async Task<IActionResult> DeleteSpawn(int id)
         {
             try
             {
                 await _monsterService.DeleteSpawn(id);
-                return Ok(new ApiResponse<object> { Success = true, Message = "Spawn deleted successfully." });
+                return Ok(new ApiResponse<object> { Success = true, Message = "Spawn deleted successfully." });  // Return HTTP 200 with standard ApiResponse envelope
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });
+                return NotFound(new ApiResponse<object> { Success = false, Message = ex.Message, ErrorCode = ErrorCodes.NotFound });  // Return HTTP 404 when the requested resource does not exist
             }
         }
 
-        // ── Helper ──────────────────────────────────────────────────────────
-        // Đọc playerProfileId từ JWT token.
+        // Executes get player profile id operation.
         private int GetPlayerProfileId()
         {
             var claim = User.FindFirst("playerProfileId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(claim, out var id))
-                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
+            if (!int.TryParse(claim, out var id))  // Claim value missing or non-integer — reject as unauthorized
+                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");  // Authentication token is invalid or expired
             return id;
         }
     }

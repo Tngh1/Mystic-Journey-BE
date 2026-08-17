@@ -4,60 +4,37 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
 {
-    // Quản lý xác thực (authentication) và quản lý tài khoản.
-    // Cho phép đăng nhập, đăng ký, đổi mật khẩu, xác thực email.
+    // Initializes a new default instance of the IAuthRepository class.
     public interface IAuthRepository
     {
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // Lấy tài khoản theo mã định danh.
         Task<Account?> GetAccountById(int id);
 
-        // Ghi mốc "vừa online" cho profile theo accountId. Chỉ ghi cột LastSeen,
-        // không nạp entity — đây là đường nóng nhất của hệ thống (mỗi client ping định kỳ).
         Task TouchLastSeen(int accountId, DateTime lastSeenUtc);
 
-        // Xoá mốc "vừa online" khi đăng xuất để nhả khoá phiên game ngay lập tức.
         Task ClearLastSeen(int accountId);
 
-        // Lấy tài khoản theo username hoặc email.
         Task<Account?> GetAccountByUsernameOrEmail(string emailOrUsername);
 
-        // Kiểm tra email đã được sử dụng chưa.
         Task<bool> IsEmailExist(string email);
 
-        // Kiểm tra username đã được sử dụng chưa.
         Task<bool> IsUsernameExist(string username);
 
-        // Lấy tài khoản theo email.
         Task<Account?> GetAccountByEmail(string email);
 
-        // Lấy tài khoản theo refresh token. Dò cả slot web và slot game.
         Task<Account?> GetAccountByRefreshToken(string refreshToken);
 
-        // Thu hồi refresh token của tài khoản. clientType = null xoá cả hai slot; "Web"/"Game"
-        // chỉ xoá một phía để client kia vẫn đăng nhập.
         Task RevokeRefreshToken(int accountId, string? clientType);
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // Tạo tài khoản mới.
         Task<Account> CreateAccount(Account account);
 
-        // Cập nhật thông tin tài khoản.
         Task<Account> UpdateAccount(Account account);
 
-        // Đếm tổng số tài khoản đang hoạt động.
         Task<int> GetTotalAccountsCount();
 
-        // Lấy tất cả tài khoản đang hoạt động (dùng cho dashboard online count).
         Task<List<Account>> GetAllActiveAccountsAsync();
 
-        // Lấy danh sách tài khoản có phân trang, lọc theo tìm kiếm, trạng thái và vai trò.
         Task<(int TotalCount, List<Account> Items)> GetAccountsPaged(int page, int pageSize, string? search, bool? isActive, string? roleName);
     }
 }

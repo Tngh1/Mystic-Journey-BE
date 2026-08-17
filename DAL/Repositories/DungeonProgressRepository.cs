@@ -5,40 +5,45 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositories
 {
-    /// <summary>
-    /// Triển khai các thao tác truy cập dữ liệu cho tiến độ chơi dungeon sử dụng Entity Framework.
-    /// </summary>
+    // Queries the database to retrieve i dungeon progress repository records.
     public class DungeonProgressRepository : IDungeonProgressRepository
     {
         private readonly MysticJourneyDbContext _context;
 
+        // Initializes a new instance of DungeonProgressRepository with dependencies: context.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public DungeonProgressRepository(MysticJourneyDbContext context)
         {
             _context = context;
         }
 
-        /// <summary>Tìm tiến độ chơi dungeon theo mã phiên, trả về null nếu chưa được tạo.</summary>
+        // Performs database query and transactional persistence workflow for get by session id.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching DungeonProgress? entity result or default if not found.
         public async Task<DungeonProgress?> GetBySessionId(int sessionId)
         {
             return await _context.DungeonProgresses
-                .FirstOrDefaultAsync(p => p.DungeonSessionId == sessionId);
+                .FirstOrDefaultAsync(p => p.DungeonSessionId == sessionId);  // Fetch single matching record or null if not found
         }
 
-        /// <summary>Tạo bản ghi tiến độ dungeon mới (tự động ghi nhận thời gian tạo).</summary>
+        // Persists state modifications to the database for create.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching DungeonProgress entity result or default if not found.
         public async Task<DungeonProgress> Create(DungeonProgress progress)
         {
             progress.CreatedAt = DateTime.UtcNow;
-            await _context.DungeonProgresses.AddAsync(progress);
-            await _context.SaveChangesAsync();
+            await _context.DungeonProgresses.AddAsync(progress);  // Stage new entity for insertion in the next SaveChanges call
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return progress;
         }
 
-        /// <summary>Cập nhật tiến độ dungeon (tự động ghi nhận thời gian cập nhật).</summary>
+        // Per-frame update loop for DungeonProgressRepository.
+        // Handles real-time input polling, smooth interpolations, cooldown timers, and UI updates.
         public async Task<DungeonProgress> Update(DungeonProgress progress)
         {
             progress.UpdatedAt = DateTime.UtcNow;
             _context.DungeonProgresses.Update(progress);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return progress;
         }
     }

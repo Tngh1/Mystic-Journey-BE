@@ -14,6 +14,7 @@ namespace BLL.DTOs
         [Required(ErrorMessage = "Password is required.")]
         public string Password { get; set; } = string.Empty;
 
+        // Supported client types: Web or Game (selects independent refresh-token slot and session behavior)
         public string ClientType { get; set; } = "Web";
 
         public string? ClientVersion { get; set; }
@@ -98,6 +99,7 @@ namespace BLL.DTOs
         public double PositionY { get; set; }
         public string? AccessToken { get; set; }
         public DateTime? AccessTokenExpiresAt { get; set; }
+        // Refresh token rotated on each session exchange (validates cookie/body session)
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiresAt { get; set; }
     }
@@ -136,5 +138,4 @@ namespace BLL.DTOs
         [RegularExpression(@"^\d{6}$", ErrorMessage = "Verification code must be 6 digits.")]
         public string VerificationCode { get; set; } = string.Empty;
     }
-
 }

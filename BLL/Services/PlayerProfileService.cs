@@ -9,12 +9,14 @@ using System.Linq;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i player profile service.
     public class PlayerProfileService : IPlayerProfileService
     {
         private readonly IPlayerProfileRepository _repository;
         private readonly IMapper _mapper;
         private readonly IFriendRepository _friendRepository;
 
+        // Initialize this instance from repository, mapper, and friend repository and store repository, mapper, and friend repository for later operations.
         public PlayerProfileService(
             IPlayerProfileRepository repository,
             IMapper mapper,
@@ -25,6 +27,8 @@ namespace BLL.Services
             _friendRepository = friendRepository;
         }
 
+        // Executes core business logic for recalculate energy.
+        // Returns a boolean indicating operation success.
         public bool RecalculateEnergy(PlayerProfile profile)
         {
             if (profile.CurrentEnergy >= profile.MaxEnergy)
@@ -57,10 +61,13 @@ namespace BLL.Services
             return false;
         }
 
+        // Executes core business logic for get profile by id.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PlayerProfileDetailResponseDto? result asynchronously.
         public async Task<PlayerProfileDetailResponseDto?> GetProfileById(int id)
         {
             var profile = await _repository.GetPlayerProfileByIdWithStats(id);
-            if (profile == null)
+            if (profile == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
             if (RecalculateEnergy(profile))
@@ -68,19 +75,25 @@ namespace BLL.Services
                 await _repository.UpdatePlayerProfile(profile);
             }
 
-            return _mapper.Map<PlayerProfileDetailResponseDto>(profile);
+            return _mapper.Map<PlayerProfileDetailResponseDto>(profile);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get by account id async.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed PlayerProfileResponseDto? result asynchronously.
         public async Task<PlayerProfileResponseDto?> GetByAccountIdAsync(int accountId)
         {
             var profile = await _repository.GetByAccountId(accountId);
-            if (profile == null)
+            if (profile == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
             RecalculateEnergy(profile);
-            return _mapper.Map<PlayerProfileResponseDto>(profile);
+            return _mapper.Map<PlayerProfileResponseDto>(profile);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for update profile.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed PlayerProfileResponseDto result asynchronously.
         public async Task<PlayerProfileResponseDto> UpdateProfile(int id, UpdatePlayerProfileRequestDto request)
         {
             var profile = await _repository.GetPlayerProfileById(id)
@@ -107,7 +120,6 @@ namespace BLL.Services
             if (request.Gems.HasValue && request.Gems.Value >= 0)
                 profile.Gems = request.Gems.Value;
 
-            // Recalculate energy first before updating
             RecalculateEnergy(profile);
 
             if (request.Energy.HasValue && request.Energy.Value >= 0)
@@ -122,23 +134,32 @@ namespace BLL.Services
             profile.UpdatedAt = DateTime.UtcNow;
 
             var updated = await _repository.UpdatePlayerProfile(profile);
-            return _mapper.Map<PlayerProfileResponseDto>(updated);
+            return _mapper.Map<PlayerProfileResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get profiles paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<PlayerProfileResponseDto result asynchronously.
         public async Task<PagedResultDto<PlayerProfileResponseDto>> GetProfilesPaged(int page, int pageSize, string? search, int? level)
         {
             var (totalCount, items) = await _repository.GetProfilesPaged(page, pageSize, search, level);
-            var dtos = _mapper.Map<List<PlayerProfileResponseDto>>(items);
+            var dtos = _mapper.Map<List<PlayerProfileResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
             return new PagedResultDto<PlayerProfileResponseDto>(totalCount, dtos);
         }
 
 
 
+        // Executes core business logic for get friends.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws InvalidOperationException, KeyNotFoundException, ArgumentException on invalid state or rule violations.
+        // Returns the computed List<PlayerProfileResponseDto result asynchronously.
         public async Task<List<PlayerProfileResponseDto>> GetFriends(int playerProfileId)
         {
             var friends = await _friendRepository.GetFriends(playerProfileId);
-            return _mapper.Map<List<PlayerProfileResponseDto>>(friends);
+            return _mapper.Map<List<PlayerProfileResponseDto>>(friends);  // Transform domain entity into DTO for the API response layer
         }
+        // Executes core business logic for change name.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException, ArgumentException on invalid state or rule violations.
+        // Returns the computed PlayerProfileDetailResponseDto result asynchronously.
         public async Task<PlayerProfileDetailResponseDto> ChangeName(int accountId, ChangeNameRequestDto request)
         {
             var profile = await _repository.GetByAccountId(accountId)
@@ -150,15 +171,13 @@ namespace BLL.Services
 
             if (!profile.HasChangedName)
             {
-                // First time is free
                 profile.DisplayName = normalizedName;
                 profile.HasChangedName = true;
             }
             else
             {
-                // Costs 500 Gems
                 if (profile.Gems < 500)
-                    throw new InvalidOperationException("Not enough gems to change name. You need 500 gems.");
+                    throw new InvalidOperationException("Not enough gems to change name. You need 500 gems.");  // Unexpected runtime state — propagate to global error handler
 
                 profile.Gems -= 500;
                 profile.DisplayName = normalizedName;
@@ -167,7 +186,7 @@ namespace BLL.Services
             profile.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdatePlayerProfile(profile);
 
-            return _mapper.Map<PlayerProfileDetailResponseDto>(profile);
+            return _mapper.Map<PlayerProfileDetailResponseDto>(profile);  // Transform domain entity into DTO for the API response layer
         }
     }
 }

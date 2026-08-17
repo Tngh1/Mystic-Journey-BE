@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
 {
+    // Initializes a new default instance of the IChatMessageRepository class.
     public interface IChatMessageRepository
     {
         Task<(int TotalCount, List<WorldChatMessage> Items)> GetWorldMessagesPaged(

@@ -16,19 +16,19 @@ namespace DAL.Models
         public string DisplayName { get; set; } = string.Empty;
 
         public string AvatarUrl { get; set; } = string.Empty;
-        
+
         public bool HasChangedName { get; set; } = false;
 
-        // Classes: Knight, Archer, Mage
         public string Class { get; set; } = string.Empty;
 
         public int Level { get; set; } = 1;
         public int ExperiencePoints { get; set; } = 0;
-        
+
         public int AvailableStatPoints { get; set; } = 0;
         [MaxLength(200)]
         public string CachedStatRolls { get; set; } = string.Empty;
 
+        // Adds experience and levels up the character if threshold is reached
         public void AddExperience(int exp)
         {
             if (exp <= 0) return;
@@ -65,8 +65,6 @@ namespace DAL.Models
 
         public PlayerStat? PlayerStats { get; set; }
 
-        // Medals/Feats are tracked at GuildMember level; expose a convenience projection
-        // so we can map guild applications without forcing every DTO to query members.
         public int Medals => GuildMember?.Medals ?? 0;
         public int Feats => GuildMember?.Feats ?? 0;
 

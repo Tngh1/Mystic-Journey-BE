@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i chat moderation service.
     public class ChatModerationService : IChatModerationService
     {
         private static readonly TimeSpan FirstLockDuration = TimeSpan.FromHours(2);
@@ -19,6 +20,7 @@ namespace BLL.Services
         private readonly IMailboxRepository _mailboxRepository;
         private readonly IContentSafetyProvider _contentSafetyProvider;
 
+        // Initialize this instance from repository, mailbox repository, and content safety provider and store repository, mailbox repository, and content safety provider for later operations.
         public ChatModerationService(
             IChatModerationRepository repository,
             IMailboxRepository mailboxRepository,
@@ -29,16 +31,20 @@ namespace BLL.Services
             _contentSafetyProvider = contentSafetyProvider;
         }
 
+        // Executes core business logic for ensure can send chat.
+        // Logic details: delegates data queries and updates to repository layer; throws ChatLockedException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         public async Task EnsureCanSendChat(int playerProfileId)
         {
             var now = DateTime.UtcNow;
             var activePenalty = await _repository.GetActivePenalty(playerProfileId, now);
-            if (activePenalty == null)
+            if (activePenalty == null)  // Entity not found — short-circuit with appropriate error result
                 return;
 
             throw new ChatLockedException(activePenalty.LockedUntil, activePenalty.LockLevel);
         }
 
+        // Process review reported world message using reporter id, message, and reason; it sends reporter received mail, loads penalty by world message id, builds existing penalty result, and sends reporter result mail and guards invalid or unavailable states.
         public async Task<ChatModerationResultDto> ReviewReportedWorldMessage(
             int reporterId,
             WorldChatMessage message,
@@ -48,7 +54,7 @@ namespace BLL.Services
             await SendReporterReceivedMail(reporterId, channel, message.WorldChatMessageId);
 
             var existingPenalty = await _repository.GetPenaltyByWorldMessageId(message.WorldChatMessageId);
-            if (existingPenalty != null)
+            if (existingPenalty != null)  // Entity exists — proceed with conditional branch
             {
                 var existingResult = BuildExistingPenaltyResult(existingPenalty);
                 await SendReporterResultMail(reporterId, channel, message.WorldChatMessageId, existingResult);
@@ -65,6 +71,7 @@ namespace BLL.Services
                 reason: reason);
         }
 
+        // Process review reported message using reporter id, message, and reason; it sends reporter received mail, loads penalty by chat message id, builds existing penalty result, and sends reporter result mail and guards invalid or unavailable states.
         public async Task<ChatModerationResultDto> ReviewReportedMessage(
             int reporterId,
             ChatMessage message,
@@ -74,7 +81,7 @@ namespace BLL.Services
             await SendReporterReceivedMail(reporterId, channel, message.ChatMessageId);
 
             var existingPenalty = await _repository.GetPenaltyByChatMessageId(message.ChatMessageId);
-            if (existingPenalty != null)
+            if (existingPenalty != null)  // Entity exists — proceed with conditional branch
             {
                 var existingResult = BuildExistingPenaltyResult(existingPenalty);
                 await SendReporterResultMail(reporterId, channel, message.ChatMessageId, existingResult);
@@ -91,6 +98,7 @@ namespace BLL.Services
                 reason: reason);
         }
 
+        // Process review reported message core using reported player id, reporter id, chat message id, and world chat message id; it sends reporter result mail, loads lock duration, creates add, creates create, and builds warning message and guards invalid or unavailable states.
         private async Task<ChatModerationResultDto> ReviewReportedMessageCore(
             int reportedPlayerId,
             int reporterId,
@@ -163,6 +171,8 @@ namespace BLL.Services
             return lockedResult;
         }
 
+        // Executes core business logic for send warning mail.
+        // Completes asynchronously upon successful execution.
         private async Task SendWarningMail(ChatModerationPenalty penalty, TimeSpan lockDuration, ContentModerationScanResultDto scan)
         {
             var mailbox = new Mailbox
@@ -184,6 +194,9 @@ namespace BLL.Services
             await _mailboxRepository.CreateMailbox(mailbox);
         }
 
+        // Executes core business logic for send reporter received mail.
+        // Logic details: validates numeric boundary constraints.
+        // Completes asynchronously upon successful execution.
         private async Task SendReporterReceivedMail(int reporterId, string channel, int messageId)
         {
             if (reporterId <= 0)
@@ -205,6 +218,9 @@ namespace BLL.Services
             await _mailboxRepository.CreateMailbox(mailbox);
         }
 
+        // Executes core business logic for send reporter result mail.
+        // Logic details: validates numeric boundary constraints.
+        // Completes asynchronously upon successful execution.
         private async Task SendReporterResultMail(int reporterId, string channel, int messageId, ChatModerationResultDto result)
         {
             if (reporterId <= 0)
@@ -248,6 +264,7 @@ namespace BLL.Services
             await _mailboxRepository.CreateMailbox(mailbox);
         }
 
+        // Executes core business logic for build existing penalty result.
         private static ChatModerationResultDto BuildExistingPenaltyResult(ChatModerationPenalty penalty)
         {
             var now = DateTime.UtcNow;
@@ -270,6 +287,7 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for get lock duration.
         private static TimeSpan GetLockDuration(int lockLevel)
         {
             return lockLevel switch
@@ -280,12 +298,14 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for build warning message.
         private static string BuildWarningMessage(int lockLevel, DateTime lockedUntil)
         {
             var duration = FormatDuration(GetLockDuration(lockLevel));
             return $"Chat locked for {duration}. Locked until {lockedUntil:yyyy-MM-dd HH:mm:ss} UTC.";
         }
 
+        // Executes core business logic for format duration.
         private static string FormatDuration(TimeSpan duration)
         {
             if (duration.TotalDays >= 3)  return "3 days";
@@ -293,12 +313,16 @@ namespace BLL.Services
             return "2 hours";
         }
 
+        // Executes core business logic for trim.
+        // Logic details: validates required non-empty string arguments.
         private static string Trim(string? value, int maxLength)
         {
             var normalized = value?.Trim() ?? string.Empty;
             return normalized.Length <= maxLength ? normalized : normalized.Substring(0, maxLength);
         }
 
+        // Executes core business logic for split terms.
+        // Logic details: validates required non-empty string arguments.
         private static List<string> SplitTerms(string? value)
         {
             return string.IsNullOrWhiteSpace(value)

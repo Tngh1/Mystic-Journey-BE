@@ -1,5 +1,6 @@
 namespace Mystic_Journey_API.Extensions
 {
+    // Initializes a new default instance of the ErrorCodes class.
     public static class ErrorCodes
     {
         public const string NotFound = "NOT_FOUND";

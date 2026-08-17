@@ -1,28 +1,36 @@
 namespace DAL.Models
 {
+    // Initializes a new default instance of the DailyLoginReward class.
     public class DailyLoginReward
     {
+        // Executes daily login reward id operation.
         public int DailyLoginRewardId { get; set; }
 
+        // Executes day number operation.
         public int DayNumber { get; set; } = 1;
 
-        // NULL = default (áp dụng mọi tháng nếu tháng đó chưa có override)
-        // 1–12 = override riêng cho tháng này
+        // Executes month operation.
         public int? Month { get; set; }
 
-        // NULL = default, cụ thể = override cho năm này
+        // Executes year operation.
         public int? Year { get; set; }
 
-        // RewardTypes: Gold, Gems, Item, Energy
+        // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
         public string RewardType { get; set; } = "Gold";
+        // Executes reward value operation.
         public decimal RewardValue { get; set; } = 0;
 
+        // Executes reward item id operation.
         public int? RewardItemId { get; set; }
+        // Executes reward item operation.
         public Item? RewardItem { get; set; }
+        // Executes reward item quantity operation.
         public int RewardItemQuantity { get; set; } = 0;
 
+        // Executes is active operation.
         public bool IsActive { get; set; } = true;
 
+        // Executes created at operation.
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

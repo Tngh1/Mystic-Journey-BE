@@ -2,6 +2,7 @@ using BLL.DTOs;
 
 namespace BLL.Services.Interfaces
 {
+    // Initializes a new default instance of the IPlayerShopService class.
     public interface IPlayerShopService
     {
         Task<PagedResultDto<ShopItemPublicResponseDto>> GetShop(int playerProfileId, ViewShopQueryDto query);

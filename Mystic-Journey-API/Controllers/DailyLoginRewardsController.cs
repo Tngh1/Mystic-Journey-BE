@@ -8,76 +8,62 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý thưởng đăng nhập hàng ngày (daily login rewards).
-    //
-    // GAME APIs  : Xem danh sách rewards (không cần auth).
-    // ADMIN APIs : Tạo, cập nhật, xóa reward (cần Admin).
     [Route("api/[controller]")]
+    // Executes controller base operation.
     [ApiController]
     public class DailyLoginRewardsController : ControllerBase
     {
         private readonly IDailyLoginRewardService _dailyLoginRewardService;
 
+        // Initializes a new instance of DailyLoginRewardsController with dependencies: dailyLoginRewardService.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public DailyLoginRewardsController(IDailyLoginRewardService dailyLoginRewardService)
         {
             _dailyLoginRewardService = dailyLoginRewardService;
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // ── GET /api/dailyloginrewards ───────────────────────────────────────
-        // Lấy danh sách daily login rewards có phân trang.
-        // Query: page, pageSize, month?, year?  (null → lấy defaults)
+        // ─── Admin APIs ───────────────────────────────────────────────────────
         [HttpGet]
+        // Retrieves paginated list of daily login reward configurations for the specified month/year.
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 31,
             [FromQuery] int? month = null,
             [FromQuery] int? year = null)
         {
-            var result = await _dailyLoginRewardService.GetDailyLoginRewardsPaged(page, pageSize, month, year);
+            var result = await _dailyLoginRewardService.GetDailyLoginRewardsPaged(page, pageSize, month, year); // Fetch reward schedule rows for the target month
             return Ok(new ApiResponse<PagedResultDto<DailyLoginRewardResponseDto>> { Success = true, Data = result });
         }
 
-        // ── GET /api/dailyloginrewards/current-month ─────────────────────────
-        // Lấy bộ rewards cho tháng hiện tại với fallback logic.
-        // Dùng bởi Unity game client — KHÔNG thay đổi endpoint này.
         [HttpGet("current-month")]
+        // Retrieves the active month's daily login calendar rewards for players to view.
         public async Task<IActionResult> GetCurrentMonth(
             [FromQuery] int? month = null,
             [FromQuery] int? year = null)
         {
-            var result = await _dailyLoginRewardService.GetCurrentMonthRewards(month, year);
+            var result = await _dailyLoginRewardService.GetCurrentMonthRewards(month, year); // Query 28-31 day reward items and amounts for the active calendar
             return Ok(new ApiResponse<List<DailyLoginRewardResponseDto>> { Success = true, Data = result });
         }
 
-        // ── GET /api/dailyloginrewards/by-month ──────────────────────────────
-        // Lấy bộ rewards cho 1 tháng dùng cho admin FE (calendar view).
-        // month=null / year=null → trả bộ Default (31 ngày).
-        // month+year có giá trị → trả overrides + fallback default.
         [Authorize(Roles = "Admin")]
         [HttpGet("by-month")]
+        // Admin endpoint: inspect full reward matrix for any given month.
         public async Task<IActionResult> GetByMonth(
             [FromQuery] int? month = null,
             [FromQuery] int? year = null)
         {
-            var result = await _dailyLoginRewardService.GetRewardsByMonth(month, year);
+            var result = await _dailyLoginRewardService.GetRewardsByMonth(month, year); // Fetch all days in specified month
             return Ok(new ApiResponse<List<DailyLoginRewardResponseDto>> { Success = true, Data = result });
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // ── GET /api/dailyloginrewards/{id} ──────────────────────────────────
-        // Lấy reward theo ID.
         [Authorize(Roles = "Admin")]
         [HttpGet("{id:int}")]
+        // Retrieves a single login reward definition by its ID.
         public async Task<IActionResult> GetById(int id)
         {
-            var result = await _dailyLoginRewardService.GetDailyLoginRewardById(id);
+            var result = await _dailyLoginRewardService.GetDailyLoginRewardById(id); // Look up specific day reward config
             if (result == null)
                 return NotFound(new ApiResponse<object>
                 {
@@ -89,15 +75,12 @@ namespace Mystic_Journey_API.Controllers
             return Ok(new ApiResponse<DailyLoginRewardResponseDto> { Success = true, Data = result });
         }
 
-        // ── POST /api/dailyloginrewards ──────────────────────────────────────
-        // Tạo daily login reward mới.
-        // Nếu Month=null/Year=null → tạo default.
-        // Nếu Month+Year có giá trị → tạo override tháng đó.
         [Authorize(Roles = "Admin")]
         [HttpPost]
+        // Configures a new daily login reward for a specific day of the month.
         public async Task<IActionResult> Create([FromBody] CreateDailyLoginRewardRequestDto dto)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) // Validate month (1-12), day (1-31), reward type, and quantity
                 return BadRequest(new ApiResponse<object>
                 {
                     Success = false,
@@ -107,7 +90,7 @@ namespace Mystic_Journey_API.Controllers
 
             try
             {
-                var result = await _dailyLoginRewardService.CreateDailyLoginReward(dto);
+                var result = await _dailyLoginRewardService.CreateDailyLoginReward(dto); // Check for duplicate day entries and insert reward row
                 return Ok(new ApiResponse<DailyLoginRewardResponseDto> { Success = true, Data = result });
             }
             catch (InvalidOperationException ex)
@@ -121,10 +104,9 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── PUT /api/dailyloginrewards/{id} ──────────────────────────────────
-        // Cập nhật reward (chỉ nội dung, không đổi DayNumber/Month/Year).
         [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
+        // Updates reward items, amounts, or premium bonus status for a daily login slot.
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDailyLoginRewardRequestDto dto)
         {
             if (!ModelState.IsValid)
@@ -137,7 +119,7 @@ namespace Mystic_Journey_API.Controllers
 
             try
             {
-                var result = await _dailyLoginRewardService.UpdateDailyLoginReward(id, dto);
+                var result = await _dailyLoginRewardService.UpdateDailyLoginReward(id, dto); // Apply updates to item rewards and amounts
                 return Ok(new ApiResponse<DailyLoginRewardResponseDto> { Success = true, Data = result });
             }
             catch (KeyNotFoundException ex)
@@ -151,15 +133,14 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── DELETE /api/dailyloginrewards/{id} ───────────────────────────────
-        // Xóa (soft delete) daily login reward.
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
+        // Removes a configured login reward slot from the schedule.
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                await _dailyLoginRewardService.DeleteDailyLoginReward(id);
+                await _dailyLoginRewardService.DeleteDailyLoginReward(id); // Delete reward configuration row
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,

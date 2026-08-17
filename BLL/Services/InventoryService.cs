@@ -12,6 +12,7 @@ using BLL.Utils;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i inventory service.
     public class InventoryService : IInventoryService
     {
         private readonly IInventoryRepository _inventoryRepository;
@@ -23,17 +24,16 @@ namespace BLL.Services
         private const int BAG_CAPACITY = 100;
         private const int MAX_STACK_SIZE = 99;
 
-        // enhancement scaling per level (unscaled integers for HP/Atk/Def)
         private const int HP_ENHANCEMENT_PER_LEVEL = 10;
         private const int ATK_ENHANCEMENT_PER_LEVEL = 2;
         private const int DEF_ENHANCEMENT_PER_LEVEL = 1;
-        // scaled enhancement per level for scaled stats (stored in snapshot as scaled ints)
-        private const int CRITRATE_ENHANCEMENT_PER_LEVEL_SCALED = 5;   // e.g. 0.5% -> stored as 5 when CritRate scale=10
-        private const int CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED = 20; // e.g. 2.0% -> stored as 20 when CritRate scale=10
+        private const int CRITRATE_ENHANCEMENT_PER_LEVEL_SCALED = 5;
+        private const int CRITDAMAGE_ENHANCEMENT_PER_LEVEL_SCALED = 20;
         private const int MOVE_SPEED_ENH_PER_LEVEL_SCALED = 0;
         private const int ATTACK_SPEED_ENH_PER_LEVEL_SCALED = 0;
         private const int DAMAGEBONUS_ENH_PER_LEVEL_SCALED = 0;
 
+        // Initialize this instance from inventory repository, mapper, stat repository, and player profile repository and store inventory repository, mapper, stat repository, player profile repository, and transaction manager for later operations.
         public InventoryService(
             IInventoryRepository inventoryRepository,
             IMapper mapper,
@@ -50,29 +50,33 @@ namespace BLL.Services
             _characterService = characterService;
         }
 
+        // Executes core business logic for get inventory.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed InventorySummaryDto result asynchronously.
         public async Task<InventorySummaryDto> GetInventory(int playerProfileId)
         {
             var items = await _inventoryRepository.GetByPlayerId(playerProfileId);
-            var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);
+            var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
 
             var summary = new InventorySummaryDto
             {
                 TotalItems = dtos.Sum(d => d.Quantity),
-                BagItems = dtos.Where(d => !d.IsEquipped && !d.IsSkin).ToList(),
-                EquippedItems = dtos.Where(d => d.IsEquipped).ToList(),
+                BagItems = dtos.Where(d => !d.IsEquipped && !d.IsSkin).ToList(),  // Filter records matching the predicate
+                EquippedItems = dtos.Where(d => d.IsEquipped).ToList(),  // Filter records matching the predicate
                 BagCapacity = BAG_CAPACITY
             };
 
             var playerSkins = await _inventoryRepository.GetPlayerSkinsByPlayerId(playerProfileId);
 
             var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId);
+            // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
             string playerClass = profile?.Class ?? string.Empty;
 
             var allSkins = await _inventoryRepository.GetAllActiveSkins();
-            var relevantSkins = allSkins.Where(skin => !IsSkinForAnotherClass(skin.Name, playerClass)).ToList();
+            var relevantSkins = allSkins.Where(skin => !IsSkinForAnotherClass(skin.Name, playerClass)).ToList();  // Filter records matching the predicate
 
             summary.TotalSkins = playerSkins.Count(ps => relevantSkins.Any(s => s.SkinId == ps.SkinId));
-            
+
             summary.PlayerSkins = relevantSkins.Select(skin => {
                 var ps = playerSkins.FirstOrDefault(x => x.SkinId == skin.SkinId);
                 return new PlayerSkinResponseDto
@@ -93,14 +97,16 @@ namespace BLL.Services
             return summary;
         }
 
+        // Equips an inventory item to the appropriate equipment slot and updates player combat stats.
         public async Task<InventoryActionResultDto> EquipItem(int actorPlayerProfileId, EquipItemRequestDto request)
         {
             var inv = await _inventoryRepository.GetById(request.InventoryItemId)
                 ?? throw new KeyNotFoundException("Inventory item not found.");
 
             if (inv.PlayerProfileId != actorPlayerProfileId)
-                throw new UnauthorizedAccessException("Item does not belong to player.");
+                throw new UnauthorizedAccessException("Item does not belong to player.");  // Authentication token is invalid or expired
 
+            // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
             var slot = inv.Item?.Slot ?? inv.EquippedSlot;
 
             var (updatedInv, finalSnapshot) = await _transactionManager.ExecuteInTransactionAsync<(InventoryItem, PlayerStatsSnapshot?)>(async () =>
@@ -109,7 +115,7 @@ namespace BLL.Services
                 {
                     var playerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
                     var conflict = playerItems.FirstOrDefault(i => i.IsEquipped && i.EquippedSlot == slot);
-                    if (conflict != null)
+                    if (conflict != null)  // Entity exists — proceed with conditional branch
                     {
                         conflict.IsEquipped = false;
                         conflict.EquippedSlot = null;
@@ -122,7 +128,7 @@ namespace BLL.Services
                 var updated = await _inventoryRepository.UpdateItem(inv);
 
                 var allPlayerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
-                var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();
+                var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();  // Filter records matching the predicate
 
                 int totalBaseHp = equippedItems.Sum(i => i.Item?.EquipmentStats?.BaseHp ?? 0);
                 int totalBonusHp = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusHp ?? 0);
@@ -143,7 +149,7 @@ namespace BLL.Services
 
                 var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
                 bool isNewSnapshot = false;
-                if (snapshot == null)
+                if (snapshot == null)  // Entity not found — short-circuit with appropriate error result
                 {
                     snapshot = new PlayerStatsSnapshot { PlayerProfileId = actorPlayerProfileId };
                     isNewSnapshot = true;
@@ -190,18 +196,19 @@ namespace BLL.Services
 
             return new InventoryActionResultDto
             {
-                Item = _mapper.Map<InventoryItemResponseDto>(updatedInv),
+                Item = _mapper.Map<InventoryItemResponseDto>(updatedInv),  // Transform domain entity into DTO for the API response layer
                 PlayerStats = stats
             };
         }
 
+        // Unequips an equipped item back into player inventory and recalculates player combat stats.
         public async Task<InventoryActionResultDto> UnequipItem(int actorPlayerProfileId, UnequipItemRequestDto request)
         {
             var inv = await _inventoryRepository.GetById(request.InventoryItemId)
                 ?? throw new KeyNotFoundException("Inventory item not found.");
 
             if (inv.PlayerProfileId != actorPlayerProfileId)
-                throw new UnauthorizedAccessException("Item does not belong to player.");
+                throw new UnauthorizedAccessException("Item does not belong to player.");  // Authentication token is invalid or expired
 
             var (updatedInv, finalSnapshot) = await _transactionManager.ExecuteInTransactionAsync<(InventoryItem, PlayerStatsSnapshot?)>(async () =>
             {
@@ -210,7 +217,7 @@ namespace BLL.Services
                 var updated = await _inventoryRepository.UpdateItem(inv);
 
                 var allPlayerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
-                var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();
+                var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();  // Filter records matching the predicate
 
                 int totalBaseHp = equippedItems.Sum(i => i.Item?.EquipmentStats?.BaseHp ?? 0);
                 int totalBonusHp = equippedItems.Sum(i => i.Item?.EquipmentStats?.BonusHp ?? 0);
@@ -231,7 +238,7 @@ namespace BLL.Services
 
                 var snapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
                 bool isNewSnapshot = false;
-                if (snapshot == null)
+                if (snapshot == null)  // Entity not found — short-circuit with appropriate error result
                 {
                     snapshot = new PlayerStatsSnapshot { PlayerProfileId = actorPlayerProfileId };
                     isNewSnapshot = true;
@@ -278,29 +285,31 @@ namespace BLL.Services
 
             return new InventoryActionResultDto
             {
-                Item = _mapper.Map<InventoryItemResponseDto>(updatedInv),
+                Item = _mapper.Map<InventoryItemResponseDto>(updatedInv),  // Transform domain entity into DTO for the API response layer
                 PlayerStats = stats
             };
         }
 
+        // Executes core business logic for consume item.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer; throws InvalidOperationException, KeyNotFoundException, UnauthorizedAccessException, ArgumentException on invalid state or rule violations.
+        // Returns the computed ConsumeItemResultDto result asynchronously.
         public async Task<ConsumeItemResultDto> ConsumeItem(int actorPlayerProfileId, ConsumeItemRequestDto request)
         {
             var inv = await _inventoryRepository.GetById(request.InventoryItemId)
                 ?? throw new KeyNotFoundException("Inventory item not found.");
 
             if (inv.PlayerProfileId != actorPlayerProfileId)
-                throw new UnauthorizedAccessException("Item does not belong to player.");
+                throw new UnauthorizedAccessException("Item does not belong to player.");  // Authentication token is invalid or expired
 
             bool isConsumable = inv.Item != null && inv.Item.Type == "Consumable";
             bool isQuestItem  = inv.Item != null && inv.Item.Type == "QuestItem";
 
             if (!isConsumable && !isQuestItem)
-                throw new InvalidOperationException("Item is not consumable or a quest item.");
+                throw new InvalidOperationException("Item is not consumable or a quest item.");  // Unexpected runtime state — propagate to global error handler
 
             if (request.Quantity <= 0)
                 throw new ArgumentException("Quantity must be at least 1.");
 
-            // QuestItem: chỉ xóa, không áp dụng hiệu ứng
             if (isQuestItem)
             {
                 var questResult = new ConsumeItemResultDto
@@ -314,7 +323,7 @@ namespace BLL.Services
                 await _transactionManager.ExecuteInTransactionAsync(async () =>
                 {
                     if (inv.Quantity < request.Quantity)
-                        throw new InvalidOperationException("Not enough quantity to remove.");
+                        throw new InvalidOperationException("Not enough quantity to remove.");  // Unexpected runtime state — propagate to global error handler
 
                     inv.Quantity -= request.Quantity;
                     if (inv.Quantity <= 0)
@@ -335,13 +344,8 @@ namespace BLL.Services
             };
 
             if (inv.Quantity < request.Quantity)
-                throw new InvalidOperationException("Not enough quantity to consume.");
+                throw new InvalidOperationException("Not enough quantity to consume.");  // Unexpected runtime state — propagate to global error handler
 
-            // ── Resolve hiệu ứng TRƯỚC transaction ───────────────────────────────────
-            // Luồng cũ trừ số lượng trước rồi mới apply hiệu ứng, nên uống bình máu lúc đã
-            // đầy HP vẫn mất bình mà không hồi được điểm nào (các nhánh apply chỉ im lặng
-            // no-op, không báo lỗi). Validate trước khi ghi để vật phẩm không bị tiêu vô ích
-            // và client nhận được 400 kèm lý do để hiện popup.
             string itemName    = inv.Item?.Name ?? string.Empty;
             int healAmount     = ResolveHealPerUnit(itemName) * request.Quantity;
             int energyAmount   = itemName.Equals("Energy Elixir", StringComparison.OrdinalIgnoreCase)
@@ -354,12 +358,11 @@ namespace BLL.Services
             if (healAmount > 0)
             {
                 stat = await _statRepository.GetByPlayerProfileId(actorPlayerProfileId);
-                if (stat != null)
+                if (stat != null)  // Entity exists — proceed with conditional branch
                 {
-                    // Trần HP thật = base + trang bị + buff achievement, KHÔNG phải stat.MaxHp.
                     effectiveMaxHp = await _characterService.GetEffectiveMaxHp(actorPlayerProfileId);
                     if (stat.CurrentHp >= effectiveMaxHp)
-                        throw new InvalidOperationException("Your HP is already full.");
+                        throw new InvalidOperationException("Your HP is already full.");  // Unexpected runtime state — propagate to global error handler
                 }
             }
 
@@ -367,13 +370,13 @@ namespace BLL.Services
             if (energyAmount > 0 || corruptionPct > 0)
             {
                 profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
-                if (profile != null)
+                if (profile != null)  // Entity exists — proceed with conditional branch
                 {
                     if (energyAmount > 0 && profile.CurrentEnergy >= profile.MaxEnergy)
-                        throw new InvalidOperationException("Your energy is already full.");
+                        throw new InvalidOperationException("Your energy is already full.");  // Unexpected runtime state — propagate to global error handler
 
                     if (corruptionPct > 0 && profile.CorruptionLevel <= 0)
-                        throw new InvalidOperationException("Your corruption is already fully cleansed.");
+                        throw new InvalidOperationException("Your corruption is already fully cleansed.");  // Unexpected runtime state — propagate to global error handler
                 }
             }
 
@@ -385,8 +388,6 @@ namespace BLL.Services
                 else
                     await _inventoryRepository.UpdateItem(inv);
 
-                // ── Apply hiệu ứng đã resolve ở trên ─────────────────────────────────
-                // Heal: clamp lên trần HP thật, nên 900/1000 uống bình 200 chỉ lên 1000.
                 if (healAmount > 0 && stat != null)
                 {
                     int before = stat.CurrentHp;
@@ -394,8 +395,6 @@ namespace BLL.Services
                     stat.UpdatedAt = DateTime.UtcNow;
                     await _statRepository.Update(stat);
                     result.EffectType  = "Heal";
-                    // Trả về lượng hồi THỰC TẾ sau clamp, không phải mệnh giá bình, để client
-                    // không hiện "+200 HP" khi thực chất chỉ hồi được 100.
                     result.EffectValue = stat.CurrentHp - before;
                     result.CurrentHp   = stat.CurrentHp;
                     result.MaxHp       = effectiveMaxHp;
@@ -412,10 +411,9 @@ namespace BLL.Services
                     result.MaxEnergy     = profile.MaxEnergy;
                 }
 
-                // CorruptionReduction là phần trăm 0..1 của mức corruption hiện tại.
                 if (corruptionPct > 0 && profile != null)
                 {
-                    float reductionPct   = Math.Min(1f, corruptionPct); // clamp to 100%
+                    float reductionPct   = Math.Min(1f, corruptionPct);
                     float totalReduction = profile.CorruptionLevel * reductionPct * request.Quantity;
                     float before         = profile.CorruptionLevel;
                     profile.CorruptionLevel = Math.Max(0, profile.CorruptionLevel - totalReduction);
@@ -429,32 +427,31 @@ namespace BLL.Services
             return result;
         }
 
-        /// <summary>
-        /// Lượng HP hồi trên mỗi đơn vị vật phẩm, tra theo tên. Trả 0 nếu không phải bình máu.
-        /// Gộp 3 nhánh trùng nhau trước đây để guard "đã đầy máu" và phần apply dùng chung
-        /// một nguồn số liệu, không lệch nhau khi thêm bình mới.
-        /// </summary>
+        // Executes core business logic for resolve heal per unit.
+        // Logic details: validates required non-empty string arguments; delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws KeyNotFoundException, UnauthorizedAccessException on invalid state or rule violations.
         private static int ResolveHealPerUnit(string itemName)
         {
-            if (string.IsNullOrWhiteSpace(itemName)) return 0;
+            if (string.IsNullOrWhiteSpace(itemName)) return 0;  // Mandatory string argument is blank — fail fast
 
             if (itemName.Equals("Small Health Potion", StringComparison.OrdinalIgnoreCase)) return 80;
             if (itemName.Equals("Large Health Potion", StringComparison.OrdinalIgnoreCase)) return 200;
 
-            // Fallback cho bình máu cũ/thêm sau, khớp hành vi trước đây.
             if (itemName.Contains("Health Potion", StringComparison.OrdinalIgnoreCase)) return 100;
 
             return 0;
         }
 
 
+        // Executes core business logic for equip skin.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws KeyNotFoundException, UnauthorizedAccessException on invalid state or rule violations.
+        // Returns the computed PlayerSkinResponseDto result asynchronously.
         public async Task<PlayerSkinResponseDto> EquipSkin(int actorPlayerProfileId, BLL.DTOs.EquipSkinRequestDto request)
         {
             var skin = await _inventoryRepository.GetPlayerSkinById(request.PlayerSkinId)
                 ?? throw new KeyNotFoundException("PlayerSkin not found.");
 
             if (skin.PlayerProfileId != actorPlayerProfileId)
-                throw new UnauthorizedAccessException("Skin does not belong to player.");
+                throw new UnauthorizedAccessException("Skin does not belong to player.");  // Authentication token is invalid or expired
 
             return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
@@ -470,10 +467,13 @@ namespace BLL.Services
 
                 skin.IsEquipped = request.IsEquipped;
                 var updated = await _inventoryRepository.UpdatePlayerSkin(skin);
-                return _mapper.Map<PlayerSkinResponseDto>(updated);
+                return _mapper.Map<PlayerSkinResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
             });
         }
 
+        // Executes core business logic for unequip skin.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException, UnauthorizedAccessException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         public async Task UnequipSkin(int actorPlayerProfileId, BLL.DTOs.UnequipSkinRequestDto request)
         {
             var playerSkins = await _inventoryRepository.GetPlayerSkinsByPlayerId(actorPlayerProfileId);
@@ -481,9 +481,10 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException("PlayerSkin not found.");
 
             if (skin.PlayerProfileId != actorPlayerProfileId)
-                throw new UnauthorizedAccessException("Skin does not belong to player.");
+                throw new UnauthorizedAccessException("Skin does not belong to player.");  // Authentication token is invalid or expired
 
             var profile = await _playerProfileRepository.GetPlayerProfileById(actorPlayerProfileId);
+            // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
             string playerClass = profile?.Class ?? string.Empty;
 
             await _transactionManager.ExecuteInTransactionAsync(async () =>
@@ -491,9 +492,8 @@ namespace BLL.Services
                 skin.IsEquipped = false;
                 await _inventoryRepository.UpdatePlayerSkin(skin);
 
-                // Auto re-equip the Default skin for player's class if available
-                var defaultSkin = playerSkins.FirstOrDefault(ps => ps.Skin != null && 
-                    ps.Skin.Name.Contains("Default") && 
+                var defaultSkin = playerSkins.FirstOrDefault(ps => ps.Skin != null &&
+                    ps.Skin.Name.Contains("Default") &&
                     !IsSkinForAnotherClass(ps.Skin.Name, playerClass));
 
                 if (defaultSkin != null && defaultSkin.PlayerSkinId != request.PlayerSkinId)
@@ -504,9 +504,12 @@ namespace BLL.Services
             });
         }
 
+        // Executes core business logic for is skin for another class.
+        // Logic details: validates required non-empty string arguments.
+        // Returns a boolean indicating operation success.
         private static bool IsSkinForAnotherClass(string skinName, string playerClass)
         {
-            if (string.IsNullOrWhiteSpace(skinName) || string.IsNullOrWhiteSpace(playerClass))
+            if (string.IsNullOrWhiteSpace(skinName) || string.IsNullOrWhiteSpace(playerClass))  // Mandatory string argument is blank — fail fast
                 return false;
 
             string cleanName = skinName.Trim();
@@ -526,17 +529,20 @@ namespace BLL.Services
             return false;
         }
 
+        // Executes core business logic for add item to inventory.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws InventoryCapacityExceededException, ArgumentOutOfRangeException on invalid state or rule violations.
+        // Returns the computed InventoryItemResponseDto result asynchronously.
         public Task<InventoryItemResponseDto> AddItemToInventory(int playerProfileId, int itemId, int quantity)
         {
-            if (quantity <= 0)
+            if (quantity <= 0)  // Reject zero or negative item quantities before any DB work
                 throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
 
             return _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 var inventory = await _inventoryRepository.GetByPlayerId(playerProfileId);
                 var stackable = inventory
-                    .Where(i => i.ItemId == itemId && !i.IsEquipped && !i.IsSkin && i.EnhancementLevel == 0)
-                    .OrderBy(i => i.InventoryItemId)
+                    .Where(i => i.ItemId == itemId && !i.IsEquipped && !i.IsSkin && i.EnhancementLevel == 0)  // Filter records matching the predicate
+                    .OrderBy(i => i.InventoryItemId)  // Sort results oldest/lowest first
                     .ToList();
 
                 var freeInStacks = stackable.Sum(i => Math.Max(0, MAX_STACK_SIZE - i.Quantity));
@@ -547,7 +553,7 @@ namespace BLL.Services
 
                 var remaining = quantity;
                 InventoryItem? lastChanged = null;
-                foreach (var stack in stackable.Where(i => i.Quantity < MAX_STACK_SIZE))
+                foreach (var stack in stackable.Where(i => i.Quantity < MAX_STACK_SIZE))  // Filter records matching the predicate
                 {
                     var added = Math.Min(MAX_STACK_SIZE - stack.Quantity, remaining);
                     stack.Quantity += added;
@@ -574,16 +580,19 @@ namespace BLL.Services
                     remaining -= stackQuantity;
                 }
 
-                return _mapper.Map<InventoryItemResponseDto>(lastChanged!);
+                return _mapper.Map<InventoryItemResponseDto>(lastChanged!);  // Transform domain entity into DTO for the API response layer
             }, IsolationLevel.Serializable);
         }
 
 
 
+        // Executes core business logic for get me inventory.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PlayerMeInventoryResponseDto result asynchronously.
         public async Task<PlayerMeInventoryResponseDto> GetMeInventory(int playerProfileId)
         {
             var items = await _inventoryRepository.GetByPlayerId(playerProfileId);
-            var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);
+            var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
             return new PlayerMeInventoryResponseDto
             {
                 PlayerProfileId = playerProfileId,

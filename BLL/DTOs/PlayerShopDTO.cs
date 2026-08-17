@@ -12,6 +12,7 @@ namespace BLL.DTOs
         public int PageSize { get; set; } = 20;
 
         [RegularExpression("^(Gold|Gems)?$", ErrorMessage = "Currency must be Gold or Gems.")]
+        // Supported currencies: Gold or Gems (determines which player wallet balance is queried)
         public string? Currency { get; set; }
 
         [StringLength(50, ErrorMessage = "Item type must not exceed 50 characters.")]
@@ -31,10 +32,13 @@ namespace BLL.DTOs
         public string? Description { get; set; }
         public string? ItemIconUrl { get; set; }
         public string ItemType { get; set; } = string.Empty;
+        // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, Mythic
         public string Rarity { get; set; } = string.Empty;
+        // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, Shield
         public string Slot { get; set; } = string.Empty;
         public int MaxStack { get; set; }
         public string ShopSection { get; set; } = "Fixed";
+        // Currency used for purchase: Gold or Gems
         public string Currency { get; set; } = "Gold";
         public decimal? OriginalPrice { get; set; }
         public decimal Price { get; set; }
@@ -51,7 +55,6 @@ namespace BLL.DTOs
         public bool CanPurchase { get; set; }
         public string? UnavailableReason { get; set; }
 
-        // Equipment Stats
         public int BaseHp { get; set; }
         public int BaseAtk { get; set; }
         public int BaseDef { get; set; }
@@ -98,6 +101,7 @@ namespace BLL.DTOs
         public int ItemId { get; set; }
         public string ItemName { get; set; } = string.Empty;
         public int Quantity { get; set; }
+        // Currency charged: Gold or Gems
         public string Currency { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }
         public decimal TotalPrice { get; set; }
@@ -113,7 +117,9 @@ namespace BLL.DTOs
         public int SkinId { get; set; }
         public string SkinName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        // Supported skin types: Armor, FullSet
         public string SkinType { get; set; } = string.Empty;
+        // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, Mythic
         public string Rarity { get; set; } = string.Empty;
         public string? IconUrl { get; set; }
         public string? PreviewUrl { get; set; }

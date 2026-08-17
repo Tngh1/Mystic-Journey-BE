@@ -15,6 +15,7 @@ namespace BLL.DTOs
     {
         [Required(ErrorMessage = "Currency is required.")]
         [RegularExpression("^(Gold|Gems)$", ErrorMessage = "Currency must be Gold or Gems.")]
+        // Supported currencies: Gold or Gems (determines which player wallet balance is charged)
         public string Currency { get; set; } = "Gold";
 
         [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ErrorMessage = "Amount must be greater than 0.")]
@@ -29,6 +30,7 @@ namespace BLL.DTOs
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
+        // Supported currencies: Gold or Gems
         public string Currency { get; set; } = string.Empty;
         public decimal AmountSpent { get; set; }
         public decimal BalanceBefore { get; set; }

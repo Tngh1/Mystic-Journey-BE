@@ -13,7 +13,7 @@ using System.Data;
 
 namespace Mystic_Journey_BE.Tests;
 
-/// <summary>High-risk rules selected from Report 3 section 5.1, isolated from DB/network.</summary>
+// Initializes a new default instance of the BusinessRuleTests class.
 public sealed class BusinessRuleTests
 {
     [Fact] public void BR004_UsernameRejectsCharactersOutsideAllowList() => Assert.False(new UserNameAttribute().IsValid("player name!"));
@@ -247,10 +247,13 @@ public sealed class BusinessRuleTests
         playerAchievements.Verify(x => x.Update(playerAchievement), Times.Once);
     }
 
+    // Executes profile operation.
     private static PlayerProfile Profile(int energy = 0, int maxEnergy = 100, DateTime? updated = null, int gems = 0, bool changed = false, int level = 1, string playerClass = "Knight") => new()
     { PlayerProfileId = 7, DisplayName = "Hero", CurrentEnergy = energy, MaxEnergy = maxEnergy, LastEnergyUpdateTime = updated ?? DateTime.UtcNow, Gems = gems, HasChangedName = changed, Level = level, Class = playerClass };
 
+    // Executes profile service operation.
     private static PlayerProfileService ProfileService() => new(new Mock<IPlayerProfileRepository>().Object, new Mock<IMapper>().Object, new Mock<IFriendRepository>().Object);
+    // Executes static operation.
     private static (PlayerProfileService, Mock<IPlayerProfileRepository>) ProfileServiceWith(PlayerProfile p)
     {
         var repo = new Mock<IPlayerProfileRepository>(); repo.Setup(x => x.GetByAccountId(7)).ReturnsAsync(p); repo.Setup(x => x.UpdatePlayerProfile(p)).ReturnsAsync(p);
@@ -258,12 +261,14 @@ public sealed class BusinessRuleTests
         return (new PlayerProfileService(repo.Object, mapper.Object, new Mock<IFriendRepository>().Object), repo);
     }
 
+    // Executes static operation.
     private static (SkillService, Mock<ISkillRepository>, Mock<IPlayerProfileRepository>, Mock<IInventoryRepository>, Mock<ITransactionManager>) MakeSkillService()
     {
         var a = new Mock<ISkillRepository>(); var b = new Mock<IPlayerProfileRepository>(); var c = new Mock<IInventoryRepository>(); var d = new Mock<ITransactionManager>();
         return (new SkillService(a.Object, new Mock<IMapper>().Object, b.Object, d.Object, c.Object), a, b, c, d);
     }
 
+    // Executes static operation.
     private static (FriendService, Mock<IFriendRepository>, Mock<IPlayerProfileRepository>) MakeFriendService()
     {
         var a = new Mock<IFriendRepository>(); var b = new Mock<IPlayerProfileRepository>();
