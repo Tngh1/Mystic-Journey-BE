@@ -6,6 +6,7 @@ using DAL.Repositories.Interfaces;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i dungeon session service.
     public class DungeonSessionService : IDungeonSessionService
     {
         private readonly IDungeonConfigRepository _dungeonConfigRepository;
@@ -18,6 +19,7 @@ namespace BLL.Services
         private readonly IMapper _mapper;
         private readonly IRewardDeliveryService _rewardDeliveryService;
 
+        // Initialize this instance from dungeon config repository, session repository, progress repository, and profile repository and store dungeon config repository, session repository, progress repository, profile repository, and player profile service for later operations.
         public DungeonSessionService(
             IDungeonConfigRepository dungeonConfigRepository,
             IDungeonSessionRepository sessionRepository,
@@ -40,49 +42,32 @@ namespace BLL.Services
             _rewardDeliveryService = rewardDeliveryService;
         }
 
-        // ── 1. Enter Dungeon ─────────────────────────────────────────────────────────
 
+        // Executes core business logic for enter dungeon.
+        // Logic details: delegates data queries and updates to repository layer; throws InvalidOperationException, KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed EnterDungeonResponseDto result asynchronously.
         public async Task<EnterDungeonResponseDto> EnterDungeon(int playerProfileId, int dungeonConfigId, List<string>? partyMembers = null)
         {
-            // BR-01: Character must exist
             var profile = await _profileRepository.GetPlayerProfileById(playerProfileId)
                 ?? throw new KeyNotFoundException($"Player profile {playerProfileId} not found.");
 
-            // Recalculate energy first
             _playerProfileService.RecalculateEnergy(profile);
             await _profileRepository.UpdatePlayerProfile(profile);
 
-            // BR-02: Dungeon must exist and be active
             var dungeon = await _dungeonConfigRepository.GetByIdWithChest(dungeonConfigId)
                 ?? throw new KeyNotFoundException($"Dungeon {dungeonConfigId} not found or is not active.");
 
-            // BR-03: energy is deliberately NOT validated here. Entry is free; the cost is
-            // both checked and consumed at claim-reward (BR-10). Gating entry as well meant a
-            // player short on energy could not even start the run, and — because the Unity
-            // client enters the dungeon anyway on an Enter failure (session id -1) — they got
-            // a whole dungeon with a broken session and a silent +0 reward at the chest.
-            // Leaving entry open also lets energy regenerate during the run.
 
-            // BR-04: level requirement. Previously this was enforced ONLY on the Unity client
-            // (DungeonEntrance.RequiredLevel, a hardcoded 3 that matches no config), so any
-            // caller could POST Enter for a config far above their level — e.g. config 6 at
-            // LevelRequirement 20. Client-side gating is cosmetic; this is the real check.
             if (profile.Level < dungeon.LevelRequirement)
-                throw new InvalidOperationException(
+                throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                     $"Level {dungeon.LevelRequirement} required to enter {dungeon.Name}. You are level {profile.Level}.");
 
-            // Validate party data - total party members (including host) must not exceed MaxMembers
             int totalMembersCount = 1 + (partyMembers?.Count ?? 0);
             if (totalMembersCount > dungeon.MaxMembers)
-                throw new InvalidOperationException($"Party exceeds maximum allowed size of {dungeon.MaxMembers}.");
+                throw new InvalidOperationException($"Party exceeds maximum allowed size of {dungeon.MaxMembers}.");  // Unexpected runtime state — propagate to global error handler
 
-            // A player can only be inside one dungeon at a time, so entering a new one kills
-            // every session still marked Active — not just those for this same dungeon. The old
-            // same-dungeon-only cleanup let a player leave dungeon 1 hanging, enter dungeon 2, and
-            // end up with two Active rows; Resume then had no defined way to pick between them.
             await _sessionRepository.FailActiveSessions(playerProfileId);
 
-            // Create session — Status = "Active", energy untouched
             var session = new DungeonSession
             {
                 PlayerProfileId = playerProfileId,
@@ -94,7 +79,6 @@ namespace BLL.Services
             };
             await _sessionRepository.Create(session);
 
-            // Seed an empty DungeonProgress row for the session
             var progress = new DungeonProgress
             {
                 DungeonSessionId = session.DungeonSessionId,
@@ -118,26 +102,23 @@ namespace BLL.Services
             };
         }
 
-        // ── 2. Update Progress ────────────────────────────────────────────────────────
 
+        // Update progress using session id, player profile id, and request; it loads by id, creates create, and updates update and guards invalid or unavailable states.
         public async Task<DungeonProgressResponseDto> UpdateProgress(
             int sessionId, int playerProfileId, UpdateDungeonProgressRequestDto request)
         {
             var session = await _sessionRepository.GetById(sessionId)
                 ?? throw new KeyNotFoundException($"Dungeon session {sessionId} not found.");
 
-            // Ownership check
             if (session.PlayerProfileId != playerProfileId)
-                throw new UnauthorizedAccessException("You do not own this dungeon session.");
+                throw new UnauthorizedAccessException("You do not own this dungeon session.");  // Authentication token is invalid or expired
 
-            // BR-07: Session must be Active
             if (session.Status != "Active")
-                throw new InvalidOperationException(
+                throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                     $"Session {sessionId} is not active (current status: {session.Status}). Progress can only be updated for active sessions.");
 
-            // Upsert progress
             var progress = session.Progress;
-            if (progress == null)
+            if (progress == null)  // Entity not found — short-circuit with appropriate error result
             {
                 progress = new DungeonProgress { DungeonSessionId = sessionId };
                 progress.MonstersKilled = request.MonstersKilled;
@@ -174,37 +155,34 @@ namespace BLL.Services
             };
         }
 
-        // ── 3. Complete Session ───────────────────────────────────────────────────────
 
+        // Executes core business logic for complete session.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed CompleteDungeonResponseDto result asynchronously.
         public async Task<CompleteDungeonResponseDto> CompleteSession(int sessionId, int playerProfileId)
         {
             var session = await _sessionRepository.GetById(sessionId)
                 ?? throw new KeyNotFoundException($"Dungeon session {sessionId} not found.");
 
-            // Ownership check
             if (session.PlayerProfileId != playerProfileId)
-                throw new UnauthorizedAccessException("You do not own this dungeon session.");
+                throw new UnauthorizedAccessException("You do not own this dungeon session.");  // Authentication token is invalid or expired
 
-            // Must be Active to transition to Completed
             if (session.Status != "Active")
-                throw new InvalidOperationException(
+                throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                     $"Session {sessionId} cannot be completed (current status: {session.Status}).");
 
-            // Boss must be defeated before completing
             var progress = session.Progress;
             if (progress == null || !progress.BossKilled)
-                throw new InvalidOperationException(
+                throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                     "The dungeon boss has not been defeated yet. Defeat the boss to complete the dungeon.");
 
-            // Mark as Completed — NO rewards granted (BR-09)
             session.Status = "Completed";
             session.CompletedTime = DateTime.UtcNow;
             await _sessionRepository.Update(session);
 
-            // Build chest preview DTO (items visible to player before claiming)
             ChestResponseDto? chestDto = null;
             if (session.DungeonConfig?.Chest != null)
-                chestDto = _mapper.Map<ChestResponseDto>(session.DungeonConfig.Chest);
+                chestDto = _mapper.Map<ChestResponseDto>(session.DungeonConfig.Chest);  // Transform domain entity into DTO for the API response layer
 
             return new CompleteDungeonResponseDto
             {
@@ -216,17 +194,18 @@ namespace BLL.Services
             };
         }
 
-        // ── 4. Claim Reward (TRANSACTIONAL) ──────────────────────────────────────────
 
+        // Executes core business logic for claim reward.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed ClaimDungeonRewardResponseDto result asynchronously.
         public async Task<ClaimDungeonRewardResponseDto> ClaimReward(int sessionId, int playerProfileId)
         {
             var session = await _sessionRepository.GetById(sessionId)
                 ?? throw new KeyNotFoundException($"Dungeon session {sessionId} not found.");
 
-            // Ownership and party member check
             bool isOwner = session.PlayerProfileId == playerProfileId;
             bool isPartyMember = false;
-            
+
             if (!string.IsNullOrEmpty(session.PartyMembers))
             {
                 var partyIds = session.PartyMembers.Split(',');
@@ -234,9 +213,8 @@ namespace BLL.Services
             }
 
             if (!isOwner && !isPartyMember)
-                throw new UnauthorizedAccessException("You do not own this dungeon session and you are not a party member.");
+                throw new UnauthorizedAccessException("You do not own this dungeon session and you are not a party member.");  // Authentication token is invalid or expired
 
-            // Guard against duplicate claims
             bool hasClaimed = false;
             if (!string.IsNullOrEmpty(session.ClaimedByMembers))
             {
@@ -245,41 +223,35 @@ namespace BLL.Services
             }
 
             if (hasClaimed)
-                throw new InvalidOperationException("CONFLICT: Rewards have already been claimed by this player for this session.");
+                throw new InvalidOperationException("CONFLICT: Rewards have already been claimed by this player for this session.");  // Unexpected runtime state — propagate to global error handler
 
-            // BR-08: Session must be Completed
             if (session.Status != "Completed")
-                throw new InvalidOperationException(
+                throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                     $"Session {sessionId} cannot have rewards claimed (status: {session.Status}). Complete the dungeon first.");
 
-            // Load player profile (fresh, outside transaction to avoid stale reads)
             var profile = await _profileRepository.GetPlayerProfileById(playerProfileId)
                 ?? throw new KeyNotFoundException($"Player profile {playerProfileId} not found.");
 
-            // Recalculate energy first
             _playerProfileService.RecalculateEnergy(profile);
 
-            // BR-10: Re-validate energy before consuming
             var dungeon = session.DungeonConfig
-                ?? throw new InvalidOperationException("Dungeon configuration is missing from session.");
+                ?? throw new InvalidOperationException("Dungeon configuration is missing from session.");  // Unexpected runtime state — propagate to global error handler
 
             if (profile.CurrentEnergy < dungeon.EnergyCost)
-                throw new InvalidOperationException(
+                throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                     $"Insufficient energy to claim reward. Required: {dungeon.EnergyCost}, Current: {profile.CurrentEnergy}.");
 
             return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
-                // Step 1 — Consume energy
                 profile.CurrentEnergy -= dungeon.EnergyCost;
                 profile.TotalDungeonClears += 1;
 
-                // Step 2 — Roll gold reward
                 var chest = dungeon.Chest;
                 var goldEarned = 0;
                 var experienceEarned = 0;
                 var rewardItems = new List<DungeonRewardItemDto>();
 
-                if (chest != null)
+                if (chest != null)  // Entity exists — proceed with conditional branch
                 {
                     goldEarned = chest.GoldMaxReward > chest.GoldMinReward
                         ? Random.Shared.Next(chest.GoldMinReward, chest.GoldMaxReward + 1)
@@ -287,7 +259,6 @@ namespace BLL.Services
 
                     experienceEarned = chest.ExperienceReward;
 
-                    // Step 3 — Roll each ChestItem by DropRate
                     foreach (var chestItem in chest.ChestItems)
                     {
                         var drops = chestItem.IsGuaranteed ||
@@ -298,11 +269,9 @@ namespace BLL.Services
                             ? Random.Shared.Next(chestItem.QuantityMin, chestItem.QuantityMax + 1)
                             : chestItem.QuantityMin;
 
-                        // Step 4 — Upsert inventory
                         bool isEquipment = chestItem.Item?.Type?.Equals("Equipment", StringComparison.OrdinalIgnoreCase) == true;
                         if (isEquipment)
                         {
-                            // Add equipment as independent entries
                             for (int i = 0; i < quantity; i++)
                             {
                                 await UpsertInventoryItem(playerProfileId, chestItem.ItemId, 1, isEquipment);
@@ -328,16 +297,13 @@ namespace BLL.Services
                     }
                 }
 
-                // Step 5 — Apply gold + XP to profile
                 profile.Gold += goldEarned;
                 profile.AddExperience(experienceEarned);
                 profile.UpdatedAt = DateTime.UtcNow;
                 await _profileRepository.UpdatePlayerProfile(profile);
 
-                // Step 6 — Mark session as RewardClaimed
                 session.IsRewardClaimed = true;
-                // Step 7 — Mark as claimed for this player
-                if (string.IsNullOrEmpty(session.ClaimedByMembers))
+                if (string.IsNullOrEmpty(session.ClaimedByMembers))  // Mandatory string argument is null or empty — fail fast
                 {
                     session.ClaimedByMembers = playerProfileId.ToString();
                 }
@@ -347,12 +313,12 @@ namespace BLL.Services
                 }
 
                 session.ClaimedAt = DateTime.UtcNow;
-                session.IsRewardClaimed = true; // Legacy flag, might be true as soon as one claims
+                session.IsRewardClaimed = true;
 
                 await _sessionRepository.Update(session);
 
-                var timeTakenSeconds = session.CompletedTime.HasValue 
-                    ? (float)(session.CompletedTime.Value - session.EnterTime).TotalSeconds 
+                var timeTakenSeconds = session.CompletedTime.HasValue
+                    ? (float)(session.CompletedTime.Value - session.EnterTime).TotalSeconds
                     : 0f;
 
                 return new ClaimDungeonRewardResponseDto
@@ -381,18 +347,20 @@ namespace BLL.Services
             });
         }
 
-        // ── 5. Abandon Session ────────────────────────────────────────────────────────
-        
+
+        // Executes core business logic for abandon session.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed bool result asynchronously.
         public async Task<bool> AbandonSession(int sessionId, int playerProfileId)
         {
             var session = await _sessionRepository.GetById(sessionId)
                 ?? throw new KeyNotFoundException($"Dungeon session {sessionId} not found.");
 
             if (session.PlayerProfileId != playerProfileId)
-                throw new UnauthorizedAccessException("You do not own this dungeon session.");
+                throw new UnauthorizedAccessException("You do not own this dungeon session.");  // Authentication token is invalid or expired
 
             if (session.Status != "Active")
-                throw new InvalidOperationException($"Session {sessionId} is not active. Status: {session.Status}");
+                throw new InvalidOperationException($"Session {sessionId} is not active. Status: {session.Status}");  // Unexpected runtime state — propagate to global error handler
 
             session.Status = "Abandoned";
             session.UpdatedAt = DateTime.UtcNow;
@@ -401,12 +369,14 @@ namespace BLL.Services
             return true;
         }
 
-        // ── 6. Get Active Session ──────────────────────────────────────────────────────
-        
+
+        // Executes core business logic for get active session.
+        // Logic details: validates required non-empty string arguments; delegates data queries and updates to repository layer.
+        // Returns the computed EnterDungeonResponseDto? result asynchronously.
         public async Task<EnterDungeonResponseDto?> GetActiveSession(int playerProfileId)
         {
             var session = await _sessionRepository.GetActiveSession(playerProfileId, null);
-            if (session == null) return null;
+            if (session == null) return null;  // Entity not found — short-circuit with appropriate error result
 
             return new EnterDungeonResponseDto
             {
@@ -415,11 +385,11 @@ namespace BLL.Services
                 DungeonConfigId = session.DungeonConfigId,
                 DungeonName = session.DungeonConfig?.Name ?? "Unknown",
                 EnergyCost = session.DungeonConfig?.EnergyCost ?? 0,
-                PlayerCurrentEnergy = 0, // Not critical for resume
+                PlayerCurrentEnergy = 0,
                 EnterTime = session.EnterTime,
                 Status = session.Status,
-                PartyMembers = string.IsNullOrEmpty(session.PartyMembers) 
-                    ? new List<string>() 
+                PartyMembers = string.IsNullOrEmpty(session.PartyMembers)
+                    ? new List<string>()
                     : session.PartyMembers.Split(',').ToList(),
                 Progress = session.Progress != null ? new DungeonProgressResponseDto
                 {
@@ -437,15 +407,16 @@ namespace BLL.Services
             };
         }
 
-        // ── 7. Get History ───────────────────────────────────────────────────────────
 
+        // Executes core business logic for get history.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed List<DungeonHistoryResponseDto result asynchronously.
         public async Task<List<DungeonHistoryResponseDto>> GetHistory(int playerProfileId)
         {
-            // Pull all sessions for the player, filter for completed ones
             var allSessions = await _sessionRepository.GetByPlayerProfileId(playerProfileId);
-            
+
             var history = allSessions
-                .Where(s => s.Status == "Completed" || s.Status == "RewardClaimed")
+                .Where(s => s.Status == "Completed" || s.Status == "RewardClaimed")  // Filter records matching the predicate
                 .Select(s => new DungeonHistoryResponseDto
                 {
                     DungeonSessionId = s.DungeonSessionId,
@@ -462,13 +433,9 @@ namespace BLL.Services
             return history;
         }
 
-        // ── Private Helpers ───────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Adds <paramref name="quantity"/> of <paramref name="itemId"/> to the player's inventory.
-        /// If the item already exists and is not equipment, increments Quantity. Otherwise creates a new row.
-        /// Must be called within an active transaction.
-        /// </summary>
+        // Executes core business logic for upsert inventory item.
+        // Completes asynchronously upon successful execution.
         private async Task UpsertInventoryItem(int playerProfileId, int itemId, int quantity, bool isEquipment)
             => await _rewardDeliveryService.DeliverItemAsync(playerProfileId, itemId, quantity, "dungeon reward");
 

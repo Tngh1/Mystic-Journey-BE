@@ -9,24 +9,30 @@ using System.Linq;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i item service.
     public class ItemService : IItemService
     {
         private readonly IItemRepository _repository;
         private readonly IMapper _mapper;
 
+        // Initializes a new instance of ItemService with dependencies: repository, mapper.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public ItemService(IItemRepository repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
         }
 
+        // Executes core business logic for get item by id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed ItemResponseDto? result asynchronously.
         public async Task<ItemResponseDto?> GetItemById(int id)
         {
             var item = await _repository.GetItemByIdWithStats(id);
-            if (item == null)
+            if (item == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
-            var dto = _mapper.Map<ItemResponseDto>(item);
+            var dto = _mapper.Map<ItemResponseDto>(item);  // Transform domain entity into DTO for the API response layer
 
             if (item.EquipmentStats != null)
             {
@@ -43,6 +49,9 @@ namespace BLL.Services
             return dto;
         }
 
+        // Executes core business logic for update item.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed ItemResponseDto result asynchronously.
         public async Task<ItemResponseDto> UpdateItem(int id, UpdateItemRequestDto request)
         {
             var item = await _repository.GetItemByIdWithStats(id)
@@ -79,15 +88,18 @@ namespace BLL.Services
             }
 
             var updated = await _repository.UpdateItem(item);
-            return await GetItemById(updated.ItemId) ?? _mapper.Map<ItemResponseDto>(updated);
+            return await GetItemById(updated.ItemId) ?? _mapper.Map<ItemResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get items paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<ItemResponseDto result asynchronously.
         public async Task<PagedResultDto<ItemResponseDto>> GetItemsPaged(int page, int pageSize, string? search, string? type, string? rarity, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var (totalCount, items) = await _repository.GetItemsPaged(page, pageSize, search, type, rarity, isActive, sortBy, sortOrder);
 
             var dtos = items.Select(item => {
-                var dto = _mapper.Map<ItemResponseDto>(item);
+                var dto = _mapper.Map<ItemResponseDto>(item);  // Transform domain entity into DTO for the API response layer
                 if (item.EquipmentStats != null)
                 {
                     dto.BaseHp = item.EquipmentStats.BaseHp;
@@ -105,6 +117,8 @@ namespace BLL.Services
             return new PagedResultDto<ItemResponseDto>(totalCount, dtos);
         }
 
+        // Executes core business logic for is equipment type.
+        // Returns a boolean indicating operation success.
         private static bool IsEquipmentType(string type)
         {
             return type is "Weapon" or "Armor" or "Accessory";

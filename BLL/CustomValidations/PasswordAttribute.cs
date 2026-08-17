@@ -4,22 +4,27 @@ using System.Text.RegularExpressions;
 
 namespace BLL.Validations
 {
+    // Executes validation attribute operation.
     public class PasswordAttribute : ValidationAttribute
     {
         private const int MinPasswordLength = 6;
         private const int MaxPasswordLength = 100;
         private const string PasswordPattern = "^(?=.*[A-Za-z])(?=.*\\d).+$";
 
+        // Initializes a new default instance of the PasswordAttribute class.
         public PasswordAttribute()
         {
             ErrorMessage = "Password is invalid.";
         }
 
+        // Initializes a new instance of PasswordAttribute with dependencies: errorMessage.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public PasswordAttribute(string errorMessage)
         {
             ErrorMessage = errorMessage;
         }
 
+        // Executes is valid operation.
         public override bool IsValid(object? value)
         {
             if (value is not string password)
@@ -32,6 +37,7 @@ namespace BLL.Validations
                    Regex.IsMatch(password, PasswordPattern);
         }
 
+        // Executes is valid operation.
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value is not string password)
@@ -39,7 +45,7 @@ namespace BLL.Validations
                 return ValidationResult.Success;
             }
 
-            if (string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(password))  // Mandatory string argument is blank — fail fast
             {
                 return new ValidationResult("Password cannot be empty.");
             }

@@ -3,28 +3,17 @@ using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
-    // Quản lý cấu hình dungeons (danh sách phó bản).
-    // Admin APIs: Tạo, cập nhật và xem danh sách dungeons.
+    // Initializes a new default instance of the IDungeonConfigService class.
     public interface IDungeonConfigService
     {
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // Lấy thông tin dungeon theo ID.
         Task<DungeonConfigResponseDto?> GetDungeonById(int id);
 
-        // Lấy danh sách tất cả dungeons có phân trang và lọc.
         Task<PagedResultDto<DungeonConfigResponseDto>> GetDungeonsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null);
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // ADMIN APIs
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // Cập nhật dungeon hiện có.
         Task<DungeonConfigResponseDto> UpdateDungeon(int id, UpdateDungeonConfigRequestDto request);
 
-        // Quản lý vật phẩm trong rương của dungeon
         Task<ChestItemResponseDto> AddChestItem(int dungeonId, CreateChestItemRequestDto request);
         Task<ChestItemResponseDto> UpdateChestItem(int dungeonId, int chestItemId, CreateChestItemRequestDto request);
         Task RemoveChestItem(int dungeonId, int chestItemId);

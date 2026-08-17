@@ -9,6 +9,7 @@ using System.Linq;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i monster service.
     public class MonsterService : IMonsterService
     {
         private readonly IMonsterRepository _repository;
@@ -19,6 +20,7 @@ namespace BLL.Services
         private readonly IInventoryRepository _inventoryRepository;
 
         private readonly IRewardDeliveryService _rewardDeliveryService;
+        // Initialize this instance from repository, player profile repository, mapper, and transaction manager and store repository, player profile repository, mapper, transaction manager, and dungeon config repository for later operations.
         public MonsterService(
             IMonsterRepository repository,
             IPlayerProfileRepository playerProfileRepository,
@@ -37,22 +39,28 @@ namespace BLL.Services
             _rewardDeliveryService = rewardDeliveryService;
         }
 
+        // Executes core business logic for get monster by id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed MonsterDetailResponseDto? result asynchronously.
         public async Task<MonsterDetailResponseDto?> GetMonsterById(int id)
         {
             var monster = await _repository.GetMonsterByIdWithDrops(id);
-            if (monster == null)
+            if (monster == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
-            var dto = _mapper.Map<MonsterDetailResponseDto>(monster);
+            var dto = _mapper.Map<MonsterDetailResponseDto>(monster);  // Transform domain entity into DTO for the API response layer
 
             if (monster.MonsterDrops != null && monster.MonsterDrops.Any())
             {
-                dto.MonsterDrops = _mapper.Map<List<MonsterDropResponseDto>>(monster.MonsterDrops.Where(d => d.IsActive));
+                dto.MonsterDrops = _mapper.Map<List<MonsterDropResponseDto>>(monster.MonsterDrops.Where(d => d.IsActive));  // Filter records matching the predicate
             }
 
             return dto;
         }
 
+        // Executes core business logic for update monster.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MonsterResponseDto result asynchronously.
         public async Task<MonsterResponseDto> UpdateMonster(int id, UpdateMonsterRequestDto request)
         {
             var monster = await _repository.GetMonsterById(id)
@@ -75,9 +83,12 @@ namespace BLL.Services
             monster.IsActive = request.IsActive;
 
             var updated = await _repository.UpdateMonster(monster);
-            return _mapper.Map<MonsterResponseDto>(updated);
+            return _mapper.Map<MonsterResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for add monster drop.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MonsterDropResponseDto result asynchronously.
         public async Task<MonsterDropResponseDto> AddMonsterDrop(int monsterId, CreateMonsterDropRequestDto request)
         {
             var monster = await _repository.GetMonsterById(monsterId)
@@ -96,39 +107,46 @@ namespace BLL.Services
 
             var created = await _repository.CreateDrop(drop);
 
-            return _mapper.Map<MonsterDropResponseDto>(created);
+            return _mapper.Map<MonsterDropResponseDto>(created);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get monsters paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<MonsterResponseDto result asynchronously.
         public async Task<PagedResultDto<MonsterResponseDto>> GetMonstersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var (totalCount, items) = await _repository.GetMonstersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
-            var dtos = items.Select(m => _mapper.Map<MonsterResponseDto>(m)).ToList();
+            var dtos = items.Select(m => _mapper.Map<MonsterResponseDto>(m)).ToList();  // Transform domain entity into DTO for the API response layer
             return new PagedResultDto<MonsterResponseDto>(totalCount, dtos);
         }
 
+        // Executes core business logic for get monster drops paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<MonsterDropResponseDto result asynchronously.
         public async Task<PagedResultDto<MonsterDropResponseDto>> GetMonsterDropsPaged(int page, int pageSize)
         {
             var (totalCount, items) = await _repository.GetMonsterDropsPaged(page, pageSize);
 
-            var dtos = _mapper.Map<List<MonsterDropResponseDto>>(items);
+            var dtos = _mapper.Map<List<MonsterDropResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
 
             return new PagedResultDto<MonsterDropResponseDto>(totalCount, dtos);
         }
 
+        // Executes core business logic for get monster for player.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed MonsterDetailResponseDto? result asynchronously.
         public async Task<MonsterDetailResponseDto?> GetMonsterForPlayer(int id, int playerProfileId)
         {
             var monster = await _repository.GetMonsterByIdWithDrops(id);
-            if (monster == null)
+            if (monster == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
             var discovery = await _repository.GetPlayerDiscovery(playerProfileId, id);
 
-            var dto = _mapper.Map<MonsterDetailResponseDto>(monster);
+            var dto = _mapper.Map<MonsterDetailResponseDto>(monster);  // Transform domain entity into DTO for the API response layer
 
-            // If player hasn't discovered this monster, mask details
             if (discovery == null || !discovery.IsDiscovered)
             {
-                // Masked representation
                 var masked = new MonsterDetailResponseDto
                 {
                     MonsterId = monster.MonsterId,
@@ -153,15 +171,15 @@ namespace BLL.Services
                 return masked;
             }
 
-            // Otherwise return full detail including drops
             if (monster.MonsterDrops != null && monster.MonsterDrops.Any())
             {
-                dto.MonsterDrops = _mapper.Map<List<MonsterDropResponseDto>>(monster.MonsterDrops.Where(d => d.IsActive));
+                dto.MonsterDrops = _mapper.Map<List<MonsterDropResponseDto>>(monster.MonsterDrops.Where(d => d.IsActive));  // Filter records matching the predicate
             }
 
             return dto;
         }
 
+        // Load monster catalog for player using player profile id, page, page size, and search; it loads monsters paged, loads discovered monster ids, loads player discoveries dict, projects records into the output shape, and materializes the query results and guards invalid or unavailable states.
         public async Task<PagedResultDto<PlayerMonsterCatalogItemDto>> GetMonsterCatalogForPlayer(
             int playerProfileId, int page, int pageSize, string? search, string? type)
         {
@@ -215,27 +233,26 @@ namespace BLL.Services
             return new PagedResultDto<PlayerMonsterCatalogItemDto>(totalCount, items);
         }
 
+        // Load spawns for player using player profile id, map name, region name, and dungeon id; it loads active spawns, loads completed quest boss monster ids, filters the eligible records, projects records into the output shape, and builds map.
         public async Task<List<MonsterSpawnResponseDto>> GetSpawnsForPlayer(
             int playerProfileId, string mapName, string? regionName, int? dungeonId)
         {
             var normalizedMap = NormalizeMapName(mapName);
             var spawns = await _repository.GetActiveSpawns(normalizedMap, regionName, dungeonId);
 
-            // Chặn boss theo quest đã hoàn thành CHỈ áp dụng cho open-world: đánh boss cốt
-            // truyện xong thì nó không mọc lại ngoài map. Dungeon là nội dung chơi lại được,
-            // dùng chung MonsterId với boss quest (vd quest 6 "Slay the Swamp Demon" có
-            // BossMonsterId = 2, cũng là boss của Dungeon 1) — lọc luôn ở đây làm boss dungeon
-            // mất hẳn sau khi người chơi xong quest, dungeon không bao giờ spawn boss nữa.
             var suppressedBossIds = dungeonId.HasValue
                 ? new HashSet<int>()
                 : await _repository.GetCompletedQuestBossMonsterIds(playerProfileId);
 
             return spawns
-                .Where(s => s.Monster != null && !suppressedBossIds.Contains(s.MonsterId))
-                .Select(s => _mapper.Map<MonsterSpawnResponseDto>(s))
+                .Where(s => s.Monster != null && !suppressedBossIds.Contains(s.MonsterId))  // Filter records matching the predicate
+                .Select(s => _mapper.Map<MonsterSpawnResponseDto>(s))  // Transform domain entity into DTO for the API response layer
                 .ToList();
         }
 
+        // Executes core business logic for create spawn.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MonsterSpawnResponseDto result asynchronously.
         public async Task<MonsterSpawnResponseDto> CreateSpawn(CreateMonsterSpawnRequestDto request)
         {
             var monster = await _repository.GetMonsterById(request.MonsterId)
@@ -261,16 +278,18 @@ namespace BLL.Services
             };
 
             var created = await _repository.CreateSpawn(spawn);
-            
-            // Reload with relations if needed for DTO, but for now we just map what we have
+
             var fullSpawn = await _repository.GetSpawnById(created.MonsterSpawnId) ?? created;
-            return _mapper.Map<MonsterSpawnResponseDto>(fullSpawn);
+            return _mapper.Map<MonsterSpawnResponseDto>(fullSpawn);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for update spawn.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed MonsterSpawnResponseDto result asynchronously.
         public async Task<MonsterSpawnResponseDto> UpdateSpawn(int spawnId, UpdateMonsterSpawnRequestDto request)
         {
             var spawn = await _repository.GetSpawnById(spawnId);
-            if (spawn == null)
+            if (spawn == null)  // Entity not found — short-circuit with appropriate error result
             {
                 throw new KeyNotFoundException($"Spawn with id {spawnId} not found.");
             }
@@ -279,26 +298,34 @@ namespace BLL.Services
             spawn.RespawnSeconds = request.RespawnSeconds;
 
             var updated = await _repository.UpdateSpawn(spawn);
-            return _mapper.Map<MonsterSpawnResponseDto>(updated);
+            return _mapper.Map<MonsterSpawnResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for delete spawn.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         public async Task DeleteSpawn(int spawnId)
         {
             var spawn = await _repository.GetSpawnById(spawnId);
-            if (spawn == null)
+            if (spawn == null)  // Entity not found — short-circuit with appropriate error result
             {
                 throw new KeyNotFoundException($"Spawn with id {spawnId} not found.");
             }
             await _repository.DeleteSpawn(spawnId);
         }
 
+        // Executes core business logic for get spawns by dungeon id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed List<MonsterSpawnResponseDto result asynchronously.
         public async Task<List<MonsterSpawnResponseDto>> GetSpawnsByDungeonId(int dungeonId)
         {
-            // For admin, we don't suppress boss spawns like we do for players.
             var spawns = await _repository.GetActiveSpawns(string.Empty, null, dungeonId);
-            return _mapper.Map<List<MonsterSpawnResponseDto>>(spawns);
+            return _mapper.Map<List<MonsterSpawnResponseDto>>(spawns);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get spawns by monster id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed List<MonsterSpawnResponseDto result asynchronously.
         public async Task<List<MonsterSpawnResponseDto>> GetSpawnsByMonsterId(int monsterId)
         {
             var spawns = await _repository.GetSpawnsByMonsterId(monsterId);
@@ -307,10 +334,13 @@ namespace BLL.Services
             return spawns.Select(s =>
             {
                 s.Monster ??= monster;
-                return _mapper.Map<MonsterSpawnResponseDto>(s);
+                return _mapper.Map<MonsterSpawnResponseDto>(s);  // Transform domain entity into DTO for the API response layer
             }).ToList();
         }
 
+        // Executes core business logic for discover monster.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed PlayerMonsterCatalogItemDto result asynchronously.
         public async Task<PlayerMonsterCatalogItemDto> DiscoverMonster(int playerProfileId, int monsterId)
         {
             var monster = await _repository.GetMonsterById(monsterId)
@@ -345,6 +375,7 @@ namespace BLL.Services
             };
         }
 
+        // Process defeat monster using player profile id, monster id, and request; it loads monster by id with drops, loads player profile by id, loads player discovery, filters the eligible records, and creates experience and guards invalid or unavailable states, keeps dependent writes atomic, and processes each matching entry.
         public async Task<MonsterDefeatResponseDto> DefeatMonster(
             int playerProfileId, int monsterId, MonsterDefeatRequestDto? request)
         {
@@ -352,7 +383,7 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"Monster with id {monsterId} not found.");
 
             if (!monster.IsActive)
-                throw new InvalidOperationException($"Monster {monsterId} is not active.");
+                throw new InvalidOperationException($"Monster {monsterId} is not active.");  // Unexpected runtime state — propagate to global error handler
 
             var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId)
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
@@ -360,15 +391,10 @@ namespace BLL.Services
             var existingDiscovery = await _repository.GetPlayerDiscovery(playerProfileId, monsterId);
             var wasDiscovered = existingDiscovery?.IsDiscovered ?? false;
 
-            // Thưởng đọc từ bảng cân bằng của từng quái (seed: SlimeLittle 4exp/8g … GolemBoss
-            // 53exp/264g). Trước đây random 1-100exp/10-100g nên slime và boss trả như nhau.
             var expEarned = monster.ExperienceReward;
             var goldEarned = monster.GoldReward;
 
-            // Đá nâng cấp (ItemId 22) đã nằm trong MonsterDrops của cả 15 quái với
-            // DropRate=100/IsGuaranteed/Min=1/Max=5, nên RollDrops trả sẵn. Không cộng tay
-            // thêm 1-5 viên nữa — đó là lý do người chơi nhận 2-10 thay vì 1-5.
-            var rolledItems = RollDrops(monster.MonsterDrops.Where(d => d.IsActive));
+            var rolledItems = RollDrops(monster.MonsterDrops.Where(d => d.IsActive));  // Filter records matching the predicate
 
             await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
@@ -405,6 +431,7 @@ namespace BLL.Services
 
 
 
+        // Executes core business logic for roll drops.
         private static List<MonsterDroppedItemDto> RollDrops(IEnumerable<MonsterDrop> drops)
         {
             var result = new List<MonsterDroppedItemDto>();
@@ -434,12 +461,16 @@ namespace BLL.Services
             return result;
         }
 
+        // Executes core business logic for add item to inventory.
+        // Logic details: validates required non-empty string arguments.
+        // Completes asynchronously upon successful execution.
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
             => await _rewardDeliveryService.DeliverItemAsync(playerProfileId, itemId, quantity, "monster drop");
 
+        // Normalizes world map names and maps aliases (such as ElfForest) to canonical map identifiers.
         private static string NormalizeMapName(string? mapName)
         {
-            if (string.IsNullOrWhiteSpace(mapName))
+            if (string.IsNullOrWhiteSpace(mapName))  // Mandatory string argument is blank — fail fast
                 return "ElfForest";
 
             var normalized = mapName.Trim();

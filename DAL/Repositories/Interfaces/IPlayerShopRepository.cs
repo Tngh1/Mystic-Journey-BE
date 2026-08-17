@@ -3,6 +3,7 @@ using DAL.Repositories.Results;
 
 namespace DAL.Repositories.Interfaces
 {
+    // Initializes a new default instance of the IPlayerShopRepository class.
     public interface IPlayerShopRepository
     {
         Task<bool> PlayerExists(int playerProfileId);
@@ -14,7 +15,9 @@ namespace DAL.Repositories.Interfaces
         Task<(int TotalCount, List<ShopItem> Items)> GetShopItems(
             int page,
             int pageSize,
+            // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
             string? currency,
+            // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
             string? itemType,
             string? search,
             bool includeSoldOut,

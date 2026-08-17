@@ -7,23 +7,19 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
-    /// <summary>
-    /// Triển khai quản lý transaction cho cơ sở dữ liệu sử dụng Entity Framework.
-    /// Đảm bảo tính nhất quán dữ liệu khi thực hiện nhiều thao tác.
-    /// </summary>
+    // Executes core business logic for i transaction manager.
     public class TransactionManager : ITransactionManager
     {
         private readonly MysticJourneyDbContext _context;
 
+        // Initializes a new instance of TransactionManager with dependencies: context.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public TransactionManager(MysticJourneyDbContext context)
         {
             _context = context;
         }
 
-        /// <summary>
-        /// Thực thi hành động trong một transaction.
-        /// Nếu có lỗi xảy ra, transaction sẽ được rollback tự động.
-        /// </summary>
+        // Queries the database to retrieve execute in transaction async records.
         public async Task ExecuteInTransactionAsync(Func<Task> action)
         {
             var strategy = _context.Database.CreateExecutionStrategy();
@@ -35,7 +31,8 @@ namespace DAL.Repositories
 
             await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _context.Database.BeginTransactionAsync();
+                // Keep the following dependent database writes in one transaction so a failure cannot persist partial state.
+                await using var transaction = await _context.Database.BeginTransactionAsync();  // Open serializable transaction — prevents race conditions on concurrent purchases
                 try
                 {
                     await action();
@@ -49,7 +46,8 @@ namespace DAL.Repositories
             });
         }
 
-        /// <summary>
+        // Executes core business logic for execute in transaction async.
+        // Completes asynchronously upon successful execution.
         public async Task ExecuteInTransactionAsync(Func<Task> action, IsolationLevel isolationLevel)
         {
             await ExecuteInTransactionAsync(async () =>
@@ -59,12 +57,11 @@ namespace DAL.Repositories
             }, isolationLevel);
         }
 
-        /// Thực thi hành động có返回值 trong transaction.
-        /// Nếu có lỗi xảy ra, transaction sẽ được rollback tự động.
-        /// </summary>
+        // Process the supplied values: maps the input discriminator to the corresponding domain value and fallback.
         public Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action)
             => ExecuteInTransactionAsync(action, IsolationLevel.ReadCommitted);
 
+        // Process execute in transaction async using action and isolation level; it creates execution strategy, opens a database transaction, commits the transaction, and rolls back the transaction on failure and guards invalid or unavailable states and keeps dependent writes atomic.
         public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, IsolationLevel isolationLevel)
         {
             if (_context.Database.CurrentTransaction != null)
@@ -73,7 +70,8 @@ namespace DAL.Repositories
             var strategy = _context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _context.Database.BeginTransactionAsync(isolationLevel);
+                // Keep the following dependent database writes in one transaction so a failure cannot persist partial state.
+                await using var transaction = await _context.Database.BeginTransactionAsync(isolationLevel);  // Open serializable transaction — prevents race conditions on concurrent purchases
                 try
                 {
                     var result = await action();

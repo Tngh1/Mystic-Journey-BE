@@ -20,6 +20,7 @@ LoadEnvIfExists(
     Path.Combine(workingDirectory, ".env"),
     Path.GetFullPath(Path.Combine(workingDirectory, "..", ".env")));
 
+// Executes load env if exists operation.
 static void LoadEnvIfExists(params string[] paths)
 {
     foreach (var path in paths)
@@ -37,24 +38,21 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 
-if (string.IsNullOrWhiteSpace(jwtKey))
-    throw new InvalidOperationException("JWT signing key is missing. Configure Jwt__Key in the environment or .env file.");
+if (string.IsNullOrWhiteSpace(jwtKey))  // Mandatory string argument is blank — fail fast
+    throw new InvalidOperationException("JWT signing key is missing. Configure Jwt__Key in the environment or .env file.");  // Unexpected runtime state — propagate to global error handler
 if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
-    throw new InvalidOperationException("JWT signing key must be at least 32 bytes. Configure a stronger Jwt__Key value.");
-if (string.IsNullOrWhiteSpace(jwtIssuer))
-    throw new InvalidOperationException("JWT issuer is missing. Configure Jwt__Issuer in the environment or .env file.");
-if (string.IsNullOrWhiteSpace(jwtAudience))
-    throw new InvalidOperationException("JWT audience is missing. Configure Jwt__Audience in the environment or .env file.");
+    throw new InvalidOperationException("JWT signing key must be at least 32 bytes. Configure a stronger Jwt__Key value.");  // Unexpected runtime state — propagate to global error handler
+if (string.IsNullOrWhiteSpace(jwtIssuer))  // Mandatory string argument is blank — fail fast
+    throw new InvalidOperationException("JWT issuer is missing. Configure Jwt__Issuer in the environment or .env file.");  // Unexpected runtime state — propagate to global error handler
+if (string.IsNullOrWhiteSpace(jwtAudience))  // Mandatory string argument is blank — fail fast
+    throw new InvalidOperationException("JWT audience is missing. Configure Jwt__Audience in the environment or .env file.");  // Unexpected runtime state — propagate to global error handler
 
-// Add services to the container.
 builder.Services.AddDbContextPool<MysticJourneyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),
     poolSize: 128);
 
-// OTP, cờ xác thực email và session đều nằm ở IDistributedCache (bên dưới), không phải
-// IMemoryCache — nên ở đây không đăng ký MemoryCache nữa.
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
-if (string.IsNullOrWhiteSpace(redisConnectionString))
+if (string.IsNullOrWhiteSpace(redisConnectionString))  // Mandatory string argument is blank — fail fast
 {
     redisConnectionString = builder.Configuration["Redis:ConnectionString"];
 }
@@ -74,46 +72,36 @@ else
 
 builder.Services.AddAutoMapper(mapconfig => mapconfig.AddProfile<AutoMapperProfile>());
 
-// Transaction Manager
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
-// Auth Services
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Item Services
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<IItemService, ItemService>();
 
-// Monster Services
 builder.Services.AddScoped<IMonsterRepository, MonsterRepository>();
 builder.Services.AddScoped<IMonsterService, MonsterService>();
 
-// Dungeon Services
 builder.Services.AddScoped<IDungeonConfigRepository, DungeonConfigRepository>();
 builder.Services.AddScoped<IChestRepository, ChestRepository>();
 builder.Services.AddScoped<IDungeonConfigService, DungeonConfigService>();
 
-// Dungeon Session Services
 builder.Services.AddScoped<IDungeonSessionRepository, DungeonSessionRepository>();
 builder.Services.AddScoped<IDungeonProgressRepository, DungeonProgressRepository>();
 builder.Services.AddScoped<IDungeonSessionService, DungeonSessionService>();
 
-// Shop Services
 builder.Services.AddScoped<IShopItemRepository, ShopItemRepository>();
 builder.Services.AddScoped<IShopItemService, ShopItemService>();
 
-// Player Currency and Shop Services
 builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 builder.Services.AddScoped<IPlayerShopRepository, PlayerShopRepository>();
 builder.Services.AddScoped<IPlayerShopService, PlayerShopService>();
 
-// Gacha Services
 builder.Services.AddScoped<IGachaBannerRepository, GachaBannerRepository>();
 builder.Services.AddScoped<IGachaBannerService, GachaBannerService>();
 
-// Quest Services
 builder.Services.AddScoped<IQuestRepository, QuestRepository>();
 builder.Services.AddScoped<IQuestService, QuestService>();
 builder.Services.AddScoped<IPlayerQuestRepository, PlayerQuestRepository>();
@@ -121,37 +109,29 @@ builder.Services.AddScoped<IPlayerQuestService, PlayerQuestService>();
 builder.Services.AddScoped<IWorldRepository, WorldRepository>();
 builder.Services.AddScoped<IWorldService, WorldService>();
 
-// Achievement Services
 builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
 
-// Content Services
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
 builder.Services.AddScoped<IContentService, ContentService>();
 
-// Mailbox Services
 builder.Services.AddScoped<IMailboxRepository, MailboxRepository>();
 builder.Services.AddScoped<IMailboxService, MailboxService>();
 
-// Inventory Services
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IRewardDeliveryService, RewardDeliveryService>();
 
-// Skill Services
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 
-// PlayerProfile Services
 builder.Services.AddScoped<IPlayerProfileRepository, PlayerProfileRepository>();
 builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 
-// PlayerHeartbeat Service
 builder.Services.AddScoped<IPlayerHeartbeatService, PlayerHeartbeatService>();
 
-// Chat Services
 builder.Services.Configure<AzureContentSafetyOptions>(builder.Configuration.GetSection("AzureContentSafety"));
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddScoped<IChatModerationRepository, ChatModerationRepository>();
@@ -159,40 +139,30 @@ builder.Services.AddScoped<IContentSafetyProvider, AzureContentSafetyProvider>()
 builder.Services.AddScoped<IChatModerationService, ChatModerationService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 
-// Character Services
 builder.Services.AddScoped<IPlayerStatRepository, PlayerStatRepository>();
 builder.Services.AddScoped<IClassConfigRepository, ClassConfigRepository>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 
-// Account Admin Services
 builder.Services.AddScoped<IAccountAdminService, AccountAdminService>();
 
-// PlayerAchievement Services
 builder.Services.AddScoped<IPlayerAchievementRepository, PlayerAchievementRepository>();
 
-// Purchase History Services
 builder.Services.AddScoped<IPurchaseHistoryRepository, PurchaseHistoryRepository>();
 builder.Services.AddScoped<IPurchaseHistoryService, PurchaseHistoryService>();
 
-// Sale Services
 builder.Services.AddScoped<ISaleService, SaleService>();
 
-// Dashboard Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
-// Daily Login Reward Services
 builder.Services.AddScoped<IDailyLoginRewardRepository, DailyLoginRewardRepository>();
 builder.Services.AddScoped<IDailyLoginRewardService, DailyLoginRewardService>();
 
-// Guild Services
 builder.Services.AddScoped<IGuildRepository, GuildRepository>();
 builder.Services.AddScoped<BLL.Services.Interfaces.IGuildService, BLL.Services.GuildService>();
 
-// Wiki Services 
 builder.Services.AddScoped<IWikiRepository, WikiRepository>();
 builder.Services.AddScoped<IWikiService, WikiService>();
 
-// Background Jobs
 builder.Services.AddHostedService<Mystic_Journey_API.BackgroundJobs.GuildContributionResetJob>();
 
 builder.Services.AddSignalR();
@@ -224,7 +194,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnTokenValidated = async context =>
             {
                 var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>();
-                if (cache != null)
+                if (cache != null)  // Entity exists — proceed with conditional branch
                 {
                     var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                     var sidClaim = context.Principal?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sid)?.Value
@@ -251,11 +221,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var response = new BLL.DTOs.ApiResponse<object>
                 {
                     Success = false,
-                    Message = isOverridden 
-                        ? "Your account has been logged in on another device." 
+                    Message = isOverridden
+                        ? "Your account has been logged in on another device."
                         : "Unauthorized access. Please log in to continue.",
-                    ErrorCode = isOverridden 
-                        ? "SESSION_OVERRIDDEN" 
+                    ErrorCode = isOverridden
+                        ? "SESSION_OVERRIDDEN"
                         : Mystic_Journey_API.Extensions.ErrorCodes.Unauthorized
                 };
                 await context.Response.WriteAsJsonAsync(response);
@@ -363,7 +333,6 @@ app.Use(async (context, next) =>
     }
 });
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

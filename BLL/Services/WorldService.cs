@@ -7,6 +7,7 @@ using System.Data;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i world service.
     public class WorldService : IWorldService
     {
         private const int MaxNpcsPerMap = 4;
@@ -26,6 +27,7 @@ namespace BLL.Services
         private readonly IMapper _mapper;
         private readonly IRewardDeliveryService _rewardDeliveryService;
 
+        // Initialize this instance from player profile repository, player quest service, player profile service, and world repository and store player profile repository, player quest service, player profile service, world repository, and item repository for later operations.
         public WorldService(
             IPlayerProfileRepository playerProfileRepository,
             IPlayerQuestService playerQuestService,
@@ -52,6 +54,9 @@ namespace BLL.Services
             _rewardDeliveryService = rewardDeliveryService;
         }
 
+        // Executes core business logic for get world state.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed WorldStateResponseDto result asynchronously.
         public async Task<WorldStateResponseDto> GetWorldState(int playerProfileId)
         {
             var profile = await GetProfile(playerProfileId);
@@ -73,7 +78,7 @@ namespace BLL.Services
                     PositionY = profile.PositionY
                 },
                 Maps = await BuildMapProgress(playerProfileId, mapName),
-                Npcs = _mapper.Map<List<NPCResponseDto>>(npcs),
+                Npcs = _mapper.Map<List<NPCResponseDto>>(npcs),  // Transform domain entity into DTO for the API response layer
                 Quests = quests,
                 ActiveQuest = quests.FirstOrDefault(q => q.Status == "InProgress")
                     ?? quests.FirstOrDefault(q => q.Status == "Completed")
@@ -82,10 +87,11 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for get position.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed PlayerWorldPositionDto result asynchronously.
         public async Task<PlayerWorldPositionDto> GetPosition(int playerProfileId)
         {
-            // Không dùng GetProfile(): hàm đó còn tính/lưu Energy, không liên quan tới
-            // bootstrap vị trí và có thể biến một GET nhẹ thành UPDATE ngoài ý muốn.
             var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId)
                 ?? throw new KeyNotFoundException($"PlayerProfile {playerProfileId} not found.");
             await EnsureTutorialSpawn(profile);
@@ -98,6 +104,9 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for update position.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PlayerWorldPositionDto result asynchronously.
         public async Task<PlayerWorldPositionDto> UpdatePosition(int playerProfileId, UpdateWorldPositionRequestDto request)
         {
             var profile = await GetProfile(playerProfileId);
@@ -114,6 +123,9 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for talk to npc.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed TalkToNpcResponseDto result asynchronously.
         public async Task<TalkToNpcResponseDto> TalkToNpc(int playerProfileId, TalkToNpcRequestDto request)
         {
             var profile = await GetProfile(playerProfileId);
@@ -123,29 +135,32 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"NPC {request.NPCId} not found.");
 
             if (npc.MapName != mapName)
-                throw new InvalidOperationException($"NPC {request.NPCId} is on map {npc.MapName}, but player is currently in {mapName}.");
+                throw new InvalidOperationException($"NPC {request.NPCId} is on map {npc.MapName}, but player is currently in {mapName}.");  // Unexpected runtime state — propagate to global error handler
 
             var linkedQuestIds = npc.Dialogues
-                .Where(d => d.LinkedQuestId.HasValue)
+                .Where(d => d.LinkedQuestId.HasValue)  // Filter records matching the predicate
                 .Select(d => d.LinkedQuestId!.Value)
                 .ToHashSet();
             var npcMapName = NormalizeMapName(npc.MapName);
             var playerQuests = await _playerQuestService.GetMyQuests(playerProfileId);
             var linkedQuests = playerQuests
-                .Where(q => linkedQuestIds.Contains(q.QuestId)
+                .Where(q => linkedQuestIds.Contains(q.QuestId)  // Filter records matching the predicate
                     || ((string.Equals(q.QuestGiverName, npc.Name, StringComparison.OrdinalIgnoreCase) || string.Equals(q.ObjectiveTarget, npc.Name, StringComparison.OrdinalIgnoreCase))
                         && string.Equals(NormalizeMapName(q.MapName), npcMapName, StringComparison.OrdinalIgnoreCase)))
-                .GroupBy(q => q.QuestId)
+                .GroupBy(q => q.QuestId)  // Aggregate records by grouping key
                 .Select(g => g.First())
                 .ToList();
 
             return new TalkToNpcResponseDto
             {
-                Npc = _mapper.Map<NPCResponseDto>(npc),
+                Npc = _mapper.Map<NPCResponseDto>(npc),  // Transform domain entity into DTO for the API response layer
                 LinkedQuests = linkedQuests
             };
         }
 
+        // Executes core business logic for interact with object.
+        // Logic details: delegates data queries and updates to repository layer; throws InvalidOperationException, KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed InteractObjectResponseDto result asynchronously.
         public Task<InteractObjectResponseDto> InteractWithObject(int playerProfileId, InteractObjectRequestDto request)
         {
             if (!request.QuestId.HasValue)
@@ -156,6 +171,9 @@ namespace BLL.Services
                 IsolationLevel.ReadCommitted);
         }
 
+        // Executes core business logic for interact with object core.
+        // Logic details: throws InvalidOperationException on invalid state or rule violations.
+        // Returns the computed InteractObjectResponseDto result asynchronously.
         private async Task<InteractObjectResponseDto> InteractWithObjectCore(int playerProfileId, InteractObjectRequestDto request)
         {
             var profile = await GetProfile(playerProfileId);
@@ -164,7 +182,7 @@ namespace BLL.Services
 
             if (NormalizeMapName(request.MapName) != mapName)
             {
-                throw new InvalidOperationException($"Player is currently in {mapName}, not {request.MapName}.");
+                throw new InvalidOperationException($"Player is currently in {mapName}, not {request.MapName}.");  // Unexpected runtime state — propagate to global error handler
             }
 
             if (!request.QuestId.HasValue)
@@ -186,7 +204,7 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId.Value}.");
 
             if (playerQuest.Quest?.MapName != mapName)
-                throw new InvalidOperationException($"Quest {request.QuestId.Value} does not belong to current map {mapName}.");
+                throw new InvalidOperationException($"Quest {request.QuestId.Value} does not belong to current map {mapName}.");  // Unexpected runtime state — propagate to global error handler
 
             if (playerQuest.Status != "InProgress")
             {
@@ -206,17 +224,11 @@ namespace BLL.Services
             if (IsCollectQuest(playerQuest.Quest))
             {
                 if (progressDelta != targetAmount)
-                    throw new InvalidOperationException($"Collect quest {request.QuestId.Value} must be committed with exactly {targetAmount} items.");
+                    throw new InvalidOperationException($"Collect quest {request.QuestId.Value} must be committed with exactly {targetAmount} items.");  // Unexpected runtime state — propagate to global error handler
 
-                // ponytail: Pickup count is client-attested because BE has no scene spawn ledger;
-                // upgrade to server-issued spawn IDs plus per-player consumed/respawn records for anti-cheat.
                 playerQuest.TargetValue = targetAmount;
                 playerQuest.Progress = targetAmount;
 
-                // Hái đủ vật phẩm KHÔNG phải là hoàn thành: Collect chỉ Completed khi nộp cho NPC
-                // qua TurnInQuestItem (nơi trừ item trong kho). Flip Completed ngay ở đây khiến
-                // client gặp NPC là AutoClaimCompletedQuest bắn popup "Reward Claimed!" + trả
-                // thưởng dù người chơi chưa trả nhiệm vụ, và vật phẩm không bao giờ bị trừ.
                 await _playerQuestRepository.Update(playerQuest);
 
                 var collectQuest = await _playerQuestService.GetMyQuestDetail(playerProfileId, request.QuestId.Value);
@@ -252,11 +264,17 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for turn in quest item.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer; throws InvalidOperationException, KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed TurnInQuestItemResponseDto result asynchronously.
         public Task<TurnInQuestItemResponseDto> TurnInQuestItem(int playerProfileId, TurnInQuestItemRequestDto request)
             => _transactionManager.ExecuteInTransactionAsync(
                 () => TurnInQuestItemCore(playerProfileId, request),
                 IsolationLevel.Serializable);
 
+        // Executes core business logic for turn in quest item core.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed TurnInQuestItemResponseDto result asynchronously.
         private async Task<TurnInQuestItemResponseDto> TurnInQuestItemCore(int playerProfileId, TurnInQuestItemRequestDto request)
         {
             var profile = await GetProfile(playerProfileId);
@@ -266,20 +284,20 @@ namespace BLL.Services
                 ?? throw new KeyNotFoundException($"NPC {request.NPCId} not found.");
 
             if (npc.MapName != mapName)
-                throw new InvalidOperationException($"NPC {request.NPCId} is on map {npc.MapName}, but player is currently in {mapName}.");
+                throw new InvalidOperationException($"NPC {request.NPCId} is on map {npc.MapName}, but player is currently in {mapName}.");  // Unexpected runtime state — propagate to global error handler
 
             var linkedToNpc = await _worldRepository.IsQuestLinkedToNpc(request.NPCId, request.QuestId);
             if (!linkedToNpc)
-                throw new InvalidOperationException($"Quest {request.QuestId} is not linked to NPC {request.NPCId}.");
+                throw new InvalidOperationException($"Quest {request.QuestId} is not linked to NPC {request.NPCId}.");  // Unexpected runtime state — propagate to global error handler
 
             var playerQuest = await _playerQuestRepository.GetByPlayerAndQuest(playerProfileId, request.QuestId)
                 ?? throw new KeyNotFoundException($"PlayerQuest not found for questId={request.QuestId}.");
 
             if (playerQuest.Quest?.MapName != mapName)
-                throw new InvalidOperationException($"Quest {request.QuestId} does not belong to current map {mapName}.");
+                throw new InvalidOperationException($"Quest {request.QuestId} does not belong to current map {mapName}.");  // Unexpected runtime state — propagate to global error handler
 
             if (!IsCollectQuest(playerQuest.Quest))
-                throw new InvalidOperationException($"Quest {request.QuestId} is not a QuestItem turn-in quest.");
+                throw new InvalidOperationException($"Quest {request.QuestId} is not a QuestItem turn-in quest.");  // Unexpected runtime state — propagate to global error handler
 
             if (playerQuest.Status == "Claimed")
             {
@@ -305,7 +323,7 @@ namespace BLL.Services
             }
 
             if (playerQuest.Status != "InProgress")
-                throw new InvalidOperationException($"Quest {request.QuestId} is not in progress (status={playerQuest.Status}).");
+                throw new InvalidOperationException($"Quest {request.QuestId} is not in progress (status={playerQuest.Status}).");  // Unexpected runtime state — propagate to global error handler
 
             var targetAmount = Math.Max(1, playerQuest.Quest?.TargetAmount ?? playerQuest.TargetValue);
             if (playerQuest.Progress < targetAmount)
@@ -347,7 +365,7 @@ namespace BLL.Services
                 };
             }
 
-            if (inventoryItem != null)
+            if (inventoryItem != null)  // Entity exists — proceed with conditional branch
             {
                 inventoryItem.Quantity -= targetAmount;
                 if (inventoryItem.Quantity <= 0)
@@ -375,6 +393,9 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for open chest.
+        // Logic details: delegates data queries and updates to repository layer; throws InvalidOperationException, KeyNotFoundException, ArgumentException on invalid state or rule violations.
+        // Returns the computed OpenChestResponseDto result asynchronously.
         public async Task<OpenChestResponseDto> OpenChest(int playerProfileId, OpenWorldChestRequestDto request)
         {
             if (!request.ChestId.HasValue && !request.PlayerChestId.HasValue)
@@ -391,7 +412,7 @@ namespace BLL.Services
                         ?? throw new KeyNotFoundException($"PlayerChest {request.PlayerChestId.Value} not found.");
 
                     if (playerChest.IsOpened)
-                        throw new InvalidOperationException("Chest has already been opened.");
+                        throw new InvalidOperationException("Chest has already been opened.");  // Unexpected runtime state — propagate to global error handler
 
                     chest = playerChest.Chest;
                 }
@@ -410,7 +431,7 @@ namespace BLL.Services
                     await _worldRepository.CreatePlayerChest(playerChest);
                 }
 
-                if (chest == null)
+                if (chest == null)  // Entity not found — short-circuit with appropriate error result
                     throw new KeyNotFoundException("Chest definition not found.");
 
                 var profile = await GetProfile(playerProfileId);
@@ -457,12 +478,18 @@ namespace BLL.Services
             });
         }
 
+        // Executes core business logic for get daily login status.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PlayerDailyLoginResponseDto? result asynchronously.
         public async Task<PlayerDailyLoginResponseDto?> GetDailyLoginStatus(int playerProfileId)
         {
             await GetProfile(playerProfileId);
             return await GetDailyLogin(playerProfileId);
         }
 
+        // Executes core business logic for claim daily login reward.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed ClaimDailyRewardResponseDto result asynchronously.
         public async Task<ClaimDailyRewardResponseDto> ClaimDailyLoginReward(int playerProfileId)
         {
             return await _transactionManager.ExecuteInTransactionAsync(async () =>
@@ -496,7 +523,7 @@ namespace BLL.Services
                 var rewardDay = today.Day;
                 var reward = await _worldRepository.GetDailyLoginReward(rewardDay, today.Month, today.Year);
 
-                if (reward == null)
+                if (reward == null)  // Entity not found — short-circuit with appropriate error result
                 {
                     return new ClaimDailyRewardResponseDto
                     {
@@ -510,7 +537,7 @@ namespace BLL.Services
                 var claimed = dailyLogin.ClaimedDays;
                 claimed.Add(rewardDay);
                 dailyLogin.ClaimedDays = claimed;
-                
+
                 dailyLogin.TotalDaysClaimed += 1;
                 dailyLogin.LastClaimedAt = DateTime.UtcNow;
                 dailyLogin.IsClaimedToday = true;
@@ -537,13 +564,16 @@ namespace BLL.Services
             });
         }
 
+        // Executes core business logic for retroactive claim daily login reward.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed ClaimDailyRewardResponseDto result asynchronously.
         public async Task<ClaimDailyRewardResponseDto> RetroactiveClaimDailyLoginReward(int playerProfileId, int dayToClaim)
         {
             return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 var profile = await GetProfile(playerProfileId);
                 var today = DateTime.UtcNow;
-                
+
                 if (dayToClaim >= today.Day)
                 {
                     return new ClaimDailyRewardResponseDto
@@ -575,7 +605,6 @@ namespace BLL.Services
                     };
                 }
 
-                // Chi phí điểm danh bù là 20 Gems
                 if (profile.Gems < 20)
                 {
                     return new ClaimDailyRewardResponseDto
@@ -584,8 +613,7 @@ namespace BLL.Services
                         Message = "Not enough Gems to retro-claim."
                     };
                 }
-                
-                // Giới hạn 5 lần/tháng
+
                 if (dailyLogin.RetroClaimCount >= 5)
                 {
                     return new ClaimDailyRewardResponseDto
@@ -595,7 +623,6 @@ namespace BLL.Services
                     };
                 }
 
-                // Kiểm tra phải bù ngày gần nhất bị lỡ
                 var claimedSet = dailyLogin.ClaimedDays.ToHashSet();
                 int maxMissedDay = -1;
                 for (int d = today.Day - 1; d >= 1; d--)
@@ -617,7 +644,7 @@ namespace BLL.Services
                 }
 
                 var reward = await _worldRepository.GetDailyLoginReward(dayToClaim, today.Month, today.Year);
-                if (reward == null)
+                if (reward == null)  // Entity not found — short-circuit with appropriate error result
                 {
                     return new ClaimDailyRewardResponseDto
                     {
@@ -634,7 +661,7 @@ namespace BLL.Services
                 var claimed = dailyLogin.ClaimedDays;
                 claimed.Add(dayToClaim);
                 dailyLogin.ClaimedDays = claimed;
-                
+
                 dailyLogin.TotalDaysClaimed += 1;
 
                 if (dailyLogin.PlayerDailyLoginId == 0)
@@ -663,6 +690,8 @@ namespace BLL.Services
             });
         }
 
+        // Executes core business logic for apply daily reward.
+        // Completes asynchronously upon successful execution.
         private async Task ApplyDailyReward(PlayerProfile profile, DailyLoginReward reward)
         {
             switch (reward.RewardType)
@@ -692,29 +721,37 @@ namespace BLL.Services
             }
         }
 
+        // Executes core business logic for add item to inventory.
+        // Logic details: validates required non-empty string arguments; throws InvalidOperationException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         private async Task AddItemToInventory(int playerProfileId, int itemId, int quantity)
             => await _rewardDeliveryService.DeliverItemAsync(playerProfileId, itemId, quantity, "world reward");
+        // Executes core business logic for validate quest interaction.
+        // Logic details: throws InvalidOperationException on invalid state or rule violations.
         private static void ValidateQuestInteraction(InteractObjectRequestDto request, Quest? quest)
         {
-            if (quest == null)
-                throw new InvalidOperationException("Quest definition is unavailable.");
+            if (quest == null)  // Entity not found — short-circuit with appropriate error result
+                throw new InvalidOperationException("Quest definition is unavailable.");  // Unexpected runtime state — propagate to global error handler
 
+            // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
             var objectiveType = quest.ObjectiveType?.Trim();
             if (!string.Equals(objectiveType, "Interact", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(objectiveType, "Collect", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException($"Quest {quest.QuestId} cannot be progressed by a world interaction.");
+                throw new InvalidOperationException($"Quest {quest.QuestId} cannot be progressed by a world interaction.");  // Unexpected runtime state — propagate to global error handler
             }
 
             var objectiveTarget = NormalizeToken(quest.ObjectiveTarget);
             var objectKey = NormalizeToken(request.ObjectKey);
-            if (string.IsNullOrEmpty(objectiveTarget) || string.IsNullOrEmpty(objectKey) ||
+            if (string.IsNullOrEmpty(objectiveTarget) || string.IsNullOrEmpty(objectKey) ||  // Mandatory string argument is null or empty — fail fast
                 (!objectKey.Contains(objectiveTarget) && !objectiveTarget.Contains(objectKey)))
             {
-                throw new InvalidOperationException($"Object {request.ObjectKey} is not an objective for quest {quest.QuestId}.");
+                throw new InvalidOperationException($"Object {request.ObjectKey} is not an objective for quest {quest.QuestId}.");  // Unexpected runtime state — propagate to global error handler
             }
         }
 
+        // Executes core business logic for consume required interaction items.
+        // Completes asynchronously upon successful execution.
         private async Task ConsumeRequiredInteractionItems(int playerProfileId, string objectKey)
         {
             var normalizedKey = NormalizeToken(objectKey);
@@ -740,7 +777,7 @@ namespace BLL.Services
             {
                 var item = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, requirement.itemId);
                 if (item == null || item.Quantity < requirement.quantity)
-                    throw new InvalidOperationException($"You need {requirement.quantity} {requirement.name}.");
+                    throw new InvalidOperationException($"You need {requirement.quantity} {requirement.name}.");  // Unexpected runtime state — propagate to global error handler
 
                 inventoryItems.Add((item, requirement.quantity, requirement.name));
             }
@@ -758,17 +795,18 @@ namespace BLL.Services
         }
 
 
+        // Executes core business logic for try collect quest item.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed Item? result asynchronously.
         private async Task<Item?> TryCollectQuestItem(int playerProfileId, InteractObjectRequestDto request, Quest? quest)
         {
             if (!IsQuestItemInteraction(request, quest))
                 return null;
 
-            // Client giữ Collect progress trong RAM và chỉ gọi BE ở lần nhặt cuối.
-            // Vì vậy giới hạn bằng inventory server-side, không dựa vào progress DB vốn luôn là 0 khi dở dang.
-            if (quest != null)
+            if (quest != null)  // Entity exists — proceed with conditional branch
             {
                 var item = await ResolveQuestItem(request, quest);
-                if (item == null)
+                if (item == null)  // Entity not found — short-circuit with appropriate error result
                     return null;
 
                 var targetAmount = Math.Max(1, quest.TargetAmount);
@@ -782,13 +820,15 @@ namespace BLL.Services
             }
 
             var unlinkedItem = await ResolveQuestItem(request, quest);
-            if (unlinkedItem == null)
+            if (unlinkedItem == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
             await AddItemToInventory(playerProfileId, unlinkedItem.ItemId, Math.Max(1, request.ProgressDelta));
             return unlinkedItem;
         }
 
+        // Executes core business logic for resolve quest item.
+        // Returns the computed Item? result asynchronously.
         private async Task<Item?> ResolveQuestItem(InteractObjectRequestDto request, Quest? quest)
         {
             var searchText = $"{request.ObjectKey} {request.InteractionType} {quest?.ObjectiveTarget} {quest?.ObjectiveLocation}";
@@ -817,11 +857,16 @@ namespace BLL.Services
             return questItems.FirstOrDefault(i => normalizedSearch.Contains(NormalizeToken(i.Name)));
         }
 
+        // Executes core business logic for find quest item by names.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed Item? result asynchronously.
         private async Task<Item?> FindQuestItemByNames(params string[] names)
         {
             return await _itemRepository.GetQuestItemByNames(names);
         }
 
+        // Executes core business logic for is quest item interaction.
+        // Returns a boolean indicating operation success.
         private static bool IsQuestItemInteraction(InteractObjectRequestDto request, Quest? quest)
         {
             return string.Equals(request.InteractionType, "Collect", StringComparison.OrdinalIgnoreCase) ||
@@ -837,33 +882,43 @@ namespace BLL.Services
                    Contains(request.ObjectKey, "Leaves");
         }
 
+        // Executes core business logic for is collect quest.
+        // Logic details: validates required non-empty string arguments.
+        // Returns a boolean indicating operation success.
         private static bool IsCollectQuest(Quest? quest)
         {
             return string.Equals(quest?.ObjectiveType, "Collect", StringComparison.OrdinalIgnoreCase);
         }
 
 
+        // Executes core business logic for contains.
+        // Logic details: validates required non-empty string arguments.
+        // Returns a boolean indicating operation success.
         private static bool Contains(string? source, string value)
         {
             return !string.IsNullOrWhiteSpace(source) &&
                    !string.IsNullOrWhiteSpace(value) &&
                    source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
         }
+        // Executes core business logic for normalize token.
+        // Logic details: validates required non-empty string arguments.
         private static string NormalizeToken(string? value)
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(value))  // Mandatory string argument is blank — fail fast
                 return string.Empty;
 
             var chars = value
-                .Where(char.IsLetterOrDigit)
+                .Where(char.IsLetterOrDigit)  // Filter records matching the predicate
                 .Select(char.ToLowerInvariant)
                 .ToArray();
             return new string(chars);
         }
 
+        // Executes core business logic for display item name.
+        // Logic details: validates required non-empty string arguments; delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
         private static string DisplayItemName(string? itemName)
         {
-            if (string.IsNullOrWhiteSpace(itemName))
+            if (string.IsNullOrWhiteSpace(itemName))  // Mandatory string argument is blank — fail fast
                 return "quest item";
 
             var trimmed = itemName.Trim();
@@ -873,6 +928,9 @@ namespace BLL.Services
                 : trimmed;
         }
 
+        // Executes core business logic for get profile.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed PlayerProfile result asynchronously.
         private async Task<PlayerProfile> GetProfile(int playerProfileId)
         {
             var profile = await _playerProfileRepository.GetPlayerProfileById(playerProfileId)
@@ -886,6 +944,9 @@ namespace BLL.Services
             return profile;
         }
 
+        // Executes core business logic for ensure tutorial spawn.
+        // Logic details: validates required non-empty string arguments; validates numeric boundary constraints; delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         private async Task EnsureTutorialSpawn(PlayerProfile profile)
         {
             var hasMap = !string.IsNullOrWhiteSpace(profile.LastMapName);
@@ -905,14 +966,16 @@ namespace BLL.Services
             await _playerProfileRepository.UpdatePlayerProfile(profile);
         }
 
+        // Executes core business logic for get daily login.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PlayerDailyLoginResponseDto? result asynchronously.
         private async Task<PlayerDailyLoginResponseDto?> GetDailyLogin(int playerProfileId)
         {
             var dailyLogin = await _worldRepository.GetPlayerDailyLogin(playerProfileId);
 
-            if (dailyLogin == null)
+            if (dailyLogin == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
-            // Reset month tracking if needed
             var today = DateTime.UtcNow;
             if (dailyLogin.CurrentYear != today.Year || dailyLogin.CurrentMonth != today.Month)
             {
@@ -921,7 +984,6 @@ namespace BLL.Services
                 dailyLogin.ClaimedDaysStr = string.Empty;
                 dailyLogin.RetroClaimCount = 0;
                 dailyLogin.IsClaimedToday = false;
-                // We just return the cleared state (will be saved when they claim something)
             }
 
             return new PlayerDailyLoginResponseDto
@@ -939,29 +1001,30 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for build map progress.
+        // Logic details: validates required non-empty string arguments; delegates data queries and updates to repository layer.
+        // Returns the computed List<WorldMapProgressDto result asynchronously.
         private async Task<List<WorldMapProgressDto>> BuildMapProgress(int playerProfileId, string currentMapName)
         {
-            // activeQuests dùng để tính ExplorationPercent và lấy danh sách map tự động
             var activeQuests = await _questRepository.GetActiveQuests();
 
             var npcMapNames = await _worldRepository.GetAllNpcMapNames();
 
             var playerQuestStates = await _playerQuestRepository.GetByPlayerId(playerProfileId);
 
-            // Map list tự động từ quest + NPC + map hiện tại
             var mapNames = activeQuests
                 .Select(q => NormalizeMapName(q.MapName))
                 .Concat(npcMapNames.Select(NormalizeMapName))
                 .Append(NormalizeMapName(currentMapName))
-                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Where(name => !string.IsNullOrWhiteSpace(name))  // Filter records matching the predicate
                 .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(name => name)
+                .OrderBy(name => name)  // Sort results oldest/lowest first
                 .ToList();
 
             return mapNames.Select(mapName =>
             {
                 var questIds = activeQuests
-                    .Where(q => string.Equals(NormalizeMapName(q.MapName), mapName, StringComparison.OrdinalIgnoreCase))
+                    .Where(q => string.Equals(NormalizeMapName(q.MapName), mapName, StringComparison.OrdinalIgnoreCase))  // Filter records matching the predicate
                     .Select(q => q.QuestId)
                     .ToHashSet();
 
@@ -971,9 +1034,6 @@ namespace BLL.Services
 
                 var total = questIds.Count;
 
-                // IsUnlocked: tutorial và map hiện tại luôn mở.
-                // Các map khác: có ít nhất 1 quest trên map đó đã Claimed.
-                // (Unity dùng MapData.unlockQuestId + QuestManager để kiểm chính xác hơn)
                 var hasClaimedQuest = playerQuestStates.Any(pq =>
                     string.Equals(NormalizeMapName(pq.Quest?.MapName), mapName, StringComparison.OrdinalIgnoreCase)
                     && pq.Status == "Claimed");
@@ -992,15 +1052,19 @@ namespace BLL.Services
 
 
 
+        // Normalizes world map names and maps aliases (such as ElfForest) to canonical map identifiers.
         private static string NormalizeMapName(string? mapName)
         {
-            if (string.IsNullOrWhiteSpace(mapName))
+            if (string.IsNullOrWhiteSpace(mapName))  // Mandatory string argument is blank — fail fast
                 return TutorialMapName;
 
             var normalized = mapName.Trim();
             return IsTutorialMapAlias(normalized) ? TutorialMapName : normalized;
         }
 
+        // Executes core business logic for is tutorial map alias.
+        // Logic details: validates required non-empty string arguments.
+        // Returns a boolean indicating operation success.
         private static bool IsTutorialMapAlias(string mapName)
         {
             return string.Equals(mapName, "ElfForest", StringComparison.OrdinalIgnoreCase)
@@ -1011,9 +1075,11 @@ namespace BLL.Services
                 || string.Equals(mapName, TutorialMapName, StringComparison.OrdinalIgnoreCase);
         }
 
+        // Executes core business logic for to display map name.
+        // Logic details: validates required non-empty string arguments.
         private static string ToDisplayMapName(string mapName)
         {
-            if (string.IsNullOrWhiteSpace(mapName))
+            if (string.IsNullOrWhiteSpace(mapName))  // Mandatory string argument is blank — fail fast
                 return "Elf Forest";
 
             var chars = new List<char> { mapName[0] };

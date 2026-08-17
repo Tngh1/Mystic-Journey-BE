@@ -7,8 +7,7 @@ using System.Security.Claims;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý world (thế giới game) của người chơi.
-    // Cho phép xem trạng thái world, tương tác với NPC, rương, quest, và nhận thưởng đăng nhập hàng ngày.
+    // Executes controller base operation.
     [Route("api/world")]
     [ApiController]
     [Authorize]
@@ -16,125 +15,118 @@ namespace Mystic_Journey_API.Controllers
     {
         private readonly IWorldService _worldService;
 
+        // Initializes a new instance of WorldController with dependencies: worldService.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public WorldController(IWorldService worldService)
         {
             _worldService = worldService;
         }
 
+        // Executes get player profile id operation.
+        // Throws an exception if precondition validations fail.
         private int GetPlayerProfileId()
         {
             var claim = User.FindFirstValue("playerProfileId");
-            if (!int.TryParse(claim, out var id))
-                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
+            if (!int.TryParse(claim, out var id))  // Claim value missing or non-integer — reject as unauthorized
+                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");  // Authentication token is invalid or expired
             return id;
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // ── GET /api/world/state ─────────────────────────────────────────
-        // Lấy trạng thái world của player (vị trí, quest đang thực hiện, NPCs...).
+        // ─── Player APIs ───────────────────────────────────────────────────────
         [HttpGet("state")]
+        // Retrieves composite world state snapshot (position, active quests, daily login streak, chest cooldowns).
         public async Task<IActionResult> GetState()
         {
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.GetWorldState(profileId);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.GetWorldState(profileId); // Assemble player snapshot data
             return Ok(new ApiResponse<WorldStateResponseDto> { Success = true, Data = result });
         }
 
-        // ── GET /api/world/position ─────────────────────────────────────
-        // Endpoint nhẹ dùng lúc vào game; không tải toàn bộ world state.
         [HttpGet("position")]
+        // Retrieves last saved map name and coordinate position for the player.
         public async Task<IActionResult> GetPosition()
         {
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.GetPosition(profileId);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.GetPosition(profileId); // Load persisted map coordinates
             return Ok(new ApiResponse<PlayerWorldPositionDto> { Success = true, Data = result });
         }
 
-        // ── PUT /api/world/position ─────────────────────────────────────
-        // Cập nhật vị trí của player trong world (map, tọa độ).
         [HttpPut("position")]
+        // Persists updated player coordinates (X, Y, MapName) upon world traversal or scene transition.
         public async Task<IActionResult> UpdatePosition([FromBody] UpdateWorldPositionRequestDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.UpdatePosition(profileId, request);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.UpdatePosition(profileId, request); // Save coordinates to Redis/DB cache
             return Ok(new ApiResponse<PlayerWorldPositionDto> { Success = true, Data = result });
         }
 
-        // ── POST /api/world/npc/talk ────────────────────────────────────
-        // Nói chuyện với NPC, nhận dialogue và quest.
         [HttpPost("npc/talk")]
+        // Processes dialogue interaction with an NPC and returns story text or quest prompts.
         public async Task<IActionResult> TalkToNpc([FromBody] TalkToNpcRequestDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.TalkToNpc(profileId, request);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.TalkToNpc(profileId, request); // Evaluate player quest state against NPC dialogue trees
             return Ok(new ApiResponse<TalkToNpcResponseDto> { Success = true, Data = result });
         }
 
-        // ── POST /api/world/npc/turn-in ─────────────────────────────────
-        // Nộp item quest cho NPC.
         [HttpPost("npc/turn-in")]
+        // Turns in required quest items to an NPC to complete an objective.
         public async Task<IActionResult> TurnInQuestItem([FromBody] TurnInQuestItemRequestDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.TurnInQuestItem(profileId, request);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.TurnInQuestItem(profileId, request); // Remove required items from inventory and progress quest status
             return Ok(new ApiResponse<TurnInQuestItemResponseDto> { Success = true, Data = result });
         }
 
-        // ── POST /api/world/chests/open ─────────────────────────────────
-        // Mở rương trong world.
         [HttpPost("chests/open")]
+        // Opens an overworld treasure chest and distributes randomized loot.
         public async Task<IActionResult> OpenChest([FromBody] OpenWorldChestRequestDto request)
         {
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.OpenChest(profileId, request);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.OpenChest(profileId, request); // Verify chest cooldown, grant rewards, and record opened state
             return Ok(new ApiResponse<OpenChestResponseDto> { Success = true, Data = result });
         }
 
-        // ── POST /api/world/interactions ────────────────────────────────
-        // Tương tác với object trong world (lever, button, v.v.).
         [HttpPost("interactions")]
+        // Triggers interactive world props (portals, switches, mining nodes, shrines).
         public async Task<IActionResult> InteractWithObject([FromBody] InteractObjectRequestDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.InteractWithObject(profileId, request);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.InteractWithObject(profileId, request); // Execute world object script and apply player buffs/teleports
             return Ok(new ApiResponse<InteractObjectResponseDto> { Success = true, Data = result });
         }
 
-        // ── POST /api/world/daily-login/claim ───────────────────────────
-        // Nhận thưởng đăng nhập hàng ngày.
         [HttpPost("daily-login/claim")]
+        // Claims the login reward for today's active day on the calendar.
         public async Task<IActionResult> ClaimDailyLoginReward()
         {
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.ClaimDailyLoginReward(profileId);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.ClaimDailyLoginReward(profileId); // Verify eligibility, mark today as claimed, and deposit calendar rewards
             return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Success = true, Data = result });
         }
 
-        // ── POST /api/world/daily-login/retro-claim ─────────────────────
-        // Nhận thưởng bù ngày trước (retroactive claim).
         [HttpPost("daily-login/retro-claim")]
+        // Spends Gems to retroactively claim a missed daily login day from earlier this month.
         public async Task<IActionResult> RetroactiveClaimDailyLoginReward([FromBody] RetroClaimRequestDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Validation failed.", ErrorCode = ErrorCodes.ValidationError });
 
-            var profileId = GetPlayerProfileId();
-            var result = await _worldService.RetroactiveClaimDailyLoginReward(profileId, request.DayNumber);
+            var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+            var result = await _worldService.RetroactiveClaimDailyLoginReward(profileId, request.DayNumber); // Deduct gem makeup fee, mark day claimed, and grant missed items
             return Ok(new ApiResponse<ClaimDailyRewardResponseDto> { Success = true, Data = result });
         }
     }

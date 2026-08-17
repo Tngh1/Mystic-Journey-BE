@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
 {
+    // Initializes a new default instance of the IChatModerationRepository class.
     public interface IChatModerationRepository
     {
         Task<ChatModerationPenalty?> GetActivePenalty(int playerProfileId, DateTime now);

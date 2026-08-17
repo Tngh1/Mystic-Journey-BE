@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories.Interfaces
 {
+    // Initializes a new default instance of the IChestRepository class.
     public interface IChestRepository
     {
         Task<Chest> CreateChest(Chest chest);

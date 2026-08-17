@@ -8,67 +8,77 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
+    // Queries the database to retrieve i daily login reward repository records.
     public class DailyLoginRewardRepository : IDailyLoginRewardRepository
     {
         private readonly MysticJourneyDbContext _context;
 
+        // Initializes a new instance of DailyLoginRewardRepository with dependencies: context.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public DailyLoginRewardRepository(MysticJourneyDbContext context)
         {
             _context = context;
         }
 
-        // ── Base query helper ────────────────────────────────────────────────
+        // Queries the database to retrieve base query records.
+        // Query details: uses AsNoTracking() for read-only query optimization; eagerly loads related entity navigation properties.
         private IQueryable<DailyLoginReward> BaseQuery() =>
-            _context.DailyLoginRewards.Include(r => r.RewardItem).AsNoTracking();
+            // Execute this query without change tracking because the returned entities are read-only.
+            _context.DailyLoginRewards.Include(r => r.RewardItem).AsNoTracking();  // Disable EF Core change tracking for this read-only query
 
-        // ── GAME APIs ────────────────────────────────────────────────────────
 
+        // Queries the database to retrieve get daily login reward by id records.
+        // Returns the matching DailyLoginReward? entity result or default if not found.
         public async Task<DailyLoginReward?> GetDailyLoginRewardById(int id)
         {
-            return await BaseQuery().FirstOrDefaultAsync(r => r.DailyLoginRewardId == id);
+            return await BaseQuery().FirstOrDefaultAsync(r => r.DailyLoginRewardId == id);  // Fetch single matching record or null if not found
         }
 
-        // Lấy override cho ngày + tháng/năm cụ thể (không fallback).
+        // Queries the database to retrieve get by day and month records.
+        // Returns the matching DailyLoginReward? entity result or default if not found.
         public async Task<DailyLoginReward?> GetByDayAndMonth(int dayNumber, int month, int year)
         {
-            return await BaseQuery().FirstOrDefaultAsync(r =>
+            return await BaseQuery().FirstOrDefaultAsync(r =>  // Fetch single matching record or null if not found
                 r.DayNumber == dayNumber &&
                 r.Month == month &&
                 r.Year == year &&
                 r.IsActive);
         }
 
-        // Lấy default cho ngày (Month=null, Year=null).
+        // Queries the database to retrieve get default by day number records.
+        // Query details: sorts records according to business ordering rules.
+        // Returns the matching DailyLoginReward? entity result or default if not found.
         public async Task<DailyLoginReward?> GetDefaultByDayNumber(int dayNumber)
         {
-            return await BaseQuery().FirstOrDefaultAsync(r =>
+            return await BaseQuery().FirstOrDefaultAsync(r =>  // Fetch single matching record or null if not found
                 r.DayNumber == dayNumber &&
                 r.Month == null &&
                 r.Year == null &&
                 r.IsActive);
         }
 
-        // Lấy tất cả overrides của một tháng/năm cụ thể.
+        // Queries the database to retrieve get overrides by month records.
+        // Query details: sorts records according to business ordering rules.
+        // Returns the matching List<DailyLoginReward entity result or default if not found.
         public async Task<List<DailyLoginReward>> GetOverridesByMonth(int month, int year)
         {
             return await BaseQuery()
-                .Where(r => r.Month == month && r.Year == year && r.IsActive)
-                .OrderBy(r => r.DayNumber)
-                .ToListAsync();
+                .Where(r => r.Month == month && r.Year == year && r.IsActive)  // Filter records matching the predicate
+                .OrderBy(r => r.DayNumber)  // Sort results oldest/lowest first
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
-        // Lấy tất cả default (Month=null, Year=null).
+        // Load all defaults; it filters the eligible records, orders the resulting records, and materializes the query results.
         public async Task<List<DailyLoginReward>> GetAllDefaults()
         {
             return await BaseQuery()
-                .Where(r => r.Month == null && r.Year == null && r.IsActive)
-                .OrderBy(r => r.DayNumber)
-                .ToListAsync();
+                .Where(r => r.Month == null && r.Year == null && r.IsActive)  // Filter records matching the predicate
+                .OrderBy(r => r.DayNumber)  // Sort results oldest/lowest first
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
-        // ── ADMIN APIs ───────────────────────────────────────────────────────
 
-        // Phân trang: month=null → lấy defaults; month có giá trị → lấy overrides tháng đó.
+        // Load daily login rewards paged using total count, page, page size, and month; it filters the eligible records, orders the resulting records, and materializes the query results and guards invalid or unavailable states.
         public async Task<(int TotalCount, List<DailyLoginReward> Items)> GetDailyLoginRewardsPaged(
             int page, int pageSize, int? month = null, int? year = null)
         {
@@ -76,47 +86,53 @@ namespace DAL.Repositories
 
             if (month == null || year == null)
             {
-                // Lấy default records (Month IS NULL AND Year IS NULL)
-                query = BaseQuery().Where(r => r.Month == null && r.Year == null);
+                query = BaseQuery().Where(r => r.Month == null && r.Year == null);  // Filter records matching the predicate
             }
             else
             {
-                // Lấy override records của tháng/năm cụ thể
-                query = BaseQuery().Where(r => r.Month == month && r.Year == year);
+                query = BaseQuery().Where(r => r.Month == month && r.Year == year);  // Filter records matching the predicate
             }
 
             int totalCount = await query.CountAsync();
             var items = await query
-                .OrderBy(r => r.DayNumber)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                .OrderBy(r => r.DayNumber)  // Sort results oldest/lowest first
+                .Skip((page - 1) * pageSize)  // Apply pagination offset — skip already-seen records
+                .Take(pageSize)  // Apply pagination limit — cap result set size
+                .ToListAsync();  // Materialize the query into a list from the database
 
             return (totalCount, items);
         }
 
+        // Persists state modifications to the database for create daily login reward.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching DailyLoginReward entity result or default if not found.
         public async Task<DailyLoginReward> CreateDailyLoginReward(DailyLoginReward reward)
         {
-            await _context.DailyLoginRewards.AddAsync(reward);
-            await _context.SaveChangesAsync();
+            await _context.DailyLoginRewards.AddAsync(reward);  // Stage new entity for insertion in the next SaveChanges call
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return reward;
         }
 
+        // Persists state modifications to the database for update daily login reward.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching DailyLoginReward entity result or default if not found.
         public async Task<DailyLoginReward> UpdateDailyLoginReward(DailyLoginReward reward)
         {
             _context.DailyLoginRewards.Update(reward);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return reward;
         }
 
+        // Persists state modifications to the database for delete daily login reward.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
         public async Task DeleteDailyLoginReward(int id)
         {
             var reward = await _context.DailyLoginRewards.FindAsync(id);
-            if (reward != null)
+            if (reward != null)  // Entity exists — proceed with conditional branch
             {
                 reward.IsActive = false;
                 _context.DailyLoginRewards.Update(reward);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             }
         }
     }

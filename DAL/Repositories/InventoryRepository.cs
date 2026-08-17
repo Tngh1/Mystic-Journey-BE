@@ -9,110 +9,123 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
-    /// <summary>
-    /// Triển khai các thao tác truy cập dữ liệu cho túi đồ và skin người chơi sử dụng Entity Framework.
-    /// </summary>
+    // Queries the database to retrieve i inventory repository records.
     public class InventoryRepository : IInventoryRepository
     {
         private readonly MysticJourneyDbContext _context;
 
+        // Initializes a new instance of InventoryRepository with dependencies: context.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public InventoryRepository(MysticJourneyDbContext context)
         {
             _context = context;
         }
 
-        // ── Inventory ──
 
-        /// <summary>Tìm vật phẩm trong túi đồ theo mã, kèm thông tin vật phẩm và người sở hữu.</summary>
+        // Queries the database to retrieve get by id records.
+        // Query details: eagerly loads related entity navigation properties.
+        // Returns the matching InventoryItem? entity result or default if not found.
         public async Task<InventoryItem?> GetById(int id)
         {
             return await _context.InventoryItems
-                .Include(i => i.Item)
+                .Include(i => i.Item)  // Eagerly load related navigation entities to avoid N+1 queries
                     .ThenInclude(it => it!.EquipmentStats)
-                .Include(i => i.PlayerProfile)
-                .FirstOrDefaultAsync(i => i.InventoryItemId == id);
+                .Include(i => i.PlayerProfile)  // Eagerly load related navigation entities to avoid N+1 queries
+                .FirstOrDefaultAsync(i => i.InventoryItemId == id);  // Fetch single matching record or null if not found
         }
 
-        /// <summary>Tìm vật phẩm trong túi của người chơi theo mã vật phẩm.</summary>
+        // Queries the database to retrieve get by player and item records.
+        // Query details: eagerly loads related entity navigation properties.
+        // Returns the matching InventoryItem? entity result or default if not found.
         public async Task<InventoryItem?> GetByPlayerAndItem(int playerProfileId, int itemId)
         {
             return await _context.InventoryItems
-                .Include(i => i.Item)
+                .Include(i => i.Item)  // Eagerly load related navigation entities to avoid N+1 queries
                     .ThenInclude(it => it!.EquipmentStats)
-                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);
+                .FirstOrDefaultAsync(i => i.PlayerProfileId == playerProfileId && i.ItemId == itemId);  // Fetch single matching record or null if not found
         }
 
-        /// <summary>Lấy toàn bộ túi đồ của người chơi.</summary>
-        // ThenInclude(EquipmentStats): chỉ số trang bị nằm ở bảng riêng. Không eager-load thì
-        // AutoMapper thấy null và trả 0 cho mọi chỉ số → popup chi tiết vật phẩm trống trơn.
+        // Performs database query and transactional persistence workflow for get by player id.
+        // Query details: eagerly loads related entity navigation properties; commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching List<InventoryItem entity result or default if not found.
         public async Task<List<InventoryItem>> GetByPlayerId(int playerProfileId)
         {
             return await _context.InventoryItems
-                .Include(i => i.Item)
+                .Include(i => i.Item)  // Eagerly load related navigation entities to avoid N+1 queries
                     .ThenInclude(it => it!.EquipmentStats)
-                .Where(i => i.PlayerProfileId == playerProfileId)
-                .ToListAsync();
+                .Where(i => i.PlayerProfileId == playerProfileId)  // Filter records matching the predicate
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
-        /// <summary>Thêm vật phẩm vào túi đồ (tự động ghi nhận thời gian tạo).</summary>
+        // Persists state modifications to the database for add item.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching InventoryItem entity result or default if not found.
         public async Task<InventoryItem> AddItem(InventoryItem item)
         {
             item.CreatedAt = DateTime.UtcNow;
-            await _context.InventoryItems.AddAsync(item);
-            await _context.SaveChangesAsync();
+            await _context.InventoryItems.AddAsync(item);  // Stage new entity for insertion in the next SaveChanges call
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return item;
         }
 
-        /// <summary>Cập nhật vật phẩm trong túi đồ.</summary>
+        // Persists state modifications to the database for update item.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching InventoryItem entity result or default if not found.
         public async Task<InventoryItem> UpdateItem(InventoryItem item)
         {
             _context.InventoryItems.Update(item);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return item;
         }
 
-        /// <summary>Xóa vật phẩm khỏi túi đồ (xóa vĩnh viễn).</summary>
+        // Persists state modifications to the database for delete item.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
         public async Task DeleteItem(int id)
         {
             var item = await _context.InventoryItems.FindAsync(id);
-            if (item != null)
+            if (item != null)  // Entity exists — proceed with conditional branch
             {
-                _context.InventoryItems.Remove(item);
-                await _context.SaveChangesAsync();
+                _context.InventoryItems.Remove(item);  // Mark entity for deletion in the next SaveChanges call
+                await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             }
         }
 
-        // ── Skin ──
 
-        /// <summary>Tìm skin của người chơi theo mã, kèm thông tin skin.</summary>
+        // Queries the database to retrieve get player skin by id records.
+        // Query details: eagerly loads related entity navigation properties.
+        // Returns the matching PlayerSkin? entity result or default if not found.
         public async Task<PlayerSkin?> GetPlayerSkinById(int id)
         {
             return await _context.PlayerSkins
-                .Include(ps => ps.Skin)
-                .FirstOrDefaultAsync(ps => ps.PlayerSkinId == id);
+                .Include(ps => ps.Skin)  // Eagerly load related navigation entities to avoid N+1 queries
+                .FirstOrDefaultAsync(ps => ps.PlayerSkinId == id);  // Fetch single matching record or null if not found
         }
 
-        /// <summary>Lấy tất cả skin của một người chơi.</summary>
+        // Performs database query and transactional persistence workflow for get player skins by player id.
+        // Query details: eagerly loads related entity navigation properties; commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching List<PlayerSkin entity result or default if not found.
         public async Task<List<PlayerSkin>> GetPlayerSkinsByPlayerId(int playerProfileId)
         {
             return await _context.PlayerSkins
-                .Include(ps => ps.Skin)
-                .Where(ps => ps.PlayerProfileId == playerProfileId)
-                .ToListAsync();
+                .Include(ps => ps.Skin)  // Eagerly load related navigation entities to avoid N+1 queries
+                .Where(ps => ps.PlayerProfileId == playerProfileId)  // Filter records matching the predicate
+                .ToListAsync();  // Materialize the query into a list from the database
         }
 
-        /// <summary>Cập nhật skin của người chơi.</summary>
+        // Performs database query and transactional persistence workflow for update player skin.
+        // Query details: commits entity state changes via EF Core SaveChangesAsync.
+        // Returns the matching PlayerSkin entity result or default if not found.
         public async Task<PlayerSkin> UpdatePlayerSkin(PlayerSkin skin)
         {
             _context.PlayerSkins.Update(skin);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return skin;
         }
 
-        /// <summary>Lấy tất cả skin đang hoạt động trong hệ thống.</summary>
+        // Load all active skins; it filters the eligible records and materializes the query results.
         public async Task<List<Skin>> GetAllActiveSkins()
         {
-            return await _context.Skins.Where(s => s.IsActive).ToListAsync();
+            return await _context.Skins.Where(s => s.IsActive).ToListAsync();  // Materialize the query into a list from the database
         }
     }
 }

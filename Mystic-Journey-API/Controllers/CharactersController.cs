@@ -10,8 +10,7 @@ using System;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý nhân vật (character) của người chơi.
-    // Cho phép tạo, xem chỉ số, cập nhật HP và nâng cấp thuộc tính.
+    // Executes controller base operation.
     [Route("api/characters")]
     [ApiController]
     [Authorize]
@@ -19,33 +18,27 @@ namespace Mystic_Journey_API.Controllers
     {
         private readonly ICharacterService _characterService;
 
+        // Initializes a new instance of CharactersController with dependencies: characterService.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public CharactersController(ICharacterService characterService)
         {
             _characterService = characterService;
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // NOTE: GET /api/characters/class-configs đã chuyển sang
-        // WikiController (/api/wiki/classes) — đó là dữ liệu codex công khai,
-        // không phải nhân vật của người chơi, nên không thuộc controller này.
 
-        // ── POST /api/characters ────────────────────────────────────
-        // Tạo nhân vật mới cho tài khoản.
-        // Thiết lập display name và class cho player mới đăng ký.
-        // Chỉ được gọi một lần cho mỗi tài khoản.
+        // ─── Player APIs ───────────────────────────────────────────────────────
         [HttpPost]
+        // Creates the initial character (Knight, Archer, Mage) for a freshly registered player profile.
         public async Task<IActionResult> Create([FromBody] CreateCharacterRequestDto request)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid) // Validate character creation payload (class name, starter preferences)
                     return BadRequest(ModelState);
 
-                var profileId = GetPlayerProfileId();
-                var result = await _characterService.CreateCharacter(profileId, request);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var result = await _characterService.CreateCharacter(profileId, request); // Initialize base stats, class traits, and starter inventory
 
                 return Ok(new ApiResponse<CharacterResponseDto>
                 {
@@ -76,17 +69,14 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── GET /api/characters/stats ─────────────────────────────
-        // Lấy danh sách chỉ số của nhân vật.
-        // Bao gồm: CurrentHp, MaxHp, Atk, Def, MoveSpeed, AttackSpeed, CritRate, CritDamage,
-        // DamageBonus, SkillPoints, TotalWins, TotalLosses, TotalKills, TotalDeaths.
         [HttpGet("stats")]
+        // Load the player's base stats with buffs and achievements, apply the saved equipment snapshot and achievement bonuses, then return the effective stat response.
         public async Task<IActionResult> GetStats()
         {
             try
             {
-                var profileId = GetPlayerProfileId();
-                var result = await _characterService.GetStats(profileId);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var result = await _characterService.GetStats(profileId); // Compute effective stats (base + equipment snapshot + buffs + passive bonuses)
 
                 return Ok(new ApiResponse<PlayerStatsResponseDto>
                 {
@@ -108,18 +98,17 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── PUT /api/characters/hp ────────────────────────────────
-        // Cập nhật HP hiện tại của nhân vật (đồng bộ từ client).
         [HttpPut("hp")]
+        // Persists real-time current health from the game client to the database.
         public async Task<IActionResult> UpdateHp([FromBody] UpdateHpRequestDto request)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid) // Validate HP value bounds
                     return BadRequest(ModelState);
 
-                var profileId = GetPlayerProfileId();
-                await _characterService.UpdateHp(profileId, request.CurrentHp);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                await _characterService.UpdateHp(profileId, request.CurrentHp); // Clamp HP to [0, MaxHp] and persist to PlayerStats
 
                 return Ok(new ApiResponse<object>
                 {
@@ -137,20 +126,17 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── POST /api/characters/upgrade ──────────────────────────
-        // Nâng cấp thuộc tính nhân vật bằng Skill Points.
-        // Body: attributeName (Atk|Def|MaxHp|MoveSpeed|AttackSpeed|CritRate|CritDamage|DamageBonus), amount.
-        // Skill Points được cấp tự động khi lên level (3 điểm mỗi level).
         [HttpPost("upgrade")]
+        // Allocates available skill/attribute points into character stats (e.g., ATK, DEF, HP).
         public async Task<IActionResult> Upgrade([FromBody] UpgradeAttributeRequestDto request)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid) // Validate attribute name and upgrade point amount
                     return BadRequest(ModelState);
 
-                var profileId = GetPlayerProfileId();
-                var result = await _characterService.UpgradeAttribute(profileId, request);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var result = await _characterService.UpgradeAttribute(profileId, request); // Verify unspent points, increment attribute, and deduct points
 
                 return Ok(new ApiResponse<UpgradeAttributeResponseDto>
                 {
@@ -181,15 +167,15 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── POST /api/characters/buffs ────────────────────────────
         [HttpPost("buffs")]
         [Authorize]
+        // Replace the player's persisted buff rows with the supplied active buffs, save the new set, and return the recalculated effective stats.
         public async Task<IActionResult> SyncBuffs([FromBody] UpdatePlayerBuffsRequest request)
         {
             try
             {
-                var playerProfileId = GetPlayerProfileId();
-                await _characterService.SyncBuffs(playerProfileId, request);
+                var playerProfileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                await _characterService.SyncBuffs(playerProfileId, request); // Invalidate expired buffs and sync current active buff entries
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
@@ -203,12 +189,13 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [HttpGet("level-up-options")]
+        // Generates random bonus perk/stat upgrade choices upon player level up.
         public async Task<IActionResult> GetLevelUpOptions()
         {
             try
             {
-                var profileId = GetPlayerProfileId();
-                var options = await _characterService.GetLevelUpOptions(profileId);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var options = await _characterService.GetLevelUpOptions(profileId); // Generate 3 random upgrade options for the player's class
                 return Ok(new ApiResponse<List<string>>
                 {
                     Success = true,
@@ -227,15 +214,16 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [HttpPost("allocate-stat")]
+        // Confirms player selection of a level-up stat choice and applies the bonus permanently.
         public async Task<IActionResult> AllocateStat([FromBody] AllocateStatRequestDto request)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid) // Validate stat allocation choice
                     return BadRequest(ModelState);
 
-                var profileId = GetPlayerProfileId();
-                var result = await _characterService.AllocateStat(profileId, request.StatName);
+                var profileId = GetPlayerProfileId(); // Extract caller's profile ID from JWT claim
+                var result = await _characterService.AllocateStat(profileId, request.StatName); // Apply stat increase, decrement pending level-up point count, and save
                 return Ok(new ApiResponse<PlayerStatsResponseDto>
                 {
                     Success = true,
@@ -253,13 +241,12 @@ namespace Mystic_Journey_API.Controllers
             }
         }
 
-        // ── Helper ─────────────────────────────────────────────────
-        // Đọc playerProfileId từ JWT token.
+        // Executes get player profile id operation.
         private int GetPlayerProfileId()
         {
             var claim = User.FindFirstValue("playerProfileId");
-            if (!int.TryParse(claim, out var id))
-                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");
+            if (!int.TryParse(claim, out var id))  // Claim value missing or non-integer — reject as unauthorized
+                throw new UnauthorizedAccessException("PlayerProfileId is missing from token. Please login again.");  // Authentication token is invalid or expired
             return id;
         }
     }

@@ -9,15 +9,19 @@ using Npgsql;
 
 namespace Mystic_Journey_API.Filters
 {
+    // Executes i exception filter operation.
     public class ApiExceptionFilter : IExceptionFilter
     {
         private readonly ILogger<ApiExceptionFilter> _logger;
 
+        // Initializes a new instance of ApiExceptionFilter with dependencies: logger.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public ApiExceptionFilter(ILogger<ApiExceptionFilter> logger)
         {
             _logger = logger;
         }
 
+        // Map the exception to an HTTP response, sanitize the message, build a failed ApiResponse, assign the ObjectResult status, and mark the exception handled.
         public void OnException(ExceptionContext context)
         {
             var (statusCode, errorCode) = MapException(context.Exception);
@@ -43,19 +47,19 @@ namespace Mystic_Journey_API.Filters
             context.ExceptionHandled = true;
         }
 
+        // Reject empty or raw HTTP status messages, map known status codes to safe user-facing text, and preserve valid backend messages.
         private static string SanitizeErrorMessage(string? message, int statusCode)
         {
             if (statusCode >= StatusCodes.Status500InternalServerError)
                 return GetDefaultStatusMessage(statusCode);
 
-            if (string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrWhiteSpace(message))  // Mandatory string argument is blank — fail fast
             {
                 return GetDefaultStatusMessage(statusCode);
             }
 
             var trimmed = message.Trim();
 
-            // If message is purely digits (e.g. "404", "401", "500")
             if (System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^\d{3}$"))
             {
                 if (int.TryParse(trimmed, out var code))
@@ -65,7 +69,6 @@ namespace Mystic_Journey_API.Filters
                 return GetDefaultStatusMessage(statusCode);
             }
 
-            // If message matches status code string patterns
             if (System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"(?i)(request failed with status code|status code \d{3}|error \d{3}|^\d{3}\s+)"))
             {
                 return GetDefaultStatusMessage(statusCode);
@@ -74,6 +77,7 @@ namespace Mystic_Journey_API.Filters
             return trimmed;
         }
 
+        // Map each supported HTTP status code to its safe user-facing message and use the unexpected-error message as the fallback.
         public static string GetDefaultStatusMessage(int statusCode) => statusCode switch
         {
             StatusCodes.Status400BadRequest => "Invalid request. Please check your input parameters.",
@@ -88,6 +92,7 @@ namespace Mystic_Journey_API.Filters
             _ => "An unexpected error occurred."
         };
 
+        // Translate known exception types into the corresponding HTTP status and stable API error code, falling back to an internal error.
         private static (int StatusCode, string ErrorCode) MapException(Exception ex) => ex switch
         {
             AccountNotFoundException => (StatusCodes.Status404NotFound, ErrorCodes.AccountNotFound),

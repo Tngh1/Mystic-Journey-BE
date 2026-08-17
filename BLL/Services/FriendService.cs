@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i friend service.
     public class FriendService : IFriendService
     {
         private readonly IFriendRepository _friendRepository;
@@ -18,6 +19,7 @@ namespace BLL.Services
         private readonly IDistributedCache _cache;
         private readonly IPlayerHeartbeatService _heartbeatService;
 
+        // Initialize this instance from friend repository, player profile repository, chat message repository, and cache and store friend repository, player profile repository, chat message repository, cache, and heartbeat service for later operations.
         public FriendService(
             IFriendRepository friendRepository,
             IPlayerProfileRepository playerProfileRepository,
@@ -32,6 +34,9 @@ namespace BLL.Services
             _heartbeatService = heartbeatService;
         }
 
+        // Executes core business logic for get friend list.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed List<FriendDto result asynchronously.
         public async Task<List<FriendDto>> GetFriendList(int playerId)
         {
             var friends = await _friendRepository.GetFriendListRaw(playerId);
@@ -56,6 +61,9 @@ namespace BLL.Services
             }).ToList();
         }
 
+        // Executes core business logic for get friend requests.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed List<PendingFriendRequestDto result asynchronously.
         public async Task<List<PendingFriendRequestDto>> GetFriendRequests(int playerId)
         {
             var requests = await _friendRepository.GetFriendRequests(playerId);
@@ -71,6 +79,9 @@ namespace BLL.Services
             }).ToList();
         }
 
+        // Executes core business logic for get friend blocks.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed List<FriendProfileDto result asynchronously.
         public async Task<List<FriendProfileDto>> GetFriendBlocks(int playerId)
         {
             var blocks = await _friendRepository.GetFriendBlocks(playerId);
@@ -84,10 +95,13 @@ namespace BLL.Services
             }).ToList();
         }
 
+        // Executes core business logic for get friend profile.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed FriendProfileDto? result asynchronously.
         public async Task<FriendProfileDto?> GetFriendProfile(int profileId)
         {
             var profile = await _playerProfileRepository.GetPlayerProfileById(profileId);
-            if (profile == null) return null;
+            if (profile == null) return null;  // Entity not found — short-circuit with appropriate error result
 
             return new FriendProfileDto
             {
@@ -105,15 +119,16 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for search players.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed List<FriendSearchDto result asynchronously.
         public async Task<List<FriendSearchDto>> SearchPlayers(int playerId, string keyword)
         {
-            var profiles = (await _playerProfileRepository.Search(keyword)).Take(20).ToList();
+            var profiles = (await _playerProfileRepository.Search(keyword)).Take(20).ToList();  // Apply pagination limit — cap result set size
             var results = new List<FriendSearchDto>();
 
-            // 2 truy vấn cho cả trang kết quả thay vì 2 truy vấn cho mỗi người
-            // (20 kết quả = 40 round-trip ở đường cũ).
             var otherIds = profiles
-                .Where(p => p.PlayerProfileId != playerId)
+                .Where(p => p.PlayerProfileId != playerId)  // Filter records matching the predicate
                 .Select(p => p.PlayerProfileId)
                 .ToList();
 
@@ -126,11 +141,12 @@ namespace BLL.Services
             var friendships = otherIds.Count == 0
                 ? new Dictionary<int, Friend>()
                 : (await _friendRepository.GetFriendshipsWith(playerId, otherIds))
-                    .GroupBy(f => f.RequesterId == playerId ? f.AddresseeId : f.RequesterId)
+                    .GroupBy(f => f.RequesterId == playerId ? f.AddresseeId : f.RequesterId)  // Aggregate records by grouping key
                     .ToDictionary(g => g.Key, g => g.First());
 
             foreach (var p in profiles)
             {
+                // Supported friendship states: Pending or Accepted; Pending is unanswered and Accepted is an active friendship.
                 var status = FriendRelationshipStatus.None;
 
                 if (p.PlayerProfileId == playerId)
@@ -172,18 +188,21 @@ namespace BLL.Services
             return results;
         }
 
+        // Executes core business logic for send friend request.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         public async Task SendFriendRequest(int requesterId, int targetProfileId)
         {
             if (requesterId == targetProfileId) throw new Exception("Cannot send friend request to yourself");
 
             var targetProfile = await _playerProfileRepository.GetPlayerProfileById(targetProfileId);
-            if (targetProfile == null) throw new Exception("Player not found");
+            if (targetProfile == null) throw new Exception("Player not found");  // Entity not found — short-circuit with appropriate error result
 
             var block = await _friendRepository.GetFriendBlock(targetProfileId, requesterId);
-            if (block != null) throw new Exception("Cannot send friend request");
+            if (block != null) throw new Exception("Cannot send friend request");  // Entity exists — proceed with conditional branch
 
             var reverseBlock = await _friendRepository.GetFriendBlock(requesterId, targetProfileId);
-            if (reverseBlock != null) throw new Exception("You have blocked this player");
+            if (reverseBlock != null) throw new Exception("You have blocked this player");  // Entity exists — proceed with conditional branch
 
             if (await _friendRepository.CountFriends(requesterId) >= 100)
                 throw new Exception("Friend list is full (Limit: 100)");
@@ -192,20 +211,20 @@ namespace BLL.Services
                 throw new Exception("Target's friend list is full");
 
             var existing = await _friendRepository.GetFriendship(requesterId, targetProfileId);
-            if (existing != null)
+            if (existing != null)  // Entity exists — proceed with conditional branch
             {
                 if (existing.Status == "Accepted") throw new Exception("Already friends");
-                if (existing.Status == "Pending") 
+                if (existing.Status == "Pending")
                 {
-                    if (existing.AddresseeId == requesterId) 
+                    if (existing.AddresseeId == requesterId)
                     {
                         throw new Exception("You already have a pending friend request from this player. Please accept it.");
                     }
                     throw new Exception("Friend request already sent");
                 }
-                
+
                 existing.Status = "Pending";
-                existing.RequesterId = requesterId; 
+                existing.RequesterId = requesterId;
                 existing.AddresseeId = targetProfileId;
                 existing.CreatedAt = DateTime.UtcNow;
                 await _friendRepository.UpdateFriend(existing);
@@ -222,6 +241,9 @@ namespace BLL.Services
             await _friendRepository.AddFriend(friend);
         }
 
+        // Executes core business logic for accept friend request.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         public async Task AcceptFriendRequest(int playerId, int requesterId)
         {
             var friendship = await _friendRepository.GetFriendship(playerId, requesterId);
@@ -241,6 +263,9 @@ namespace BLL.Services
             await _friendRepository.UpdateFriend(friendship);
         }
 
+        // Executes core business logic for decline friend request.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         public async Task DeclineFriendRequest(int playerId, int requesterId)
         {
             var friendship = await _friendRepository.GetFriendship(playerId, requesterId);
@@ -254,34 +279,40 @@ namespace BLL.Services
             await _friendRepository.UpdateFriend(friendship);
         }
 
+        // Executes core business logic for remove friend.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         public async Task RemoveFriend(int playerId, int targetId)
         {
             var friendship = await _friendRepository.GetFriendship(playerId, targetId);
 
             await DeleteFriendConversation(playerId, targetId);
 
-            if (friendship != null)
+            if (friendship != null)  // Entity exists — proceed with conditional branch
             {
                 await _friendRepository.RemoveFriend(friendship);
             }
         }
 
+        // Executes core business logic for block player.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         public async Task BlockPlayer(int playerId, int targetProfileId)
         {
             if (playerId == targetProfileId) throw new Exception("Cannot block yourself");
 
             var targetProfile = await _playerProfileRepository.GetPlayerProfileById(targetProfileId);
-            if (targetProfile == null) throw new Exception("Player not found");
+            if (targetProfile == null) throw new Exception("Player not found");  // Entity not found — short-circuit with appropriate error result
 
             var friendship = await _friendRepository.GetFriendship(playerId, targetProfileId);
             await DeleteFriendConversation(playerId, targetProfileId);
-            if (friendship != null)
+            if (friendship != null)  // Entity exists — proceed with conditional branch
             {
                 await _friendRepository.RemoveFriend(friendship);
             }
 
             var existingBlock = await _friendRepository.GetFriendBlock(playerId, targetProfileId);
-            if (existingBlock == null)
+            if (existingBlock == null)  // Entity not found — short-circuit with appropriate error result
             {
                 var block = new FriendBlock
                 {
@@ -293,23 +324,32 @@ namespace BLL.Services
             }
         }
 
+        // Executes core business logic for unblock player.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         public async Task UnblockPlayer(int playerId, int targetProfileId)
         {
             var existingBlock = await _friendRepository.GetFriendBlock(playerId, targetProfileId);
-            if (existingBlock != null)
+            if (existingBlock != null)  // Entity exists — proceed with conditional branch
             {
                 await _friendRepository.RemoveFriendBlock(existingBlock);
             }
         }
 
+        // Executes core business logic for is player online.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer.
+        // Returns a boolean indicating operation success.
         private bool IsPlayerOnline(PlayerProfile? profile)
         {
-            if (profile == null)
+            if (profile == null)  // Entity not found — short-circuit with appropriate error result
                 return false;
 
             return _heartbeatService.IsOnline(profile.LastSeen);
         }
 
+        // Executes core business logic for delete friend conversation.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         private async Task DeleteFriendConversation(int firstPlayerProfileId, int secondPlayerProfileId)
         {
             if (firstPlayerProfileId <= 0 || secondPlayerProfileId <= 0 || firstPlayerProfileId == secondPlayerProfileId)
@@ -319,17 +359,20 @@ namespace BLL.Services
             await RemoveConversationCache(firstPlayerProfileId, secondPlayerProfileId);
         }
 
+        // Executes core business logic for remove conversation cache.
+        // Completes asynchronously upon successful execution.
         private async Task RemoveConversationCache(int firstPlayerProfileId, int secondPlayerProfileId)
         {
             try
             {
-                await _cache.RemoveAsync(GetConversationCacheKey(firstPlayerProfileId, secondPlayerProfileId));
+                await _cache.RemoveAsync(GetConversationCacheKey(firstPlayerProfileId, secondPlayerProfileId));  // Invalidate stale cache entry to force fresh recalculation
             }
             catch
             {
             }
         }
 
+        // Executes core business logic for get conversation cache key.
         private static string GetConversationCacheKey(int firstPlayerProfileId, int secondPlayerProfileId)
         {
             var min = Math.Min(firstPlayerProfileId, secondPlayerProfileId);

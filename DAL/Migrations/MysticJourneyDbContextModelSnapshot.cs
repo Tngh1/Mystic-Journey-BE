@@ -13,6 +13,7 @@ namespace DAL.Migrations
     [DbContext(typeof(MysticJourneyDbContext))]
     partial class MysticJourneyDbContextModelSnapshot : ModelSnapshot
     {
+        // Executes build model operation.
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

@@ -9,45 +9,41 @@ using System.Threading.Tasks;
 
 namespace Mystic_Journey_API.Controllers
 {
-    // Quản lý lịch sử bán (sales).
-    // Game APIs: Xem lịch sử bán của player.
     [Route("api/[controller]")]
+    // Executes controller base operation.
     [ApiController]
     public class SalesController : ControllerBase
     {
         private readonly ISaleService _saleService;
 
+        // Initializes a new instance of SalesController with dependencies: saleService.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public SalesController(ISaleService saleService)
         {
             _saleService = saleService;
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // Lịch sử giao dịch là dữ liệu riêng tư: [Authorize] chỉ chứng minh "có đăng nhập",
-        // không chứng minh "là chủ của playerProfileId trong route". Thiếu bước đối chiếu này
-        // thì bất kỳ người chơi nào cũng đọc được lịch sử bán của người khác bằng cách đổi id.
+        // Checks caller permissions (self profile match or Admin role).
         private bool IsSelfOrAdmin(int playerProfileId)
         {
             if (User.IsInRole("Admin"))
-                return true;
+                return true; // Admins have global audit access
 
             var claim = User.FindFirstValue("playerProfileId");
-            return int.TryParse(claim, out var self) && self == playerProfileId;
+            return int.TryParse(claim, out var self) && self == playerProfileId; // Match token profile
         }
 
-        // ── GET /api/sales/player/{playerProfileId} ─────────────────
-        // Lấy lịch sử bán của player.
+        // ─── Player APIs ───────────────────────────────────────────────────────
         [Authorize]
         [HttpGet("player/{playerProfileId}")]
+        // Retrieves item and gear sell-back transactions for a player profile.
         public async Task<IActionResult> GetByPlayerId(int playerProfileId)
         {
             if (!IsSelfOrAdmin(playerProfileId))
                 return StatusCode(403, new ApiResponse<object> { Success = false, Message = "You can only view your own sales history.", ErrorCode = ErrorCodes.Forbidden });
 
-            var result = await _saleService.GetSalesByPlayerId(playerProfileId);
+            var result = await _saleService.GetSalesByPlayerId(playerProfileId); // Query sales ledger
             return Ok(new ApiResponse<List<PurchaseHistoryResponseDto>> { Success = true, Data = result });
         }
     }

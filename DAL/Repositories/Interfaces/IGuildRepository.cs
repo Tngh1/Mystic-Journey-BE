@@ -2,9 +2,9 @@ using DAL.Models;
 
 namespace DAL.Repositories.Interfaces;
 
+// Initializes a new default instance of the IGuildRepository class.
 public interface IGuildRepository
 {
-    // ─── Guild ─────────────────────────────────────────────────────────────────
 
     Task<Guild?> GetGuildByIdAsync(int guildId,
         bool includeMembers = false,
@@ -28,7 +28,6 @@ public interface IGuildRepository
 
     Task UpdateGuildAsync(Guild guild);
 
-    // ─── Guild Member ──────────────────────────────────────────────────────────
 
     Task<GuildMember?> GetMemberAsync(int guildId, int playerProfileId, bool includeProfile = false);
 
@@ -47,7 +46,6 @@ public interface IGuildRepository
 
     Task UpdateMemberAsync(GuildMember member);
 
-    // ─── Player Profile ───────────────────────────────────────────────────────
 
     Task<PlayerProfile?> GetPlayerProfileAsync(int playerProfileId,
         bool includeGuildMember = false,
@@ -57,7 +55,6 @@ public interface IGuildRepository
 
     Task UpdatePlayerProfileAsync(PlayerProfile profile);
 
-    // ─── Guild Application ────────────────────────────────────────────────────
 
     Task<GuildApplication?> GetApplicationAsync(int applicationId, int guildId);
 
@@ -71,7 +68,6 @@ public interface IGuildRepository
 
     Task RemoveApplicationsAsync(IEnumerable<GuildApplication> applications);
 
-    // ─── Guild Invitation ────────────────────────────────────────────────────
 
     Task<GuildInvitation?> GetActiveInvitationAsync(int guildId, int inviteeId, DateTime now);
 
@@ -85,19 +81,16 @@ public interface IGuildRepository
 
     Task UpdateInvitationAsync(GuildInvitation invitation);
 
-    // ─── Guild Log ───────────────────────────────────────────────────────────
 
     Task AddLogAsync(GuildLog log);
 
     Task<List<GuildLog>> GetRecentLogsAsync(int guildId, int take);
 
-    // ─── Guild Chat ───────────────────────────────────────────────────────────
 
     Task AddChatMessageAsync(GuildChatMessage message);
 
     Task<List<GuildChatMessage>> GetRecentChatAsync(int guildId, int take);
 
-    // ─── Persistence ──────────────────────────────────────────────────────────
 
     Task SaveChangesAsync();
 }

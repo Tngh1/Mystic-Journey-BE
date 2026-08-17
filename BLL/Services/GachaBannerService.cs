@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i gacha banner service.
     public class GachaBannerService : IGachaBannerService
     {
         private readonly IGachaBannerRepository _repository;
@@ -21,6 +22,7 @@ namespace BLL.Services
         private readonly IMapper _mapper;
         private readonly IRewardDeliveryService _rewardDeliveryService;
 
+        // Initialize this instance from repository, player profile repository, inventory repository, and item repository and store repository, player profile repository, inventory repository, item repository, and transaction manager for later operations.
         public GachaBannerService(
             IGachaBannerRepository repository,
             IPlayerProfileRepository playerProfileRepository,
@@ -39,11 +41,9 @@ namespace BLL.Services
             _rewardDeliveryService = rewardDeliveryService;
         }
 
-        // BR-053 / BR-136: gacha chi nhan gacha ticket item.
-        // Chan 2 kieu cau hinh sai:
-        //   1. PullCost > 0 nhung khong co CostItemId -> pull se khong the tru gi.
-        //   2. CostItemId tro vao item Type = "Currency" (Gold / Gem / Exp)
-        //      -> lach BR bang cau hinh thay vi bang code.
+        // Executes core business logic for validate cost item.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer; throws KeyNotFoundException, ArgumentException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         private async Task ValidateCostItem(int pullCost, int? costItemId)
         {
             if (pullCost <= 0)
@@ -64,15 +64,20 @@ namespace BLL.Services
                 throw new ArgumentException($"Item '{item.Name}' is inactive and cannot be used as a gacha cost.");
         }
 
+        // Executes core business logic for get banner by id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed GachaBannerDetailResponseDto? result asynchronously.
         public async Task<GachaBannerDetailResponseDto?> GetBannerById(int id)
         {
             var banner = await _repository.GetGachaBannerByIdWithItems(id);
-            if (banner == null)
+            if (banner == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
-            return _mapper.Map<GachaBannerDetailResponseDto>(banner);
+            return _mapper.Map<GachaBannerDetailResponseDto>(banner);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for create banner.
+        // Returns the computed GachaBannerResponseDto result asynchronously.
         public async Task<GachaBannerResponseDto> CreateBanner(CreateGachaBannerRequestDto request)
         {
             await ValidateCostItem(request.PullCost, request.CostItemId);
@@ -89,9 +94,12 @@ namespace BLL.Services
                 EndAt = request.EndAt.ToUniversalTime()
             };
             var created = await _repository.CreateGachaBanner(banner);
-            return _mapper.Map<GachaBannerResponseDto>(created);
+            return _mapper.Map<GachaBannerResponseDto>(created);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for update banner.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed GachaBannerResponseDto result asynchronously.
         public async Task<GachaBannerResponseDto> UpdateBanner(int id, UpdateGachaBannerRequestDto request)
         {
             var banner = await _repository.GetGachaBannerById(id)
@@ -109,9 +117,12 @@ namespace BLL.Services
             banner.EndAt = request.EndAt.ToUniversalTime();
 
             var updated = await _repository.UpdateGachaBanner(banner);
-            return _mapper.Map<GachaBannerResponseDto>(updated);
+            return _mapper.Map<GachaBannerResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for add banner item.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed GachaBannerItemResponseDto result asynchronously.
         public async Task<GachaBannerItemResponseDto> AddBannerItem(int bannerId, CreateGachaBannerItemRequestDto request)
         {
             var banner = await _repository.GetGachaBannerById(bannerId)
@@ -127,37 +138,44 @@ namespace BLL.Services
 
             var created = await _repository.CreateBannerItem(item);
 
-            return _mapper.Map<GachaBannerItemResponseDto>(created);
+            return _mapper.Map<GachaBannerItemResponseDto>(created);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get banners paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<GachaBannerResponseDto result asynchronously.
         public async Task<PagedResultDto<GachaBannerResponseDto>> GetBannersPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var (totalCount, items) = await _repository.GetBannersPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
 
-            var dtos = _mapper.Map<List<GachaBannerResponseDto>>(items);
+            var dtos = _mapper.Map<List<GachaBannerResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
 
             return new PagedResultDto<GachaBannerResponseDto>(totalCount, dtos);
         }
 
+        // Executes core business logic for get banner items paged.
+        // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws InvalidOperationException, KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed PagedResultDto<GachaBannerItemResponseDto result asynchronously.
         public async Task<PagedResultDto<GachaBannerItemResponseDto>> GetBannerItemsPaged(int page, int pageSize)
         {
             var (totalCount, items) = await _repository.GetBannerItemsPaged(page, pageSize);
 
-            var dtos = _mapper.Map<List<GachaBannerItemResponseDto>>(items);
+            var dtos = _mapper.Map<List<GachaBannerItemResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
 
             return new PagedResultDto<GachaBannerItemResponseDto>(totalCount, dtos);
         }
 
+        // Validate the active banner, player, payment item, pull count, and pity state; spend currency, select rewards by weighted chance, update inventory and history atomically, then return every pull result.
         public async Task<MultiPullResultDto> Pull(int playerProfileId, int bannerId, GachaPullRequestDto request)
         {
             var banner = await _repository.GetGachaBannerByIdWithItems(bannerId)
                 ?? throw new KeyNotFoundException("Gacha banner not found.");
 
             if (!banner.IsActive || DateTime.UtcNow < banner.StartAt || DateTime.UtcNow > banner.EndAt)
-                throw new InvalidOperationException("Gacha banner is not active.");
+                throw new InvalidOperationException("Gacha banner is not active.");  // Unexpected runtime state — propagate to global error handler
 
             if (banner.BannerItems == null || !banner.BannerItems.Any())
-                throw new InvalidOperationException("Gacha banner has no items.");
+                throw new InvalidOperationException("Gacha banner has no items.");  // Unexpected runtime state — propagate to global error handler
 
             return await _transactionManager.ExecuteInTransactionAsync(async () =>
             {
@@ -165,25 +183,21 @@ namespace BLL.Services
                     ?? throw new KeyNotFoundException("Player profile not found.");
 
                 bool isFree = request.PullCount == 1 && (!profile.LastFreeGachaTime.HasValue || (DateTime.UtcNow - profile.LastFreeGachaTime.Value).TotalHours >= 24);
-                
+
                 decimal totalCost = 0;
-                
+
                 if (!isFree)
                 {
                     totalCost = request.PullCount * banner.PullCost;
                     if (totalCost > 0)
                     {
-                        // BR-053 / BR-136: gacha CHI nhan gacha ticket item.
-                        // Coin (Gold), Gem va Energy tuyet doi khong duoc dung de pull.
-                        // Truoc day khi banner khong cau hinh CostItemId thi code fallback
-                        // sang tru profile.Gems -> vi pham BR. Nay reject thang.
                         if (!banner.CostItemId.HasValue)
-                            throw new InvalidOperationException(
+                            throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                                 "This gacha banner has no ticket item configured. A paid pull requires a gacha ticket; Coin, Gem and Energy cannot be used.");
 
                         var invCostItem = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, banner.CostItemId.Value);
                         if (invCostItem == null || invCostItem.Quantity < totalCost)
-                            throw new InvalidOperationException("Not enough gacha tickets or cost items.");
+                            throw new InvalidOperationException("Not enough gacha tickets or cost items.");  // Unexpected runtime state — propagate to global error handler
 
                         invCostItem.Quantity -= (int)totalCost;
                         if (invCostItem.Quantity <= 0)
@@ -201,7 +215,7 @@ namespace BLL.Services
 
                 decimal totalRate = banner.BannerItems.Sum(x => x.DropRate);
                 if (totalRate <= 0)
-                    throw new InvalidOperationException("Total drop rate is zero.");
+                    throw new InvalidOperationException("Total drop rate is zero.");  // Unexpected runtime state — propagate to global error handler
 
                 var rand = new Random();
                 var resultItems = new List<GachaPullResultDto>();
@@ -209,8 +223,8 @@ namespace BLL.Services
                 var bannerItemsById = banner.BannerItems.ToDictionary(x => x.ItemId, x => x);
                 var featuredBannerItem = banner.BannerItems.FirstOrDefault(x => x.IsFeatured);
 
-                if (featuredBannerItem == null)
-                    throw new InvalidOperationException("Gacha banner has no featured item.");
+                if (featuredBannerItem == null)  // Entity not found — short-circuit with appropriate error result
+                    throw new InvalidOperationException("Gacha banner has no featured item.");  // Unexpected runtime state — propagate to global error handler
 
                 for (int i = 0; i < request.PullCount; i++)
                 {
@@ -244,12 +258,12 @@ namespace BLL.Services
                             }
                         }
 
-                        if (selected == null) selected = banner.BannerItems.Last();
+                        if (selected == null) selected = banner.BannerItems.Last();  // Entity not found — short-circuit with appropriate error result
                     }
 
-                    // Check if it's "Gold" or "Gem" / "Gems" or Currency item
                     bool isNew = false;
                     string itemName = selected.Item?.Name ?? string.Empty;
+                    // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
                     string itemType = selected.Item?.Type ?? string.Empty;
 
                     bool isGold = itemName.Equals("Gold", StringComparison.OrdinalIgnoreCase) ||
@@ -298,7 +312,7 @@ namespace BLL.Services
                     if (!selectedIsFeatured)
                     {
                         currentPity = 1;
-                        foreach (var previousHistory in pullHistoryForBanner.Skip(1))
+                        foreach (var previousHistory in pullHistoryForBanner.Skip(1))  // Apply pagination offset — skip already-seen records
                         {
                             var previousItem = bannerItemsById.GetValueOrDefault(previousHistory.RewardItemId);
                             if (previousItem?.IsFeatured == true)
@@ -335,6 +349,9 @@ namespace BLL.Services
             });
         }
 
+        // Executes core business logic for get history paged.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PagedResultDto<GachaPullHistoryResponseDto result asynchronously.
         public async Task<PagedResultDto<GachaPullHistoryResponseDto>> GetHistoryPaged(int playerProfileId, int page, int pageSize)
         {
             var (totalCount, items) = await _repository.GetGachaPullHistoryPaged(playerProfileId, page, pageSize);
@@ -357,11 +374,17 @@ namespace BLL.Services
             return new PagedResultDto<GachaPullHistoryResponseDto>(totalCount, dtos);
         }
 
+        // Executes core business logic for remove banner item.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed bool result asynchronously.
         public async Task<bool> RemoveBannerItem(int bannerId, int bannerItemId)
         {
             return await _repository.RemoveBannerItem(bannerId, bannerItemId);
         }
 
+        // Executes core business logic for get all history paged.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PagedResultDto<GachaPullHistoryResponseDto result asynchronously.
         public async Task<PagedResultDto<GachaPullHistoryResponseDto>> GetAllHistoryPaged(int page, int pageSize, int? bannerId, string? rarity)
         {
             var (totalCount, items) = await _repository.GetAllGachaPullHistoryPaged(page, pageSize, bannerId, rarity);
@@ -382,13 +405,16 @@ namespace BLL.Services
             return new PagedResultDto<GachaPullHistoryResponseDto>(totalCount, dtos);
         }
 
+        // Executes core business logic for get player gacha stats.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PlayerGachaStatsDto? result asynchronously.
         public async Task<PlayerGachaStatsDto?> GetPlayerGachaStats(int playerProfileId)
         {
             var stats = await _repository.GetPlayerGachaStatsAsync(playerProfileId);
-            if (stats == null) return null;
+            if (stats == null) return null;  // Entity not found — short-circuit with appropriate error result
 
-            decimal actualRate = stats.Value.TotalPulls > 0 
-                ? ((decimal)stats.Value.LegendaryPulls / stats.Value.TotalPulls) * 100 
+            decimal actualRate = stats.Value.TotalPulls > 0
+                ? ((decimal)stats.Value.LegendaryPulls / stats.Value.TotalPulls) * 100
                 : 0;
 
             return new PlayerGachaStatsDto

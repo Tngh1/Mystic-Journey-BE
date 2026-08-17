@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i dashboard service.
     public class DashboardService : IDashboardService
     {
         private readonly IPlayerProfileRepository _playerProfileRepository;
@@ -19,6 +20,7 @@ namespace BLL.Services
         private readonly IMonsterRepository _monsterRepository;
         private readonly IPurchaseHistoryRepository _purchaseHistoryRepository;
 
+        // Initialize this instance from player profile repository, auth repository, item repository, and monster repository and store player profile repository, auth repository, item repository, monster repository, and purchase history repository for later operations.
         public DashboardService(
             IPlayerProfileRepository playerProfileRepository,
             IAuthRepository authRepository,
@@ -33,6 +35,9 @@ namespace BLL.Services
             _purchaseHistoryRepository = purchaseHistoryRepository;
         }
 
+        // Executes core business logic for get dashboard stats.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed DashboardStatsDto result asynchronously.
         public async Task<DashboardStatsDto> GetDashboardStats()
         {
             var totalPlayers = await _playerProfileRepository.GetTotalPlayerProfilesCount();
@@ -58,6 +63,8 @@ namespace BLL.Services
             };
         }
 
+        // Executes core business logic for get online offline counts async.
+        // Logic details: delegates data queries and updates to repository layer.
         private async Task<(int online, int offline)> GetOnlineOfflineCountsAsync()
         {
             var accounts = await _authRepository.GetAllActiveAccountsAsync();

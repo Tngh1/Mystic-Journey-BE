@@ -2,17 +2,15 @@ using System.Collections.Generic;
 
 namespace BLL.DTOs
 {
-    /// <summary>
-    /// Lớp chứa kết quả phân trang chuẩn cho các API danh sách.
-    /// </summary>
-    /// <typeparam name="T">Kiểu phần tử trong danh sách.</typeparam>
     public class PagedResultDto<T>
     {
-        /// <summary>Tổng số bản ghi thỏa điều kiện.</summary>
+        // Executes total count operation.
         public int TotalCount { get; set; }
-        /// <summary>Danh sách phần tử của trang hiện tại.</summary>
+        // Executes items operation.
         public IEnumerable<T> Items { get; set; } = new List<T>();
 
+        // Initializes a new instance of PagedResultDto with dependencies: totalCount, items.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public PagedResultDto(int totalCount, IEnumerable<T> items)
         {
             TotalCount = totalCount;

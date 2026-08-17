@@ -1,40 +1,37 @@
 namespace DAL.Models
 {
-    /// <summary>
-    /// Stores in-dungeon combat progress for a DungeonSession.
-    /// Kept in a separate table so the session row stays lean and
-    /// this can be updated frequently without touching session metadata.
-    /// </summary>
+    // Initializes a new default instance of the DungeonProgress class.
     public class DungeonProgress
     {
+        // Executes dungeon progress id operation.
         public int DungeonProgressId { get; set; }
 
+        // Executes dungeon session id operation.
         public int DungeonSessionId { get; set; }
+        // Executes dungeon session operation.
         public DungeonSession? DungeonSession { get; set; }
 
-        /// <summary>Total number of regular monsters killed in this run.</summary>
+        // Executes monsters killed operation.
         public int MonstersKilled { get; set; } = 0;
 
-        /// <summary>True if the final boss has spawned.</summary>
+        // Executes boss spawned operation.
         public bool BossSpawned { get; set; } = false;
 
-        /// <summary>True once the final boss of the dungeon is defeated.</summary>
+        // Executes boss killed operation.
         public bool BossKilled { get; set; } = false;
 
-        /// <summary>Time elapsed in seconds since dungeon start.</summary>
+        // Executes elapsed time operation.
         public int ElapsedTime { get; set; } = 0;
 
-        /// <summary>Completion percentage (0–100). Drives the UI progress bar.</summary>
+        // Executes completion percentage operation.
         public int CompletionPercentage { get; set; } = 0;
 
-        /// <summary>
-        /// JSON blob for future extensibility: floor checkpoints, traps triggered, buffs active, etc.
-        /// Stored as a raw string; deserialized in the service layer when needed.
-        /// Example: {"FloorsCleared":3,"TrapsTriggered":1}
-        /// </summary>
+        // Executes extra data operation.
         public string? ExtraData { get; set; }
 
+        // Executes created at operation.
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        // Executes updated at operation.
         public DateTime? UpdatedAt { get; set; }
     }
 }

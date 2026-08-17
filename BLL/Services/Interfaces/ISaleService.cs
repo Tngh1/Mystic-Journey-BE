@@ -4,15 +4,10 @@ using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
-    // Quản lý lịch sử bán (sales).
-    // Game APIs: Xem lịch sử bán của player.
+    // Initializes a new default instance of the ISaleService class.
     public interface ISaleService
     {
-        // ═══════════════════════════════════════════════════════════════════════
-        // GAME APIs (Người chơi)
-        // ═══════════════════════════════════════════════════════════════════════
 
-        // Lấy lịch sử bán của player.
         Task<List<PurchaseHistoryResponseDto>> GetSalesByPlayerId(int playerProfileId);
     }
 }

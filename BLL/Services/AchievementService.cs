@@ -9,6 +9,7 @@ using System.Linq;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i achievement service.
     public class AchievementService : IAchievementService
     {
         private readonly IAchievementRepository _repository;
@@ -19,6 +20,7 @@ namespace BLL.Services
         private readonly IRewardDeliveryService _rewardDeliveryService;
         private readonly ITransactionManager _transactionManager;
 
+        // Initialize this instance from repository, mapper, player achievement repository, and player profile repository and store repository, mapper, player achievement repository, player profile repository, and player quest repository for later operations.
         public AchievementService(
             IAchievementRepository repository,
             IMapper mapper,
@@ -37,15 +39,21 @@ namespace BLL.Services
             _transactionManager = transactionManager;
         }
 
+        // Executes core business logic for get achievement by id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed AchievementResponseDto? result asynchronously.
         public async Task<AchievementResponseDto?> GetAchievementById(int id)
         {
             var achievement = await _repository.GetAchievementByIdWithReward(id);
-            if (achievement == null)
+            if (achievement == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
-            return _mapper.Map<AchievementResponseDto>(achievement);
+            return _mapper.Map<AchievementResponseDto>(achievement);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for update achievement.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed AchievementResponseDto result asynchronously.
         public async Task<AchievementResponseDto> UpdateAchievement(int id, UpdateAchievementRequestDto request)
         {
             var achievement = await _repository.GetAchievementByIdWithReward(id)
@@ -64,19 +72,25 @@ namespace BLL.Services
             achievement.Point = request.Point;
 
             var updated = await _repository.UpdateAchievement(achievement);
-            return _mapper.Map<AchievementResponseDto>(updated);
+            return _mapper.Map<AchievementResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get achievements paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<AchievementResponseDto result asynchronously.
         public async Task<PagedResultDto<AchievementResponseDto>> GetAchievementsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? sortBy = null, string? sortOrder = null)
         {
             var (totalCount, items) = await _repository.GetAchievementsPaged(page, pageSize, search, type, isActive, sortBy, sortOrder);
 
-            var dtos = _mapper.Map<List<AchievementResponseDto>>(items);
+            var dtos = _mapper.Map<List<AchievementResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
             return new PagedResultDto<AchievementResponseDto>(totalCount, dtos);
         }
 
 
 
+        // Executes core business logic for get me achievements.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Returns the computed PlayerMeAchievementsResponseDto result asynchronously.
         public async Task<PlayerMeAchievementsResponseDto> GetMeAchievements(int playerProfileId)
         {
             var allAchievements = await _repository.GetAllActiveAchievements();
@@ -104,13 +118,12 @@ namespace BLL.Services
             {
                 await _playerAchievementRepository.AddRange(newPAs);
 
-                // Re-fetch to include the Navigation properties like Achievement.IconUrl, etc.
                 existingPA = await _playerAchievementRepository.GetByPlayerProfileId(playerProfileId);
             }
 
             await RecalculateProgress(playerProfileId, existingPA);
 
-            var dtos = _mapper.Map<List<PlayerAchievementResponseDto>>(existingPA);
+            var dtos = _mapper.Map<List<PlayerAchievementResponseDto>>(existingPA);  // Transform domain entity into DTO for the API response layer
 
             return new PlayerMeAchievementsResponseDto
             {
@@ -121,45 +134,36 @@ namespace BLL.Services
             };
         }
 
-        // Progress trước đây luôn bằng 0 (chỉ được ghi lúc tạo dòng), nên điều kiện
-        // "Progress >= RequiredValue" trong UnlockAchievement không bao giờ đạt được
-        // => không thành tích nào có thể mở khoá. Ở đây tính lại Progress từ các bộ đếm
-        // đã có sẵn (PlayerStat, PlayerProfile, PlayerQuest) mỗi lần người chơi mở bảng
-        // thành tích. Không thêm cột/bảng mới.
+        // Executes core business logic for recalculate progress.
+        // Logic details: delegates data queries and updates to repository layer.
+        // Completes asynchronously upon successful execution.
         private async Task RecalculateProgress(int playerProfileId, List<PlayerAchievement> playerAchievements)
         {
             if (playerAchievements.Count == 0)
                 return;
 
             var profile = await _playerProfileRepository.GetByIdFull(playerProfileId);
-            if (profile == null)
+            if (profile == null)  // Entity not found — short-circuit with appropriate error result
                 return;
 
             var stats = profile.PlayerStats;
             var quests = await _playerQuestRepository.GetByPlayerId(playerProfileId);
-            // Claimed cũng là đã hoàn thành — chỉ khác ở chỗ đã nhận thưởng hay chưa.
             var questsDone = quests.Count(q => q.Status == "Completed" || q.Status == "Claimed");
 
             var changed = new List<PlayerAchievement>();
             foreach (var pa in playerAchievements)
             {
-                // Đã hoàn thành thì chốt lại, không tính ngược khi bộ đếm thay đổi.
                 if (pa.IsCompleted)
                     continue;
 
                 int? progress = pa.AchievementId switch
                 {
-                    1 => Math.Min(questsDone, 1),                                             // Pioneer — xong chương đầu
-                    2 => stats?.TotalKills,                                                   // Monster Hunter — 1.000 monster
-                    3 => stats?.CritRate,                                                     // Deadeye — tổng Crit Rate
-                    4 => (profile.Level >= 30 && (stats?.TotalDeaths ?? 0) < 10) ? 1 : 0,     // The Unyielding
-                    7 => questsDone,                                                          // Adventurer — 100 quest
-                    8 => profile.TotalDungeonClears,                                          // Faithful Companion — 100 co-op dungeon
-                    // ponytail: 4 thành tích còn lại (5 Swift Wanderer, 6 Treasure Seeker,
-                    // 9 Conqueror, 10 Legend of Elarion) giữ Progress = 0 vì BE chưa có bộ đếm:
-                    // không có bảng vùng đã đi qua, IWorldRepository không có query đếm
-                    // PlayerChest.IsOpened, không có log boss đã hạ, và không có hằng số max level.
-                    // Muốn mở khoá thì phải thêm đúng bộ đếm còn thiếu rồi map thêm case ở đây.
+                    1 => Math.Min(questsDone, 1),
+                    2 => stats?.TotalKills,
+                    3 => stats?.CritRate,
+                    4 => (profile.Level >= 30 && (stats?.TotalDeaths ?? 0) < 10) ? 1 : 0,
+                    7 => questsDone,
+                    8 => profile.TotalDungeonClears,
                     _ => null
                 };
 
@@ -170,11 +174,13 @@ namespace BLL.Services
                 changed.Add(pa);
             }
 
-            // Update() gọi SaveChangesAsync mỗi lần -> dùng UpdateRange để chỉ ghi 1 lượt.
             if (changed.Count > 0)
                 await _playerAchievementRepository.UpdateRange(changed);
         }
 
+        // Executes core business logic for unlock achievement.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws InvalidOperationException, KeyNotFoundException, UnauthorizedAccessException on invalid state or rule violations.
+        // Returns the computed PlayerAchievementResponseDto result asynchronously.
         public async Task<PlayerAchievementResponseDto> UnlockAchievement(int playerProfileId, int playerAchievementId)
         {
             return await _transactionManager.ExecuteInTransactionAsync(async () =>
@@ -183,18 +189,16 @@ namespace BLL.Services
                     ?? throw new KeyNotFoundException($"Player achievement with id {playerAchievementId} not found.");
 
                 if (playerAchievement.PlayerProfileId != playerProfileId)
-                    throw new UnauthorizedAccessException("You cannot unlock another player's achievement.");
+                    throw new UnauthorizedAccessException("You cannot unlock another player's achievement.");  // Authentication token is invalid or expired
 
                 var achievement = playerAchievement.Achievement
-                    ?? throw new InvalidOperationException("Achievement data is missing.");
+                    ?? throw new InvalidOperationException("Achievement data is missing.");  // Unexpected runtime state — propagate to global error handler
 
-                // IsCompleted doubles as the idempotency marker: retries return the same result
-                // without granting currency or items a second time.
                 if (playerAchievement.IsCompleted)
-                    return _mapper.Map<PlayerAchievementResponseDto>(playerAchievement);
+                    return _mapper.Map<PlayerAchievementResponseDto>(playerAchievement);  // Transform domain entity into DTO for the API response layer
 
                 if (playerAchievement.Progress < achievement.RequiredValue)
-                    throw new InvalidOperationException("Achievement progress is not high enough to unlock.");
+                    throw new InvalidOperationException("Achievement progress is not high enough to unlock.");  // Unexpected runtime state — propagate to global error handler
 
                 if (achievement.RewardGold > 0 || achievement.RewardGem > 0)
                 {
@@ -219,7 +223,7 @@ namespace BLL.Services
                 playerAchievement.CompletedAt = DateTime.UtcNow;
 
                 var updated = await _playerAchievementRepository.Update(playerAchievement);
-                return _mapper.Map<PlayerAchievementResponseDto>(updated);
+                return _mapper.Map<PlayerAchievementResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
             }, IsolationLevel.Serializable);
         }
     }

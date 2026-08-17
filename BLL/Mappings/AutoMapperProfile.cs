@@ -4,24 +4,17 @@ using DAL.Models;
 
 namespace BLL.Mappings
 {
-    // Cấu hình ánh xạ giữa Model (DAL) và DTO (BLL) sử dụng AutoMapper.
-    // Quản lý các ánh xạ cho: Xác thực, Vật phẩm, Quái vật, Dungeon, Shop, Gacha, Nhiệm vụ, Thành tích, Cấu hình game.
-    // Quản lý các ánh xạ cho: Nội dung, Hồ sơ người chơi, Mua hàng, Mail, Guild, Chat, Bạn bè, Rương, Kỹ năng, Skin.
-    // Quản lý các ánh xạ cho: NPC, Thông báo, Túi đồ, Chỉ số trang bị.
+    // Executes profile operation.
+    // Validates input parameters against null or empty values.
     public class AutoMapperProfile : Profile
     {
+        // Initializes a new default instance of the AutoMapperProfile class.
         public AutoMapperProfile()
         {
-            // ═══════════════════════════════════════════════════════════════════════
-            // XÁC THỰC (Authentication)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ yêu cầu đăng ký sang tài khoản.
             CreateMap<RegisterRequestDto, Account>();
             CreateMap<AuthResponseDto, AuthResponseDto>();
 
-            // Ánh xạ Account sang AuthResponseDto (cơ bản, không bao gồm tokens).
-            // Sau khi map, service sẽ gán giá trị mặc định cho PositionX/Y và LastMapName nếu chưa có.
             CreateMap<Account, AuthResponseDto>()
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
@@ -41,7 +34,6 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
                 .ForMember(dest => dest.RefreshTokenExpiresAt, opt => opt.Ignore());
 
-            // Ánh xạ Account sang MeResponseDto (không bao gồm tokens).
             CreateMap<Account, MeResponseDto>()
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
@@ -55,41 +47,21 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.PositionX, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionX : 0.0))
                 .ForMember(dest => dest.PositionY, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.PositionY : 0.0));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // VẬT PHẨM (Item)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ vật phẩm sang response.
             CreateMap<Item, ItemResponseDto>();
-            // Ánh xạ yêu cầu cập nhật vật phẩm.
             CreateMap<UpdateItemRequestDto, Item>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // QUÁI VẬT (Monster)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ quái vật sang response (cơ bản).
             CreateMap<Monster, MonsterResponseDto>();
-            // Ánh xạ quái vật sang chi tiết (mở rộng từ response cơ bản).
             CreateMap<Monster, MonsterDetailResponseDto>()
                 .IncludeBase<Monster, MonsterResponseDto>();
-            // Ánh xạ yêu cầu cập nhật quái vật.
             CreateMap<UpdateMonsterRequestDto, Monster>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // DUNGEON
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ cấu hình dungeon sang response.
             CreateMap<DungeonConfig, DungeonConfigResponseDto>();
-            // Ánh xạ yêu cầu cập nhật cấu hình dungeon.
             CreateMap<UpdateDungeonConfigRequestDto, DungeonConfig>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // CỬA HÀNG (Shop)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ vật phẩm shop sang response.
             CreateMap<ShopItem, ShopItemResponseDto>();
             CreateMap<ShopItem, ShopItemPublicResponseDto>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : string.Empty))
@@ -119,35 +91,23 @@ namespace BLL.Mappings
                     src.Item != null && src.Item.EquipmentStats != null
                         ? BLL.Utils.StatHelper.FromScaled(src.Item.EquipmentStats.BonusCritDamage, BLL.Utils.StatScale.CritRate)
                         : 0f));
-            // Ánh xạ yêu cầu tạo/cập nhật vật phẩm shop.
             CreateMap<CreateShopItemRequestDto, ShopItem>();
             CreateMap<UpdateShopItemRequestDto, ShopItem>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // GACHA (Banner gacha/quay thưởng)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ banner gacha sang response (cơ bản).
             CreateMap<GachaBanner, GachaBannerResponseDto>();
-            // Ánh xạ banner gacha sang chi tiết (kèm items).
             CreateMap<GachaBanner, GachaBannerDetailResponseDto>()
                 .IncludeBase<GachaBanner, GachaBannerResponseDto>()
                 .ForMember(dest => dest.BannerItems, opt => opt.MapFrom(src => src.BannerItems));
-            // Ánh xạ yêu cầu cập nhật banner gacha.
             CreateMap<UpdateGachaBannerRequestDto, GachaBanner>();
 
-            // Ánh xạ item trong banner gacha.
             CreateMap<GachaBannerItem, GachaBannerItemResponseDto>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
                 .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
                 .ForMember(dest => dest.ItemRarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : null));
             CreateMap<CreateGachaBannerItemRequestDto, GachaBannerItem>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // NHIỆM VỤ (Quest)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ nhiệm vụ sang response.
             CreateMap<QuestRewardItem, QuestRewardItemDto>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null));
@@ -159,168 +119,102 @@ namespace BLL.Mappings
             CreateMap<Quest, QuestResponseDto>()
                 .ForMember(dest => dest.RewardItems, opt => opt.MapFrom(src => src.RewardItems))
                 .ForMember(dest => dest.RewardSkills, opt => opt.MapFrom(src => src.RewardSkills));
-            // Ánh xạ yêu cầu cập nhật nhiệm vụ.
             CreateMap<UpdateQuestRequestDto, Quest>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // THÀNH TÍCH (Achievement)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ thành tích sang response.
             CreateMap<Achievement, AchievementResponseDto>();
-            // Ánh xạ yêu cầu cập nhật thành tích.
             CreateMap<UpdateAchievementRequestDto, Achievement>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // NỘI DUNG (Content - Bài viết, Danh mục, Block)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ nội dung sang response (ánh xạ category).
             CreateMap<Content, ContentResponseDto>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryContentId))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryContent != null ? src.CategoryContent.Name : null));
-            // Ánh xạ nội dung sang chi tiết (kèm blocks).
             CreateMap<Content, ContentDetailResponseDto>()
                 .IncludeBase<Content, ContentResponseDto>()
                 .ForMember(dest => dest.Blocks, opt => opt.MapFrom(src => src.BlockContents ?? new List<BlockContent>()));
-            // Ánh xạ yêu cầu cập nhật nội dung.
             CreateMap<UpdateContentRequestDto, Content>();
 
-            // Ánh xạ block nội dung.
             CreateMap<BlockContent, BlockContentResponseDto>();
             CreateMap<CreateBlockContentRequestDto, BlockContent>();
             CreateMap<UpdateBlockContentRequestDto, BlockContent>();
 
-            // Ánh xạ danh mục nội dung.
             CreateMap<CategoryContent, CategoryContentResponseDto>();
             CreateMap<CreateCategoryContentRequestDto, CategoryContent>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // HỒ SƠ NGƯỜI CHƠI (Player Profile)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ hồ sơ người chơi sang response (ánh xạ email, class, năng lượng).
             CreateMap<PlayerProfile, PlayerProfileResponseDto>()
                 .ForMember(dest => dest.AccountEmail, opt => opt.MapFrom(src => src.Account != null ? src.Account.Email : null))
                 .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.Class))
                 .ForMember(dest => dest.Energy, opt => opt.MapFrom(src => src.CurrentEnergy))
                 .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.AvatarUrl) ? null : src.AvatarUrl))
-                // Ban là soft-delete trên Account (IsActive = false). Không trả field này thì
-                // trang manage-players không có cách nào biết ai đang bị ban sau khi F5.
                 .ForMember(dest => dest.IsBanned, opt => opt.MapFrom(src => src.Account != null && !src.Account.IsActive));
-            // Ánh xạ hồ sơ người chơi sang chi tiết (kèm stats).
             CreateMap<PlayerProfile, PlayerProfileDetailResponseDto>()
                 .IncludeBase<PlayerProfile, PlayerProfileResponseDto>()
                 .ForMember(dest => dest.Stats, opt => opt.MapFrom(src => src.PlayerStats));
-            // Ánh xạ yêu cầu cập nhật hồ sơ.
             CreateMap<UpdatePlayerProfileRequestDto, PlayerProfile>()
                 .ForMember(dest => dest.CurrentEnergy, opt => opt.MapFrom(src => src.Energy));
 
-            // Ánh xạ chỉ số người chơi.
             CreateMap<PlayerStat, PlayerStatsResponseDto>();
 
-            // Ánh xạ chỉ số cấu hình class.
             CreateMap<ClassConfig, ClassConfigResponseDto>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // MUA HÀNG (Purchase History)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ lịch sử mua hàng (ánh xạ tên người chơi, tên vật phẩm, loại tiền).
             CreateMap<PurchaseHistory, PurchaseHistoryResponseDto>()
                 .ForMember(dest => dest.PlayerName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.ShopItem != null && src.ShopItem.Item != null ? src.ShopItem.Item.Name : null))
                 .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.ShopItem != null && src.ShopItem.Item != null ? src.ShopItem.Item.IconUrl : null))
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.ShopItem != null ? src.ShopItem.Currency : "Unknown"));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // QUẢN LÝ TÀI KHOẢN (Account Admin)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ tài khoản sang response admin.
             CreateMap<Account, AccountAdminResponseDto>()
                 .ForMember(dest => dest.PlayerProfileId, opt => opt.MapFrom(src => src.PlayerProfile != null ? (int?)src.PlayerProfile.PlayerProfileId : null))
                 .ForMember(dest => dest.PlayerDisplayName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
                 .ForMember(dest => dest.PlayerClass, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.Class : null))
                 .ForMember(dest => dest.PlayerLevel, opt => opt.MapFrom(src => src.PlayerProfile != null ? (int?)src.PlayerProfile.Level : null));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // PHẦN THƯỞNG ĐĂNG NHẬP HÀNG NGÀY (Daily Login Reward)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ phần thưởng đăng nhập.
             CreateMap<DailyLoginReward, DailyLoginRewardResponseDto>()
                 .ForMember(dest => dest.RewardItemName, opt => opt.MapFrom(src => src.RewardItem != null ? src.RewardItem.Name : null));
             CreateMap<CreateDailyLoginRewardRequestDto, DailyLoginReward>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // VẬT PHẨM RƠI (Monster Drop)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ vật phẩm rơi từ quái vật.
             CreateMap<MonsterDrop, MonsterDropResponseDto>();
             CreateMap<CreateMonsterDropRequestDto, MonsterDrop>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // ĐIỂM SPAWN QUÁI VẬT (Monster Spawn)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ điểm spawn quái vật (ánh xạ tên, loại quái, tên dungeon).
             CreateMap<MonsterSpawn, MonsterSpawnResponseDto>()
                 .ForMember(dest => dest.MonsterName, opt => opt.MapFrom(src => src.Monster != null ? src.Monster.Name : string.Empty))
                 .ForMember(dest => dest.MonsterType, opt => opt.MapFrom(src => src.Monster != null ? src.Monster.Type : string.Empty))
                 .ForMember(dest => dest.DungeonName, opt => opt.MapFrom(src => src.Dungeon != null ? src.Dungeon.Name : null))
                 .ForMember(dest => dest.IsDungeonRepeatable, opt => opt.MapFrom(src => src.Dungeon != null ? src.Dungeon.IsRepeatable : true));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // THƯ (Mailbox)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ MailboxRewardItem sang DTO (kèm tên item và icon từ navigation property).
             CreateMap<MailboxRewardItem, MailboxRewardItemDto>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null));
 
-            // Ánh xạ thư sang chi tiết (kèm vật phẩm đính kèm).
             CreateMap<Mailbox, MailboxDetailDto>()
                 .ForMember(dest => dest.PlayerName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
                 .ForMember(dest => dest.AttachedItems, opt => opt.MapFrom(src => src.AttachedItems ?? new List<MailboxRewardItem>()));
 
-            // Ánh xạ thư sang tóm tắt (kèm trạng thái nhận thưởng và thời gian hết hạn).
             CreateMap<Mailbox, MailboxSummaryDto>()
-                // BR-147: phải khớp với MailboxService.HasUnclaimedAttachment, vì client
-                // dựa vào cờ này để chặn xóa. Trước đây chỉ xét AttachedItems nên thư
-                // đính kèm gold/gems (không có item) bị báo là "không có quà".
                 .ForMember(dest => dest.HasClaimableReward, opt => opt.MapFrom(src => !src.IsClaimed
                     && (src.AttachedGold > 0
                         || src.AttachedGems > 0
                         || (src.AttachedItems != null && src.AttachedItems.Any(i => i.Quantity > 0)))))
                 .ForMember(dest => dest.RemainingDays, opt => opt.MapFrom(src => src.ExpiredAt.HasValue ? (int?)Math.Max(0, (int)(src.ExpiredAt.Value - DateTime.UtcNow).TotalDays) : null));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // GUILD (Bang hội)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ guild sang response.
             CreateMap<Guild, GuildResponseDto>();
             CreateMap<Guild, GuildDetailResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật guild.
             CreateMap<CreateGuildRequestDto, Guild>();
             CreateMap<UpdateGuildRequestDto, Guild>();
 
-            // Ánh xạ thành viên guild.
             CreateMap<GuildMember, GuildMemberResponseDto>();
-            // Note: UpdateGuildMemberRequestDto removed in v2 - use PromoteMemberRequest/DemoteMemberRequest
 
-            // Ánh xạ lời mời guild.
             CreateMap<GuildInvitation, GuildInvitationResponseDto>();
-            // Note: CreateGuildInvitationRequestDto and RespondGuildInvitationRequestDto removed in v2 - managed by GuildService directly
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // CHAT & BẠN BÈ (Chat & Friend)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ tin nhắn chat.
             CreateMap<ChatMessage, ChatMessageResponseDto>()
                 .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src => src.Sender != null ? src.Sender.DisplayName : null))
                 .ForMember(dest => dest.SenderAvatarUrl, opt => opt.MapFrom(src => src.Sender != null ? src.Sender.AvatarUrl : null))
@@ -344,39 +238,26 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.Sender, opt => opt.Ignore())
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content.Trim()))
                 .ForMember(dest => dest.SentAt, opt => opt.Ignore());
-            // Ánh xạ bạn bè.
             CreateMap<Friend, FriendResponseDto>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // RƯƠNG (Chest)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ rương kho báu.
             CreateMap<Chest, ChestResponseDto>();
             CreateMap<CreateChestRequestDto, Chest>();
             CreateMap<UpdateChestRequestDto, Chest>();
 
-            // Ánh xạ vật phẩm trong rương.
             CreateMap<ChestItem, ChestItemResponseDto>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
                 .ForMember(dest => dest.ItemIconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
                 .ForMember(dest => dest.ItemRarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : null));
             CreateMap<CreateChestItemRequestDto, ChestItem>();
 
-            // Ánh xạ rương của người chơi.
             CreateMap<PlayerChest, PlayerChestResponseDto>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // KỸ NĂNG (Skill)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ kỹ năng sang response.
             CreateMap<Skill, SkillResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật kỹ năng.
             CreateMap<CreateSkillRequestDto, Skill>();
             CreateMap<UpdateSkillRequestDto, Skill>();
 
-            // Ánh xạ kỹ năng người chơi (ánh xạ thông tin kỹ năng gốc và tính sát thương hiệu quả).
             CreateMap<PlayerSkill, PlayerSkillResponseDto>()
                 .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.Name : string.Empty))
                 .ForMember(dest => dest.SkillDescription, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.Description : null))
@@ -385,30 +266,20 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.TargetType, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.TargetType : string.Empty))
                 .ForMember(dest => dest.CooldownSeconds, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.CooldownSeconds : 0))
                 .ForMember(dest => dest.BaseDamage, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.BaseDamage : 0.0))
-                .ForMember(dest => dest.EffectiveDamage, opt => opt.MapFrom(src => 
-                    src.Skill != null ? 
+                .ForMember(dest => dest.EffectiveDamage, opt => opt.MapFrom(src =>
+                    src.Skill != null ?
                     src.Skill.BaseDamage * (1 + src.Skill.DamageGrowthPercent / 100.0 * (src.Level - 1)) + src.Skill.DamagePerLevel * (src.Level - 1)
                     : 0.0))
                 .ForMember(dest => dest.UnlockLevel, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.UnlockLevel : 1))
                 .ForMember(dest => dest.CorruptionCost, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.CorruptionCost : 0f));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // SKIN (Trang phục)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ skin sang response.
             CreateMap<Skin, SkinResponseDto>();
-            // Ánh xạ yêu cầu tạo/cập nhật skin.
             CreateMap<CreateSkinRequestDto, Skin>();
             CreateMap<UpdateSkinRequestDto, Skin>();
-            // Ánh xạ skin người chơi.
             CreateMap<PlayerSkin, PlayerSkinResponseDto>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // NHIỆM VỤ NGƯỜI CHƠI (Player Quest)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ nhiệm vụ người chơi (ánh xạ thông tin nhiệm vụ gốc và phần thưởng).
             CreateMap<PlayerQuest, PlayerQuestResponseDto>()
                 .ForMember(dest => dest.QuestTitle, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.Title : string.Empty))
                 .ForMember(dest => dest.QuestDescription, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.Description : null))
@@ -432,26 +303,14 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.RewardSkillId, opt => opt.MapFrom(src => src.Quest != null ? src.Quest.RewardSkillId : null))
                 .ForMember(dest => dest.RewardSkillName, opt => opt.MapFrom(src => src.Quest != null && src.Quest.RewardSkill != null ? src.Quest.RewardSkill.Name : null));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // ĐĂNG NHẬP HÀNG NGÀY (Player Daily Login)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ đăng nhập hàng ngày của người chơi.
             CreateMap<PlayerDailyLogin, PlayerDailyLoginResponseDto>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // NHẬT KÝ TIỀN TỆ (Player Currency Log)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ nhật ký tiền tệ người chơi.
             CreateMap<PlayerCurrencyLog, PlayerCurrencyLogResponseDto>();
             CreateMap<PlayerProfile, CurrencyBalanceResponseDto>()
                 .ForMember(dest => dest.ServerTimeUtc, opt => opt.Ignore());
-            // ═══════════════════════════════════════════════════════════════════════
-            // THÀNH TÍCH NGƯỜI CHƠI (Player Achievement)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ thành tích người chơi (ánh xạ thông tin thành tích gốc và phần thưởng).
             CreateMap<PlayerAchievement, PlayerAchievementResponseDto>()
                 .ForMember(dest => dest.AchievementName, opt => opt.MapFrom(src => src.Achievement != null ? src.Achievement.Name : ""))
                 .ForMember(dest => dest.AchievementDescription, opt => opt.MapFrom(src => src.Achievement != null ? src.Achievement.Description : null))
@@ -464,18 +323,12 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.RewardGold, opt => opt.MapFrom(src => src.Achievement != null ? src.Achievement.RewardGold : 0))
                 .ForMember(dest => dest.RewardGem, opt => opt.MapFrom(src => src.Achievement != null ? src.Achievement.RewardGem : 0));
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // NPC
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ NPC (sắp xếp dialogues theo thứ tự hiển thị).
             CreateMap<NPC, NPCResponseDto>()
-                .ForMember(dest => dest.Dialogues, opt => opt.MapFrom(src => src.Dialogues.OrderBy(d => d.DisplayOrder)));
-            // Ánh xạ yêu cầu tạo/cập nhật NPC.
+                .ForMember(dest => dest.Dialogues, opt => opt.MapFrom(src => src.Dialogues.OrderBy(d => d.DisplayOrder)));  // Sort results oldest/lowest first
             CreateMap<CreateNPCRequestDto, NPC>();
             CreateMap<UpdateNPCRequestDto, NPC>();
 
-            // Ánh xạ hội thoại NPC (ánh xạ tên NPC, nhiệm vụ liên kết, vật phẩm shop liên kết).
             CreateMap<NPCDialogue, NPCDialogueResponseDto>()
                 .ForMember(dest => dest.NPCName, opt => opt.MapFrom(src => src.NPC != null ? src.NPC.Name : null))
                 .ForMember(dest => dest.LinkedQuestTitle, opt => opt.MapFrom(src => src.LinkedQuest != null ? src.LinkedQuest.Title : null))
@@ -483,21 +336,10 @@ namespace BLL.Mappings
             CreateMap<CreateNPCDialogueRequestDto, NPCDialogue>();
             CreateMap<UpdateNPCDialogueRequestDto, NPCDialogue>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // LỊCH SỬ GACHA (Gacha Pull History)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ lịch sử quay gacha.
             CreateMap<GachaPullHistory, GachaPullHistoryResponseDto>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // TÚI ĐỒ (Inventory)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ vật phẩm trong túi đồ (ánh xạ icon URL + chỉ số trang bị).
-            // Chỉ số nằm ở Item.EquipmentStats (bảng riêng) nên phải map tay từng field —
-            // AutoMapper không tự đi xuống 2 cấp. Repository phải Include(i => i.Item)
-            //   .ThenInclude(it => it.EquipmentStats), nếu không tất cả sẽ là 0.
             CreateMap<InventoryItem, InventoryItemResponseDto>()
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
                 .ForMember(dest => dest.ItemSlot, opt => opt.MapFrom(src => src.Item != null ? src.Item.Slot : "None"))
@@ -507,8 +349,6 @@ namespace BLL.Mappings
                 .ForMember(dest => dest.BonusHp, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusHp : 0))
                 .ForMember(dest => dest.BonusAtk, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusAtk : 0))
                 .ForMember(dest => dest.BonusDef, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BonusDef : 0))
-                // Crit lưu dạng SỐ NGUYÊN ĐÃ NHÂN THANG (StatScale.CritRate = 10 → 15.5% lưu là 155).
-                // Phải chia lại đúng như ItemService làm, nếu không popup hiện crit gấp 10 lần.
                 .ForMember(dest => dest.BonusCritRate, opt => opt.MapFrom(src =>
                     src.Item != null && src.Item.EquipmentStats != null
                         ? BLL.Utils.StatHelper.FromScaled(src.Item.EquipmentStats.BonusCritRate, BLL.Utils.StatScale.CritRate)
@@ -517,15 +357,10 @@ namespace BLL.Mappings
                     src.Item != null && src.Item.EquipmentStats != null
                         ? BLL.Utils.StatHelper.FromScaled(src.Item.EquipmentStats.BonusCritDamage, BLL.Utils.StatScale.CritRate)
                         : 0f));
-            // Ánh xạ yêu cầu thêm/cập nhật vật phẩm trong túi đồ.
             CreateMap<AddInventoryItemRequestDto, InventoryItem>();
             CreateMap<UpdateInventoryItemRequestDto, InventoryItem>();
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // CHỈ SỐ TRANG BỊ (Equipment Stats)
-            // ═══════════════════════════════════════════════════════════════════════
 
-            // Ánh xạ chỉ số trang bị.
             CreateMap<EquipmentStats, EquipmentStatsResponseDto>();
             CreateMap<CreateEquipmentStatsRequestDto, EquipmentStats>();
             CreateMap<UpdateEquipmentStatsRequestDto, EquipmentStats>();

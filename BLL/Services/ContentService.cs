@@ -11,47 +11,59 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes core business logic for i content service.
     public class ContentService : IContentService
     {
         private readonly IContentRepository _repository;
         private readonly IMapper _mapper;
 
+        // Initializes a new instance of ContentService with dependencies: repository, mapper.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public ContentService(IContentRepository repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
         }
 
+        // Executes core business logic for get content by id.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed ContentDetailResponseDto? result asynchronously.
         public async Task<ContentDetailResponseDto?> GetContentById(int id)
         {
             var content = await _repository.GetContentByIdWithBlocks(id);
-            if (content == null)
+            if (content == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
-            return _mapper.Map<ContentDetailResponseDto>(content);
+            return _mapper.Map<ContentDetailResponseDto>(content);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get content by slug.
+        // Logic details: validates required non-empty string arguments; delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws InvalidOperationException, ArgumentException on invalid state or rule violations.
+        // Returns the computed ContentDetailResponseDto? result asynchronously.
         public async Task<ContentDetailResponseDto?> GetContentBySlug(string slug)
         {
             var content = await _repository.GetContentBySlug(slug);
-            if (content == null)
+            if (content == null)  // Entity not found — short-circuit with appropriate error result
                 return null;
 
-            return _mapper.Map<ContentDetailResponseDto>(content);
+            return _mapper.Map<ContentDetailResponseDto>(content);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for create content with blocks async.
+        // Logic details: delegates data queries and updates to repository layer; throws InvalidOperationException, ArgumentException on invalid state or rule violations.
+        // Returns the computed ContentDetailResponseDto result asynchronously.
         public async Task<ContentDetailResponseDto> CreateContentWithBlocksAsync(CreateContentWithBlocksRequestDto request)
         {
             if (request.IsPublished && request.CategoryId.HasValue)
             {
                 var category = await _repository.GetCategoryById(request.CategoryId.Value);
-                if (category == null)
+                if (category == null)  // Entity not found — short-circuit with appropriate error result
                 {
                     throw new ArgumentException($"Category with id {request.CategoryId} not found.");
                 }
                 if (!category.IsActive)
                 {
-                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");
+                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");  // Unexpected runtime state — propagate to global error handler
                 }
             }
 
@@ -86,9 +98,12 @@ namespace BLL.Services
 
             var created = await _repository.CreateContentWithBlocksAsync(content, blocks);
             created.BlockContents = blocks;
-            return _mapper.Map<ContentDetailResponseDto>(created);
+            return _mapper.Map<ContentDetailResponseDto>(created);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for update content.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed ContentResponseDto result asynchronously.
         public async Task<ContentResponseDto> UpdateContent(int id, UpdateContentRequestDto request)
         {
             var content = await _repository.GetContentById(id)
@@ -97,13 +112,13 @@ namespace BLL.Services
             if (request.IsPublished && request.CategoryId.HasValue)
             {
                 var category = await _repository.GetCategoryById(request.CategoryId.Value);
-                if (category == null)
+                if (category == null)  // Entity not found — short-circuit with appropriate error result
                 {
                     throw new ArgumentException($"Category with id {request.CategoryId} not found.");
                 }
                 if (!category.IsActive)
                 {
-                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");
+                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");  // Unexpected runtime state — propagate to global error handler
                 }
             }
 
@@ -121,9 +136,12 @@ namespace BLL.Services
             }
 
             var updated = await _repository.UpdateContent(content);
-            return _mapper.Map<ContentResponseDto>(updated);
+            return _mapper.Map<ContentResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for publish content.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed ContentResponseDto result asynchronously.
         public async Task<ContentResponseDto> PublishContent(int id)
         {
             var content = await _repository.GetContentById(id)
@@ -132,13 +150,13 @@ namespace BLL.Services
             if (content.CategoryContentId.HasValue)
             {
                 var category = await _repository.GetCategoryById(content.CategoryContentId.Value);
-                if (category == null)
+                if (category == null)  // Entity not found — short-circuit with appropriate error result
                 {
                     throw new ArgumentException($"Category with id {content.CategoryContentId} not found.");
                 }
                 if (!category.IsActive)
                 {
-                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");
+                    throw new InvalidOperationException("Cannot publish content because its category is inactive. Please activate the category before publishing.");  // Unexpected runtime state — propagate to global error handler
                 }
             }
 
@@ -147,9 +165,12 @@ namespace BLL.Services
             content.UpdatedAt = DateTime.UtcNow;
 
             var updated = await _repository.UpdateContent(content);
-            return _mapper.Map<ContentResponseDto>(updated);
+            return _mapper.Map<ContentResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for create category.
+        // Logic details: validates required non-empty string arguments.
+        // Returns the computed CategoryContentResponseDto result asynchronously.
         public async Task<CategoryContentResponseDto> CreateCategory(CreateCategoryContentRequestDto request)
         {
             var category = new CategoryContent
@@ -164,22 +185,31 @@ namespace BLL.Services
 
             var created = await _repository.CreateCategory(category);
 
-            return _mapper.Map<CategoryContentResponseDto>(created);
+            return _mapper.Map<CategoryContentResponseDto>(created);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get all categories.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed List<CategoryContentResponseDto result asynchronously.
         public async Task<List<CategoryContentResponseDto>> GetAllCategories(string? search = null, bool? isActive = null)
         {
             var categories = await _repository.GetAllCategories(search, isActive);
-            return _mapper.Map<List<CategoryContentResponseDto>>(categories);
+            return _mapper.Map<List<CategoryContentResponseDto>>(categories);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for get categories paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<CategoryContentResponseDto result asynchronously.
         public async Task<PagedResultDto<CategoryContentResponseDto>> GetCategoriesPaged(int page, int pageSize, string? search = null, bool? isActive = null)
         {
             var (totalCount, items) = await _repository.GetCategoriesPaged(page, pageSize, search, isActive);
-            var dtos = _mapper.Map<List<CategoryContentResponseDto>>(items);
+            var dtos = _mapper.Map<List<CategoryContentResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
             return new PagedResultDto<CategoryContentResponseDto>(totalCount, dtos);
         }
 
+        // Executes core business logic for update category.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed CategoryContentResponseDto result asynchronously.
         public async Task<CategoryContentResponseDto> UpdateCategory(int id, CreateCategoryContentRequestDto request)
         {
             var category = await _repository.GetCategoryById(id)
@@ -196,15 +226,16 @@ namespace BLL.Services
 
             var updated = await _repository.UpdateCategory(category);
 
-            // Rule: deactivating a category must unpublish all its public contents
             if (wasActive && !willBeActive)
             {
                 await _repository.UnpublishByCategoryIdAsync(id);
             }
 
-            return _mapper.Map<CategoryContentResponseDto>(updated);
+            return _mapper.Map<CategoryContentResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for create block.
+        // Returns the computed BlockContentResponseDto result asynchronously.
         public async Task<BlockContentResponseDto> CreateBlock(CreateBlockContentRequestDto request)
         {
             var block = new BlockContent
@@ -221,9 +252,12 @@ namespace BLL.Services
 
             var created = await _repository.CreateBlock(block);
 
-            return _mapper.Map<BlockContentResponseDto>(created);
+            return _mapper.Map<BlockContentResponseDto>(created);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for update block.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Returns the computed BlockContentResponseDto result asynchronously.
         public async Task<BlockContentResponseDto> UpdateBlock(int id, UpdateBlockContentRequestDto request)
         {
             var block = await _repository.GetBlockById(id)
@@ -239,9 +273,12 @@ namespace BLL.Services
 
             var updated = await _repository.UpdateBlock(block);
 
-            return _mapper.Map<BlockContentResponseDto>(updated);
+            return _mapper.Map<BlockContentResponseDto>(updated);  // Transform domain entity into DTO for the API response layer
         }
 
+        // Executes core business logic for remove block.
+        // Logic details: delegates data queries and updates to repository layer; throws KeyNotFoundException on invalid state or rule violations.
+        // Completes asynchronously upon successful execution.
         public async Task RemoveBlock(int id)
         {
             var block = await _repository.GetBlockById(id)
@@ -250,19 +287,24 @@ namespace BLL.Services
             await _repository.RemoveBlock(id);
         }
 
+        // Executes core business logic for get contents paged.
+        // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
+        // Returns the computed PagedResultDto<ContentResponseDto result asynchronously.
         public async Task<PagedResultDto<ContentResponseDto>> GetContentsPaged(int page, int pageSize, string? search, bool? isPublished, int? categoryId = null)
         {
             var (totalCount, items) = await _repository.GetContentsPaged(page, pageSize, search, isPublished, categoryId);
 
-            var dtos = _mapper.Map<List<ContentResponseDto>>(items);
+            var dtos = _mapper.Map<List<ContentResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
             return new PagedResultDto<ContentResponseDto>(totalCount, dtos);
         }
 
 
 
+        // Executes core business logic for generate slug.
+        // Logic details: validates required non-empty string arguments.
         private static string GenerateSlug(string text)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(text))  // Mandatory string argument is blank — fail fast
                 return string.Empty;
 
             var slug = text.ToLowerInvariant().Trim();

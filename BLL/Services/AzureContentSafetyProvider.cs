@@ -10,11 +10,15 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    // Executes i content safety provider operation.
+    // Validates input parameters against null or empty values.
     public class AzureContentSafetyProvider : IContentSafetyProvider
     {
         private readonly AzureContentSafetyOptions _options;
         private readonly ContentSafetyClient? _client;
 
+        // Initializes a new instance of AzureContentSafetyProvider with dependencies: options.
+        // Assigns injected service and configuration instances to readonly fields for runtime operations.
         public AzureContentSafetyProvider(IOptions<AzureContentSafetyOptions> options)
         {
             _options = options.Value ?? new AzureContentSafetyOptions();
@@ -27,9 +31,11 @@ namespace BLL.Services
             }
         }
 
+        // Executes analyze text operation.
+        // Validates input parameters against null or empty values.
         public async Task<ContentModerationScanResultDto> AnalyzeText(string content)
         {
-            if (string.IsNullOrWhiteSpace(content))
+            if (string.IsNullOrWhiteSpace(content))  // Mandatory string argument is blank — fail fast
             {
                 return new ContentModerationScanResultDto
                 {
@@ -38,11 +44,11 @@ namespace BLL.Services
                 };
             }
 
-            if (_client == null)
-                throw new InvalidOperationException("Azure Content Safety is not configured. Set AzureContentSafety:Endpoint and AzureContentSafety:Key.");
+            if (_client == null)  // Entity not found — short-circuit with appropriate error result
+                throw new InvalidOperationException("Azure Content Safety is not configured. Set AzureContentSafety:Endpoint and AzureContentSafety:Key.");  // Unexpected runtime state — propagate to global error handler
 
             var request = new AnalyzeTextOptions(content);
-            foreach (var blocklistName in _options.BlocklistNames.Where(x => !string.IsNullOrWhiteSpace(x)))
+            foreach (var blocklistName in _options.BlocklistNames.Where(x => !string.IsNullOrWhiteSpace(x)))  // Filter records matching the predicate
             {
                 request.BlocklistNames.Add(blocklistName.Trim());
             }
@@ -62,7 +68,7 @@ namespace BLL.Services
                     .ToList();
 
                 var matched = categories
-                    .Where(x => x.Severity >= threshold)
+                    .Where(x => x.Severity >= threshold)  // Filter records matching the predicate
                     .Select(x => $"{x.Category}:{x.Severity}")
                     .ToList();
 
@@ -70,7 +76,7 @@ namespace BLL.Services
                 {
                     matched.AddRange(response.Value.BlocklistsMatch
                         .Select(x => $"Blocklist:{x.BlocklistName}:{x.BlocklistItemText}")
-                        .Where(x => !string.IsNullOrWhiteSpace(x)));
+                        .Where(x => !string.IsNullOrWhiteSpace(x)));  // Filter records matching the predicate
                 }
 
                 return new ContentModerationScanResultDto
@@ -84,12 +90,14 @@ namespace BLL.Services
             }
             catch (RequestFailedException ex)
             {
-                throw new InvalidOperationException($"Azure Content Safety scan failed: {ex.ErrorCode} - {ex.Message}", ex);
+                throw new InvalidOperationException($"Azure Content Safety scan failed: {ex.ErrorCode} - {ex.Message}", ex);  // Unexpected runtime state — propagate to global error handler
             }
         }
 
+        // Executes get threshold operation.
         private int GetThreshold()
         {
+            // Clamp the calculated value to the minimum and maximum accepted by this domain rule.
             return Math.Clamp(_options.SeverityThreshold, 0, 7);
         }
     }

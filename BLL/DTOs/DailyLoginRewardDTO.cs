@@ -2,56 +2,78 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BLL.DTOs
 {
-    // ============ DailyLoginReward ============
 
+    // Initializes a new default instance of the DailyLoginRewardResponseDto class.
     public class DailyLoginRewardResponseDto
     {
+        // Executes daily login reward id operation.
         public int DailyLoginRewardId { get; set; }
+        // Executes day number operation.
         public int DayNumber { get; set; }
 
-        // NULL = default record; có giá trị = override tháng/năm cụ thể
+        // Executes month operation.
         public int? Month { get; set; }
+        // Executes year operation.
         public int? Year { get; set; }
 
-        // true nếu đây là record default (Month=null)
+        // Executes is default operation.
         public bool IsDefault => Month == null && Year == null;
 
+        // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
         public string RewardType { get; set; } = "Gold";
+        // Executes reward value operation.
         public decimal RewardValue { get; set; }
+        // Executes reward item id operation.
         public int? RewardItemId { get; set; }
+        // Executes reward item name operation.
         public string? RewardItemName { get; set; }
+        // Executes reward item quantity operation.
         public int RewardItemQuantity { get; set; }
+        // Executes is active operation.
         public bool IsActive { get; set; }
+        // Executes created at operation.
         public DateTime CreatedAt { get; set; }
     }
 
+    // Executes create daily login reward request dto operation.
     public class CreateDailyLoginRewardRequestDto
     {
+        // Executes day number operation.
         [Range(1, 31)]
         public int DayNumber { get; set; }
 
-        // NULL = default; có giá trị = override tháng/năm cụ thể
+        // Executes month operation.
         [Range(1, 12)]
         public int? Month { get; set; }
 
+        // Executes year operation.
         [Range(2024, 2100)]
         public int? Year { get; set; }
 
-        // RewardTypes: Gold, Gems, Item, Energy
+        // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
         public string RewardType { get; set; } = "Gold";
+        // Executes reward value operation.
         public decimal RewardValue { get; set; }
+        // Executes reward item id operation.
         public int? RewardItemId { get; set; }
+        // Executes reward item quantity operation.
         public int RewardItemQuantity { get; set; }
+        // Executes is active operation.
         public bool IsActive { get; set; } = true;
     }
 
+    // Executes update daily login reward request dto operation.
     public class UpdateDailyLoginRewardRequestDto
     {
-        // Không cho đổi Month/Year khi update (phải delete + create mới)
+        // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
         public string RewardType { get; set; } = "Gold";
+        // Executes reward value operation.
         public decimal RewardValue { get; set; }
+        // Executes reward item id operation.
         public int? RewardItemId { get; set; }
+        // Executes reward item quantity operation.
         public int RewardItemQuantity { get; set; }
+        // Executes is active operation.
         public bool IsActive { get; set; } = true;
     }
 }

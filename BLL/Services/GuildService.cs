@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services;
 
+// Executes core business logic for i guild service.
 public class GuildService : IGuildService
 {
     private readonly IGuildRepository _guildRepo;
@@ -21,17 +22,22 @@ public class GuildService : IGuildService
     private const int DonatePlayerFeatsPerUnit = 5;
     private const int ChatSpamCooldownMs = 1000;
 
+    // Initializes a new instance of GuildService with dependencies: guildRepo.
+    // Assigns injected service and configuration instances to readonly fields for runtime operations.
     public GuildService(IGuildRepository guildRepo) => _guildRepo = guildRepo;
 
-    // ─── Permission Helper ────────────────────────────────────────────
 
+    // Executes core business logic for is leader or officer.
+    // Returns a boolean indicating operation success.
     private static bool IsLeaderOrOfficer(GuildMember m)
         => m.Role == GuildRole.Leader || m.Role == GuildRole.Officer;
 
+    // Executes core business logic for is leader.
+    // Returns a boolean indicating operation success.
     private static bool IsLeader(GuildMember m) => m.Role == GuildRole.Leader;
 
-    // ─── Map Helpers ──────────────────────────────────────────────────
 
+    // Executes core business logic for map guild dto.
     private static GuildResponseDto MapGuildDto(Guild g, int memberCount)
     {
         return new GuildResponseDto
@@ -59,6 +65,7 @@ public class GuildService : IGuildService
         };
     }
 
+    // Executes core business logic for map member dto.
     private static GuildMemberResponseDto MapMemberDto(GuildMember m)
     {
         return new GuildMemberResponseDto
@@ -81,8 +88,9 @@ public class GuildService : IGuildService
         };
     }
 
-    // ─── View ─────────────────────────────────────────────────────────
 
+    // Executes core business logic for get my guild async.
+    // Returns the computed GuildDetailResponseDto? result asynchronously.
     public async Task<GuildDetailResponseDto?> GetMyGuildAsync(int playerProfileId)
     {
         var player = await _guildRepo.GetPlayerProfileAsync(playerProfileId, includeGuildMember: true);
@@ -90,10 +98,9 @@ public class GuildService : IGuildService
         if (player?.GuildMember != null && player.GuildMember.LeftAt == null)
             return await GetGuildDetailAsync(player.GuildMember.GuildId);
 
-        // Fallback: check if this player is a leader of an active guild
         var leadedGuild = await _guildRepo.GetActiveGuildByLeaderAsync(playerProfileId);
 
-        if (leadedGuild != null)
+        if (leadedGuild != null)  // Entity exists — proceed with conditional branch
         {
             var recoveredMember = new GuildMember
             {
@@ -109,6 +116,7 @@ public class GuildService : IGuildService
         return null;
     }
 
+    // Load guild list async using player profile id, search term, join policy, and min level; it loads active invitations for player async, projects records into the output shape, loads guilds by ids async, builds guild dto, and creates add and processes each matching entry.
     public async Task<List<GuildResponseDto>> GetGuildListAsync(
         int playerProfileId, string searchTerm = "", int? joinPolicy = null, int? minLevel = null)
     {
@@ -145,6 +153,8 @@ public class GuildService : IGuildService
         return resultDtos;
     }
 
+    // Executes core business logic for get guild rankings async.
+    // Returns the computed List<GuildRankResponseDto result asynchronously.
     public async Task<List<GuildRankResponseDto>> GetGuildRankingsAsync(int top = 100)
     {
         var guilds = await _guildRepo.GetTopGuildsAsync(top);
@@ -169,6 +179,9 @@ public class GuildService : IGuildService
         return result;
     }
 
+    // Executes core business logic for get guild detail async.
+    // Logic details: throws UnauthorizedAccessException on invalid state or rule violations.
+    // Returns the computed GuildDetailResponseDto? result asynchronously.
     public async Task<GuildDetailResponseDto?> GetGuildDetailAsync(int guildId)
     {
         var guild = await _guildRepo.GetGuildByIdAsync(guildId,
@@ -176,7 +189,7 @@ public class GuildService : IGuildService
             includeLeader: true,
             includeMemberProfiles: true);
 
-        if (guild == null) return null;
+        if (guild == null) return null;  // Entity not found — short-circuit with appropriate error result
 
         var dto = new GuildDetailResponseDto();
         var baseDto = MapGuildDto(guild, guild.Members.Count);
@@ -204,22 +217,26 @@ public class GuildService : IGuildService
         return dto;
     }
 
+    // Executes core business logic for get members async.
+    // Logic details: throws UnauthorizedAccessException on invalid state or rule violations.
+    // Returns the computed List<GuildMemberResponseDto result asynchronously.
     public async Task<List<GuildMemberResponseDto>> GetMembersAsync(int playerProfileId, int guildId)
     {
         if (!await _guildRepo.IsGuildMemberAsync(guildId, playerProfileId))
-            throw new UnauthorizedAccessException("Not a member");
+            throw new UnauthorizedAccessException("Not a member");  // Authentication token is invalid or expired
 
         var members = await _guildRepo.GetActiveMembersAsync(guildId, includeProfile: true);
         return members.Select(MapMemberDto).ToList();
     }
 
-    // ─── Create / Dissolve ────────────────────────────────────────────
 
+    // Executes core business logic for create guild async.
+    // Returns the computed GuildResponseDto result asynchronously.
     public async Task<GuildResponseDto> CreateGuildAsync(int playerProfileId, CreateGuildRequestDto request)
     {
         var player = await _guildRepo.GetPlayerProfileAsync(playerProfileId, includeGuildMember: true);
 
-        if (player == null) throw new Exception("Player not found");
+        if (player == null) throw new Exception("Player not found");  // Entity not found — short-circuit with appropriate error result
         if (player.GuildMember != null) throw new Exception("Player is already in a guild");
 
         var guild = new Guild
@@ -261,6 +278,8 @@ public class GuildService : IGuildService
         return MapGuildDto(guild, 1);
     }
 
+    // Executes core business logic for dissolve guild async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> DissolveGuildAsync(int playerProfileId, int guildId)
     {
         var guild = await _guildRepo.GetGuildByIdAsync(guildId, includeMembers: true);
@@ -279,7 +298,7 @@ public class GuildService : IGuildService
         await _guildRepo.RemoveMembersAsync(guild.Members);
 
         var pendingApps = (await _guildRepo.GetPendingApplicationsAsync(guildId))
-            .Where(a => a.Status == "Pending")
+            .Where(a => a.Status == "Pending")  // Filter records matching the predicate
             .ToList();
         await _guildRepo.RemoveApplicationsAsync(pendingApps);
 
@@ -296,13 +315,14 @@ public class GuildService : IGuildService
         return true;
     }
 
-    // ─── Join / Leave / Apply ─────────────────────────────────────────
 
+    // Executes core business logic for apply to guild async.
+    // Returns the computed GuildJoinResultDto result asynchronously.
     public async Task<GuildJoinResultDto> ApplyToGuildAsync(int playerProfileId, int guildId)
     {
         var player = await _guildRepo.GetPlayerProfileAsync(playerProfileId, includeGuildMember: true);
 
-        if (player == null) return new GuildJoinResultDto { Success = false, Message = "Player not found" };
+        if (player == null) return new GuildJoinResultDto { Success = false, Message = "Player not found" };  // Entity not found — short-circuit with appropriate error result
         if (player.GuildMember != null)
             return new GuildJoinResultDto { Success = false, Message = "Already in a guild" };
 
@@ -326,7 +346,7 @@ public class GuildService : IGuildService
 
         var guild = await _guildRepo.GetGuildByIdAsync(guildId, includeMembers: true);
 
-        if (guild == null) return new GuildJoinResultDto { Success = false, Message = "Guild not found" };
+        if (guild == null) return new GuildJoinResultDto { Success = false, Message = "Guild not found" };  // Entity not found — short-circuit with appropriate error result
         if (guild.Members.Count >= guild.MaxMembers)
             return new GuildJoinResultDto { Success = false, Message = "Guild is full" };
 
@@ -359,7 +379,7 @@ public class GuildService : IGuildService
                 CreatedAt = DateTime.UtcNow
             });
 
-            if (activeInvitation != null)
+            if (activeInvitation != null)  // Entity exists — proceed with conditional branch
             {
                 activeInvitation.Status = "Accepted";
                 activeInvitation.RespondedAt = DateTime.UtcNow;
@@ -380,7 +400,7 @@ public class GuildService : IGuildService
         }
 
         var existingApp = await _guildRepo.GetPlayerPendingApplicationAsync(playerProfileId);
-        if (existingApp != null)
+        if (existingApp != null)  // Entity exists — proceed with conditional branch
             return new GuildJoinResultDto { Success = false, Message = "You already have a pending application to another guild" };
 
         await _guildRepo.AddApplicationAsync(new GuildApplication
@@ -395,11 +415,13 @@ public class GuildService : IGuildService
         return new GuildJoinResultDto { Success = true, Message = "Application submitted" };
     }
 
+    // Executes core business logic for leave guild async.
+    // Returns the computed GuildJoinResultDto result asynchronously.
     public async Task<GuildJoinResultDto> LeaveGuildAsync(int playerProfileId, int guildId)
     {
         var member = await _guildRepo.GetMemberAsync(guildId, playerProfileId);
 
-        if (member == null) return new GuildJoinResultDto { Success = false, Message = "Not a member" };
+        if (member == null) return new GuildJoinResultDto { Success = false, Message = "Not a member" };  // Entity not found — short-circuit with appropriate error result
 
         if (member.Role == GuildRole.Leader)
             return new GuildJoinResultDto
@@ -409,7 +431,7 @@ public class GuildService : IGuildService
             };
 
         var player = await _guildRepo.GetPlayerProfileAsync(playerProfileId);
-        if (player != null) player.LastLeaveGuildAt = DateTime.UtcNow;
+        if (player != null) player.LastLeaveGuildAt = DateTime.UtcNow;  // Entity exists — proceed with conditional branch
 
         await _guildRepo.RemoveMemberAsync(member);
 
@@ -426,13 +448,15 @@ public class GuildService : IGuildService
         return new GuildJoinResultDto { Success = true, Message = "Left guild" };
     }
 
-    // ─── Applications ─────────────────────────────────────────────────
 
+    // Executes core business logic for get applications async.
+    // Logic details: throws UnauthorizedAccessException on invalid state or rule violations.
+    // Returns the computed List<GuildApplicationDTO result asynchronously.
     public async Task<List<GuildApplicationDTO>> GetApplicationsAsync(int playerProfileId, int guildId)
     {
         var member = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (member == null || !IsLeaderOrOfficer(member))
-            throw new UnauthorizedAccessException("Not authorized");
+            throw new UnauthorizedAccessException("Not authorized");  // Authentication token is invalid or expired
 
         var apps = await _guildRepo.GetPendingApplicationsAsync(guildId);
         return apps.Select(a => new GuildApplicationDTO
@@ -449,13 +473,15 @@ public class GuildService : IGuildService
         }).ToList();
     }
 
+    // Executes core business logic for approve application async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> ApproveApplicationAsync(int playerProfileId, int guildId, int applicationId)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (executor == null || !IsLeaderOrOfficer(executor)) return false;
 
         var application = await _guildRepo.GetApplicationAsync(applicationId, guildId);
-        if (application == null) return false;
+        if (application == null) return false;  // Entity not found — short-circuit with appropriate error result
 
         var guild = await _guildRepo.GetGuildByIdAsync(guildId, includeMembers: true);
         if (guild == null || guild.Members.Count >= guild.MaxMembers) return false;
@@ -486,13 +512,15 @@ public class GuildService : IGuildService
         return true;
     }
 
+    // Executes core business logic for reject application async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> RejectApplicationAsync(int playerProfileId, int guildId, int applicationId)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (executor == null || !IsLeaderOrOfficer(executor)) return false;
 
         var application = await _guildRepo.GetApplicationAsync(applicationId, guildId);
-        if (application == null) return false;
+        if (application == null) return false;  // Entity not found — short-circuit with appropriate error result
 
         application.Status = "Rejected";
         await _guildRepo.UpdateApplicationAsync(application);
@@ -512,8 +540,9 @@ public class GuildService : IGuildService
         return true;
     }
 
-    // ─── Member Management ────────────────────────────────────────────
 
+    // Executes core business logic for kick member async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> KickMemberAsync(int playerProfileId, int guildId, int memberProfileId)
     {
         if (playerProfileId == memberProfileId) return false;
@@ -528,7 +557,7 @@ public class GuildService : IGuildService
         await _guildRepo.RemoveMemberAsync(target);
 
         var targetPlayer = await _guildRepo.GetPlayerProfileAsync(memberProfileId);
-        if (targetPlayer != null) targetPlayer.LastLeaveGuildAt = DateTime.UtcNow;
+        if (targetPlayer != null) targetPlayer.LastLeaveGuildAt = DateTime.UtcNow;  // Entity exists — proceed with conditional branch
 
         await _guildRepo.AddLogAsync(new GuildLog
         {
@@ -545,6 +574,8 @@ public class GuildService : IGuildService
         return true;
     }
 
+    // Executes core business logic for promote member async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> PromoteMemberAsync(int playerProfileId, int guildId, int memberProfileId)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
@@ -572,6 +603,8 @@ public class GuildService : IGuildService
         return true;
     }
 
+    // Executes core business logic for demote member async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> DemoteMemberAsync(int playerProfileId, int guildId, int memberProfileId)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
@@ -599,6 +632,8 @@ public class GuildService : IGuildService
         return true;
     }
 
+    // Executes core business logic for transfer leader async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> TransferLeaderAsync(int playerProfileId, int guildId, int newLeaderProfileId)
     {
         var guild = await _guildRepo.GetGuildByIdAsync(guildId, includeMembers: true, includeMemberProfiles: true);
@@ -631,6 +666,8 @@ public class GuildService : IGuildService
         return true;
     }
 
+    // Executes core business logic for invite member async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> InviteMemberAsync(int playerProfileId, int guildId, int inviteeProfileId)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
@@ -638,11 +675,11 @@ public class GuildService : IGuildService
             throw new Exception("You don't have permission to invite.");
 
         var guild = await _guildRepo.GetGuildByIdAsync(guildId, includeMembers: true);
-        if (guild == null) throw new Exception("Guild not found.");
+        if (guild == null) throw new Exception("Guild not found.");  // Entity not found — short-circuit with appropriate error result
         if (guild.Members.Count >= guild.MaxMembers) throw new Exception("Guild is full.");
 
         var invitee = await _guildRepo.GetPlayerProfileAsync(inviteeProfileId, includeGuildMember: true);
-        if (invitee == null) throw new Exception("Player not found.");
+        if (invitee == null) throw new Exception("Player not found.");  // Entity not found — short-circuit with appropriate error result
         if (invitee.GuildMember != null) throw new Exception("Player is already in a guild.");
 
         var now = DateTime.UtcNow;
@@ -655,7 +692,7 @@ public class GuildService : IGuildService
         }
 
         var exists = await _guildRepo.GetActiveInvitationAsync(guildId, inviteeProfileId, now);
-        if (exists != null) throw new Exception("Player already has a pending invitation from this guild.");
+        if (exists != null) throw new Exception("Player already has a pending invitation from this guild.");  // Entity exists — proceed with conditional branch
 
         await _guildRepo.AddInvitationAsync(new GuildInvitation
         {
@@ -682,16 +719,18 @@ public class GuildService : IGuildService
         return true;
     }
 
-    // ─── Settings ────────────────────────────────────────────────────
 
+    // Executes core business logic for update settings async.
+    // Logic details: validates required non-empty string arguments; throws UnauthorizedAccessException on invalid state or rule violations.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> UpdateSettingsAsync(int playerProfileId, int guildId, UpdateGuildRequestDto request)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (executor == null || (executor.Role != GuildRole.Leader && executor.Role != GuildRole.Officer))
-            throw new UnauthorizedAccessException("Must be Leader or Officer to update settings");
+            throw new UnauthorizedAccessException("Must be Leader or Officer to update settings");  // Authentication token is invalid or expired
 
         var guild = await _guildRepo.GetGuildByIdAsync(guildId);
-        if (guild == null) return false;
+        if (guild == null) return false;  // Entity not found — short-circuit with appropriate error result
 
         if (request.RequiredLevel.HasValue) guild.RequiredLevel = request.RequiredLevel.Value;
         if (request.JoinPolicy.HasValue) guild.JoinPolicy = (GuildJoinPolicy)request.JoinPolicy.Value;
@@ -713,13 +752,15 @@ public class GuildService : IGuildService
         return true;
     }
 
+    // Executes core business logic for update notice async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> UpdateNoticeAsync(int playerProfileId, int guildId, string notice)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (executor == null || !IsLeaderOrOfficer(executor)) return false;
 
         var guild = await _guildRepo.GetGuildByIdAsync(guildId);
-        if (guild == null) return false;
+        if (guild == null) return false;  // Entity not found — short-circuit with appropriate error result
 
         guild.Notice = notice.Length > 200 ? notice[..200] : notice;
         await _guildRepo.UpdateGuildAsync(guild);
@@ -737,13 +778,15 @@ public class GuildService : IGuildService
         return true;
     }
 
+    // Executes core business logic for update icon async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> UpdateIconAsync(int playerProfileId, int guildId, int iconId, int? bannerId)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (executor == null || !IsLeader(executor)) return false;
 
         var guild = await _guildRepo.GetGuildByIdAsync(guildId);
-        if (guild == null) return false;
+        if (guild == null) return false;  // Entity not found — short-circuit with appropriate error result
 
         guild.IconId = iconId;
         if (bannerId.HasValue) guild.BannerId = bannerId.Value;
@@ -762,15 +805,16 @@ public class GuildService : IGuildService
         return true;
     }
 
-    // ─── Donate ───────────────────────────────────────────────────────
 
+    // Executes core business logic for donate async.
+    // Returns the computed GuildDonateResultDto result asynchronously.
     public async Task<GuildDonateResultDto> DonateAsync(int playerProfileId, int guildId, string currencyType, int amount)
     {
         var guild = await _guildRepo.GetGuildByIdAsync(guildId);
-        if (guild == null) throw new Exception("Guild not found");
+        if (guild == null) throw new Exception("Guild not found");  // Entity not found — short-circuit with appropriate error result
 
         var member = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
-        if (member == null) throw new Exception("Not a member");
+        if (member == null) throw new Exception("Not a member");  // Entity not found — short-circuit with appropriate error result
 
         if (member.LastDonateAt.HasValue && member.LastDonateAt.Value.Date == DateTime.UtcNow.Date)
         {
@@ -778,7 +822,7 @@ public class GuildService : IGuildService
         }
 
         var player = await _guildRepo.GetPlayerProfileAsync(playerProfileId);
-        if (player == null) throw new Exception("Player not found");
+        if (player == null) throw new Exception("Player not found");  // Entity not found — short-circuit with appropriate error result
 
         int expGained = 0;
         int medalsGained = 0;
@@ -792,7 +836,6 @@ public class GuildService : IGuildService
             player.Gold -= amount;
             goldSpent = amount;
 
-            // 10,000 Gold = 100 Feats/Exp (Amount / 100)
             expGained = amount / 100;
             medalsGained = amount / 100;
             playerFeats = amount / 100;
@@ -803,7 +846,6 @@ public class GuildService : IGuildService
             player.Gems -= amount;
             gemSpent = amount;
 
-            // 50 Gem = 500 Feats/Exp (Amount * 10)
             expGained = amount * 10;
             medalsGained = amount * 10;
             playerFeats = amount * 10;
@@ -819,10 +861,10 @@ public class GuildService : IGuildService
         guild.TotalMedals += medalsGained;
         guild.TotalFeats += playerFeats;
 
-        int playerMedals = medalsGained; // Same as medalsGained for simplicity
+        int playerMedals = medalsGained;
         member.Medals += playerMedals;
         member.Feats += playerFeats;
-        member.DailyContribution += playerFeats; // Track contribution by feats instead of raw amount
+        member.DailyContribution += playerFeats;
         member.WeeklyContribution += playerFeats;
         member.TotalContribution += playerFeats;
         member.Contribution += playerFeats;
@@ -850,13 +892,15 @@ public class GuildService : IGuildService
         };
     }
 
+    // Executes core business logic for level up async.
+    // Returns the computed bool result asynchronously.
     public async Task<bool> LevelUpAsync(int playerProfileId, int guildId)
     {
         var executor = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
         if (executor == null || !IsLeader(executor)) return false;
 
         var guild = await _guildRepo.GetGuildByIdAsync(guildId);
-        if (guild == null) return false;
+        if (guild == null) return false;  // Entity not found — short-circuit with appropriate error result
 
         if (guild.GuildExp < guild.ExpToNextLevel || guild.TotalMedals < guild.MedalsToNextLevel)
         {
@@ -884,12 +928,14 @@ public class GuildService : IGuildService
         return true;
     }
 
-    // ─── Logs ─────────────────────────────────────────────────────────
 
+    // Executes core business logic for get logs async.
+    // Logic details: throws UnauthorizedAccessException on invalid state or rule violations.
+    // Returns the computed List<GuildLogDto result asynchronously.
     public async Task<List<GuildLogDto>> GetLogsAsync(int playerProfileId, int guildId)
     {
         if (!await _guildRepo.IsGuildMemberAsync(guildId, playerProfileId))
-            throw new UnauthorizedAccessException("Not a member");
+            throw new UnauthorizedAccessException("Not a member");  // Authentication token is invalid or expired
 
         var logs = await _guildRepo.GetRecentLogsAsync(guildId, 50);
         return logs.Select(l => new GuildLogDto
@@ -903,16 +949,18 @@ public class GuildService : IGuildService
         }).ToList();
     }
 
-    // ─── Chat ─────────────────────────────────────────────────────────
 
+    // Executes core business logic for get guild chat async.
+    // Logic details: throws UnauthorizedAccessException on invalid state or rule violations.
+    // Returns the computed List<GuildMessageDTO result asynchronously.
     public async Task<List<GuildMessageDTO>> GetGuildChatAsync(int playerProfileId, int guildId)
     {
         if (!await _guildRepo.IsGuildMemberAsync(guildId, playerProfileId))
-            throw new UnauthorizedAccessException("Not a member");
+            throw new UnauthorizedAccessException("Not a member");  // Authentication token is invalid or expired
 
         var messages = await _guildRepo.GetRecentChatAsync(guildId, 50);
         return messages
-            .OrderBy(m => m.SentAt)
+            .OrderBy(m => m.SentAt)  // Sort results oldest/lowest first
             .Select(m => new GuildMessageDTO
             {
                 MessageId = m.GuildChatMessageId,
@@ -925,15 +973,18 @@ public class GuildService : IGuildService
             }).ToList();
     }
 
+    // Executes core business logic for send guild message async.
+    // Logic details: throws InvalidOperationException, UnauthorizedAccessException on invalid state or rule violations.
+    // Returns the computed GuildMessageDTO result asynchronously.
     public async Task<GuildMessageDTO> SendGuildMessageAsync(int playerProfileId, int guildId, string content)
     {
         var member = await _guildRepo.GetMemberAsync(guildId, playerProfileId, includeProfile: true);
-        if (member == null) throw new UnauthorizedAccessException("Not a member");
+        if (member == null) throw new UnauthorizedAccessException("Not a member");  // Entity not found — short-circuit with appropriate error result
 
         if (member.LastChatAt.HasValue
             && (DateTime.UtcNow - member.LastChatAt.Value).TotalMilliseconds < ChatSpamCooldownMs)
         {
-            throw new InvalidOperationException("Sending messages too fast. Please wait a moment.");
+            throw new InvalidOperationException("Sending messages too fast. Please wait a moment.");  // Unexpected runtime state — propagate to global error handler
         }
 
         var message = new GuildChatMessage
