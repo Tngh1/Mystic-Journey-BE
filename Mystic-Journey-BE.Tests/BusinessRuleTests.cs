@@ -247,6 +247,326 @@ public sealed class BusinessRuleTests
         playerAchievements.Verify(x => x.Update(playerAchievement), Times.Once);
     }
 
+    // ── F23: Daily Login Management ─────────────────────────────────────────────
+
+    [Fact] public async Task F23_CreateDailyRewardRejectsDuplicateDefaultDay()
+    {
+        var repo = new Mock<IDailyLoginRewardRepository>();
+        repo.Setup(x => x.GetDefaultByDayNumber(1)).ReturnsAsync(new DailyLoginReward { DayNumber = 1 });
+        var svc = new DailyLoginRewardService(repo.Object, new Mock<IItemRepository>().Object, new Mock<IMapper>().Object);
+        var request = new CreateDailyLoginRewardRequestDto { DayNumber = 1, Month = null, Year = null, RewardType = "Gold", RewardValue = 100, IsActive = true };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.CreateDailyLoginReward(request));
+    }
+
+    [Fact] public async Task F23_CreateDailyRewardRejectsDuplicateOverrideDay()
+    {
+        var repo = new Mock<IDailyLoginRewardRepository>();
+        repo.Setup(x => x.GetByDayAndMonth(5, 8, 2026)).ReturnsAsync(new DailyLoginReward { DayNumber = 5 });
+        var svc = new DailyLoginRewardService(repo.Object, new Mock<IItemRepository>().Object, new Mock<IMapper>().Object);
+        var request = new CreateDailyLoginRewardRequestDto { DayNumber = 5, Month = 8, Year = 2026, RewardType = "Gem", RewardValue = 10, IsActive = true };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.CreateDailyLoginReward(request));
+    }
+
+    // ── F38: Manage Dungeon ──────────────────────────────────────────────────────
+
+    [Fact] public async Task F38_DungeonEnterRejectsInsufficientLevel()
+    {
+        var (svc, profileRepo, dungeonConfigRepo, sessionRepo, progressRepo) = MakeDungeonService();
+        profileRepo.Setup(x => x.GetPlayerProfileById(7)).ReturnsAsync(Profile(energy: 50, level: 5));
+        dungeonConfigRepo.Setup(x => x.GetByIdWithChest(1)).ReturnsAsync(new DungeonConfig { DungeonConfigId = 1, Name = "Dark Cave", LevelRequirement = 10, MaxMembers = 4, EnergyCost = 20, IsActive = true });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.EnterDungeon(7, 1));
+    }
+
+    [Fact] public async Task F38_DungeonEnterRejectsPartyExceedsMaxMembers()
+    {
+        var (svc, profileRepo, dungeonConfigRepo, sessionRepo, progressRepo) = MakeDungeonService();
+        profileRepo.Setup(x => x.GetPlayerProfileById(7)).ReturnsAsync(Profile(energy: 50, level: 20));
+        dungeonConfigRepo.Setup(x => x.GetByIdWithChest(1)).ReturnsAsync(new DungeonConfig { DungeonConfigId = 1, Name = "Dark Cave", LevelRequirement = 1, MaxMembers = 2, EnergyCost = 20, IsActive = true });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.EnterDungeon(7, 1, new List<string> { "player2", "player3" }));
+    }
+
+    [Fact] public async Task F38_DungeonProgressRejectsNonOwner()
+    {
+        var (svc, profileRepo, dungeonConfigRepo, sessionRepo, progressRepo) = MakeDungeonService();
+        sessionRepo.Setup(x => x.GetById(10)).ReturnsAsync(new DungeonSession { DungeonSessionId = 10, PlayerProfileId = 99, Status = "Active" });
+        var request = new UpdateDungeonProgressRequestDto { MonstersKilled = 3, BossKilled = false, CompletionPercentage = 30 };
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => svc.UpdateProgress(10, 7, request));
+    }
+
+    [Fact] public async Task F38_DungeonCompleteRejectsBossNotKilled()
+    {
+        var (svc, profileRepo, dungeonConfigRepo, sessionRepo, progressRepo) = MakeDungeonService();
+        sessionRepo.Setup(x => x.GetById(10)).ReturnsAsync(new DungeonSession
+        {
+            DungeonSessionId = 10, PlayerProfileId = 7, Status = "Active",
+            Progress = new DungeonProgress { BossKilled = false }
+        });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.CompleteSession(10, 7));
+    }
+
+    [Fact] public async Task F38_DungeonProgressRejectsInactiveSession()
+    {
+        var (svc, profileRepo, dungeonConfigRepo, sessionRepo, progressRepo) = MakeDungeonService();
+        sessionRepo.Setup(x => x.GetById(10)).ReturnsAsync(new DungeonSession { DungeonSessionId = 10, PlayerProfileId = 7, Status = "Completed" });
+        var request = new UpdateDungeonProgressRequestDto { MonstersKilled = 3, BossKilled = false, CompletionPercentage = 30 };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.UpdateProgress(10, 7, request));
+    }
+
+    // ── F40: Manage Quests ───────────────────────────────────────────────────────
+
+    [Fact] public async Task F40_QuestAcceptRejectsInactiveQuest()
+    {
+        var (svc, playerQuestRepo, profileRepo, questRepo, _, _) = MakePlayerQuestService();
+        questRepo.Setup(x => x.GetByIdWithReward(5)).ReturnsAsync(new Quest { QuestId = 5, IsActive = false, MapName = "ElfForest", Type = "Side" });
+        profileRepo.Setup(x => x.GetPlayerProfileById(7)).ReturnsAsync(Profile(level: 10));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.AcceptQuest(7, new AcceptQuestRequestDto { QuestId = 5 }));
+    }
+
+    [Fact] public async Task F40_QuestClaimRewardRejectsIncompleteQuest()
+    {
+        var (svc, playerQuestRepo, profileRepo, questRepo, _, _) = MakePlayerQuestService();
+        questRepo.Setup(x => x.GetByIdWithReward(5)).ReturnsAsync(new Quest { QuestId = 5, IsActive = true, MapName = "ElfForest", Type = "Side", RewardItems = new List<QuestRewardItem>(), RewardSkills = new List<QuestRewardSkill>() });
+        playerQuestRepo.Setup(x => x.GetByPlayerAndQuest(7, 5)).ReturnsAsync(new PlayerQuest { PlayerProfileId = 7, QuestId = 5, Status = "InProgress", TargetValue = 10, Progress = 3 });
+        var txn = new Mock<ITransactionManager>();
+        txn.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<PlayerQuestResponseDto>>>())).Returns((Func<Task<PlayerQuestResponseDto>> action) => action());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.ClaimReward(7, new ClaimQuestRequestDto { QuestId = 5 }));
+    }
+
+    [Fact] public async Task F40_BatchUpdateProgressCapsLargeDeltaAt50()
+    {
+        var (svc, playerQuestRepo, _, _, _, _) = MakePlayerQuestService();
+        var quest = new Quest { QuestId = 5, TargetAmount = 200, ObjectiveType = "Kill", IsActive = true };
+        var pq = new PlayerQuest { PlayerProfileId = 7, QuestId = 5, Status = "InProgress", Progress = 0, TargetValue = 200, Quest = quest };
+        playerQuestRepo.Setup(x => x.GetByPlayerAndQuestIds(7, It.IsAny<List<int>>())).ReturnsAsync(new List<PlayerQuest> { pq });
+        playerQuestRepo.Setup(x => x.UpdateRange(It.IsAny<List<PlayerQuest>>())).Returns(Task.CompletedTask);
+        var batchRequest = new BatchProgressRequestDto { Updates = new List<QuestProgressItemDto> { new QuestProgressItemDto { QuestId = 5, Progress = 100 } } };
+        var results = await svc.BatchUpdateProgress(7, batchRequest);
+        Assert.Single(results);
+        Assert.Equal(50, pq.Progress); // capped at delta 50
+    }
+
+    // ── F41: Manage Gacha ────────────────────────────────────────────────────────
+
+    [Fact] public async Task F41_GachaPullRejectsInactiveBanner()
+    {
+        var (svc, bannerRepo, profileRepo, inventoryRepo, itemRepo, txn, deliveryRepo) = MakeGachaBannerService();
+        bannerRepo.Setup(x => x.GetGachaBannerByIdWithItems(1)).ReturnsAsync(new GachaBanner { GachaBannerId = 1, IsActive = false, StartAt = DateTime.UtcNow.AddDays(-1), EndAt = DateTime.UtcNow.AddDays(1), BannerItems = new List<GachaBannerItem>() });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.Pull(7, 1, new GachaPullRequestDto { PullCount = 1 }));
+    }
+
+    [Fact] public async Task F41_GachaPullRejectsBannerWithNoItems()
+    {
+        var (svc, bannerRepo, profileRepo, inventoryRepo, itemRepo, txn, deliveryRepo) = MakeGachaBannerService();
+        bannerRepo.Setup(x => x.GetGachaBannerByIdWithItems(1)).ReturnsAsync(new GachaBanner { GachaBannerId = 1, IsActive = true, StartAt = DateTime.UtcNow.AddDays(-1), EndAt = DateTime.UtcNow.AddDays(1), BannerItems = new List<GachaBannerItem>() });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.Pull(7, 1, new GachaPullRequestDto { PullCount = 1 }));
+    }
+
+    [Fact] public async Task F41_GachaCostItemRejectsCurrencyTypeItem()
+    {
+        var (svc, bannerRepo, profileRepo, inventoryRepo, itemRepo, txn, deliveryRepo) = MakeGachaBannerService();
+        itemRepo.Setup(x => x.GetItemById(10)).ReturnsAsync(new Item { ItemId = 10, Name = "Gold Coin", Type = "Currency", IsActive = true });
+        var request = new CreateGachaBannerRequestDto { Name = "Test Banner", Type = "Normal", PullCost = 1, CostItemId = 10, PityLimit = 10, IsActive = true, StartAt = DateTime.UtcNow, EndAt = DateTime.UtcNow.AddDays(7) };
+        await Assert.ThrowsAsync<ArgumentException>(() => svc.CreateBanner(request));
+    }
+
+    // ── F43: Manage Mailbox ──────────────────────────────────────────────────────
+
+    [Fact] public async Task F43_MailboxClaimRejectsAlreadyClaimedReward()
+    {
+        var mailboxRepo = new Mock<IMailboxRepository>();
+        mailboxRepo.Setup(x => x.GetMailboxById(5)).ReturnsAsync(new Mailbox { MailboxId = 5, PlayerProfileId = 7, IsClaimed = true });
+        var txn = new Mock<ITransactionManager>();
+        txn.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<MailboxDetailDto>>>())).Returns((Func<Task<MailboxDetailDto>> action) => action());
+        var svc = new MailboxService(mailboxRepo.Object, new Mock<IPlayerProfileRepository>().Object, new Mock<IInventoryService>().Object, new Mock<IMapper>().Object, txn.Object);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.ClaimMailboxReward(5));
+    }
+
+    [Fact] public async Task F43_MailboxDeleteRejectsUnclaimedAttachments()
+    {
+        var mailboxRepo = new Mock<IMailboxRepository>();
+        mailboxRepo.Setup(x => x.GetMailboxById(5)).ReturnsAsync(new Mailbox
+        {
+            MailboxId = 5, PlayerProfileId = 7, IsClaimed = false,
+            AttachedGold = 500, AttachedGems = 0, AttachedItems = new List<MailboxRewardItem>()
+        });
+        var txn = new Mock<ITransactionManager>();
+        var svc = new MailboxService(mailboxRepo.Object, new Mock<IPlayerProfileRepository>().Object, new Mock<IInventoryService>().Object, new Mock<IMapper>().Object, txn.Object);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteMailbox(5, 7));
+    }
+
+    [Fact] public async Task F43_MailboxSendRejectsGoldOutOfRange()
+    {
+        var mailboxRepo = new Mock<IMailboxRepository>();
+        var txn = new Mock<ITransactionManager>();
+        var svc = new MailboxService(mailboxRepo.Object, new Mock<IPlayerProfileRepository>().Object, new Mock<IInventoryService>().Object, new Mock<IMapper>().Object, txn.Object);
+        var request = new SendMailboxByListIdDto { PlayerProfileIds = new List<int> { 7 }, Title = "Test", Content = "Hello", Type = "System", AttachedGold = 10000, AttachedGems = 0 };
+        await Assert.ThrowsAsync<ArgumentException>(() => svc.SendMailboxByListId(request));
+    }
+
+    // ── F45: Manage Chat ─────────────────────────────────────────────────────────
+
+    [Fact] public async Task F45_ChatLockedUserCannotSendMessage()
+    {
+        var chatRepo = new Mock<IChatModerationRepository>();
+        chatRepo.Setup(x => x.GetActivePenalty(7, It.IsAny<DateTime>())).ReturnsAsync(new ChatModerationPenalty { LockedUntil = DateTime.UtcNow.AddHours(2), LockLevel = 1 });
+        var svc = new ChatModerationService(chatRepo.Object, new Mock<IMailboxRepository>().Object, new Mock<IContentSafetyProvider>().Object);
+        await Assert.ThrowsAsync<ChatLockedException>(() => svc.EnsureCanSendChat(7));
+    }
+
+    [Fact] public void F45_FirstViolationLocks2Hours()
+    {
+        // BR: 1st violation = LockLevel 1 = 2 hours
+        var lockDuration = GetLockDurationForLevel(1);
+        Assert.Equal(TimeSpan.FromHours(2), lockDuration);
+    }
+
+    [Fact] public void F45_SecondViolationLocks24Hours()
+    {
+        var lockDuration = GetLockDurationForLevel(2);
+        Assert.Equal(TimeSpan.FromHours(24), lockDuration);
+    }
+
+    [Fact] public void F45_ThirdAndBeyondViolationLocks3Days()
+    {
+        Assert.Equal(TimeSpan.FromDays(3), GetLockDurationForLevel(3));
+        Assert.Equal(TimeSpan.FromDays(3), GetLockDurationForLevel(10));
+    }
+
+    // ── F46: Manage Guild ────────────────────────────────────────────────────────
+
+    [Fact] public async Task F46_GuildCreateRejectsPlayerAlreadyInGuild()
+    {
+        var guildRepo = new Mock<IGuildRepository>();
+        // Setup with explicit bool values to avoid Moq optional-arg expression-tree errors
+        guildRepo.Setup(x => x.GetPlayerProfileAsync(7, false, false)).ReturnsAsync(new PlayerProfile
+        {
+            PlayerProfileId = 7, DisplayName = "Hero",
+            GuildMember = new GuildMember { GuildId = 5, PlayerProfileId = 7, Role = GuildRole.Member }
+        });
+        guildRepo.Setup(x => x.GetPlayerProfileAsync(7, true, false)).ReturnsAsync(new PlayerProfile
+        {
+            PlayerProfileId = 7, DisplayName = "Hero",
+            GuildMember = new GuildMember { GuildId = 5, PlayerProfileId = 7, Role = GuildRole.Member }
+        });
+        var svc = new GuildService(guildRepo.Object);
+        await Assert.ThrowsAsync<Exception>(() => svc.CreateGuildAsync(7, new CreateGuildRequestDto { Name = "New Guild" }));
+    }
+
+    [Fact] public async Task F46_GuildKickRejectsNonLeaderOrOfficer()
+    {
+        var guildRepo = new Mock<IGuildRepository>();
+        // Executor is a plain Member, not Leader/Officer
+        guildRepo.Setup(x => x.GetMemberAsync(5, 7, It.IsAny<bool>())).ReturnsAsync(new GuildMember { GuildId = 5, PlayerProfileId = 7, Role = GuildRole.Member });
+        var svc = new GuildService(guildRepo.Object);
+        var result = await svc.KickMemberAsync(7, 5, 8);
+        Assert.False(result); // Non-leader cannot kick
+    }
+
+    [Fact] public async Task F46_GuildLeaderCannotKickSelf()
+    {
+        var guildRepo = new Mock<IGuildRepository>();
+        var svc = new GuildService(guildRepo.Object);
+        var result = await svc.KickMemberAsync(7, 5, 7); // same playerId and memberProfileId
+        Assert.False(result);
+    }
+
+    [Fact] public async Task F46_GuildLeavingAsLeaderIsRejected()
+    {
+        var guildRepo = new Mock<IGuildRepository>();
+        guildRepo.Setup(x => x.GetMemberAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync(new GuildMember { GuildId = 5, PlayerProfileId = 7, Role = GuildRole.Leader });
+        var svc = new GuildService(guildRepo.Object);
+        var result = await svc.LeaveGuildAsync(7, 5);
+        Assert.False(result.Success);
+        Assert.Contains("transfer leadership", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // ── F47: Manage Achievements ─────────────────────────────────────────
+
+    [Fact] public async Task F47_UnlockAchievementGrantsRewardsExactlyOnce()
+    {
+        var achievement = new Achievement
+        {
+            AchievementId = 3, Name = "Deadeye", RequiredValue = 10,
+            RewardGold = 125, RewardGem = 4, RewardItemId = 42, RewardQuantity = 3
+        };
+        var playerAchievement = new PlayerAchievement
+        {
+            PlayerAchievementId = 11, PlayerProfileId = 7, AchievementId = 3,
+            Achievement = achievement, Progress = 10, IsCompleted = false
+        };
+        var profile = Profile(gems: 6); profile.Gold = 75;
+
+        var playerAchievements = new Mock<IPlayerAchievementRepository>();
+        playerAchievements.Setup(x => x.GetByIdWithAchievement(11)).ReturnsAsync(playerAchievement);
+        playerAchievements.Setup(x => x.Update(playerAchievement)).ReturnsAsync(playerAchievement);
+
+        var profiles = new Mock<IPlayerProfileRepository>();
+        profiles.Setup(x => x.GetPlayerProfileById(7)).ReturnsAsync(profile);
+        profiles.Setup(x => x.UpdatePlayerProfile(profile)).ReturnsAsync(profile);
+
+        var rewards = new Mock<IRewardDeliveryService>();
+        var transactions = new Mock<ITransactionManager>();
+        transactions.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<PlayerAchievementResponseDto>>>(), IsolationLevel.Serializable))
+            .Returns((Func<Task<PlayerAchievementResponseDto>> action, IsolationLevel _) => action());
+
+        var mapper = new Mock<IMapper>();
+        mapper.Setup(x => x.Map<PlayerAchievementResponseDto>(It.IsAny<PlayerAchievement>()))
+            .Returns((PlayerAchievement source) => new PlayerAchievementResponseDto { PlayerAchievementId = source.PlayerAchievementId, IsCompleted = source.IsCompleted, CompletedAt = source.CompletedAt });
+
+        var service = new AchievementService(new Mock<IAchievementRepository>().Object, mapper.Object, playerAchievements.Object, profiles.Object, new Mock<IPlayerQuestRepository>().Object, rewards.Object, transactions.Object);
+
+        var first = await service.UnlockAchievement(7, 11);
+        var retry = await service.UnlockAchievement(7, 11);
+
+        Assert.True(first.IsCompleted);
+        Assert.True(retry.IsCompleted);
+        Assert.Equal(200, profile.Gold);
+        Assert.Equal(10, profile.Gems);
+        profiles.Verify(x => x.UpdatePlayerProfile(profile), Times.Once);
+        rewards.Verify(x => x.DeliverItemAsync(7, 42, 3, It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact] public async Task F47_UnlockAchievementRejectsIncompleteProgress()
+    {
+        var achievement = new Achievement { AchievementId = 3, RequiredValue = 10 };
+        var playerAchievement = new PlayerAchievement { PlayerAchievementId = 11, PlayerProfileId = 7, AchievementId = 3, Achievement = achievement, Progress = 5, IsCompleted = false };
+
+        var playerAchievements = new Mock<IPlayerAchievementRepository>();
+        playerAchievements.Setup(x => x.GetByIdWithAchievement(11)).ReturnsAsync(playerAchievement);
+
+        var transactions = new Mock<ITransactionManager>();
+        transactions.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<PlayerAchievementResponseDto>>>(), IsolationLevel.Serializable))
+            .Returns((Func<Task<PlayerAchievementResponseDto>> action, IsolationLevel _) => action());
+
+        var service = new AchievementService(new Mock<IAchievementRepository>().Object, new Mock<IMapper>().Object, playerAchievements.Object, new Mock<IPlayerProfileRepository>().Object, new Mock<IPlayerQuestRepository>().Object, new Mock<IRewardDeliveryService>().Object, transactions.Object);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.UnlockAchievement(7, 11));
+    }
+
+    [Fact] public async Task F47_UnlockAchievementRejectsAnotherPlayer()
+    {
+        var playerAchievement = new PlayerAchievement { PlayerAchievementId = 11, PlayerProfileId = 99 };
+        var playerAchievements = new Mock<IPlayerAchievementRepository>();
+        playerAchievements.Setup(x => x.GetByIdWithAchievement(11)).ReturnsAsync(playerAchievement);
+
+        var transactions = new Mock<ITransactionManager>();
+        transactions.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<PlayerAchievementResponseDto>>>(), IsolationLevel.Serializable))
+            .Returns((Func<Task<PlayerAchievementResponseDto>> action, IsolationLevel _) => action());
+
+        var service = new AchievementService(new Mock<IAchievementRepository>().Object, new Mock<IMapper>().Object, playerAchievements.Object, new Mock<IPlayerProfileRepository>().Object, new Mock<IPlayerQuestRepository>().Object, new Mock<IRewardDeliveryService>().Object, transactions.Object);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.UnlockAchievement(7, 11));
+    }
+
+
+    // ── Helper: get lock duration by violation level (mirrors ChatModerationService internals) ──
+    private static TimeSpan GetLockDurationForLevel(int lockLevel) => lockLevel switch
+    {
+        1 => TimeSpan.FromHours(2),
+        2 => TimeSpan.FromHours(24),
+        _ => TimeSpan.FromDays(3)
+    };
+
     // Executes profile operation.
     private static PlayerProfile Profile(int energy = 0, int maxEnergy = 100, DateTime? updated = null, int gems = 0, bool changed = false, int level = 1, string playerClass = "Knight") => new()
     { PlayerProfileId = 7, DisplayName = "Hero", CurrentEnergy = energy, MaxEnergy = maxEnergy, LastEnergyUpdateTime = updated ?? DateTime.UtcNow, Gems = gems, HasChangedName = changed, Level = level, Class = playerClass };
@@ -273,5 +593,57 @@ public sealed class BusinessRuleTests
     {
         var a = new Mock<IFriendRepository>(); var b = new Mock<IPlayerProfileRepository>();
         return (new FriendService(a.Object, b.Object, new Mock<IChatMessageRepository>().Object, new Mock<IDistributedCache>().Object, new Mock<IPlayerHeartbeatService>().Object), a, b);
+    }
+
+    // Helper: creates a DungeonSessionService with mocked dependencies.
+    private static (DungeonSessionService, Mock<IPlayerProfileRepository>, Mock<IDungeonConfigRepository>, Mock<IDungeonSessionRepository>, Mock<IDungeonProgressRepository>) MakeDungeonService()
+    {
+        var profileRepo = new Mock<IPlayerProfileRepository>();
+        var dungeonConfigRepo = new Mock<IDungeonConfigRepository>();
+        var sessionRepo = new Mock<IDungeonSessionRepository>();
+        var progressRepo = new Mock<IDungeonProgressRepository>();
+        var profileService = new PlayerProfileService(profileRepo.Object, new Mock<IMapper>().Object, new Mock<IFriendRepository>().Object);
+        var txn = new Mock<ITransactionManager>();
+        txn.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<ClaimDungeonRewardResponseDto>>>()))
+           .Returns((Func<Task<ClaimDungeonRewardResponseDto>> action) => action());
+        var svc = new DungeonSessionService(
+            dungeonConfigRepo.Object, sessionRepo.Object, progressRepo.Object,
+            profileRepo.Object, profileService, txn.Object,
+            new Mock<IInventoryRepository>().Object, new Mock<IMapper>().Object,
+            new Mock<IRewardDeliveryService>().Object);
+        return (svc, profileRepo, dungeonConfigRepo, sessionRepo, progressRepo);
+    }
+
+    // Helper: creates a PlayerQuestService with mocked dependencies.
+    private static (PlayerQuestService, Mock<IPlayerQuestRepository>, Mock<IPlayerProfileRepository>, Mock<IQuestRepository>, Mock<IInventoryRepository>, Mock<ISkillRepository>) MakePlayerQuestService()
+    {
+        var playerQuestRepo = new Mock<IPlayerQuestRepository>();
+        var profileRepo = new Mock<IPlayerProfileRepository>();
+        var questRepo = new Mock<IQuestRepository>();
+        var inventoryRepo = new Mock<IInventoryRepository>();
+        var skillRepo = new Mock<ISkillRepository>();
+        var txn = new Mock<ITransactionManager>();
+        txn.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<PlayerQuestResponseDto>>>())).Returns((Func<Task<PlayerQuestResponseDto>> action) => action());
+        txn.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<PlayerQuestResponseDto>>>(), It.IsAny<IsolationLevel>())).Returns((Func<Task<PlayerQuestResponseDto>> action, IsolationLevel _) => action());
+        var mapper = new Mock<IMapper>();
+        mapper.Setup(x => x.Map<PlayerQuestResponseDto>(It.IsAny<PlayerQuest>())).Returns((PlayerQuest pq) => new PlayerQuestResponseDto { QuestId = pq.QuestId, Status = pq.Status, Progress = pq.Progress });
+        var svc = new PlayerQuestService(playerQuestRepo.Object, profileRepo.Object, questRepo.Object, inventoryRepo.Object, skillRepo.Object, txn.Object, mapper.Object, new Mock<IRewardDeliveryService>().Object);
+        return (svc, playerQuestRepo, profileRepo, questRepo, inventoryRepo, skillRepo);
+    }
+
+    // Helper: creates a GachaBannerService with mocked dependencies.
+    private static (GachaBannerService, Mock<IGachaBannerRepository>, Mock<IPlayerProfileRepository>, Mock<IInventoryRepository>, Mock<IItemRepository>, Mock<ITransactionManager>, Mock<IRewardDeliveryService>) MakeGachaBannerService()
+    {
+        var bannerRepo = new Mock<IGachaBannerRepository>();
+        var profileRepo = new Mock<IPlayerProfileRepository>();
+        var inventoryRepo = new Mock<IInventoryRepository>();
+        var itemRepo = new Mock<IItemRepository>();
+        var txn = new Mock<ITransactionManager>();
+        txn.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task<MultiPullResultDto>>>())).Returns((Func<Task<MultiPullResultDto>> action) => action());
+        var deliveryRepo = new Mock<IRewardDeliveryService>();
+        var mapper = new Mock<IMapper>();
+        mapper.Setup(x => x.Map<GachaBannerResponseDto>(It.IsAny<GachaBanner>())).Returns(new GachaBannerResponseDto());
+        var svc = new GachaBannerService(bannerRepo.Object, profileRepo.Object, inventoryRepo.Object, itemRepo.Object, txn.Object, mapper.Object, deliveryRepo.Object);
+        return (svc, bannerRepo, profileRepo, inventoryRepo, itemRepo, txn, deliveryRepo);
     }
 }
