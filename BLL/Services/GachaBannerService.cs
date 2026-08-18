@@ -195,15 +195,34 @@ namespace BLL.Services
                             throw new InvalidOperationException(  // Unexpected runtime state — propagate to global error handler
                                 "This gacha banner has no ticket item configured. A paid pull requires a gacha ticket; Coin, Gem and Energy cannot be used.");
 
-                        var invCostItem = await _inventoryRepository.GetByPlayerAndItem(playerProfileId, banner.CostItemId.Value);
-                        if (invCostItem == null || invCostItem.Quantity < totalCost)
+                        var playerInventory = await _inventoryRepository.GetByPlayerId(playerProfileId);
+                        var allCostItems = playerInventory
+                            .Where(i => (banner.CostItemId.HasValue && i.ItemId == banner.CostItemId.Value)
+                                     || (i.Item != null && i.Item.Name != null && i.Item.Name.Contains("Ticket", StringComparison.OrdinalIgnoreCase)))
+                            .OrderBy(i => i.Quantity)
+                            .ToList();
+
+                        int totalAvailable = allCostItems.Sum(i => i.Quantity);
+                        if (totalAvailable < totalCost)
                             throw new InvalidOperationException("Not enough gacha tickets or cost items.");  // Unexpected runtime state — propagate to global error handler
 
-                        invCostItem.Quantity -= (int)totalCost;
-                        if (invCostItem.Quantity <= 0)
-                            await _inventoryRepository.DeleteItem(invCostItem.InventoryItemId);
-                        else
-                            await _inventoryRepository.UpdateItem(invCostItem);
+                        int remainingToDeduct = (int)totalCost;
+                        foreach (var costItem in allCostItems)
+                        {
+                            if (remainingToDeduct <= 0) break;
+
+                            if (costItem.Quantity <= remainingToDeduct)
+                            {
+                                remainingToDeduct -= costItem.Quantity;
+                                await _inventoryRepository.DeleteItem(costItem.InventoryItemId);
+                            }
+                            else
+                            {
+                                costItem.Quantity -= remainingToDeduct;
+                                remainingToDeduct = 0;
+                                await _inventoryRepository.UpdateItem(costItem);
+                            }
+                        }
                     }
                 }
                 else
