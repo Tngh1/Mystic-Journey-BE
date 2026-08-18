@@ -51,6 +51,7 @@ namespace DAL.Repositories
         public async Task<List<InventoryItem>> GetByPlayerId(int playerProfileId)
         {
             return await _context.InventoryItems
+                .AsNoTracking()
                 .Include(i => i.Item)  // Eagerly load related navigation entities to avoid N+1 queries
                     .ThenInclude(it => it!.EquipmentStats)
                 .Where(i => i.PlayerProfileId == playerProfileId)  // Filter records matching the predicate
@@ -73,7 +74,15 @@ namespace DAL.Repositories
         // Returns the matching InventoryItem entity result or default if not found.
         public async Task<InventoryItem> UpdateItem(InventoryItem item)
         {
-            _context.InventoryItems.Update(item);
+            var tracked = _context.InventoryItems.Local.FirstOrDefault(e => e.InventoryItemId == item.InventoryItemId);
+            if (tracked != null)
+            {
+                _context.Entry(tracked).CurrentValues.SetValues(item);
+            }
+            else
+            {
+                _context.InventoryItems.Update(item);
+            }
             await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return item;
         }

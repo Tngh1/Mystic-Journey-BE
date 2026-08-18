@@ -55,14 +55,18 @@ namespace BLL.Services
         // Returns the computed InventorySummaryDto result asynchronously.
         public async Task<InventorySummaryDto> GetInventory(int playerProfileId)
         {
+            await ConsolidateAllPlayerStacksAsync(playerProfileId);
             var items = await _inventoryRepository.GetByPlayerId(playerProfileId);
             var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
+
+            var equippedList = dtos.Where(d => d.IsEquipped).ToList();
+            foreach (var eq in equippedList) eq.Quantity = 1;
 
             var summary = new InventorySummaryDto
             {
                 TotalItems = dtos.Sum(d => d.Quantity),
                 BagItems = dtos.Where(d => !d.IsEquipped && !d.IsSkin).ToList(),  // Filter records matching the predicate
-                EquippedItems = dtos.Where(d => d.IsEquipped).ToList(),  // Filter records matching the predicate
+                EquippedItems = equippedList,  // Filter records matching the predicate
                 BagCapacity = BAG_CAPACITY
             };
 
@@ -100,32 +104,92 @@ namespace BLL.Services
         // Equips an inventory item to the appropriate equipment slot and updates player combat stats.
         public async Task<InventoryActionResultDto> EquipItem(int actorPlayerProfileId, EquipItemRequestDto request)
         {
-            var inv = await _inventoryRepository.GetById(request.InventoryItemId)
+            var initialInv = await _inventoryRepository.GetById(request.InventoryItemId)
                 ?? throw new KeyNotFoundException("Inventory item not found.");
 
-            if (inv.PlayerProfileId != actorPlayerProfileId)
+            if (initialInv.PlayerProfileId != actorPlayerProfileId)
                 throw new UnauthorizedAccessException("Item does not belong to player.");  // Authentication token is invalid or expired
 
-            // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
-            var slot = inv.Item?.Slot ?? inv.EquippedSlot;
+            if (initialInv.IsEquipped)
+            {
+                var currentSnapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
+                var responseDto = _mapper.Map<InventoryItemResponseDto>(initialInv);
+                var statDto = currentSnapshot == null ? null : new PlayerStatsResponseDto
+                {
+                    CurrentHp = currentSnapshot.MaxHp,
+                    MaxHp = currentSnapshot.MaxHp,
+                    Atk = currentSnapshot.Atk,
+                    Def = currentSnapshot.Def,
+                    MoveSpeed = (int)StatHelper.FromScaled(currentSnapshot.MoveSpeed, StatScale.MoveSpeed),
+                    AttackSpeed = (int)StatHelper.FromScaled(currentSnapshot.AttackSpeed, StatScale.AttackSpeed),
+                    CritRate = (int)StatHelper.FromScaled(currentSnapshot.CritRate, StatScale.CritRate),
+                    CritDamage = (int)StatHelper.FromScaled(currentSnapshot.CritDamage, StatScale.CritRate),
+                    DamageBonus = (int)StatHelper.FromScaled(currentSnapshot.DamageBonus, StatScale.DamageBonus),
+                };
+                return new InventoryActionResultDto { Item = responseDto, PlayerStats = statDto };
+            }
+
+            int targetItemId = initialInv.ItemId;
+            int targetEnhancement = initialInv.EnhancementLevel;
 
             var (updatedInv, finalSnapshot) = await _transactionManager.ExecuteInTransactionAsync<(InventoryItem, PlayerStatsSnapshot?)>(async () =>
             {
-                if (!string.IsNullOrEmpty(slot))
+                await ConsolidateAllPlayerStacksAsync(actorPlayerProfileId);
+
+                var playerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
+
+                var inv = playerItems.FirstOrDefault(i => i.InventoryItemId == request.InventoryItemId);
+
+                if (inv == null)
+                    throw new KeyNotFoundException("Inventory item not found after consolidation.");
+
+                if (inv.IsEquipped)
                 {
-                    var playerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
-                    var conflict = playerItems.FirstOrDefault(i => i.IsEquipped && i.EquippedSlot == slot);
-                    if (conflict != null)  // Entity exists — proceed with conditional branch
-                    {
-                        conflict.IsEquipped = false;
-                        conflict.EquippedSlot = null;
-                        await _inventoryRepository.UpdateItem(conflict);
-                    }
+                    var existingSnapshot = await _statRepository.GetSnapshotByPlayerProfileId(actorPlayerProfileId);
+                    return (inv, existingSnapshot);
                 }
 
-                inv.IsEquipped = true;
-                inv.EquippedSlot = slot;
-                var updated = await _inventoryRepository.UpdateItem(inv);
+                var slot = inv.Item?.Slot ?? inv.EquippedSlot;
+
+                if (string.IsNullOrWhiteSpace(slot) || string.Equals(slot, "None", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Item cannot be equipped.");
+
+                var conflicts = playerItems.Where(i => i.IsEquipped && 
+                    !string.IsNullOrEmpty(i.EquippedSlot) && 
+                    string.Equals(i.EquippedSlot, slot, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                foreach (var conflict in conflicts)
+                {
+                    conflict.IsEquipped = false;
+                    conflict.EquippedSlot = null;
+                    await _inventoryRepository.UpdateItem(conflict);
+                }
+
+                InventoryItem updated;
+                if (inv.Quantity > 1)
+                {
+                    inv.Quantity -= 1;
+                    await _inventoryRepository.UpdateItem(inv);
+
+                    var equippedItem = new InventoryItem
+                    {
+                        PlayerProfileId = actorPlayerProfileId,
+                        ItemId = inv.ItemId,
+                        Quantity = 1,
+                        IsEquipped = true,
+                        EquippedSlot = slot,
+                        IsSkin = false,
+                        EnhancementLevel = inv.EnhancementLevel,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    updated = await _inventoryRepository.AddItem(equippedItem);
+                }
+                else
+                {
+                    inv.IsEquipped = true;
+                    inv.EquippedSlot = slot;
+                    updated = await _inventoryRepository.UpdateItem(inv);
+                }
 
                 var allPlayerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
                 var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();  // Filter records matching the predicate
@@ -173,6 +237,8 @@ namespace BLL.Services
                 else
                     await _statRepository.UpdateSnapshot(snapshot);
 
+                await ConsolidateAllPlayerStacksAsync(actorPlayerProfileId);
+
                 return (updated, snapshot);
             });
 
@@ -215,6 +281,7 @@ namespace BLL.Services
                 inv.IsEquipped = false;
                 inv.EquippedSlot = null;
                 var updated = await _inventoryRepository.UpdateItem(inv);
+                await ConsolidateAllPlayerStacksAsync(actorPlayerProfileId);
 
                 var allPlayerItems = await _inventoryRepository.GetByPlayerId(actorPlayerProfileId);
                 var equippedItems = allPlayerItems.Where(i => i.IsEquipped).ToList();  // Filter records matching the predicate
@@ -529,6 +596,12 @@ namespace BLL.Services
             return false;
         }
 
+        // Determines the effective max stack limit for an inventory item, defaulting to MAX_STACK_SIZE (99).
+        private static int GetEffectiveMaxStack(InventoryItem? item)
+        {
+            return MAX_STACK_SIZE; // Always allow unequipped items and equipment to stack up to 99 in bag
+        }
+
         // Executes core business logic for add item to inventory.
         // Logic details: validates numeric boundary constraints; delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models; throws InventoryCapacityExceededException, ArgumentOutOfRangeException on invalid state or rule violations.
         // Returns the computed InventoryItemResponseDto result asynchronously.
@@ -540,22 +613,49 @@ namespace BLL.Services
             return _transactionManager.ExecuteInTransactionAsync(async () =>
             {
                 var inventory = await _inventoryRepository.GetByPlayerId(playerProfileId);
+                var sampleItem = inventory.FirstOrDefault(i => i.ItemId == itemId);
+                int maxStackSize = GetEffectiveMaxStack(sampleItem);
+
+                var freeSlots = Math.Max(0, BAG_CAPACITY - inventory.Count);
+
+                if (maxStackSize <= 1)
+                {
+                    if (freeSlots < quantity)
+                        throw new InventoryCapacityExceededException();
+
+                    InventoryItem? lastAdded = null;
+                    for (int i = 0; i < quantity; i++)
+                    {
+                        var newItem = new InventoryItem
+                        {
+                            PlayerProfileId = playerProfileId,
+                            ItemId = itemId,
+                            Quantity = 1,
+                            IsEquipped = false,
+                            IsSkin = false,
+                            EnhancementLevel = 0
+                        };
+                        lastAdded = await _inventoryRepository.AddItem(newItem);
+                    }
+                    return _mapper.Map<InventoryItemResponseDto>(lastAdded!);
+                }
+
                 var stackable = inventory
                     .Where(i => i.ItemId == itemId && !i.IsEquipped && !i.IsSkin && i.EnhancementLevel == 0)  // Filter records matching the predicate
-                    .OrderBy(i => i.InventoryItemId)  // Sort results oldest/lowest first
+                    .OrderBy(i => i.Quantity)  // Prioritize smallest non-full stack first
+                    .ThenBy(i => i.InventoryItemId)
                     .ToList();
 
-                var freeInStacks = stackable.Sum(i => Math.Max(0, MAX_STACK_SIZE - i.Quantity));
-                var freeSlots = Math.Max(0, BAG_CAPACITY - inventory.Count);
-                var totalCapacity = freeInStacks + freeSlots * MAX_STACK_SIZE;
+                var freeInStacks = stackable.Sum(i => Math.Max(0, maxStackSize - i.Quantity));
+                var totalCapacity = freeInStacks + freeSlots * maxStackSize;
                 if (totalCapacity < quantity)
                     throw new InventoryCapacityExceededException();
 
                 var remaining = quantity;
                 InventoryItem? lastChanged = null;
-                foreach (var stack in stackable.Where(i => i.Quantity < MAX_STACK_SIZE))  // Filter records matching the predicate
+                foreach (var stack in stackable.Where(i => i.Quantity < maxStackSize))  // Filter non-full stacks
                 {
-                    var added = Math.Min(MAX_STACK_SIZE - stack.Quantity, remaining);
+                    var added = Math.Min(maxStackSize - stack.Quantity, remaining);
                     stack.Quantity += added;
                     remaining -= added;
                     lastChanged = await _inventoryRepository.UpdateItem(stack);
@@ -565,7 +665,7 @@ namespace BLL.Services
 
                 while (remaining > 0)
                 {
-                    var stackQuantity = Math.Min(MAX_STACK_SIZE, remaining);
+                    var stackQuantity = Math.Min(maxStackSize, remaining);
                     var newItem = new InventoryItem
                     {
                         PlayerProfileId = playerProfileId,
@@ -580,19 +680,86 @@ namespace BLL.Services
                     remaining -= stackQuantity;
                 }
 
+                await ConsolidateAllPlayerStacksAsync(playerProfileId);
+
                 return _mapper.Map<InventoryItemResponseDto>(lastChanged!);  // Transform domain entity into DTO for the API response layer
             }, IsolationLevel.Serializable);
         }
 
+        // Automatically merges all fragmented incomplete stacks across all items in player inventory.
+        public Task ConsolidateAllPlayerStacksAsync(int playerProfileId)
+        {
+            return _transactionManager.ExecuteInTransactionAsync(async () =>
+            {
+                var inventory = await _inventoryRepository.GetByPlayerId(playerProfileId);
 
+                // Fix any equipped items that have Quantity > 1 (e.g. legacy equipped stacks)
+                var overstackedEquipped = inventory.Where(i => i.IsEquipped && i.Quantity > 1).ToList();
+                foreach (var eq in overstackedEquipped)
+                {
+                    int extraQty = eq.Quantity - 1;
+                    eq.Quantity = 1;
+                    await _inventoryRepository.UpdateItem(eq);
+
+                    var bagStack = inventory.FirstOrDefault(i => i.ItemId == eq.ItemId && !i.IsEquipped && !i.IsSkin && i.EnhancementLevel == eq.EnhancementLevel);
+                    if (bagStack != null)
+                    {
+                        bagStack.Quantity += extraQty;
+                        await _inventoryRepository.UpdateItem(bagStack);
+                    }
+                    else
+                    {
+                        var newItem = new InventoryItem
+                        {
+                            PlayerProfileId = playerProfileId,
+                            ItemId = eq.ItemId,
+                            Quantity = extraQty,
+                            IsEquipped = false,
+                            IsSkin = false,
+                            EnhancementLevel = eq.EnhancementLevel
+                        };
+                        await _inventoryRepository.AddItem(newItem);
+                    }
+                }
+
+                // Re-fetch updated inventory for bag consolidation
+                inventory = await _inventoryRepository.GetByPlayerId(playerProfileId);
+                var groups = inventory
+                    .Where(i => !i.IsEquipped && !i.IsSkin)
+                    .GroupBy(i => new { i.ItemId, i.EnhancementLevel })
+                    .ToList();
+
+                foreach (var group in groups)
+                {
+                    var items = group.OrderByDescending(i => i.Quantity).ThenBy(i => i.InventoryItemId).ToList();
+                    if (items.Count <= 1) continue;
+
+                    // Keep the first item (with largest quantity) as target stack
+                    var target = items[0];
+                    int totalQty = items.Sum(i => i.Quantity);
+
+                    // Delete all extra duplicate rows in database
+                    for (int k = 1; k < items.Count; k++)
+                    {
+                        await _inventoryRepository.DeleteItem(items[k].InventoryItemId);
+                    }
+
+                    // Update target stack with sum of all quantities
+                    target.Quantity = totalQty;
+                    await _inventoryRepository.UpdateItem(target);
+                }
+            }, System.Data.IsolationLevel.Serializable);
+        }
 
         // Executes core business logic for get me inventory.
         // Logic details: delegates data queries and updates to repository layer; transforms domain entities into DTO transfer models.
         // Returns the computed PlayerMeInventoryResponseDto result asynchronously.
         public async Task<PlayerMeInventoryResponseDto> GetMeInventory(int playerProfileId)
         {
+            await ConsolidateAllPlayerStacksAsync(playerProfileId);
             var items = await _inventoryRepository.GetByPlayerId(playerProfileId);
             var dtos = _mapper.Map<List<InventoryItemResponseDto>>(items);  // Transform domain entity into DTO for the API response layer
+            foreach (var eq in dtos.Where(d => d.IsEquipped)) eq.Quantity = 1;
             return new PlayerMeInventoryResponseDto
             {
                 PlayerProfileId = playerProfileId,

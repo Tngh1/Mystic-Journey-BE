@@ -341,6 +341,10 @@ namespace BLL.Mappings
 
 
             CreateMap<InventoryItem, InventoryItemResponseDto>()
+                .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : string.Empty))
+                .ForMember(dest => dest.ItemDescription, opt => opt.MapFrom(src => src.Item != null ? src.Item.Description : null))
+                .ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.Item != null ? src.Item.Type : string.Empty))
+                .ForMember(dest => dest.ItemRarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : string.Empty))
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
                 .ForMember(dest => dest.ItemSlot, opt => opt.MapFrom(src => src.Item != null ? src.Item.Slot : "None"))
                 .ForMember(dest => dest.BaseHp, opt => opt.MapFrom(src => src.Item != null && src.Item.EquipmentStats != null ? src.Item.EquipmentStats.BaseHp : 0))
