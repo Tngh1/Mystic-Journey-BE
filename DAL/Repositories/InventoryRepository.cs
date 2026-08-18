@@ -64,6 +64,7 @@ namespace DAL.Repositories
         public async Task<InventoryItem> AddItem(InventoryItem item)
         {
             item.CreatedAt = DateTime.UtcNow;
+            item.Item = null;  // Clear navigation property to avoid EF Core entity tracking conflicts on Item
             await _context.InventoryItems.AddAsync(item);  // Stage new entity for insertion in the next SaveChanges call
             await _context.SaveChangesAsync();  // Flush all pending EF Core entity changes to the database
             return item;
@@ -74,6 +75,7 @@ namespace DAL.Repositories
         // Returns the matching InventoryItem entity result or default if not found.
         public async Task<InventoryItem> UpdateItem(InventoryItem item)
         {
+            item.Item = null;  // Clear navigation property to avoid EF Core entity tracking conflicts on Item
             var tracked = _context.InventoryItems.Local.FirstOrDefault(e => e.InventoryItemId == item.InventoryItemId);
             if (tracked != null)
             {
