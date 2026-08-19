@@ -100,6 +100,9 @@ namespace Mystic_Journey_API.Controllers
                 if (IsVersionLower(clientVer, minVer))  // Client is below the minimum required version — block login
                 {
                     var downloadUrl = _configuration["GameVersion:DownloadUrl"] ?? "";
+                    var forceUpdate = bool.TryParse(_configuration["GameVersion:ForceUpdate"], out var configuredForceUpdate)
+                        ? configuredForceUpdate
+                        : true;
                     return StatusCode(426, new ApiResponse<object>  // HTTP 426 Upgrade Required: force the client to update
                     {
                         Success = false,
@@ -110,7 +113,7 @@ namespace Mystic_Journey_API.Controllers
                             MinRequiredVersion = minVer,
                             LatestVersion = _configuration["GameVersion:LatestVersion"] ?? minVer,
                             DownloadUrl = downloadUrl,
-                            ForceUpdate = true
+                            ForceUpdate = forceUpdate
                         }
                     });
                 }
