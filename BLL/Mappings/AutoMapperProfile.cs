@@ -174,7 +174,9 @@ namespace BLL.Mappings
 
 
             CreateMap<DailyLoginReward, DailyLoginRewardResponseDto>()
-                .ForMember(dest => dest.RewardItemName, opt => opt.MapFrom(src => src.RewardItem != null ? src.RewardItem.Name : null));
+                .ForMember(dest => dest.RewardItemName, opt => opt.MapFrom(src => src.RewardItem != null ? src.RewardItem.Name : null))
+                .ForMember(dest => dest.RewardItemRarity, opt => opt.MapFrom(src => src.RewardItem != null ? src.RewardItem.Rarity : null))
+                .ForMember(dest => dest.RewardItemType, opt => opt.MapFrom(src => src.RewardItem != null ? src.RewardItem.Type : null));
             CreateMap<CreateDailyLoginRewardRequestDto, DailyLoginReward>();
 
 
