@@ -158,6 +158,36 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [Authorize]
+        [HttpPost("party/report")]
+        public async Task<IActionResult> ReportPartyMessage([FromBody] ReportPartyChatMessageRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Validation failed.",
+                    ErrorCode = ErrorCodes.ValidationError
+                });
+
+            var playerProfileId = GetCurrentPlayerProfileId();
+            if (playerProfileId == 0)
+                return Unauthorized(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Player profile not found.",
+                    ErrorCode = ErrorCodes.Unauthorized
+                });
+
+            var result = await _chatService.ReportPartyMessage(playerProfileId, request);
+            return Ok(new ApiResponse<ChatModerationResultDto>
+            {
+                Success = true,
+                Message = result.ChatLocked ? result.WarningMessage : "Party message reported.",
+                Data = result
+            });
+        }
+
+        [Authorize]
         [HttpGet("friend/messages")]
         // Retrieves private messages with a specific friend (alias for get messages).
         public async Task<IActionResult> GetFriendMessages([FromQuery] ChatMessageListQueryDto query)

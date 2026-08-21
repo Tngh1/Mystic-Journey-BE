@@ -128,6 +128,20 @@ namespace BLL.DTOs
         public string? Reason { get; set; }
     }
 
+    public class ReportPartyChatMessageRequestDto
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Reported player ID must be greater than 0.")]
+        public int ReportedPlayerId { get; set; }
+
+        [Required(ErrorMessage = "Content is required.")]
+        [StringLength(500, MinimumLength = 1, ErrorMessage = "Content must be between 1 and 500 characters.")]
+        public string Content { get; set; } = string.Empty;
+
+        [StringLength(500)]
+        public string? Reason { get; set; }
+    }
+
+
     // Executes friend response dto operation.
     public class FriendResponseDto
     {
