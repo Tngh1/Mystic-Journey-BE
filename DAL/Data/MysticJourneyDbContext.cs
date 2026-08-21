@@ -722,7 +722,9 @@ namespace DAL.Data
                 new ShopItem { ShopItemId = 39, ItemId = 134, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 180m, Stock = -1, IsActive = true },
                 new ShopItem { ShopItemId = 40, ItemId = 135, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 150m, Stock = -1, IsActive = true },
                 new ShopItem { ShopItemId = 41, ItemId = 139, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,  Stock = -1, IsActive = true },
-                new ShopItem { ShopItemId = 42, ItemId = 140, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,  Stock = -1, IsActive = true }
+                new ShopItem { ShopItemId = 42, ItemId = 140, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 60m,  Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 43, ItemId = 172, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 180m, Stock = -1, IsActive = true },
+                new ShopItem { ShopItemId = 44, ItemId = 173, ShopSection = ShopSections.Fixed, Currency = "Gold", Price = 380m, Stock = -1, IsActive = true }
             );
 
 
@@ -1027,7 +1029,11 @@ namespace DAL.Data
                 new Item { ItemId = 162, Name = "Shadowstep Striders",           Description = "Light leather boots silencing every footstep in combat.",                   Type = "Armor",  Rarity = "Epic",      Slot = "Boots",    BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
                 new Item { ItemId = 165, Name = "Spellweaver Touch Gloves",     Description = "Enchanted gloves amplifying magical casting velocity.",                     Type = "Armor",  Rarity = "Epic",      Slot = "Gloves",   BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
                 new Item { ItemId = 168, Name = "Amulet of Arcane Shielding",    Description = "Amulet absorbing hostile magical explosions.",                             Type = "Armor",  Rarity = "Epic",      Slot = "Necklace", BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
-                new Item { ItemId = 171, Name = "Signet of the Wind Walker",     Description = "Graceful silver ring enhancing agility and dodge rate.",                    Type = "Armor",  Rarity = "Epic",      Slot = "Ring",     BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 }
+                new Item { ItemId = 171, Name = "Signet of the Wind Walker",     Description = "Graceful silver ring enhancing agility and dodge rate.",                    Type = "Armor",  Rarity = "Epic",      Slot = "Ring",     BaseValue = 1000m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 172, Name = "Traveler Leather Trousers",     Description = "Flexible leather trousers designed for long wilderness travels.",           Type = "Armor",  Rarity = "Uncommon",  Slot = "Pants",    BaseValue = 180m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 173, Name = "Ironclad Vanguard Greaves",     Description = "Heavy reinforced iron leggings offering sturdy defense for frontline knights.", Type = "Armor",  Rarity = "Rare",      Slot = "Pants",    BaseValue = 380m,  MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 174, Name = "Greaves of the Frost Vanguard", Description = "Glacier-forged armored greaves emitting a chilling protective aura.",        Type = "Armor",  Rarity = "Legendary", Slot = "Pants",    BaseValue = 2200m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 },
+                new Item { ItemId = 175, Name = "Leggings of Celestial Strider", Description = "Celestial-embroidered leggings granting divine mobility and defense.",       Type = "Armor",  Rarity = "Mythic",    Slot = "Pants",    BaseValue = 4500m, MaxStack = 1, IsActive = true, CorruptionReduction = 0, CreatedAt = utc2024 }
             );
 
             modelBuilder.Entity<Skin>().HasData(
@@ -1125,7 +1131,9 @@ namespace DAL.Data
                 new GachaBannerItem { GachaBannerItemId = 62, GachaBannerId = 1, ItemId = 1,   DropRate = 12.00m, IsFeatured = false },
                 new GachaBannerItem { GachaBannerItemId = 63, GachaBannerId = 1, ItemId = 3,   DropRate = 5.00m,  IsFeatured = false },
                 new GachaBannerItem { GachaBannerItemId = 64, GachaBannerId = 1, ItemId = 4,   DropRate = 4.00m,  IsFeatured = false },
-                new GachaBannerItem { GachaBannerItemId = 65, GachaBannerId = 1, ItemId = 22,  DropRate = 4.00m,  IsFeatured = false }
+                new GachaBannerItem { GachaBannerItemId = 65, GachaBannerId = 1, ItemId = 22,  DropRate = 4.00m,  IsFeatured = false },
+                new GachaBannerItem { GachaBannerItemId = 66, GachaBannerId = 1, ItemId = 175, DropRate = 0.025m, IsFeatured = false },
+                new GachaBannerItem { GachaBannerItemId = 67, GachaBannerId = 1, ItemId = 174, DropRate = 0.22m,  IsFeatured = false }
             );
 
             modelBuilder.Entity<DailyLoginReward>().HasData(

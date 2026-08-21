@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(MysticJourneyDbContext))]
-    [Migration("20260816053302_InitialCreate")]
+    [Migration("20260821144024_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -885,9 +885,6 @@ namespace DAL.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
-                    b.Property<int?>("SubCategoryContentId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Summary")
                         .HasColumnType("text");
 
@@ -905,8 +902,6 @@ namespace DAL.Migrations
                     b.HasKey("ContentId");
 
                     b.HasIndex("CategoryContentId");
-
-                    b.HasIndex("SubCategoryContentId");
 
                     b.ToTable("Contents");
                 });
@@ -3491,6 +3486,22 @@ namespace DAL.Migrations
                             GachaBannerId = 1,
                             IsFeatured = false,
                             ItemId = 22
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 66,
+                            DropRate = 0.025m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 175
+                        },
+                        new
+                        {
+                            GachaBannerItemId = 67,
+                            DropRate = 0.22m,
+                            GachaBannerId = 1,
+                            IsFeatured = false,
+                            ItemId = 174
                         });
                 });
 
@@ -3529,44 +3540,6 @@ namespace DAL.Migrations
                     b.HasIndex("RewardItemId");
 
                     b.ToTable("GachaPullHistories");
-                });
-
-            modelBuilder.Entity("DAL.Models.GameAnnouncement", b =>
-                {
-                    b.Property<int>("GameAnnouncementId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GameAnnouncementId"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("EndsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("StartsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("GameAnnouncementId");
-
-                    b.ToTable("GameAnnouncements");
                 });
 
             modelBuilder.Entity("DAL.Models.Guild", b =>
@@ -5295,6 +5268,62 @@ namespace DAL.Migrations
                             Name = "Signet of the Wind Walker",
                             Rarity = "Epic",
                             Slot = "Ring",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 172,
+                            BaseValue = 180m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Flexible leather trousers designed for long wilderness travels.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Traveler Leather Trousers",
+                            Rarity = "Uncommon",
+                            Slot = "Pants",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 173,
+                            BaseValue = 380m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heavy reinforced iron leggings offering sturdy defense for frontline knights.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Ironclad Vanguard Greaves",
+                            Rarity = "Rare",
+                            Slot = "Pants",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 174,
+                            BaseValue = 2200m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Glacier-forged armored greaves emitting a chilling protective aura.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Greaves of the Frost Vanguard",
+                            Rarity = "Legendary",
+                            Slot = "Pants",
+                            Type = "Armor"
+                        },
+                        new
+                        {
+                            ItemId = 175,
+                            BaseValue = 4500m,
+                            CorruptionReduction = 0f,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Celestial-embroidered leggings granting divine mobility and defense.",
+                            IsActive = true,
+                            MaxStack = 1,
+                            Name = "Leggings of Celestial Strider",
+                            Rarity = "Mythic",
+                            Slot = "Pants",
                             Type = "Armor"
                         });
                 });
@@ -8543,35 +8572,6 @@ namespace DAL.Migrations
                     b.ToTable("PlayerAchievements");
                 });
 
-            modelBuilder.Entity("DAL.Models.PlayerAnnouncement", b =>
-                {
-                    b.Property<int>("PlayerAnnouncementId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlayerAnnouncementId"));
-
-                    b.Property<int>("GameAnnouncementId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("PlayerProfileId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("PlayerAnnouncementId");
-
-                    b.HasIndex("GameAnnouncementId");
-
-                    b.HasIndex("PlayerProfileId");
-
-                    b.ToTable("PlayerAnnouncements");
-                });
-
             modelBuilder.Entity("DAL.Models.PlayerBuff", b =>
                 {
                     b.Property<int>("Id")
@@ -10923,6 +10923,30 @@ namespace DAL.Migrations
                             ShopSection = "Fixed",
                             Stock = -1,
                             WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 43,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 172,
+                            Price = 180m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
+                        },
+                        new
+                        {
+                            ShopItemId = 44,
+                            Currency = "Gold",
+                            DailyPurchaseLimit = 0,
+                            IsActive = true,
+                            ItemId = 173,
+                            Price = 380m,
+                            ShopSection = "Fixed",
+                            Stock = -1,
+                            WeeklyPurchaseLimit = 0
                         });
                 });
 
@@ -11443,44 +11467,6 @@ namespace DAL.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DAL.Models.SubCategoryContent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoryContentId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("IconUrl")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryContentId");
-
-                    b.ToTable("SubCategoryContents");
-                });
-
             modelBuilder.Entity("DAL.Models.WorldChatMessage", b =>
                 {
                     b.Property<int>("WorldChatMessageId")
@@ -11643,13 +11629,7 @@ namespace DAL.Migrations
                         .WithMany("Contents")
                         .HasForeignKey("CategoryContentId");
 
-                    b.HasOne("DAL.Models.SubCategoryContent", "SubCategoryContent")
-                        .WithMany("Contents")
-                        .HasForeignKey("SubCategoryContentId");
-
                     b.Navigation("CategoryContent");
-
-                    b.Navigation("SubCategoryContent");
                 });
 
             modelBuilder.Entity("DAL.Models.DailyLoginReward", b =>
@@ -12051,25 +12031,6 @@ namespace DAL.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
-            modelBuilder.Entity("DAL.Models.PlayerAnnouncement", b =>
-                {
-                    b.HasOne("DAL.Models.GameAnnouncement", "GameAnnouncement")
-                        .WithMany("PlayerAnnouncements")
-                        .HasForeignKey("GameAnnouncementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
-                        .WithMany()
-                        .HasForeignKey("PlayerProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GameAnnouncement");
-
-                    b.Navigation("PlayerProfile");
-                });
-
             modelBuilder.Entity("DAL.Models.PlayerBuff", b =>
                 {
                     b.HasOne("DAL.Models.PlayerProfile", "PlayerProfile")
@@ -12332,17 +12293,6 @@ namespace DAL.Migrations
                     b.Navigation("Item");
                 });
 
-            modelBuilder.Entity("DAL.Models.SubCategoryContent", b =>
-                {
-                    b.HasOne("DAL.Models.CategoryContent", "CategoryContent")
-                        .WithMany()
-                        .HasForeignKey("CategoryContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CategoryContent");
-                });
-
             modelBuilder.Entity("DAL.Models.WorldChatMessage", b =>
                 {
                     b.HasOne("DAL.Models.PlayerProfile", "ReportedBy")
@@ -12401,11 +12351,6 @@ namespace DAL.Migrations
                     b.Navigation("BannerItems");
 
                     b.Navigation("PullHistories");
-                });
-
-            modelBuilder.Entity("DAL.Models.GameAnnouncement", b =>
-                {
-                    b.Navigation("PlayerAnnouncements");
                 });
 
             modelBuilder.Entity("DAL.Models.Guild", b =>
@@ -12495,11 +12440,6 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.Skin", b =>
                 {
                     b.Navigation("PlayerSkins");
-                });
-
-            modelBuilder.Entity("DAL.Models.SubCategoryContent", b =>
-                {
-                    b.Navigation("Contents");
                 });
 #pragma warning restore 612, 618
         }
