@@ -108,25 +108,6 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GameAnnouncements",
-                columns: table => new
-                {
-                    GameAnnouncementId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    StartsAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndsAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GameAnnouncements", x => x.GameAnnouncementId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Items",
                 columns: table => new
                 {
@@ -262,28 +243,29 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SubCategoryContents",
+                name: "Contents",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    ContentId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Slug = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    IconUrl = table.Column<string>(type: "text", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    Title = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    Slug = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    Summary = table.Column<string>(type: "text", nullable: true),
+                    ThumbnailUrl = table.Column<string>(type: "text", nullable: true),
+                    CategoryContentId = table.Column<int>(type: "integer", nullable: true),
+                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CategoryContentId = table.Column<int>(type: "integer", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SubCategoryContents", x => x.Id);
+                    table.PrimaryKey("PK_Contents", x => x.ContentId);
                     table.ForeignKey(
-                        name: "FK_SubCategoryContents_CategoryContents_CategoryContentId",
+                        name: "FK_Contents_CategoryContents_CategoryContentId",
                         column: x => x.CategoryContentId,
                         principalTable: "CategoryContents",
-                        principalColumn: "CategoryContentId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CategoryContentId");
                 });
 
             migrationBuilder.CreateTable(
@@ -626,35 +608,32 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Contents",
+                name: "BlockContents",
                 columns: table => new
                 {
-                    ContentId = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
-                    Slug = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
-                    Summary = table.Column<string>(type: "text", nullable: true),
-                    ThumbnailUrl = table.Column<string>(type: "text", nullable: true),
-                    CategoryContentId = table.Column<int>(type: "integer", nullable: true),
-                    SubCategoryContentId = table.Column<int>(type: "integer", nullable: true),
-                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    ContentId = table.Column<int>(type: "integer", nullable: false),
+                    BlockType = table.Column<string>(type: "text", nullable: false),
+                    ContentData = table.Column<string>(type: "text", nullable: true),
+                    MediaUrl = table.Column<string>(type: "text", nullable: true),
+                    Caption = table.Column<string>(type: "text", nullable: true),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Contents", x => x.ContentId);
+                    table.PrimaryKey("PK_BlockContents", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Contents_CategoryContents_CategoryContentId",
-                        column: x => x.CategoryContentId,
-                        principalTable: "CategoryContents",
-                        principalColumn: "CategoryContentId");
-                    table.ForeignKey(
-                        name: "FK_Contents_SubCategoryContents_SubCategoryContentId",
-                        column: x => x.SubCategoryContentId,
-                        principalTable: "SubCategoryContents",
-                        principalColumn: "Id");
+                        name: "FK_BlockContents_Contents_ContentId",
+                        column: x => x.ContentId,
+                        principalTable: "Contents",
+                        principalColumn: "ContentId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -785,35 +764,6 @@ namespace DAL.Migrations
                         principalTable: "Skills",
                         principalColumn: "SkillId",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BlockContents",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    ContentId = table.Column<int>(type: "integer", nullable: false),
-                    BlockType = table.Column<string>(type: "text", nullable: false),
-                    ContentData = table.Column<string>(type: "text", nullable: true),
-                    MediaUrl = table.Column<string>(type: "text", nullable: true),
-                    Caption = table.Column<string>(type: "text", nullable: true),
-                    SortOrder = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BlockContents", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_BlockContents_Contents_ContentId",
-                        column: x => x.ContentId,
-                        principalTable: "Contents",
-                        principalColumn: "ContentId",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1107,34 +1057,6 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlayerAchievements_PlayerProfiles_PlayerProfileId",
-                        column: x => x.PlayerProfileId,
-                        principalTable: "PlayerProfiles",
-                        principalColumn: "PlayerProfileId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PlayerAnnouncements",
-                columns: table => new
-                {
-                    PlayerAnnouncementId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PlayerProfileId = table.Column<int>(type: "integer", nullable: false),
-                    GameAnnouncementId = table.Column<int>(type: "integer", nullable: false),
-                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
-                    ReadAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PlayerAnnouncements", x => x.PlayerAnnouncementId);
-                    table.ForeignKey(
-                        name: "FK_PlayerAnnouncements_GameAnnouncements_GameAnnouncementId",
-                        column: x => x.GameAnnouncementId,
-                        principalTable: "GameAnnouncements",
-                        principalColumn: "GameAnnouncementId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PlayerAnnouncements_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
                         principalColumn: "PlayerProfileId",
@@ -1972,6 +1894,10 @@ namespace DAL.Migrations
                     { 169, 4500m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Ring granting supreme authority over all elemental magic.", null, true, 1, "Band of Absolute Dominion", "Mythic", "Ring", "Armor" },
                     { 170, 2200m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Blood-red ring boosting critical strikes under fury.", null, true, 1, "Ring of the Berserker Heart", "Legendary", "Ring", "Armor" },
                     { 171, 1000m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Graceful silver ring enhancing agility and dodge rate.", null, true, 1, "Signet of the Wind Walker", "Epic", "Ring", "Armor" },
+                    { 172, 180m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Flexible leather trousers designed for long wilderness travels.", null, true, 1, "Traveler Leather Trousers", "Uncommon", "Pants", "Armor" },
+                    { 173, 380m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Heavy reinforced iron leggings offering sturdy defense for frontline knights.", null, true, 1, "Ironclad Vanguard Greaves", "Rare", "Pants", "Armor" },
+                    { 174, 2200m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Glacier-forged armored greaves emitting a chilling protective aura.", null, true, 1, "Greaves of the Frost Vanguard", "Legendary", "Pants", "Armor" },
+                    { 175, 4500m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Celestial-embroidered leggings granting divine mobility and defense.", null, true, 1, "Leggings of Celestial Strider", "Mythic", "Pants", "Armor" },
                     { 901, 100m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A sharp sword dropped by the SwampDemon.", null, true, 1, "Swamp Sword", "Rare", "Weapon", "Weapon" },
                     { 902, 150m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A sturdy armor dropped by the SwampDemon.", null, true, 1, "Swamp Armor", "Rare", "Armor", "Armor" },
                     { 903, 500m, 0f, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "A legendary sword dropped by DragonBossIdle.", null, true, 1, "Dragon Boss Sword", "Legendary", "Weapon", "Weapon" },
@@ -2324,7 +2250,9 @@ namespace DAL.Migrations
                     { 62, 12.00m, 1, false, 1 },
                     { 63, 5.00m, 1, false, 3 },
                     { 64, 4.00m, 1, false, 4 },
-                    { 65, 4.00m, 1, false, 22 }
+                    { 65, 4.00m, 1, false, 22 },
+                    { 66, 0.025m, 1, false, 175 },
+                    { 67, 0.22m, 1, false, 174 }
                 });
 
             migrationBuilder.InsertData(
@@ -2614,7 +2542,9 @@ namespace DAL.Migrations
                     { 39, null, null, "Gold", 0, true, 134, 180m, "Fixed", -1, 0 },
                     { 40, null, null, "Gold", 0, true, 135, 150m, "Fixed", -1, 0 },
                     { 41, null, null, "Gold", 0, true, 139, 60m, "Fixed", -1, 0 },
-                    { 42, null, null, "Gold", 0, true, 140, 60m, "Fixed", -1, 0 }
+                    { 42, null, null, "Gold", 0, true, 140, 60m, "Fixed", -1, 0 },
+                    { 43, null, null, "Gold", 0, true, 172, 180m, "Fixed", -1, 0 },
+                    { 44, null, null, "Gold", 0, true, 173, 380m, "Fixed", -1, 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -2770,11 +2700,6 @@ namespace DAL.Migrations
                 name: "IX_Contents_CategoryContentId",
                 table: "Contents",
                 column: "CategoryContentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Contents_SubCategoryContentId",
-                table: "Contents",
-                column: "SubCategoryContentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DailyLoginRewards_DayNumber",
@@ -3011,16 +2936,6 @@ namespace DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlayerAnnouncements_GameAnnouncementId",
-                table: "PlayerAnnouncements",
-                column: "GameAnnouncementId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PlayerAnnouncements_PlayerProfileId",
-                table: "PlayerAnnouncements",
-                column: "PlayerProfileId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PlayerBuffs_PlayerProfileId",
                 table: "PlayerBuffs",
                 column: "PlayerProfileId");
@@ -3171,11 +3086,6 @@ namespace DAL.Migrations
                 column: "ShopSection");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SubCategoryContents_CategoryContentId",
-                table: "SubCategoryContents",
-                column: "CategoryContentId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_WorldChatMessages_Feed",
                 table: "WorldChatMessages",
                 columns: new[] { "IsHidden", "SentAt", "WorldChatMessageId" },
@@ -3262,9 +3172,6 @@ namespace DAL.Migrations
                 name: "PlayerAchievements");
 
             migrationBuilder.DropTable(
-                name: "PlayerAnnouncements");
-
-            migrationBuilder.DropTable(
                 name: "PlayerBuffs");
 
             migrationBuilder.DropTable(
@@ -3337,9 +3244,6 @@ namespace DAL.Migrations
                 name: "Achievements");
 
             migrationBuilder.DropTable(
-                name: "GameAnnouncements");
-
-            migrationBuilder.DropTable(
                 name: "Skins");
 
             migrationBuilder.DropTable(
@@ -3349,7 +3253,7 @@ namespace DAL.Migrations
                 name: "Quests");
 
             migrationBuilder.DropTable(
-                name: "SubCategoryContents");
+                name: "CategoryContents");
 
             migrationBuilder.DropTable(
                 name: "DungeonConfigs");
@@ -3365,9 +3269,6 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Skills");
-
-            migrationBuilder.DropTable(
-                name: "CategoryContents");
 
             migrationBuilder.DropTable(
                 name: "Chests");
