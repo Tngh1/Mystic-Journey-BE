@@ -72,8 +72,8 @@ namespace BLL.DTOs
         // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
         public string Rarity { get; set; } = "Common";
 
-        [RegularExpression("^(None|Weapon|Armor|Helmet|Gloves|Boots|Pants|Ring|Necklace)$",
-            ErrorMessage = "Slot must be None, Weapon, Armor, Helmet, Gloves, Boots, Pants, Ring, or Necklace.")]
+        [RegularExpression("^(None|Weapon|Armor|Helmet|Gloves|Boots|Pants|Ring|Necklace|Shield)$",
+            ErrorMessage = "Slot must be None, Weapon, Armor, Helmet, Gloves, Boots, Pants, Ring, Necklace, or Shield.")]
         // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Pants, Ring, Necklace, or Shield.
         public string Slot { get; set; } = "None";
 
@@ -86,7 +86,7 @@ namespace BLL.DTOs
         public int MaxStack { get; set; } = 1;
 
         // Executes corruption reduction operation.
-        [Range(0, 1, ErrorMessage = "CorruptionReduction must be between 0 and 1.")]
+        [Range(0, 100, ErrorMessage = "CorruptionReduction must be between 0 and 100.")]
         public float CorruptionReduction { get; set; } = 0;
 
         // Executes is active operation.
