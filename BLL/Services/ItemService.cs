@@ -64,10 +64,11 @@ namespace BLL.Services
             item.Slot = request.Slot;
             item.BaseValue = request.BaseValue;
             item.MaxStack = request.MaxStack;
+            item.CorruptionReduction = request.CorruptionReduction;
             item.IsActive = request.IsActive;
             item.IconUrl = request.IconUrl;
 
-            if (IsEquipmentType(request.Type))
+            if (IsEquipmentType(request.Type, request.Slot))
             {
                 if (item.EquipmentStats == null)
                 {
@@ -119,9 +120,9 @@ namespace BLL.Services
 
         // Executes core business logic for is equipment type.
         // Returns a boolean indicating operation success.
-        private static bool IsEquipmentType(string type)
+        private static bool IsEquipmentType(string type, string? slot)
         {
-            return type is "Weapon" or "Armor" or "Accessory";
+            return type is "Weapon" or "Armor" or "Accessory" || (!string.IsNullOrEmpty(slot) && !string.Equals(slot, "None", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

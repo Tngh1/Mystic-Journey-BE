@@ -72,9 +72,9 @@ namespace BLL.DTOs
         // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
         public string Rarity { get; set; } = "Common";
 
-        [RegularExpression("^(None|Weapon|Armor|Helmet|Gloves|Boots|Ring|Necklace)$",
-            ErrorMessage = "Slot must be None, Weapon, Armor, Helmet, Gloves, Boots, Ring, or Necklace.")]
-        // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
+        [RegularExpression("^(None|Weapon|Armor|Helmet|Gloves|Boots|Pants|Ring|Necklace)$",
+            ErrorMessage = "Slot must be None, Weapon, Armor, Helmet, Gloves, Boots, Pants, Ring, or Necklace.")]
+        // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Pants, Ring, Necklace, or Shield.
         public string Slot { get; set; } = "None";
 
         // Executes base value operation.
