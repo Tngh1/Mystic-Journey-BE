@@ -193,7 +193,9 @@ namespace BLL.Mappings
 
             CreateMap<MailboxRewardItem, MailboxRewardItemDto>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
-                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null));
+                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Item != null ? src.Item.IconUrl : null))
+                .ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.Item != null ? src.Item.Type : null))
+                .ForMember(dest => dest.ItemRarity, opt => opt.MapFrom(src => src.Item != null ? src.Item.Rarity : "Common"));
 
             CreateMap<Mailbox, MailboxDetailDto>()
                 .ForMember(dest => dest.PlayerName, opt => opt.MapFrom(src => src.PlayerProfile != null ? src.PlayerProfile.DisplayName : null))
