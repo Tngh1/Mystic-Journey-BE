@@ -12,6 +12,7 @@ namespace BLL.Services.Interfaces
 
         Task<WorldChatMessageResponseDto> SendWorldMessage(int senderId, SendWorldChatMessageRequestDto request);
         Task<ReportWorldChatMessageResponseDto> ReportWorldMessage(int reporterId, ReportChatMessageRequestDto request);
+        Task<ChatModerationResultDto> ReportPartyMessage(int reporterId, ReportPartyChatMessageRequestDto request);
 
         Task<PagedResultDto<ChatMessageResponseDto>> GetMessages(
             int playerProfileId,

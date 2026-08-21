@@ -98,6 +98,25 @@ namespace BLL.Services
                 reason: reason);
         }
 
+        public async Task<ChatModerationResultDto> ReviewReportedPartyMessage(
+            int reporterId,
+            int reportedPlayerId,
+            string content,
+            string? reason)
+        {
+            const string channel = "Party";
+            await SendReporterReceivedMail(reporterId, channel, 0);
+
+            return await ReviewReportedMessageCore(
+                reportedPlayerId: reportedPlayerId,
+                reporterId: reporterId,
+                chatMessageId: null,
+                worldChatMessageId: null,
+                channel: channel,
+                content: content,
+                reason: reason);
+        }
+
         // Process review reported message core using reported player id, reporter id, chat message id, and world chat message id; it sends reporter result mail, loads lock duration, creates add, creates create, and builds warning message and guards invalid or unavailable states.
         private async Task<ChatModerationResultDto> ReviewReportedMessageCore(
             int reportedPlayerId,
@@ -202,12 +221,14 @@ namespace BLL.Services
             if (reporterId <= 0)
                 return;
 
+            string messageReference = DescribeMessage(channel, messageId);
+
             var mailbox = new Mailbox
             {
                 PlayerProfileId = reporterId,
                 Title = "Report Received",
                 Content =
-                    $"Your report on {channel} message #{messageId} has been received. " +
+                    $"Your report on {messageReference} has been received. " +
                     "The system is automatically reviewing the content with Azure AI Content Safety and will send the result to your mailbox.",
                 Type = "System",
                 IsRead = false,
@@ -226,6 +247,8 @@ namespace BLL.Services
             if (reporterId <= 0)
                 return;
 
+            string messageReference = DescribeMessage(channel, messageId);
+
             string content;
             if (result.IsToxic && result.ChatLocked)
             {
@@ -234,19 +257,19 @@ namespace BLL.Services
                     : "unknown";
 
                 content =
-                    $"Your report on {channel} message #{messageId} has been confirmed as a violation. " +
+                    $"Your report on {messageReference} has been confirmed as a violation. " +
                     $"The offending player has been chat-locked at level {result.LockLevel} until {lockedUntil}.";
             }
             else if (result.IsToxic)
             {
                 content =
-                    $"Your report on {channel} message #{messageId} was confirmed as a violation and had already been actioned. " +
+                    $"Your report on {messageReference} was confirmed as a violation and had already been actioned. " +
                     "No additional automatic chat lock was applied.";
             }
             else
             {
                 content =
-                    $"Your report on {channel} message #{messageId} has been reviewed. " +
+                    $"Your report on {messageReference} has been reviewed. " +
                     "The system did not detect a sufficient violation to apply an automatic chat lock. Thank you for your report.";
             }
 
@@ -262,6 +285,13 @@ namespace BLL.Services
             };
 
             await _mailboxRepository.CreateMailbox(mailbox);
+        }
+
+        private static string DescribeMessage(string channel, int messageId)
+        {
+            return messageId > 0
+                ? $"{channel} message #{messageId}"
+                : $"{channel} message";
         }
 
         // Executes core business logic for build existing penalty result.

@@ -190,6 +190,41 @@ namespace BLL.Services
                 Moderation = moderation
             };
         }
+
+        public async Task<ChatModerationResultDto> ReportPartyMessage(
+            int reporterId,
+            ReportPartyChatMessageRequestDto request)
+        {
+            if (reporterId <= 0)
+                throw new UnauthorizedAccessException("Player profile not found.");
+
+            if (request == null)
+                throw new BadRequestException("Report payload is required.");
+
+            if (request.ReportedPlayerId <= 0)
+                throw new BadRequestException("Reported player ID must be greater than 0.");
+
+            if (request.ReportedPlayerId == reporterId)
+                throw new BadRequestException("You cannot report your own message.");
+
+            string content = request.Content?.Trim() ?? string.Empty;
+            if (content.Length == 0 || content.Length > 500)
+                throw new BadRequestException("Content must be between 1 and 500 characters.");
+
+            string? reason = NormalizeOptionalText(
+                request.Reason,
+                500,
+                "Reason must not exceed 500 characters.");
+
+            await EnsurePlayerExists(reporterId, "Player profile not found.");
+            await EnsurePlayerExists(request.ReportedPlayerId, "Reported player profile not found.");
+
+            return await _moderationService.ReviewReportedPartyMessage(
+                reporterId,
+                request.ReportedPlayerId,
+                content,
+                reason);
+        }
         // Load messages using player profile id and query; it loads conversation cache key, loads cache value, materializes the query results, and loads conversation paged and guards invalid or unavailable states.
         public async Task<PagedResultDto<ChatMessageResponseDto>> GetMessages(
             int playerProfileId,

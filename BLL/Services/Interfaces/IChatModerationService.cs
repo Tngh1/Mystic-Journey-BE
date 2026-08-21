@@ -10,5 +10,6 @@ namespace BLL.Services.Interfaces
         Task EnsureCanSendChat(int playerProfileId);
         Task<ChatModerationResultDto> ReviewReportedWorldMessage(int reporterId, WorldChatMessage message, string? reason);
         Task<ChatModerationResultDto> ReviewReportedMessage(int reporterId, ChatMessage message, string? reason);
+        Task<ChatModerationResultDto> ReviewReportedPartyMessage(int reporterId, int reportedPlayerId, string content, string? reason);
     }
 }
