@@ -86,6 +86,10 @@ namespace BLL.DTOs
         public string? ItemName { get; set; }
         // Executes icon url operation.
         public string? IconUrl { get; set; }
+        // Executes item type operation.
+        public string? ItemType { get; set; }
+        // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic.
+        public string ItemRarity { get; set; } = "Common";
         // Executes quantity operation.
         public int Quantity { get; set; }
     }
