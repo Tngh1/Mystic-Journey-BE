@@ -154,9 +154,8 @@ namespace BLL.Services
                 if (string.IsNullOrWhiteSpace(slot) || string.Equals(slot, "None", StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException("Item cannot be equipped.");
 
-                var conflicts = playerItems.Where(i => i.IsEquipped && 
-                    !string.IsNullOrEmpty(i.EquippedSlot) && 
-                    string.Equals(i.EquippedSlot, slot, StringComparison.OrdinalIgnoreCase)).ToList();
+                var conflicts = playerItems.Where(i => i.IsEquipped &&
+                    IsSameEquipmentSlot(i.EquippedSlot ?? i.Item?.Slot, slot)).ToList();
 
                 foreach (var conflict in conflicts)
                 {
@@ -265,6 +264,26 @@ namespace BLL.Services
                 Item = _mapper.Map<InventoryItemResponseDto>(updatedInv),  // Transform domain entity into DTO for the API response layer
                 PlayerStats = stats
             };
+        }
+
+        private static bool IsSameEquipmentSlot(string? firstSlot, string? secondSlot)
+        {
+            var firstCategory = GetEquipmentSlotCategory(firstSlot);
+            var secondCategory = GetEquipmentSlotCategory(secondSlot);
+
+            return !string.IsNullOrEmpty(firstCategory)
+                && string.Equals(firstCategory, secondCategory, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetEquipmentSlotCategory(string? slot)
+        {
+            var normalizedSlot = slot?.Trim() ?? string.Empty;
+
+            return normalizedSlot.Equals("Necklace", StringComparison.OrdinalIgnoreCase)
+                || normalizedSlot.Equals("Shield", StringComparison.OrdinalIgnoreCase)
+                || normalizedSlot.Equals("OffHand", StringComparison.OrdinalIgnoreCase)
+                    ? "Necklace"
+                    : normalizedSlot;
         }
 
         // Unequips an equipped item back into player inventory and recalculates player combat stats.
