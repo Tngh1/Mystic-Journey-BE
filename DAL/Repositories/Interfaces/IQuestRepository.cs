@@ -21,11 +21,15 @@ namespace DAL.Repositories.Interfaces
 
         Task<NPCDialogue?> GetQuestDialogueByQuestId(int questId);
 
+        Task<List<NPCDialogue>> GetQuestDialoguesByQuestId(int questId);
+
         Task<NPC?> GetNpcByNameAndMap(string? npcName, string mapName);
 
         Task<List<NPC>> GetQuestNpcOptions(string? mapName);
 
         void AddQuestDialogue(NPCDialogue dialogue);
+
+        void RemoveQuestDialogues(IEnumerable<NPCDialogue> dialogues);
 
         Task<(int TotalCount, List<Quest> Items)> GetQuestsPaged(int page, int pageSize, string? search, string? type, bool? isActive, string? mapName, string? sortBy = null, string? sortOrder = null);
     }

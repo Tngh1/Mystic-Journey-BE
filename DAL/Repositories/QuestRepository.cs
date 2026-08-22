@@ -97,6 +97,16 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync();  // Fetch single matching record or null if not found
         }
 
+        public async Task<List<NPCDialogue>> GetQuestDialoguesByQuestId(int questId)
+        {
+            return await _context.NPCDialogues
+                .Include(d => d.NPC)
+                .Where(d => d.LinkedQuestId == questId && d.ResponseType == "Quest")
+                .OrderBy(d => d.DisplayOrder)
+                .ThenBy(d => d.NPCDialogueId)
+                .ToListAsync();
+        }
+
         // Queries the database to retrieve get npc by name and map records.
         // Query details: uses AsNoTracking() for read-only query optimization; sorts records according to business ordering rules.
         // Returns the matching NPC? entity result or default if not found.
@@ -153,6 +163,11 @@ namespace DAL.Repositories
         public void AddQuestDialogue(NPCDialogue dialogue)
         {
             _context.NPCDialogues.Add(dialogue);
+        }
+
+        public void RemoveQuestDialogues(IEnumerable<NPCDialogue> dialogues)
+        {
+            _context.NPCDialogues.RemoveRange(dialogues);
         }
 
         // Queries the database to retrieve get quests paged records.
