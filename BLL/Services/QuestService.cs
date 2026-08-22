@@ -65,7 +65,7 @@ namespace BLL.Services
             quest.RewardSkillId = rewardSkills.FirstOrDefault()?.SkillId;
             SyncRewardSkills(quest, rewardSkills);
 
-            if (request.SyncDialogue && !string.IsNullOrWhiteSpace(request.DialogueContent))
+            if (request.SyncDialogue && NormalizeQuestDialogues(request).Count > 0)
             {
                 var npc = await _repository.GetNpcByNameAndMap(quest.QuestGiverName, quest.MapName);
                 if (npc == null)  // Entity not found — short-circuit with appropriate error result
@@ -76,7 +76,7 @@ namespace BLL.Services
 
             if (request.SyncDialogue)
             {
-                await SyncQuestDialogue(created, request);
+                await SyncQuestDialogues(created, request);
                 await _repository.UpdateQuest(created);
             }
 
@@ -117,7 +117,7 @@ namespace BLL.Services
             SyncRewardSkills(quest, rewardSkills);
 
             if (request.SyncDialogue)
-                await SyncQuestDialogue(quest, request);
+                await SyncQuestDialogues(quest, request);
 
             var updated = await _repository.UpdateQuest(quest);
             return await MapQuestResponse(updated);
@@ -147,7 +147,18 @@ namespace BLL.Services
         private async Task<QuestResponseDto> MapQuestResponse(Quest quest)
         {
             var dto = _mapper.Map<QuestResponseDto>(quest);  // Transform domain entity into DTO for the API response layer
-            var dialogue = await _repository.GetQuestDialogueByQuestId(quest.QuestId);
+            var dialogues = await _repository.GetQuestDialoguesByQuestId(quest.QuestId);
+            dto.Dialogues = dialogues.Select(item => new QuestDialogueDto
+            {
+                NPCDialogueId = item.NPCDialogueId,
+                NPCId = item.NPCId,
+                NPCName = item.NPC?.Name,
+                Content = item.Content,
+                DisplayOrder = item.DisplayOrder,
+                IsActive = item.IsActive
+            }).ToList();
+
+            var dialogue = dialogues.FirstOrDefault(item => item.IsActive) ?? dialogues.FirstOrDefault();
             if (dialogue == null)  // Entity not found — short-circuit with appropriate error result
                 return dto;
 
@@ -207,6 +218,70 @@ namespace BLL.Services
             existing.LinkedShopItemId = null;
             existing.DisplayOrder = Math.Max(0, request.DialogueDisplayOrder ?? existing.DisplayOrder);
             existing.IsActive = request.DialogueIsActive ?? true;
+        }
+
+        private async Task SyncQuestDialogues(Quest quest, UpdateQuestRequestDto request)
+        {
+            var requested = NormalizeQuestDialogues(request);
+            var existing = await _repository.GetQuestDialoguesByQuestId(quest.QuestId);
+
+            if (requested.Count == 0)
+            {
+                if (existing.Count > 0)
+                    _repository.RemoveQuestDialogues(existing);
+                return;
+            }
+
+            var npc = await _repository.GetNpcByNameAndMap(quest.QuestGiverName, quest.MapName)
+                ?? throw new InvalidOperationException("Cannot create quest dialogue because Quest Giver / NPC does not match an existing NPC.");
+
+            for (var index = 0; index < requested.Count; index++)
+            {
+                var input = requested[index];
+                var dialogue = index < existing.Count
+                    ? existing[index]
+                    : new NPCDialogue();
+
+                dialogue.NPCId = npc.NPCId;
+                dialogue.Content = input.Content;
+                dialogue.ResponseType = "Quest";
+                dialogue.LinkedQuestId = quest.QuestId;
+                dialogue.LinkedShopItemId = null;
+                dialogue.DisplayOrder = input.DisplayOrder;
+                dialogue.IsActive = input.IsActive;
+
+                if (index >= existing.Count)
+                    _repository.AddQuestDialogue(dialogue);
+            }
+
+            if (existing.Count > requested.Count)
+                _repository.RemoveQuestDialogues(existing.Skip(requested.Count));
+        }
+
+        private static List<UpdateQuestDialogueDto> NormalizeQuestDialogues(UpdateQuestRequestDto request)
+        {
+            var dialogues = (request.Dialogues ?? new List<UpdateQuestDialogueDto>())
+                .Where(dialogue => !string.IsNullOrWhiteSpace(dialogue.Content))
+                .Select(dialogue => new UpdateQuestDialogueDto
+                {
+                    Content = dialogue.Content.Trim(),
+                    DisplayOrder = Math.Max(0, dialogue.DisplayOrder),
+                    IsActive = dialogue.IsActive
+                })
+                .OrderBy(dialogue => dialogue.DisplayOrder)
+                .ToList();
+
+            if (dialogues.Count == 0 && !string.IsNullOrWhiteSpace(request.DialogueContent))
+            {
+                dialogues.Add(new UpdateQuestDialogueDto
+                {
+                    Content = request.DialogueContent.Trim(),
+                    DisplayOrder = Math.Max(0, request.DialogueDisplayOrder ?? 0),
+                    IsActive = request.DialogueIsActive ?? true
+                });
+            }
+
+            return dialogues;
         }
 
         // Executes core business logic for normalize reward items.

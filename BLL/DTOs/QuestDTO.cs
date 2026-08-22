@@ -53,6 +53,29 @@ namespace BLL.DTOs
         [Required]
         public int SkillId { get; set; }
     }
+
+    public class QuestDialogueDto
+    {
+        public int NPCDialogueId { get; set; }
+        public int NPCId { get; set; }
+        public string? NPCName { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public int DisplayOrder { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class UpdateQuestDialogueDto
+    {
+        [Required(ErrorMessage = "Dialogue content is required.")]
+        [StringLength(4000)]
+        public string Content { get; set; } = string.Empty;
+
+        [Range(0, 10000)]
+        public int DisplayOrder { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+
     // Executes quest response dto operation.
     public class QuestResponseDto
     {
@@ -112,6 +135,7 @@ namespace BLL.DTOs
         public int? DialogueDisplayOrder { get; set; }
         // Executes dialogue is active operation.
         public bool? DialogueIsActive { get; set; }
+        public List<QuestDialogueDto> Dialogues { get; set; } = new();
         // Executes is active operation.
         public bool IsActive { get; set; }
     }
@@ -171,6 +195,7 @@ namespace BLL.DTOs
         public int? DialogueDisplayOrder { get; set; }
         // Executes dialogue is active operation.
         public bool? DialogueIsActive { get; set; }
+        public List<UpdateQuestDialogueDto> Dialogues { get; set; } = new();
         // Executes is active operation.
         public bool IsActive { get; set; } = true;
     }
