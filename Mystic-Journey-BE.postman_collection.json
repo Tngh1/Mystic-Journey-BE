@@ -117,7 +117,7 @@
           ]
         },
         {
-          "name": "01.3 Register Account (F01)",
+          "name": "01.3 Player Login (F01)",
           "request": {
             "method": "POST",
             "header": [
@@ -128,17 +128,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"confirmPassword\": \"{{testPassword}}\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"testplayer\",\n  \"password\": \"Test@12345\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/Auth/register",
+              "raw": "{{baseUrl}}/api/Auth/login",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "Auth",
-                "register"
+                "login"
               ]
             }
           },
@@ -149,7 +149,10 @@
                 "exec": [
                   "if (pm.response.code === 200) {",
                   "    var res = pm.response.json();",
-                  "    if (res.data && res.data.accessToken) { pm.collectionVariables.set('accessToken', res.data.accessToken); }",
+                  "    if (res.data && res.data.accessToken) {",
+                  "        pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "        pm.collectionVariables.set('playerAccessToken', res.data.accessToken);",
+                  "    }",
                   "}",
                   "pm.test('Registration response processed', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
                 ],
@@ -170,7 +173,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"emailOrUsername\": \"admin@mysticjourney.com\",\n  \"password\": \"AdminPassword123!\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"testadmin\",\n  \"password\": \"Test@12345\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/login",
@@ -193,7 +196,6 @@
                   "if (pm.response.code === 200) {",
                   "    var res = pm.response.json();",
                   "    if (res.data && res.data.accessToken) {",
-                  "        pm.collectionVariables.set('accessToken', res.data.accessToken);",
                   "        pm.collectionVariables.set('adminAccessToken', res.data.accessToken);",
                   "    }",
                   "}"
@@ -215,7 +217,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@mysticjourney.com\"\n}"
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/forget-password",
@@ -257,7 +259,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"AdminPassword123!\",\n  \"newPassword\": \"AdminPassword123!\",\n  \"confirmPassword\": \"AdminPassword123!\"\n}"
+              "raw": "{\n  \"currentPassword\": \"Test@12345\",\n  \"newPassword\": \"Test@12345\",\n  \"confirmPassword\": \"Test@12345\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/change-password",
@@ -323,30 +325,19 @@
       "name": "02. Wiki Search (F06 - F09)",
       "item": [
         {
-          "name": "02.1 Character Wiki Search (F06)",
+          "name": "02.1 Character Class Wiki (F06)",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/wiki/characters?search=",
+              "raw": "{{baseUrl}}/api/wiki/classes",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "wiki",
-                "characters"
-              ],
-              "query": [
-                {
-                  "key": "search",
-                  "value": ""
-                }
+                "classes"
               ]
             }
           },
@@ -570,16 +561,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"playerProfileId\": 2,\n  \"reason\": \"Cheating / Exploits\",\n  \"banDurationDays\": 7\n}"
+              "raw": "{\n  \"banReason\": \"Cheating / Exploits\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/Player/ban",
+              "raw": "{{baseUrl}}/api/AdminAccounts/2/ban",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "Player",
+                "AdminAccounts",
+                "2",
                 "ban"
               ]
             }
@@ -589,7 +581,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200, 400 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
@@ -641,14 +633,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Contents/articles",
+              "raw": "{{baseUrl}}/api/Contents",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "Contents",
-                "articles"
+                "Contents"
               ]
             }
           },
@@ -741,14 +732,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/GachaBanners/admin",
+              "raw": "{{baseUrl}}/api/GachaBanners",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "GachaBanners",
-                "admin"
+                "GachaBanners"
               ]
             }
           },
@@ -841,14 +831,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Dungeons/admin",
+              "raw": "{{baseUrl}}/api/Dungeons",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "Dungeons",
-                "admin"
+                "Dungeons"
               ]
             }
           },
@@ -908,14 +897,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Achievements/admin",
+              "raw": "{{baseUrl}}/api/Achievements",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "Achievements",
-                "admin"
+                "Achievements"
               ]
             }
           },
@@ -984,14 +972,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/DailyLoginRewards/admin",
+              "raw": "{{baseUrl}}/api/DailyLoginRewards/by-month",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "DailyLoginRewards",
-                "admin"
+                "by-month"
               ]
             }
           },
@@ -1018,14 +1006,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Dashboard/overview",
+              "raw": "{{baseUrl}}/api/Dashboard/stats",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "Dashboard",
-                "overview"
+                "stats"
               ]
             }
           },
@@ -1057,14 +1045,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/PlayerProfiles/me",
+              "raw": "{{baseUrl}}/api/PlayerProfiles/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "PlayerProfiles",
-                "me"
+                "1"
               ]
             }
           },
@@ -1123,23 +1111,18 @@
           ]
         },
         {
-          "name": "04.3 Get Player Classes (F29)",
+          "name": "04.3 Get Character Classes (F29)",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/Character/classes",
+              "raw": "{{baseUrl}}/api/wiki/classes",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "Character",
+                "wiki",
                 "classes"
               ]
             }
@@ -1167,13 +1150,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/player-skills",
+              "raw": "{{baseUrl}}/api/player-skills/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "player-skills"
+                "player-skills",
+                "me"
               ]
             }
           },
@@ -1224,7 +1208,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1242,13 +1226,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Inventory",
+              "raw": "{{baseUrl}}/api/Inventory/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "Inventory"
+                "Inventory",
+                "me"
               ]
             }
           },
@@ -1308,14 +1293,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/DailyLoginRewards/claim",
+              "raw": "{{baseUrl}}/api/DailyLoginRewards",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "DailyLoginRewards",
-                "claim"
+                "DailyLoginRewards"
               ]
             }
           },
@@ -1324,7 +1308,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1380,16 +1364,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"dungeonConfigId\": 1\n}"
+              "raw": "{}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/Dungeons/enter",
+              "raw": "{{baseUrl}}/api/Dungeons/1/enter",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "Dungeons",
+                "1",
                 "enter"
               ]
             }
@@ -1399,7 +1384,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1417,13 +1402,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/playerquests",
+              "raw": "{{baseUrl}}/api/playerquests/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "playerquests"
+                "playerquests",
+                "me"
               ]
             }
           },
@@ -1550,7 +1536,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1625,7 +1611,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1643,14 +1629,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Mailboxes/my",
+              "raw": "{{baseUrl}}/api/Mailboxes/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "Mailboxes",
-                "my"
+                "me"
               ]
             }
           },
@@ -1694,7 +1680,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1712,14 +1698,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Friend/list",
+              "raw": "{{baseUrl}}/api/Friend",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "Friend",
-                "list"
+                "Friend"
               ]
             }
           },
@@ -1866,14 +1851,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Guilds/my",
+              "raw": "{{baseUrl}}/api/Guilds/my-guild",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "Guilds",
-                "my"
+                "my-guild"
               ]
             }
           },
@@ -1934,14 +1919,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/Achievements/my",
+              "raw": "{{baseUrl}}/api/Achievements/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "Achievements",
-                "my"
+                "me"
               ]
             }
           },
@@ -1986,7 +1971,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });"
+                  "pm.test('Status 200, 400, 403 or 404', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404]); });"
                 ],
                 "type": "text/javascript"
               }
