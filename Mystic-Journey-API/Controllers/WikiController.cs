@@ -88,6 +88,7 @@ namespace Mystic_Journey_API.Controllers
 
 
         [HttpGet("skills")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         // Retrieves public skill directory with damage scalings and element categories.
         public async Task<IActionResult> GetSkills(
             [FromQuery] int page = 1,
@@ -100,6 +101,7 @@ namespace Mystic_Journey_API.Controllers
         }
 
         [HttpGet("skills/{id:int}")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         // Retrieves skill details, cooldown formula, damage multipliers, and area effects.
         public async Task<IActionResult> GetSkillDetail(int id)
         {
