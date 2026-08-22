@@ -258,7 +258,8 @@ namespace BLL.Mappings
             CreateMap<PlayerChest, PlayerChestResponseDto>();
 
 
-            CreateMap<Skill, SkillResponseDto>();
+            CreateMap<Skill, SkillResponseDto>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
             CreateMap<CreateSkillRequestDto, Skill>();
             CreateMap<UpdateSkillRequestDto, Skill>();
 
